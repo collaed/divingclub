@@ -10,6 +10,7 @@
             @if(auth()->check() && auth()->user()->isBureau())
                 <a href="{{ route('events.create') }}" class="btn btn-sm btn-primary">{{ __('New Event') }}</a>
             @endif
+            <a href="{{ route('calendar.ics') }}" class="btn btn-sm btn-outline-secondary" title="{{ __('Subscribe in Google Calendar, Apple Calendar, Outlook...') }}">📅 iCal</a>
         </div>
     </div>
 

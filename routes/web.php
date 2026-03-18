@@ -60,6 +60,7 @@ Route::post('/trial', [\App\Http\Controllers\TrialController::class, 'store'])->
 Route::get('/dues', [DuesCalculatorController::class, 'show'])->name('dues.show');
 Route::post('/dues', [DuesCalculatorController::class, 'calculate'])->name('dues.calculate');
 Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr.sepa.public');
+Route::get('/calendar.ics', [\App\Http\Controllers\CalendarFeedController::class, 'ical'])->name('calendar.ics');
 
 // Guest auth
 Route::middleware('guest')->group(function () {
