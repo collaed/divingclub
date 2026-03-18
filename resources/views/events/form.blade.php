@@ -56,7 +56,12 @@
 
         <div class="mb-3">
             <label class="form-label">{{ __('Location') }}</label>
-            <input type="text" name="location" class="form-control" value="{{ old('location', $event->location) }}" placeholder="{{ __('Address or place name (used for Google Maps link)') }}">
+            <input type="text" name="location" class="form-control" list="location-suggestions" value="{{ old('location', $event->location) }}" placeholder="{{ __('Address or place name (used for Google Maps link)') }}">
+            <datalist id="location-suggestions">
+                @foreach($locationSuggestions ?? [] as $loc)
+                    <option value="{{ $loc }}">
+                @endforeach
+            </datalist>
         </div>
 
         <div class="mb-3">

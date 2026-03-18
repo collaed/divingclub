@@ -53,7 +53,8 @@ class EventController extends Controller
         $seasons = Season::orderByDesc('year')->get();
         $instructors = User::whereHas('role', fn($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
         $diveSites = \App\Models\DiveSite::active()->orderBy('name')->get();
-        return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites]);
+        $locationSuggestions = $this->topLocations();
+        return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites, 'locationSuggestions' => $locationSuggestions]);
     }
 
     public function store(Request $request)
@@ -76,7 +77,8 @@ class EventController extends Controller
         $seasons = Season::orderByDesc('year')->get();
         $instructors = User::whereHas('role', fn($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
         $diveSites = \App\Models\DiveSite::active()->orderBy('name')->get();
-        return view('events.form', compact('event', 'seasons', 'instructors', 'diveSites'));
+        $locationSuggestions = $this->topLocations();
+        return view('events.form', compact('event', 'seasons', 'instructors', 'diveSites', 'locationSuggestions'));
     }
 
     public function update(Request $request, Event $event)
@@ -284,5 +286,13 @@ class EventController extends Controller
         if ($user->isBureau()) return;
         if ($event->instructor_id === $user->id && (!$event->permissions_expire_date || $event->permissions_expire_date->isFuture())) return;
         abort(403);
+    }
+
+    private function topLocations(): array
+    {
+        return Event::selectRaw('location, count(*) as cnt')
+            ->whereNotNull('location')->where('location', '!=', '')
+            ->groupBy('location')->orderByDesc('cnt')
+            ->pluck('location')->all();
     }
 }
