@@ -61,11 +61,12 @@ class EmailController extends Controller
     {
         $request->validate([
             'template_id' => 'required|exists:email_templates,id',
-            'group' => 'required|in:all,active,instructors,bureau,expiring_certs,unpaid',
+            'group' => 'required|in:all,active,instructors,bureau,expiring_certs,unpaid,event',
+            'event_id' => 'nullable|required_if:group,event|exists:events,id',
         ]);
 
         $template = EmailTemplate::findOrFail($request->template_id);
-        $users = $this->resolveGroup($request->group);
+        $users = $this->resolveGroup($request->group, $request->event_id);
         $sourceLocale = $template->locale ?? 'fr';
 
         // Pre-translate subject+body per unique target locale
@@ -143,7 +144,7 @@ class EmailController extends Controller
         ];
     }
 
-    private function resolveGroup(string $group)
+    private function resolveGroup(string $group, ?int $eventId = null)
     {
         return match ($group) {
             'all' => User::with('detail')->whereNotNull('email_verified_at')->get(),
@@ -152,6 +153,7 @@ class EmailController extends Controller
             'bureau' => User::with('detail')->whereHas('role', fn($q) => $q->whereIn('slug', ['bureau_master', 'bureau_finance', 'bureau_technical']))->get(),
             'expiring_certs' => User::with('detail')->whereHas('documents', fn($q) => $q->where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)]))->get(),
             'unpaid' => User::with('detail')->whereHas('paymentsExpected', fn($q) => $q->where('status', 'pending'))->get(),
+            'event' => $eventId ? User::with('detail')->whereHas('eventRegistrations', fn($q) => $q->where('event_id', $eventId)->where('status', 'confirmed'))->get() : collect(),
             default => collect(),
         };
     }

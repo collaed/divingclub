@@ -493,3 +493,116 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 5. Pastes the RSA-signed key into the license field
 6. System verifies signature, club code, and expiry date
 7. Registration unblocked — license valid for 13 months
+
+---
+
+## Journey 26 — Bureau Master Runs the Install Wizard
+
+**Actor:** Technical person deploying a new instance.
+
+1. Deploy code to server (or Wasmer). Visit the site URL.
+2. Automatically redirected to `/install` (EnsureInstalled middleware).
+3. Enter club name, choose database (SQLite for small clubs/Wasmer, MySQL for larger).
+4. If MySQL: enter host, port, database, username, password.
+5. Enter admin email and password.
+6. Click "Install" → migrations run, reference data seeded (39 dive rules, 110+ cert levels, 11 federations), admin account created.
+7. Redirected to homepage. Log in with admin credentials.
+8. Follow Admin Guide → First Steps for post-install configuration.
+
+---
+
+## Journey 27 — Bureau Master Sets Up Inter-Club Partnership
+
+**Actor:** Bureau master of Club A wanting to share events with Club B.
+
+1. Admin → Partnerships → Add Partner.
+2. Enter Club B's name and base URL. System generates Key ID + Secret.
+3. Copy Key ID + Secret, send to Club B's admin (email, Signal, etc.).
+4. Club B does the same, sends their credentials back.
+5. Edit partnership, paste Club B's credentials into "Their credentials".
+6. Both clubs now have bidirectional API access.
+7. Browse Club B's federated events via "Browse Events" button.
+
+---
+
+## Journey 28 — Bureau Master Creates a Federated Event
+
+**Actor:** Bureau master organizing a trip open to partner clubs.
+
+1. Create event as usual (title, date, location, cost, cert requirements).
+2. Check "Federated" checkbox, set "External slots" (e.g., 8).
+3. Save. Event now appears in the federation API.
+4. Partner clubs see it when browsing events.
+5. Partner members register via their club's interface → API call.
+6. Admin → Partnerships → External Registrations: see pending registrations.
+7. Review cert level and medical validity. Approve or reject.
+8. Approved external members appear on the event participant list.
+
+---
+
+## Journey 29 — Member Registers for a Partner Club's Event
+
+**Actor:** Member of Club B wanting to join Club A's trip.
+
+1. Club B admin browses Club A's federated events.
+2. Sees "Gozo Trip Oct 2026" with 3/8 external slots taken.
+3. Member requests to join (via their club admin or future self-service UI).
+4. Club B sends registration to Club A's API with member's name, cert level, medical validity.
+5. Member receives confirmation once Club A approves.
+
+---
+
+## Journey 30 — Admin Emails All Event Participants
+
+**Actor:** Bureau member organizing a dive trip.
+
+1. Admin → Email → select template (e.g., "Trip Update").
+2. Choose group: "Event participants" → select the event from dropdown.
+3. Preview email with variables resolved.
+4. Send → emails queued for all confirmed participants.
+5. Bilingual: if member's preferred locale differs from template locale, translated version appended.
+6. Check email log for delivery status.
+
+---
+
+## Journey 31 — System Auto-Translates Articles
+
+**Actor:** System (scheduled task).
+
+1. Hourly cron runs `schedule:run`.
+2. Task finds oldest published article without translations.
+3. Calls Google Translate free API for each configured locale.
+4. Stores translations in `article_translations` table with `auto_translated = true`.
+5. Next visitor sees translation tabs on the article page.
+6. Admin can manually trigger translations for any article via "Generate translations" button.
+
+---
+
+## Journey 32 — Dive Director Plans a Mixed-Level Dive
+
+**Actor:** Instructor or dive director planning a dive at a quarry.
+
+1. Open Dive Group Planner for the event.
+2. Select participants from the event registration list.
+3. System loads each diver's federation, cert level, and medical status.
+4. System suggests palanquée/buddy groupings based on federation rules:
+   - LIFRAS: P1★ needs P3★+ leader, max 4 P1 per palanquée
+   - FFESSM: PE-20 needs GP-N4+ guide, max 4 per guide
+   - BSAC: Ocean Diver needs Sports Diver+ buddy
+5. Flags medical certificates expiring within 30 days.
+6. Flags divers whose cert level doesn't allow the planned depth.
+7. Director adjusts groups, confirms plan.
+
+---
+
+## Journey 33 — New Club Deploys on Wasmer (Free Tier)
+
+**Actor:** Small club wanting a free hosted instance.
+
+1. Fork the repo, push to Wasmer Edge.
+2. Visit the Wasmer URL → install wizard appears.
+3. Choose SQLite (only option on Wasmer — no MySQL available).
+4. Set club name, admin credentials.
+5. Install completes. DB is ~2 MB, well within 100 MB free tier.
+6. Configure theme, upload logo, set federation preferences.
+7. Invite members. Club operational.
