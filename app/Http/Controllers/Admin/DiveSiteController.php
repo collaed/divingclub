@@ -70,6 +70,7 @@ class DiveSiteController extends Controller
             'safety_notes' => 'nullable|string',
             'access_notes' => 'nullable|string',
             'facilities' => 'nullable|string',
+            'food_options' => 'nullable|string',
             'nearest_hospital' => 'nullable|string',
             'website_url' => 'nullable|url|max:500',
             'entry_fee' => 'nullable|numeric|min:0',

@@ -170,6 +170,12 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Classifieds (any member can post)
     Route::get('/classifieds', [ClassifiedController::class, 'index'])->name('classifieds.index');
+
+    // Looking for Buddies
+    Route::get('/buddies', [\App\Http\Controllers\BuddyController::class, 'index'])->name('buddies.index');
+    Route::post('/buddies', [\App\Http\Controllers\BuddyController::class, 'store'])->name('buddies.store');
+    Route::post('/buddies/{buddyRequest}/respond', [\App\Http\Controllers\BuddyController::class, 'respond'])->name('buddies.respond');
+    Route::post('/buddies/{buddyRequest}/close', [\App\Http\Controllers\BuddyController::class, 'close'])->name('buddies.close');
     Route::get('/classifieds/create', [ClassifiedController::class, 'create'])->name('classifieds.create');
     Route::post('/classifieds', [ClassifiedController::class, 'store'])->name('classifieds.store');
     Route::get('/classifieds/{article}/edit', [ClassifiedController::class, 'edit'])->name('classifieds.edit');

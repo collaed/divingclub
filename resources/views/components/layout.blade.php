@@ -93,6 +93,9 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('classifieds.*') ? 'active fw-bold' : '' }}" href="{{ route('classifieds.index') }}">🏷️ {{ __('Classifieds') }}</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('buddies.*') ? 'active fw-bold' : '' }}" href="{{ route('buddies.index') }}">🤝 {{ __('Buddies') }}</a>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('article.*') || request()->routeIs('documents.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Info') }}</a>
                             <ul class="dropdown-menu">

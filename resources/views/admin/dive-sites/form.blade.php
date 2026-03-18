@@ -64,6 +64,10 @@
                         <textarea name="facilities" class="form-control" rows="2">{{ old('facilities', $site->facilities) }}</textarea>
                     </div>
                     <div class="col-md-6">
+                        <label class="form-label">🍽️ {{ __('Food & Drink Nearby') }}</label>
+                        <textarea name="food_options" class="form-control" rows="2" placeholder="{{ __('Restaurants, cafés, snack bars near the site…') }}">{{ old('food_options', $site->food_options) }}</textarea>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label">🏥 {{ __('Nearest Hospital') }}</label>
                         <textarea name="nearest_hospital" class="form-control" rows="2">{{ old('nearest_hospital', $site->nearest_hospital) }}</textarea>
                     </div>

@@ -50,32 +50,56 @@
                                     @if($event->diveSite->water_type)<tr><th style="width:120px">{{ __('Type') }}</th><td>{{ ucfirst($event->diveSite->water_type) }}</td></tr>@endif
                                     @if($event->diveSite->max_depth)<tr><th>{{ __('Max Depth') }}</th><td>{{ $event->diveSite->max_depth }}m</td></tr>@endif
                                     @if($event->diveSite->country)<tr><th>{{ __('Location') }}</th><td>{{ $event->diveSite->region }}{{ $event->diveSite->region && $event->diveSite->country ? ', ' : '' }}{{ $event->diveSite->country }}</td></tr>@endif
+                                    @if($event->diveSite->entry_fee)<tr><th>{{ __('Entry Fee') }}</th><td>€{{ number_format($event->diveSite->entry_fee, 2) }} <span class="text-muted small">({{ __('indicative') }})</span></td></tr>@endif
                                 </table>
                                 @if($event->diveSite->conditions)<p class="small mb-1"><strong>{{ __('Conditions') }}:</strong> {{ $event->diveSite->conditions }}</p>@endif
                                 @if($event->diveSite->marine_life)<p class="small mb-1"><strong>{{ __('Marine Life') }}:</strong> {{ $event->diveSite->marine_life }}</p>@endif
                                 @if($event->diveSite->safety_notes)<p class="small mb-1 text-danger"><strong>{{ __('Safety') }}:</strong> {{ $event->diveSite->safety_notes }}</p>@endif
                                 @if($event->diveSite->access_notes)<p class="small mb-1"><strong>{{ __('Access') }}:</strong> {{ $event->diveSite->access_notes }}</p>@endif
                                 @if($event->diveSite->facilities)<p class="small mb-1"><strong>{{ __('Facilities') }}:</strong> {{ $event->diveSite->facilities }}</p>@endif
+                                @if($event->diveSite->food_options)<p class="small mb-1"><strong>🍽️ {{ __('Food & Drink') }}:</strong> {{ $event->diveSite->food_options }}</p>@endif
                                 @if($event->diveSite->nearest_hospital)<p class="small mb-0 text-danger"><strong>🏥 {{ __('Nearest Hospital') }}:</strong> {{ $event->diveSite->nearest_hospital }}</p>@endif
                                 <div class="mt-1 d-flex gap-2 flex-wrap">
                                     @if($event->diveSite->website_url)<a href="{{ $event->diveSite->website_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">🌐 {{ __('Website') }}</a>@endif
                                     @if($event->diveSite->booking_url)<a href="{{ $event->diveSite->booking_url }}" target="_blank" class="btn btn-sm btn-outline-primary">📅 {{ __('Book') }}</a>@endif
                                     @if($event->diveSite->site_plan_path)<a href="{{ asset('storage/' . $event->diveSite->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-info">📄 {{ __('Site Plan') }}</a>@endif
-                                    @if($event->diveSite->entry_fee)<span class="btn btn-sm btn-outline-success disabled">💰 €{{ number_format($event->diveSite->entry_fee, 2) }}</span>@endif
                                 </div>
                             </div>
-                            {{-- Map image --}}
-                            @if($event->diveSite->map_image_path || ($event->diveSite->latitude && $event->diveSite->longitude))
+                            {{-- Map + Weather --}}
+                            @if($event->diveSite->latitude && $event->diveSite->longitude)
                                 <div class="col-md-4 mb-2">
                                     <a href="{{ $event->diveSite->mapsUrl() }}" target="_blank" title="{{ __('Click for exact location') }}">
                                         @if($event->diveSite->map_image_path)
-                                            <img src="{{ asset('storage/' . $event->diveSite->map_image_path) }}" class="img-fluid rounded border" alt="{{ __('Map') }}" style="cursor:pointer">
+                                            <img src="{{ asset('storage/' . $event->diveSite->map_image_path) }}" class="img-fluid rounded border" alt="{{ __('Map') }}">
                                         @endif
                                         <div class="text-center mt-1">
                                             <span class="btn btn-sm btn-outline-primary">📍 {{ __('View on Map') }}</span>
                                         </div>
                                     </a>
+                                    {{-- Weather widget --}}
+                                    <div class="card mt-2" id="weather-widget">
+                                        <div class="card-body py-2 text-center small">
+                                            <strong>🌤️ {{ __('Weather Forecast') }}</strong>
+                                            <div id="weather-data" class="mt-1 text-muted">{{ __('Loading…') }}</div>
+                                        </div>
+                                    </div>
                                 </div>
+                                <script>
+                                fetch('https://api.open-meteo.com/v1/forecast?latitude={{ $event->diveSite->latitude }}&longitude={{ $event->diveSite->longitude }}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode&timezone=Europe/Luxembourg&forecast_days=7')
+                                    .then(r => r.json()).then(d => {
+                                        if (!d.daily) return;
+                                        const icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'};
+                                        let html = '<table class="table table-sm mb-0" style="font-size:0.75rem"><tbody>';
+                                        for (let i = 0; i < Math.min(5, d.daily.time.length); i++) {
+                                            const dt = new Date(d.daily.time[i]);
+                                            const day = dt.toLocaleDateString('{{ app()->getLocale() }}', {weekday:'short',day:'numeric'});
+                                            const wc = d.daily.weathercode[i];
+                                            html += '<tr><td>' + day + '</td><td>' + (icons[wc]||'🌡️') + '</td><td>' + d.daily.temperature_2m_min[i] + '—' + d.daily.temperature_2m_max[i] + '°C</td><td>💨' + d.daily.windspeed_10m_max[i] + 'km/h</td></tr>';
+                                        }
+                                        html += '</tbody></table>';
+                                        document.getElementById('weather-data').innerHTML = html;
+                                    }).catch(() => { document.getElementById('weather-data').textContent = '{{ __("Weather unavailable") }}'; });
+                                </script>
                             @endif
                         </div>
                     @endif
