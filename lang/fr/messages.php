@@ -808,4 +808,10 @@ return array (
   'Level colors' => 'Couleurs par niveau',
   'All assigned' => 'Tous assignés',
   'Validate All Groups' => 'Valider toutes les palanquées',
+  'Our Warehouse' => 'Notre Local',
+  'Entry Fee' => 'Tarif d\'entrée',
+  'Booking URL' => 'URL de réservation',
+  'Site Plan' => 'Plan du site',
+  'View current plan' => 'Voir le plan actuel',
+  'Book' => 'Réserver',
 );

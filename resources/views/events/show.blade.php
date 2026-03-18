@@ -57,6 +57,12 @@
                                 @if($event->diveSite->access_notes)<p class="small mb-1"><strong>{{ __('Access') }}:</strong> {{ $event->diveSite->access_notes }}</p>@endif
                                 @if($event->diveSite->facilities)<p class="small mb-1"><strong>{{ __('Facilities') }}:</strong> {{ $event->diveSite->facilities }}</p>@endif
                                 @if($event->diveSite->nearest_hospital)<p class="small mb-0 text-danger"><strong>🏥 {{ __('Nearest Hospital') }}:</strong> {{ $event->diveSite->nearest_hospital }}</p>@endif
+                                <div class="mt-1 d-flex gap-2 flex-wrap">
+                                    @if($event->diveSite->website_url)<a href="{{ $event->diveSite->website_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">🌐 {{ __('Website') }}</a>@endif
+                                    @if($event->diveSite->booking_url)<a href="{{ $event->diveSite->booking_url }}" target="_blank" class="btn btn-sm btn-outline-primary">📅 {{ __('Book') }}</a>@endif
+                                    @if($event->diveSite->site_plan_path)<a href="{{ asset('storage/' . $event->diveSite->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-info">📄 {{ __('Site Plan') }}</a>@endif
+                                    @if($event->diveSite->entry_fee)<span class="btn btn-sm btn-outline-success disabled">💰 €{{ number_format($event->diveSite->entry_fee, 2) }}</span>@endif
+                                </div>
                             </div>
                             {{-- Map image --}}
                             @if($event->diveSite->map_image_path || ($event->diveSite->latitude && $event->diveSite->longitude))

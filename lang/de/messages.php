@@ -808,4 +808,10 @@ return array (
   'Level colors' => 'Level colors',
   'All assigned' => 'All assigned',
   'Validate All Groups' => 'Validate All Groups',
+  'Our Warehouse' => 'Our Warehouse',
+  'Entry Fee' => 'Entry Fee',
+  'Booking URL' => 'Booking URL',
+  'Site Plan' => 'Site Plan',
+  'View current plan' => 'View current plan',
+  'Book' => 'Book',
 );

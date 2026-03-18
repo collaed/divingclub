@@ -82,7 +82,7 @@
                             <li><a class="dropdown-item" href="{{ url('/article/bureau') }}">👥 {{ __('The Bureau') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/instructors') }}">🎓 {{ __('Our Instructors') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/member-figures') }}">📊 {{ __('Our Members') }}</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url('/article/local') }}">🏠 {{ __('Our Warehouse') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/contact-info') }}">📬 {{ __('Contact & Social') }}</a></li>
                         </ul>
                     </li>

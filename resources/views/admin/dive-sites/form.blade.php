@@ -72,18 +72,34 @@
                         <input type="url" name="website_url" class="form-control" value="{{ old('website_url', $site->website_url) }}">
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-3">
+                        <label class="form-label">{{ __('Entry Fee') }} (€)</label>
+                        <input type="number" name="entry_fee" class="form-control" value="{{ old('entry_fee', $site->entry_fee) }}" step="0.01" min="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">{{ __('Booking URL') }}</label>
+                        <input type="url" name="booking_url" class="form-control" value="{{ old('booking_url', $site->booking_url) }}">
+                    </div>
+
+                    <div class="col-md-4">
                         <label class="form-label">{{ __('Site Image') }}</label>
                         <input type="file" name="image" class="form-control" accept="image/*">
                         @if($site->image_path)
                             <img src="{{ asset('storage/' . $site->image_path) }}" class="mt-2 rounded" style="max-height:100px">
                         @endif
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label">{{ __('Map Image') }}</label>
                         <input type="file" name="map_image" class="form-control" accept="image/*">
                         @if($site->map_image_path)
                             <img src="{{ asset('storage/' . $site->map_image_path) }}" class="mt-2 rounded" style="max-height:100px">
+                        @endif
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">{{ __('Site Plan') }} (PDF/image)</label>
+                        <input type="file" name="site_plan" class="form-control" accept="image/*,.pdf">
+                        @if($site->site_plan_path)
+                            <a href="{{ asset('storage/' . $site->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">📄 {{ __('View current plan') }}</a>
                         @endif
                     </div>
                     <div class="col-md-6 d-flex align-items-end">

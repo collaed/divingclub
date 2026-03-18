@@ -23,12 +23,9 @@ class DiveSiteController extends Controller
     public function store(Request $request)
     {
         $data = $this->validate($request);
-        if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('dive-sites', 'public');
-        }
-        if ($request->hasFile('map_image')) {
-            $data['map_image_path'] = $request->file('map_image')->store('dive-sites', 'public');
-        }
+        if ($request->hasFile('image')) $data['image_path'] = $request->file('image')->store('dive-sites', 'public');
+        if ($request->hasFile('map_image')) $data['map_image_path'] = $request->file('map_image')->store('dive-sites', 'public');
+        if ($request->hasFile('site_plan')) $data['site_plan_path'] = $request->file('site_plan')->store('dive-sites', 'public');
         DiveSite::create($data);
         return redirect()->route('admin.dive-sites.index')->with('success', __('Dive site created.'));
     }
@@ -41,13 +38,11 @@ class DiveSiteController extends Controller
     public function update(Request $request, DiveSite $diveSite)
     {
         $data = $this->validate($request);
-        if ($request->hasFile('image')) {
-            if ($diveSite->image_path) Storage::disk('public')->delete($diveSite->image_path);
-            $data['image_path'] = $request->file('image')->store('dive-sites', 'public');
-        }
-        if ($request->hasFile('map_image')) {
-            if ($diveSite->map_image_path) Storage::disk('public')->delete($diveSite->map_image_path);
-            $data['map_image_path'] = $request->file('map_image')->store('dive-sites', 'public');
+        foreach (['image' => 'image_path', 'map_image' => 'map_image_path', 'site_plan' => 'site_plan_path'] as $field => $col) {
+            if ($request->hasFile($field)) {
+                if ($diveSite->$col) Storage::disk('public')->delete($diveSite->$col);
+                $data[$col] = $request->file($field)->store('dive-sites', 'public');
+            }
         }
         $diveSite->update($data);
         return redirect()->route('admin.dive-sites.index')->with('success', __('Dive site updated.'));
@@ -77,8 +72,11 @@ class DiveSiteController extends Controller
             'facilities' => 'nullable|string',
             'nearest_hospital' => 'nullable|string',
             'website_url' => 'nullable|url|max:500',
+            'entry_fee' => 'nullable|numeric|min:0',
+            'booking_url' => 'nullable|url|max:500',
             'image' => 'nullable|image|max:5120',
             'map_image' => 'nullable|image|max:5120',
+            'site_plan' => 'nullable|file|mimes:jpg,jpeg,png,gif,svg,pdf|max:10240',
             'is_active' => 'boolean',
         ]);
     }
