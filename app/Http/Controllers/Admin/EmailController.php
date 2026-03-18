@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EmailLog;
 use App\Models\EmailTemplate;
 use App\Models\User;
+use App\Services\ArticleTranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -65,11 +66,36 @@ class EmailController extends Controller
 
         $template = EmailTemplate::findOrFail($request->template_id);
         $users = $this->resolveGroup($request->group);
+        $sourceLocale = $template->locale ?? 'fr';
 
+        // Pre-translate subject+body per unique target locale
+        $translations = []; // locale => ['subject' => ..., 'body' => ...]
+        $translator = app(ArticleTranslationService::class);
+        $locales = $users->pluck('preferred_locale')->filter()->unique()->reject(fn($l) => $l === $sourceLocale);
+
+        foreach ($locales as $locale) {
+            $translations[$locale] = [
+                'subject' => $translator->translateText($template->subject, $sourceLocale, $locale) ?? $template->subject,
+                'body' => $translator->translateText($template->body, $sourceLocale, $locale) ?? $template->body,
+            ];
+        }
+
+        // Batch by locale for efficient sending
         $sent = 0;
         foreach ($users as $user) {
             $rendered = $this->renderTemplate($template, $user);
-            // Queue email
+            $userLocale = $user->preferred_locale;
+
+            // Append translated version if user has a different preferred language
+            if ($userLocale && $userLocale !== $sourceLocale && isset($translations[$userLocale])) {
+                $t = $translations[$userLocale];
+                $tRendered = $this->renderVars(
+                    ['subject' => $t['subject'], 'body' => $t['body']],
+                    $user
+                );
+                $rendered['body'] .= "\n\n--- " . strtoupper($userLocale) . " ---\n\n" . $tRendered['body'];
+            }
+
             EmailLog::create([
                 'user_id' => $user->id,
                 'to_email' => $user->primary_email,
@@ -99,6 +125,11 @@ class EmailController extends Controller
 
     private function renderTemplate(EmailTemplate $template, User $user): array
     {
+        return $this->renderVars(['subject' => $template->subject, 'body' => $template->body], $user);
+    }
+
+    private function renderVars(array $texts, User $user): array
+    {
         $vars = [
             '{{first_name}}' => $user->detail?->first_name ?? '',
             '{{last_name}}' => $user->detail?->last_name ?? '',
@@ -107,8 +138,8 @@ class EmailController extends Controller
             '{{club_name}}' => \App\Models\ThemeSetting::get('club_full_name', 'Diving Club'),
         ];
         return [
-            'subject' => str_replace(array_keys($vars), array_values($vars), $template->subject),
-            'body' => str_replace(array_keys($vars), array_values($vars), $template->body),
+            'subject' => str_replace(array_keys($vars), array_values($vars), $texts['subject']),
+            'body' => str_replace(array_keys($vars), array_values($vars), $texts['body']),
         ];
     }
 

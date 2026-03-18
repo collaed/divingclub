@@ -39,16 +39,22 @@ class CepMemberSeeder extends Seeder
         $created = 0;
 
         foreach ($members as $m) {
+            // Skip inactive/blocked members
+            if (($m['status'] ?? '') === 'inactif') continue;
+
             if (User::where('primary_email', $m['email'])->exists()) {
                 continue;
             }
+
+            $statusSlug = $m['status'] ?? 'actif';
+            if (!isset($statusMap[$statusSlug])) $statusSlug = 'actif';
 
             $user = User::create([
                 'username' => $m['username'],
                 'primary_email' => $m['email'],
                 'password' => $password,
                 'role_id' => $roleMap[$m['role']] ?? $roleMap['member'],
-                'status_id' => $statusMap[$m['status']] ?? $statusMap['actif'],
+                'status_id' => $statusMap[$statusSlug],
                 'email_verified_at' => now(),
             ]);
 

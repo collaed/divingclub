@@ -39,6 +39,14 @@ class ArticleTranslationService
         }
     }
 
+    /**
+     * Translate arbitrary text (used by email system).
+     */
+    public function translateText(string $text, string $from, string $to): ?string
+    {
+        return $this->googleTranslate($text, $from, $to);
+    }
+
     protected function googleTranslate(string $text, string $from, string $to): ?string
     {
         if (empty(trim(strip_tags($text)))) return $text;
