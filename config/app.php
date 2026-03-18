@@ -84,6 +84,8 @@ return [
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
+    'cron_key' => env('CRON_KEY', 'change-me'),
+
     /*
     |--------------------------------------------------------------------------
     | Encryption Key

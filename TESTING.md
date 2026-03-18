@@ -276,8 +276,36 @@ php artisan test
 # Run critical paths only
 php artisan test --filter=CriticalPathsTest
 
-# Current: 16 tests, 28 assertions
+# Current: 18 tests, 30 assertions
 ```
+
+## 6. Scheduled Tasks (Web Cron for Shared Hosting)
+
+If your host doesn't provide cron access, use the built-in web cron endpoint:
+
+### Setup
+1. Set `CRON_KEY=your-random-secret` in `.env`
+2. Sign up at [cron-job.org](https://cron-job.org) (free)
+3. Create a job: `GET https://yoursite.com/cron/run?key=your-random-secret` every 15 minutes
+
+### Test it
+```bash
+curl "http://localhost:8000/cron/run?key=your-secret"
+# Expected: OK 2026-03-18 15:00:00
+
+curl "http://localhost:8000/cron/run?key=wrong"
+# Expected: 403 Forbidden
+```
+
+### What runs on schedule
+| Task | Frequency | What it does |
+|------|-----------|-------------|
+| Medical reminders | Daily 08:00 | Emails members with expiring certificates |
+| Vote auto-open/close | Every minute* | Opens/closes votes at scheduled times |
+| Article auto-translation | Hourly | Translates one untranslated article |
+| Weekly backup | Sunday 03:00 | Database backup |
+
+*With 15-minute cron-job.org interval, votes may open/close up to 15 minutes late. Acceptable for club use.
 
 ## 6. Performance Testing
 

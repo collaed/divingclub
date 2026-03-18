@@ -366,6 +366,13 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 // Offline page for PWA
 Route::get('/offline', fn() => view('offline'))->name('offline');
 
+// Web-based cron trigger for shared hosting (use with cron-job.org)
+Route::get('/cron/run', function (\Illuminate\Http\Request $request) {
+    abort_unless($request->query('key') === config('app.cron_key'), 403);
+    \Illuminate\Support\Facades\Artisan::call('schedule:run');
+    return response('OK ' . now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
+})->name('cron.run');
+
 // Public voting (token-based, no login required)
 Route::get('/vote/{token}', [VotePublicController::class, 'show'])->name('vote.show');
 Route::post('/vote/{token}', [VotePublicController::class, 'cast'])->name('vote.cast');
