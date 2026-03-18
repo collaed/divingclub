@@ -25,7 +25,7 @@ if ($argc < 4) {
 $keyFile = $argv[1];
 $domain = $argv[2];
 $maxMembers = (int) $argv[3];
-$expires = $argv[4] ?? date('Y-12-31', strtotime('+2 years'));
+$expires = $argv[4] ?? date('Y-m-d', strtotime('+13 months'));
 
 if (!file_exists($keyFile)) {
     echo "Error: Private key file not found: {$keyFile}\n";
