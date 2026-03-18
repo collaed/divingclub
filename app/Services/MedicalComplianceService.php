@@ -42,6 +42,17 @@ class MedicalComplianceService
         $minMonths = $rules->min('validity_months');
         $expiryDate = $issueDate->copy()->addMonths($minMonths);
 
+        // LIFRAS calendar-based rule (MIL 2026 §1.5.1):
+        // Jan 1 - Aug 31 of year N → valid until Jan 31 of N+1
+        // Sep 1 - Dec 31 of year N → valid until Jan 31 of N+2
+        $lifrasId = 2; // LIFRAS federation_id
+        if ($rules->contains('federation_id', $lifrasId)) {
+            $year = $issueDate->year;
+            $expiryDate = $issueDate->month >= 9
+                ? Carbon::create($year + 2, 1, 31)
+                : Carbon::create($year + 1, 1, 31);
+        }
+
         $document->update([
             'expiry_date' => $expiryDate,
             'is_compliant' => $expiryDate->isFuture(),

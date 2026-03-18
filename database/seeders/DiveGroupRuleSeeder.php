@@ -35,29 +35,31 @@ class DiveGroupRuleSeeder extends Seeder
             // === FFESSM-specific ===
             ['name' => 'FFESSM PE40 supervised ≤40m — E1+ initiateur', 'scope' => 'FFESSM', 'diver_condition' => 'max_rank:25', 'dive_mode' => 'supervised', 'min_leader_rank' => 100, 'leader_category' => 'instructor', 'max_depth' => 40, 'max_group_size' => 4, 'description' => 'FFESSM: PE20 divers in 20-40m zone need at least an Initiateur (E1)'],
 
-            // === LIFRAS/Belgian-specific (2020 rules: "Qui plonge avec qui?") ===
-            // P1★ supervised
-            ['name' => 'LIFRAS P1★ supervised ≤15m — P3★+ leader', 'scope' => 'LIFRAS', 'diver_condition' => 'P1', 'dive_mode' => 'supervised', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 15, 'max_group_size' => 4, 'description' => 'P1★ can dive to 15m max with a P3★ or P4★ as dive leader.'],
-            ['name' => 'LIFRAS P1★ supervised ≤20m — AM+ leader', 'scope' => 'LIFRAS', 'diver_condition' => 'P1', 'dive_mode' => 'supervised', 'min_leader_rank' => 90, 'leader_category' => 'instructor', 'max_depth' => 20, 'max_group_size' => 4, 'description' => 'P1★ can dive to 20m max with an Assistant Moniteur or higher as leader.'],
+            // === LIFRAS/Belgian-specific (MIL 2026 §1.7.1 "Qui plonge avec qui?") ===
+            // NB (non-breveté) - Plongée Découverte only
+            ['name' => 'LIFRAS NB — Plongée Découverte ≤15m with AM+', 'scope' => 'LIFRAS', 'diver_condition' => 'NB', 'dive_mode' => 'supervised', 'min_leader_rank' => 90, 'leader_category' => 'instructor', 'max_depth' => 15, 'max_group_size' => 2, 'description' => 'Non-breveté: Plongée Découverte only, max 15m, with AM or higher. MIL 2026 §1.7.2.'],
+
+            // P1★ supervised (always needs P3★+ or AM+, max 4 P1 per palanquée)
+            ['name' => 'LIFRAS P1★ with P3★ ≤20m', 'scope' => 'LIFRAS', 'diver_condition' => 'P1', 'dive_mode' => 'supervised', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 20, 'max_group_size' => 4, 'description' => 'P1★ can dive to 20m with P3★ or higher as leader. Max 4 P1★ per palanquée, leader must maintain physical contact. MIL 2026 §1.7.3.'],
+            ['name' => 'LIFRAS P1★ with AM+ ≤20m', 'scope' => 'LIFRAS', 'diver_condition' => 'P1', 'dive_mode' => 'supervised', 'min_leader_rank' => 90, 'leader_category' => 'instructor', 'max_depth' => 20, 'max_group_size' => 4, 'description' => 'P1★ can dive to 20m with AM or higher. No-deco dives only.'],
+
+            // P2★ autonomous (2020 rule, 18+ only)
+            ['name' => 'LIFRAS P2★+P2★ autonomous ≤20m (18+ only)', 'scope' => 'LIFRAS', 'diver_condition' => 'P2+P2', 'dive_mode' => 'autonomous', 'min_leader_rank' => 40, 'leader_category' => 'diver', 'max_depth' => 20, 'max_group_size' => 3, 'description' => 'Two P2★ (18+) can dive autonomously to 20m. Rule since 01/01/2020.'],
 
             // P2★ supervised
-            ['name' => 'LIFRAS P2★ supervised ≤30m — P3★+ leader', 'scope' => 'LIFRAS', 'diver_condition' => 'P2', 'dive_mode' => 'supervised', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 30, 'max_group_size' => 4, 'description' => 'P2★ can dive to 30m max with a P3★ or P4★ as dive leader.'],
-            ['name' => 'LIFRAS P2★ supervised ≤40m — AM+ leader', 'scope' => 'LIFRAS', 'diver_condition' => 'P2', 'dive_mode' => 'supervised', 'min_leader_rank' => 90, 'leader_category' => 'instructor', 'max_depth' => 40, 'max_group_size' => 4, 'description' => 'P2★ can dive to 40m max with an Assistant Moniteur or higher as leader.'],
-
-            // P2★ autonomous (2020 rule)
-            ['name' => 'LIFRAS P2★+P2★ autonomous ≤20m', 'scope' => 'LIFRAS', 'diver_condition' => 'P2+P2', 'dive_mode' => 'autonomous', 'min_leader_rank' => 40, 'leader_category' => 'diver', 'max_depth' => 20, 'max_group_size' => 3, 'description' => 'Two P2★ divers (or higher) can dive autonomously to 20m. Rule since 01/01/2020.'],
+            ['name' => 'LIFRAS P2★ with P3★ ≤30m', 'scope' => 'LIFRAS', 'diver_condition' => 'P2', 'dive_mode' => 'supervised', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 30, 'max_group_size' => 4, 'description' => 'P2★ can dive to 30m with P3★ as leader.'],
+            ['name' => 'LIFRAS P2★ with P4★/AM+ ≤40m', 'scope' => 'LIFRAS', 'diver_condition' => 'P2', 'dive_mode' => 'supervised', 'min_leader_rank' => 70, 'leader_category' => 'diver', 'max_depth' => 40, 'max_group_size' => 4, 'description' => 'P2★ can dive to 40m with P4★, AM, or higher as leader.'],
 
             // P3★ autonomous
-            ['name' => 'LIFRAS P3★+P2★ autonomous ≤30m', 'scope' => 'LIFRAS', 'diver_condition' => 'P2+P3', 'dive_mode' => 'autonomous', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 30, 'max_group_size' => 3, 'description' => 'P3★ leading a P2★ can dive autonomously to 30m.'],
-            ['name' => 'LIFRAS P3★+P3★ autonomous ≤40m', 'scope' => 'LIFRAS', 'diver_condition' => 'P3+P3', 'dive_mode' => 'autonomous', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 40, 'max_group_size' => 3, 'description' => 'Two P3★ divers (or higher) can dive autonomously to 40m.'],
+            ['name' => 'LIFRAS P3★+P2★ autonomous ≤30m', 'scope' => 'LIFRAS', 'diver_condition' => 'P3+P2', 'dive_mode' => 'autonomous', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 30, 'max_group_size' => 3, 'description' => 'P3★ with P2★ buddy: autonomous to 30m.'],
+            ['name' => 'LIFRAS P3★+P3★ autonomous ≤40m', 'scope' => 'LIFRAS', 'diver_condition' => 'P3+P3', 'dive_mode' => 'autonomous', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 40, 'max_group_size' => 3, 'description' => 'Two P3★ or higher: autonomous to 40m.'],
 
-            // P4★ as chef de palanquée
-            ['name' => 'LIFRAS P4★ leading P1★ ≤15m', 'scope' => 'LIFRAS', 'diver_condition' => 'P1', 'dive_mode' => 'supervised', 'min_leader_rank' => 70, 'leader_category' => 'diver', 'max_depth' => 15, 'max_group_size' => 4, 'description' => 'P4★ (Chef de Palanquée) can lead P1★ divers to 15m.'],
-            ['name' => 'LIFRAS P4★ leading P2★ ≤40m', 'scope' => 'LIFRAS', 'diver_condition' => 'P2', 'dive_mode' => 'supervised', 'min_leader_rank' => 70, 'leader_category' => 'diver', 'max_depth' => 40, 'max_group_size' => 4, 'description' => 'P4★ (Chef de Palanquée) can lead P2★ divers to 40m.'],
+            // P4★ beyond 40m (with recommendations)
+            ['name' => 'LIFRAS P4★+P4★ autonomous >40m', 'scope' => 'LIFRAS', 'diver_condition' => 'P4+P4', 'dive_mode' => 'autonomous', 'min_leader_rank' => 70, 'leader_category' => 'diver', 'max_depth' => 60, 'max_group_size' => 3, 'description' => 'P4★ divers may exceed 40m. Recommended max 40m in lakes/quarries, 60m on air. MIL 2026 §1.7.4.'],
 
             // Training dives (LIFRAS-specific)
-            ['name' => 'LIFRAS P1★ formation (1-2) — MC+ required', 'scope' => 'LIFRAS', 'diver_condition' => 'P1_training', 'dive_mode' => 'training', 'min_leader_rank' => 100, 'leader_category' => 'instructor', 'max_depth' => 20, 'max_group_size' => 4, 'description' => 'First 2 formation dives for P1★ require Moniteur Club (M1★) minimum.'],
-            ['name' => 'LIFRAS P1★ formation (3-5) — AM+ required', 'scope' => 'LIFRAS', 'diver_condition' => 'P1_training', 'dive_mode' => 'training', 'min_leader_rank' => 90, 'leader_category' => 'instructor', 'max_depth' => 20, 'max_group_size' => 4, 'description' => 'Formation dives 3-5 for P1★ require Assistant Moniteur (AM) minimum.'],
+            ['name' => 'LIFRAS formation dives 1-2 — MC+ required', 'scope' => 'LIFRAS', 'diver_condition' => 'training_1_2', 'dive_mode' => 'training', 'min_leader_rank' => 100, 'leader_category' => 'instructor', 'max_depth' => 20, 'max_group_size' => 4, 'description' => 'First 2 open water formation dives require Moniteur Club (MC/M1★) minimum.'],
+            ['name' => 'LIFRAS formation dives 3-5 — AM+ required', 'scope' => 'LIFRAS', 'diver_condition' => 'training_3_5', 'dive_mode' => 'training', 'min_leader_rank' => 90, 'leader_category' => 'instructor', 'max_depth' => 20, 'max_group_size' => 4, 'description' => 'Formation dives 3-5 require Assistant Moniteur (AM) minimum.'],
 
             // === PADI-specific ===
             ['name' => 'PADI OWD supervised ≤18m — DM or instructor', 'scope' => 'PADI', 'diver_condition' => 'max_rank:25', 'dive_mode' => 'supervised', 'min_leader_rank' => 60, 'leader_category' => 'diver', 'max_depth' => 18, 'max_group_size' => 4, 'description' => 'PADI OWD divers need a Divemaster or Instructor, max 18m'],
