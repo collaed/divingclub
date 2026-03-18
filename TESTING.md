@@ -145,88 +145,127 @@ services:
 ## 4. Feature Testing Checklist
 
 ### Authentication & Roles
-- [ ] Register new member → email verification
-- [ ] Login/logout
-- [ ] Password reset flow
-- [ ] Role-based access: member vs instructor vs bureau_master
-- [ ] Social login (Google/Facebook) if configured
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Register with email/password | Verification email sent (check Mailpit/log). Redirect to "verify email" page |
+| 2 | Click verification link | Redirect to profile. Flash "Email verified" |
+| 3 | Login with valid credentials | Redirect to home. Nav shows member menu |
+| 4 | Login with wrong password | "Invalid credentials" error. No redirect |
+| 5 | Password reset | Email with reset link. New password works |
+| 6 | Access /admin as member | 403 Forbidden |
+| 7 | Access /admin as bureau_master | Admin dashboard loads with stats |
+| 8 | Social login (Google) | Redirect to Google, back to profile on success |
 
 ### Member Management
-- [ ] Admin creates member manually
-- [ ] Member edits profile (name, phone, emergency contact)
-- [ ] Cotisation years checkboxes (current year shows unpaid badge if unchecked)
-- [ ] Medical certificate upload + expiry tracking
-- [ ] Certification level assignment
-- [ ] Member directory (visible to logged-in members)
-- [ ] GDPR data export/deletion
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Admin creates member manually | User appears in member list. Email sent with temp password |
+| 2 | Member edits profile | Changes saved. Flash "Profile updated" |
+| 3 | Toggle cotisation year checkbox | Year badge appears/disappears. Unpaid badge shows if current year unchecked |
+| 4 | Upload medical certificate | File stored. Status shows "Not verified". Expiry calculated |
+| 5 | Bureau verifies medical cert | Status changes to "Verified". Green badge |
+| 6 | Assign certification level | Level appears on diving tab. Dive planner uses it |
+| 7 | GDPR data export | JSON file downloads with all personal data |
+| 8 | GDPR data deletion | Account anonymized. Personal fields cleared |
 
 ### Events & Calendar
-- [ ] Create season with weekly patterns
-- [ ] Generate events from season
-- [ ] Event registration (confirm/waitlist)
-- [ ] Event check-in/check-out
-- [ ] Email all event participants (Admin → Email → group "event")
-- [ ] Federated event (mark as federated, set external slots)
-- [ ] WhatsApp group link on event
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Create season + patterns | Season appears in list. Patterns shown |
+| 2 | Generate events | Events created (count matches non-holiday dates). Flash "X events created" |
+| 3 | Register for event | Status "Confirmed". Participant count increments |
+| 4 | Register when event full | Status "Waitlisted". Position shown |
+| 5 | Cancel registration | Status removed. If waitlist exists, next person auto-promoted |
+| 6 | Check-in at event | Timestamp recorded. Badge shows "Present" |
+| 7 | Email event participants | Emails sent to all confirmed registrants (verify in Mailpit) |
+| 8 | Mark event as federated | `is_federated=true`. Appears in `/api/federation/events` |
 
 ### Dive Planning
-- [ ] Dive group planner validates rules per federation
-- [ ] 39 rules across 5 federations (global, FFESSM, LIFRAS, PADI, BSAC)
-- [ ] Medical compliance check (LIFRAS calendar-based expiry)
-- [ ] Instructor availability calendar
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Plan dive with PE-20 diver, no guide | Error: "PE-20 requires GP-N4+ guide" |
+| 2 | Plan dive with PE-20 + GP-N4 guide | Valid group. Max depth 20m shown |
+| 3 | Plan dive with PA-20 diver age 15 | Error: "PA-12/PA-20 autonomous requires minimum age 16" |
+| 4 | Plan dive with expired medical | Warning: "Medical certificate expired for [name]" |
+| 5 | LIFRAS P1★ with P3★ leader | Valid. Max depth 20m |
+| 6 | BSAC Ocean Diver alone | Error: "Ocean Diver requires Sports Diver+ buddy" |
+| 7 | Mixed federation group | Rules applied per diver's federation. Most restrictive depth wins |
 
 ### Payments
-- [ ] Fee calculation with age discounts
-- [ ] Fee components (base + insurance + double affiliation)
-- [ ] Bank statement import (CAMT.053)
-- [ ] Payment reconciliation
-- [ ] Unpaid member badge
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Calculate fee for "actif" member | Base fee × multiplier + add-ons. Amount shown |
+| 2 | Generate payment | Payment record created with unique communication string |
+| 3 | Import CAMT.053 bank statement | Transactions parsed. Matched count shown |
+| 4 | Auto-match transaction | Communication string matched. Status "Matched" |
+| 5 | Confirm match | Payment marked "Paid". Member's unpaid badge removed |
 
 ### Articles & CMS
-- [ ] Create article (news, newsletter, video, safety doc)
-- [ ] Translation tabs on article view
-- [ ] Auto-translation (hourly scheduled task or admin button)
-- [ ] User's preferred locale auto-selects correct tab
-- [ ] Homepage excludes articles with sort_order < 0
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Create news article | Article appears on homepage with blue "News" badge |
+| 2 | View article with translations | Tabs shown: Original + translated languages |
+| 3 | Click "Generate translations" | Spinner, then tabs populated. 🤖 indicator on auto-translated |
+| 4 | Hourly auto-translation runs | Oldest untranslated article gets translations. Check `article_translations` table |
+| 5 | User with preferred_locale=ro | Romanian tab auto-selected on article view |
+| 6 | Article with sort_order < 0 | Does NOT appear on homepage |
 
 ### Email System
-- [ ] Create email template with variables ({{first_name}}, {{club_name}})
-- [ ] Send to group (all, active, instructors, bureau, event participants)
-- [ ] Bilingual email (original + translated version appended)
-- [ ] Email log with status tracking
-- [ ] Verify with Mailpit/log driver
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Send email with {{first_name}} | Variable replaced with actual name in each email |
+| 2 | Send to "all active" group | One email per active member. Count shown in log |
+| 3 | Send to "event" group | Only confirmed registrants of selected event receive email |
+| 4 | Bilingual email (FR→DE member) | Email body has French original + German translation below separator |
+| 5 | Check send log | Each email shows: recipient, subject, status (sent/failed), timestamp |
 
 ### Equipment
-- [ ] Equipment inventory CRUD
-- [ ] Maintenance rules (service intervals)
-- [ ] Equipment reservation per event
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Create equipment item | Item in inventory with serial number |
+| 2 | Loan to member | Loan record created. Item shows "On loan to [name]" |
+| 3 | Return equipment | Loan end date set. Item available again |
+| 4 | Maintenance overdue | Warning badge on item. Admin notification |
 
 ### Voting
-- [ ] Create vote (single choice, multiple choice, ranked)
-- [ ] Token-based voting (no login required)
-- [ ] Auto-open/close by schedule
-- [ ] Results display
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Create poll (multi-select, public) | Vote page shows options with checkboxes |
+| 2 | Vote via token link | Selections saved. Results shown (if public) |
+| 3 | Update vote | Previous selections replaced. Results updated |
+| 4 | Election mode: vote | "Irreversible" warning. After submit, cannot change |
+| 5 | Election mode: revisit | "You have already voted" message. No results shown |
+| 6 | Auto-close by schedule | Vote status changes to "closed" at deadline |
 
 ### Multi-Club & Theming
-- [ ] Theme presets (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic)
-- [ ] Custom colors and logo upload
-- [ ] Club name in header/footer/emails
-- [ ] License system (RSA-SHA256)
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Select "Coral" theme preset | Colors change across all pages. Logo area updated |
+| 2 | Upload custom logo | Logo appears in header, footer, favicon, emails |
+| 3 | Change club name | Name updated in header, footer, emails, QR codes |
+| 4 | Paste license key | "License valid until [date]" shown. Member limit raised |
 
 ### Inter-Club Federation
-- [ ] Create partnership with key exchange
-- [ ] Browse partner's federated events
-- [ ] External registration via API
-- [ ] Approve/reject external registrations
-- [ ] Cancel external registration
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Create partnership | Key ID (dc_xxxxx) + 64-char secret generated |
+| 2 | `GET /api/federation/events` with valid headers | JSON array of federated events |
+| 3 | `GET /api/federation/events` with wrong secret | 401 Unauthorized |
+| 4 | `POST /api/federation/register` | External registration created. Status "pending" |
+| 5 | Approve external registration | Status → "approved". Appears on event participant list |
+| 6 | Reject external registration | Status → "rejected". Slot freed |
+| 7 | Register when external_slots full | 422 "No external slots available" |
 
 ### Install Wizard
-- [ ] Fresh install redirects to /install
-- [ ] SQLite option creates database.sqlite
-- [ ] MySQL option validates connection before proceeding
-- [ ] Migrations + seeds run successfully
-- [ ] Admin account created and functional
-- [ ] /install inaccessible after installation
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Visit fresh instance | Auto-redirect to `/install` |
+| 2 | Choose SQLite, submit | `.env` created. `database.sqlite` created. Migrations run |
+| 3 | Choose MySQL with wrong credentials | Error: "Could not connect to database" |
+| 4 | Choose MySQL with valid credentials | `.env` created. Migrations run on MySQL |
+| 5 | Admin account created | Can login with provided email/password. Has bureau_master role |
+| 6 | Visit `/install` after setup | Redirect to homepage (already installed) |
+| 7 | Reference data seeded | 39 dive rules, 110+ cert levels, 11 federations present |
 
 ## 5. Automated Tests
 
@@ -266,3 +305,38 @@ ab -n 50 -c 5 http://localhost:8000/events
 | Backup | Copy single file | mysqldump |
 | Wasmer compatible | ✅ | ❌ |
 | Suitable for | 1-500 members | 500+ members |
+
+## 8. FFESSM Code du Sport Age Requirements (Art. A322-88/89)
+
+These age limits are enforced by the dive group planner:
+
+| Competence | Min Age | Article | Notes |
+|------------|---------|---------|-------|
+| PE-12 | 12 | — | Supervised, no autonomy |
+| PA-12 | 16 | A322-88 | Autonomous ≤12m |
+| PA-20 | 16 | A322-88 | Autonomous ≤20m |
+| PA-40 | 17 | A322-88 | Autonomous ≤40m |
+| PA-60 | 18 | A322-89 | Autonomous ≤60m, requires federation cert |
+
+Source: English translation of Code du Sport from [Gravière du Fort](https://gravieredufort.fr/w/documents-utiles) (updated 07/2025).
+
+## 9. Reference Documents
+
+### Official Sources Used for Rule Implementation
+| Document | Source | Used For |
+|----------|--------|----------|
+| Code du Sport (Art. A322-71 to A322-101) | [legifrance.gouv.fr](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006071318/LEGISCTA000018751673/) | FFESSM PE/PA depth zones, age limits, DP requirement |
+| Code du Sport English translation | [gravieredufort.fr/w/documents-utiles](https://gravieredufort.fr/w/documents-utiles) | Cross-reference for FFESSM rules |
+| MIL 2026 (Manuel d'Instruction LIFRAS) | LIFRAS federation PDF | LIFRAS palanquée table §1.7.1, medical rules §1.5.1 |
+| BSAC Safe Diving Guide | [bsac.com](https://www.bsac.com) | Depth limits, buddy requirements, Dive Manager rules |
+| BSAC Equivalent Qualifications | bsac.com crossover chart | Federation equivalencies |
+| Scuba crossover table | [scubatravel.co.uk](https://www.scubatravel.co.uk) | Multi-agency depth comparison |
+| FFESSM MFT (Manuel de Formation Technique) | FFESSM federation PDF | GP-N4 exam curriculum |
+
+### Gravière du Fort Documents (gravieredufort.fr)
+The Gravière du Fort site (powered by VPDive) provides practical templates:
+- **Fiche de Sécurité** — Standard FFESSM safety sheet template (palanquée log with diver names, levels, gas, planned/actual parameters, DP instructions). Our dive group planner could generate this format.
+- **Plan de Secours** — Emergency plan template (SAMU 15 protocol, O2 administration, victim handoff). Useful reference for clubs creating their own emergency plans.
+- **Consignes de Sécurité** — Site-specific safety rules.
+- **Bathymétrie** — Site bathymetry map. Our dive sites feature could store similar maps.
+- **Règlement Intérieur** — Internal rules template for dive sites.

@@ -413,6 +413,14 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 23 | Bureau | Trigger article auto-translation to all languages |
 | 24 | Bureau Master | Configure club identity (multi-club) |
 | 25 | Bureau Master | Manage license key |
+| 26 | Bureau Master | /install wizard → DB choice → admin setup |
+| 27 | Bureau Master | Partnerships → Add Partner → key exchange |
+| 28 | Bureau Master | Event → Federated checkbox → external slots |
+| 29 | Member (external) | Partner admin → Browse Events → register via API |
+| 30 | Bureau | Email → group "event" → select event → send |
+| 31 | System (cron) | schedule:run → auto-translate oldest article |
+| 32 | Dive Director | Dive Group Planner → mixed-level palanquée |
+| 33 | Small club admin | Wasmer deploy → /install → SQLite → operational |
 
 ---
 
