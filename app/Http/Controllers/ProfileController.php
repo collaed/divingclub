@@ -123,7 +123,8 @@ class ProfileController extends Controller
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
             $rules['adhesion_year'] = 'nullable|integer|min:1900|max:' . date('Y');
-            $rules['cotisation_years'] = 'nullable|string';
+            $rules['cotisation_years'] = 'nullable|array';
+            $rules['cotisation_years.*'] = 'integer|min:1900|max:' . (date('Y') + 1);
         }
 
         $validated = $request->validate($rules);
@@ -150,7 +151,7 @@ class ProfileController extends Controller
                 $detailData['active_instructor'] = $validated['active_instructor'] ?? false;
                 $detailData['adhesion_year'] = $validated['adhesion_year'] ?? null;
                 if (isset($validated['cotisation_years'])) {
-                    $detailData['cotisation_years'] = array_map('trim', explode(',', $validated['cotisation_years']));
+                    $detailData['cotisation_years'] = array_map('strval', $validated['cotisation_years']);
                 }
             }
 

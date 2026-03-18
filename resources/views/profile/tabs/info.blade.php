@@ -77,10 +77,22 @@
                 <input type="number" name="adhesion_year" class="form-control @error('adhesion_year') is-invalid @enderror" value="{{ old('adhesion_year', $d?->adhesion_year) }}">
                 @error('adhesion_year') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-8 mb-3">
                 <label class="form-label">{{ __('Cotisation Years') }}</label>
-                <input type="text" name="cotisation_years" class="form-control @error('cotisation_years') is-invalid @enderror" value="{{ old('cotisation_years', $d?->cotisation_years ? implode(', ', $d->cotisation_years) : '') }}" placeholder="2023, 2024, 2025">
-                @error('cotisation_years') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @php
+                    $startY = max((int)($d?->adhesion_year ?? date('Y') - 5), date('Y') - 10);
+                    $endY = (int)date('Y') + 1;
+                    $paid = $d?->cotisation_years ?? [];
+                @endphp
+                <div class="d-flex flex-wrap gap-2">
+                    @for($y = $endY; $y >= $startY; $y--)
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="cotisation_years[]" value="{{ $y }}" id="cot_{{ $y }}" {{ in_array((string)$y, $paid) ? 'checked' : '' }}>
+                            <label class="form-check-label small" for="cot_{{ $y }}">{{ $y }}</label>
+                        </div>
+                    @endfor
+                </div>
+                @error('cotisation_years') <div class="text-danger small">{{ $message }}</div> @enderror
             </div>
         </div>
         <div class="row">
@@ -104,7 +116,11 @@
         <div class="row mt-3">
             <div class="col-md-4"><strong>{{ __('Status') }}:</strong> {{ $target->status?->name ?? '—' }}</div>
             <div class="col-md-4"><strong>{{ __('Adhesion Year') }}:</strong> {{ $d?->adhesion_year ?? '—' }}</div>
-            <div class="col-md-4"><strong>{{ __('Cotisation Years') }}:</strong> {{ $d?->cotisation_years ? implode(', ', $d->cotisation_years) : '—' }}</div>
+            <div class="col-md-4"><strong>{{ __('Cotisation Years') }}:</strong> {{ $d?->cotisation_years ? implode(', ', $d->cotisation_years) : '—' }}
+                @if($d?->cotisation_years && !in_array((string)date('Y'), $d->cotisation_years))
+                    <span class="badge bg-danger ms-1">{{ date('Y') }} ✗</span>
+                @endif
+            </div>
         </div>
     @endif
 
