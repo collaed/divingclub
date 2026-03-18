@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Vote;
+use App\Models\VoteBallot;
+use App\Models\VoteOption;
+use App\Models\VoteToken;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class VoteController extends Controller
+{
+    public function index()
+    {
+        $votes = Vote::withCount(['tokens', 'ballots'])->orderByDesc('created_at')->get();
+        return view('admin.votes.index', compact('votes'));
+    }
+
+    public function create()
+    {
+        return view('admin.votes.form', ['vote' => new Vote]);
+    }
+
+    public function store(Request $request)
+    {
+        $v = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'mode' => 'required|in:simple,election',
+            'opens_at' => 'nullable|date',
+            'closes_at' => 'nullable|date|after_or_equal:opens_at',
+            'options' => 'required|array|min:2',
+            'options.*' => 'required|string|max:255',
+        ]);
+
+        $vote = Vote::create([
+            'title' => $v['title'],
+            'description' => $v['description'],
+            'mode' => $v['mode'],
+            'allow_multiple' => $request->boolean('allow_multiple'),
+            'allow_change' => $request->boolean('allow_change'),
+            'is_public' => $request->boolean('is_public'),
+            'opens_at' => $v['opens_at'],
+            'closes_at' => $v['closes_at'],
+            'created_by' => auth()->id(),
+        ]);
+
+        foreach ($v['options'] as $i => $label) {
+            VoteOption::create(['vote_id' => $vote->id, 'label' => $label, 'sort_order' => $i]);
+        }
+
+        return redirect()->route('admin.votes.show', $vote)->with('success', __('Vote created.'));
+    }
+
+    public function show(Vote $vote)
+    {
+        $vote->load(['options.ballots', 'tokens']);
+        $results = $vote->options->map(fn($o) => ['label' => $o->label, 'count' => $o->ballots->count()]);
+        return view('admin.votes.show', compact('vote', 'results'));
+    }
+
+    public function generateTokens(Vote $vote)
+    {
+        $users = User::whereNotNull('email_verified_at')->get();
+        $created = 0;
+
+        foreach ($users as $user) {
+            if (!$vote->tokens()->where('user_id', $user->id)->exists()) {
+                VoteToken::create([
+                    'vote_id' => $vote->id,
+                    'user_id' => $user->id,
+                    'token' => Str::random(128),
+                ]);
+                $created++;
+            }
+        }
+
+        return back()->with('success', __(':count tokens generated.', ['count' => $created]));
+    }
+
+    public function open(Vote $vote)
+    {
+        $vote->update(['status' => 'open']);
+        return back()->with('success', __('Vote opened.'));
+    }
+
+    public function close(Vote $vote)
+    {
+        $vote->update(['status' => 'closed']);
+        return back()->with('success', __('Vote closed.'));
+    }
+
+    public function cancel(Vote $vote)
+    {
+        $vote->update(['status' => 'cancelled']);
+        return back()->with('success', __('Vote cancelled.'));
+    }
+}

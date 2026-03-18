@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Vote extends Model
+{
+    protected $guarded = ['id'];
+
+    protected function casts(): array
+    {
+        return [
+            'opens_at' => 'datetime',
+            'closes_at' => 'datetime',
+            'allow_multiple' => 'boolean',
+            'allow_change' => 'boolean',
+            'is_public' => 'boolean',
+        ];
+    }
+
+    public function options() { return $this->hasMany(VoteOption::class); }
+    public function tokens() { return $this->hasMany(VoteToken::class); }
+    public function ballots() { return $this->hasMany(VoteBallot::class); }
+    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+
+    public function isOpen(): bool
+    {
+        return $this->status === 'open'
+            && (!$this->opens_at || $this->opens_at->isPast())
+            && (!$this->closes_at || $this->closes_at->isFuture());
+    }
+}
