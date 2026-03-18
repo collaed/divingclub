@@ -79,7 +79,7 @@ class CepMemberSeeder extends Seeder
                 'instructor_bio' => $m['instructor_bio'] ?? null,
                 'instructor_specialties' => $m['instructor_specialties'] ?? null,
                 'nationality' => $m['country'] ?? null,
-                'cotisation_years' => $m['cotisation_years'] ?? null,
+                'cotisation_years' => $this->parseCotisationYears($m['cotisation_years'] ?? null),
             ]);
 
             // Licence
@@ -109,5 +109,16 @@ class CepMemberSeeder extends Seeder
         }
 
         $this->command->info("Created {$created} CEP members (password: cep2026!)");
+    }
+
+    private function parseCotisationYears(?string $raw): ?array
+    {
+        if (!$raw) return null;
+        $years = [];
+        foreach (preg_split('/[-,\s]+/', str_replace('->', '-', $raw)) as $y) {
+            $y = trim($y);
+            if (is_numeric($y) && strlen($y) === 4) $years[] = $y;
+        }
+        return $years ?: null;
     }
 }
