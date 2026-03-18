@@ -59,12 +59,31 @@
                         <label class="form-label">{{ __('Access Notes') }}</label>
                         <textarea name="access_notes" class="form-control" rows="3">{{ old('access_notes', $site->access_notes) }}</textarea>
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ __('Facilities') }}</label>
+                        <textarea name="facilities" class="form-control" rows="2">{{ old('facilities', $site->facilities) }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">🏥 {{ __('Nearest Hospital') }}</label>
+                        <textarea name="nearest_hospital" class="form-control" rows="2">{{ old('nearest_hospital', $site->nearest_hospital) }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ __('Website') }}</label>
+                        <input type="url" name="website_url" class="form-control" value="{{ old('website_url', $site->website_url) }}">
+                    </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">{{ __('Image') }}</label>
+                        <label class="form-label">{{ __('Site Image') }}</label>
                         <input type="file" name="image" class="form-control" accept="image/*">
                         @if($site->image_path)
                             <img src="{{ asset('storage/' . $site->image_path) }}" class="mt-2 rounded" style="max-height:100px">
+                        @endif
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ __('Map Image') }}</label>
+                        <input type="file" name="map_image" class="form-control" accept="image/*">
+                        @if($site->map_image_path)
+                            <img src="{{ asset('storage/' . $site->map_image_path) }}" class="mt-2 rounded" style="max-height:100px">
                         @endif
                     </div>
                     <div class="col-md-6 d-flex align-items-end">

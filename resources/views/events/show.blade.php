@@ -45,7 +45,7 @@
                                     <img src="{{ asset('storage/' . $event->diveSite->image_path) }}" class="img-fluid rounded" alt="{{ $event->diveSite->name }}">
                                 </div>
                             @endif
-                            <div class="{{ $event->diveSite->image_path ? 'col-md-8' : 'col-12' }}">
+                            <div class="{{ $event->diveSite->image_path ? 'col-md-4' : 'col-md-8' }}">
                                 <table class="table table-sm table-borderless mb-0">
                                     @if($event->diveSite->water_type)<tr><th style="width:120px">{{ __('Type') }}</th><td>{{ ucfirst($event->diveSite->water_type) }}</td></tr>@endif
                                     @if($event->diveSite->max_depth)<tr><th>{{ __('Max Depth') }}</th><td>{{ $event->diveSite->max_depth }}m</td></tr>@endif
@@ -54,11 +54,23 @@
                                 @if($event->diveSite->conditions)<p class="small mb-1"><strong>{{ __('Conditions') }}:</strong> {{ $event->diveSite->conditions }}</p>@endif
                                 @if($event->diveSite->marine_life)<p class="small mb-1"><strong>{{ __('Marine Life') }}:</strong> {{ $event->diveSite->marine_life }}</p>@endif
                                 @if($event->diveSite->safety_notes)<p class="small mb-1 text-danger"><strong>{{ __('Safety') }}:</strong> {{ $event->diveSite->safety_notes }}</p>@endif
-                                @if($event->diveSite->access_notes)<p class="small mb-0"><strong>{{ __('Access') }}:</strong> {{ $event->diveSite->access_notes }}</p>@endif
-                                @if($event->diveSite->latitude && $event->diveSite->longitude)
-                                    <a href="{{ $event->diveSite->mapsUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">📍 {{ __('View on Map') }}</a>
-                                @endif
+                                @if($event->diveSite->access_notes)<p class="small mb-1"><strong>{{ __('Access') }}:</strong> {{ $event->diveSite->access_notes }}</p>@endif
+                                @if($event->diveSite->facilities)<p class="small mb-1"><strong>{{ __('Facilities') }}:</strong> {{ $event->diveSite->facilities }}</p>@endif
+                                @if($event->diveSite->nearest_hospital)<p class="small mb-0 text-danger"><strong>🏥 {{ __('Nearest Hospital') }}:</strong> {{ $event->diveSite->nearest_hospital }}</p>@endif
                             </div>
+                            {{-- Map image --}}
+                            @if($event->diveSite->map_image_path || ($event->diveSite->latitude && $event->diveSite->longitude))
+                                <div class="col-md-4 mb-2">
+                                    <a href="{{ $event->diveSite->mapsUrl() }}" target="_blank" title="{{ __('Click for exact location') }}">
+                                        @if($event->diveSite->map_image_path)
+                                            <img src="{{ asset('storage/' . $event->diveSite->map_image_path) }}" class="img-fluid rounded border" alt="{{ __('Map') }}" style="cursor:pointer">
+                                        @endif
+                                        <div class="text-center mt-1">
+                                            <span class="btn btn-sm btn-outline-primary">📍 {{ __('View on Map') }}</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                     @endif
 

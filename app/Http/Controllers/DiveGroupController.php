@@ -12,7 +12,8 @@ class DiveGroupController extends Controller
 {
     public function index(Event $event)
     {
-        $event->load(['diveGroups.members.user.certificationLevels', 'registrations.user.certificationLevels']);
+        abort_unless($this->canView($event), 403);
+        $event->load(['diveGroups.members.user.certificationLevels.federation', 'diveGroups.members.user.detail', 'registrations.user.certificationLevels.federation', 'registrations.user.detail']);
         $rules = DiveGroupRule::active()->orderBy('scope')->orderBy('min_leader_rank')->get();
 
         // Participants not yet assigned to any group
@@ -32,6 +33,7 @@ class DiveGroupController extends Controller
             'dive_mode' => 'required|in:supervised,autonomous,training,certification',
             'planned_depth' => 'nullable|integer|min:1|max:300',
             'notes' => 'nullable|string|max:500',
+            'purpose' => 'nullable|string|max:50',
         ]);
 
         $group = DiveGroup::create([
@@ -39,6 +41,7 @@ class DiveGroupController extends Controller
             'name' => $request->name ?: __('Group') . ' ' . ($event->diveGroups()->count() + 1),
             'dive_mode' => $request->dive_mode,
             'planned_depth' => $request->planned_depth,
+            'purpose' => $request->purpose,
             'notes' => $request->notes,
             'created_by' => auth()->id(),
         ]);
@@ -188,5 +191,13 @@ class DiveGroupController extends Controller
     {
         $user = auth()->user();
         return $user->isBureau() || $event->instructor_id === $user->id || in_array($user->id, $event->assistant_ids ?? []);
+    }
+
+    private function canView(Event $event): bool
+    {
+        $user = auth()->user();
+        if ($this->canManage($event)) return true;
+        // Instructors can always view dive groups
+        return $user->hasAnyRole(['instructor']);
     }
 }

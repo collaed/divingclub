@@ -26,6 +26,9 @@ class DiveSiteController extends Controller
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('dive-sites', 'public');
         }
+        if ($request->hasFile('map_image')) {
+            $data['map_image_path'] = $request->file('map_image')->store('dive-sites', 'public');
+        }
         DiveSite::create($data);
         return redirect()->route('admin.dive-sites.index')->with('success', __('Dive site created.'));
     }
@@ -41,6 +44,10 @@ class DiveSiteController extends Controller
         if ($request->hasFile('image')) {
             if ($diveSite->image_path) Storage::disk('public')->delete($diveSite->image_path);
             $data['image_path'] = $request->file('image')->store('dive-sites', 'public');
+        }
+        if ($request->hasFile('map_image')) {
+            if ($diveSite->map_image_path) Storage::disk('public')->delete($diveSite->map_image_path);
+            $data['map_image_path'] = $request->file('map_image')->store('dive-sites', 'public');
         }
         $diveSite->update($data);
         return redirect()->route('admin.dive-sites.index')->with('success', __('Dive site updated.'));
@@ -67,7 +74,11 @@ class DiveSiteController extends Controller
             'marine_life' => 'nullable|string',
             'safety_notes' => 'nullable|string',
             'access_notes' => 'nullable|string',
+            'facilities' => 'nullable|string',
+            'nearest_hospital' => 'nullable|string',
+            'website_url' => 'nullable|url|max:500',
             'image' => 'nullable|image|max:5120',
+            'map_image' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
         ]);
     }
