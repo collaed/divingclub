@@ -1,8 +1,13 @@
 @extends('admin.guide.partials.guide-layout')
 @section('content')
-<p>After deploying DivingClub, follow these steps to get the system production-ready.</p>
+<p>After deploying DivingClub, the <strong>install wizard</strong> will appear automatically on first visit. It lets you choose:</p>
+<ul>
+    <li><strong>SQLite</strong> — zero config, single file, ideal for small clubs &amp; Wasmer/cloud deployments (100 MB free tier)</li>
+    <li><strong>MySQL / MariaDB</strong> — for larger multi-club deployments</li>
+</ul>
+<p>The wizard creates the database, runs migrations, seeds reference data (federations, certification levels, dive rules), and creates your admin account.</p>
 
-<h5>1. Configure Environment Variables</h5>
+<h5>1. Post-Install: Configure Environment Variables</h5>
 <p>Edit <code>.env</code> on the server:</p>
 <pre class="bg-light p-3 rounded"><code>APP_ENV=production
 APP_DEBUG=false

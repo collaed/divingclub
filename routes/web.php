@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\InstallController;
 use App\Http\Controllers\Admin\AnnualReportController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuditLogController;
@@ -45,6 +46,10 @@ Route::get('/locale/{locale}', function (string $locale) {
     }
     return back();
 })->name('locale.switch');
+
+// Install wizard (only accessible when DB is empty)
+Route::get('/install', [InstallController::class, 'index'])->name('install.index');
+Route::post('/install', [InstallController::class, 'run'])->name('install.run');
 
 // Public
 Route::get('/', [HomeController::class, 'index'])->name('home');
