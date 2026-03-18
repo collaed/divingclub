@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Powered by DivingClub-Manager — https://github.com/collaed/divingclub -->
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
@@ -7,7 +8,9 @@
     <meta name="theme-color" content="{{ $theme['primary_color'] ?? '#003366' }}">
     <title>{{ $title ?? ($theme['club_full_name'] ?? 'DivingClub') }}</title>
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico" sizes="32x32">
+    <link rel="icon" href="/images/club-logo.png" type="image/png">
+    <meta name="generator" content="DivingClub-Manager/1.0">
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
     <style>{!! $themeCSS ?? '' !!}
     .dc-header{background:linear-gradient(135deg,var(--dc-header-start) 0%,var(--dc-primary) 40%,var(--dc-header-end) 100%) !important}
@@ -35,8 +38,9 @@
         </div>
         <div class="container position-relative" style="z-index:1">
             <div class="d-flex justify-content-between align-items-center">
-                <a href="/" class="dc-brand text-decoration-none">
-                    {{ $theme['logo_emoji'] ?? '🤿' }} <span class="dc-brand-accent">{{ $theme['logo_accent_text'] ?? 'Diving' }}</span>{{ $theme['logo_plain_text'] ?? 'Club' }}
+                <a href="/" class="dc-brand text-decoration-none d-flex align-items-center gap-2">
+                    <img src="/images/club-logo.png" alt="" height="36" class="d-inline-block">
+                    <span><span class="dc-brand-accent">{{ $theme['logo_accent_text'] ?? 'Diving' }}</span>{{ $theme['logo_plain_text'] ?? 'Club' }}</span>
                 </a>
                 <div class="text-white d-flex align-items-center gap-3">
                     {{-- Language selector --}}
@@ -211,8 +215,8 @@
     {{-- Footer --}}
     <footer class="dc-footer py-4 mt-auto">
         <div class="container text-center">
-            <p class="mb-1">{{ $theme['logo_emoji'] ?? '🤿' }} {{ $theme['club_full_name'] ?? 'DivingClub' }} — {{ __('Diving Club Management System') }}</p>
-            <p class="mb-0 small opacity-75">© {{ date('Y') }} — {{ __('Powered by Laravel') }}</p>
+            <p class="mb-1"><img src="/images/club-logo.png" alt="" height="20" class="me-1">{{ $theme['club_full_name'] ?? 'DivingClub' }} — {{ __('Diving Club Management System') }}</p>
+            <p class="mb-0 small opacity-75">© {{ date('Y') }} — {{ __('Powered by') }} <a href="https://github.com/collaed/divingclub" class="text-white" target="_blank">DivingClub-Manager</a></p>
         </div>
     </footer>
 </body>

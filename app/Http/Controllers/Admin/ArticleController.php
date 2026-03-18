@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\ArticleImage;
 use App\Models\Vote;
+use App\Services\ArticleTranslationService;
 use HTMLPurifier;
 use HTMLPurifier_Config;
 use Illuminate\Http\Request;
@@ -129,5 +130,13 @@ class ArticleController extends Controller
                 'sort_order' => ++$maxSort,
             ]);
         }
+    }
+
+    public function translate(Request $request, Article $article)
+    {
+        $locales = config('app.available_locales', ['en','fr','de','lb','pt','it','es','nl','ro','hu','sk']);
+        $source = $request->input('source_locale', 'fr');
+        (new ArticleTranslationService)->translateAll($article, $locales, $source);
+        return back()->with('success', __('Translations generated for :count languages.', ['count' => count($locales) - 1]));
     }
 }

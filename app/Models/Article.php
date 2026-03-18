@@ -96,6 +96,26 @@ class Article extends Model
         return $this->hasMany(ArticleComment::class);
     }
 
+    public function translations()
+    {
+        return $this->hasMany(ArticleTranslation::class);
+    }
+
+    /**
+     * Get translated title/body for a locale, falling back to original.
+     */
+    public function translated(?string $locale = null): array
+    {
+        $locale = $locale ?? app()->getLocale();
+        $t = $this->translations->firstWhere('locale', $locale);
+        return [
+            'title' => $t?->title ?? $this->title,
+            'body'  => $t?->body ?? $this->body,
+            'locale' => $t ? $locale : null,
+            'auto'  => $t?->auto_translated ?? false,
+        ];
+    }
+
     public function rootComments()
     {
         return $this->hasMany(ArticleComment::class)->whereNull('parent_id')->orderBy('created_at');

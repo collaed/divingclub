@@ -407,3 +407,89 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 17 | Bureau | Votes → Election → Tokens → Results |
 | 18 | Bureau | Equipment → Loan → Maintenance |
 | 19 | Bureau Master | Full setup: deploy → configure → content → season → members |
+| 20 | Anonymous visitor | Free Trial request |
+| 21 | Instructor | Availability calendar — mark/unmark weekly slots |
+| 22 | Member | Read article in preferred language via translation tabs |
+| 23 | Bureau | Trigger article auto-translation to all languages |
+| 24 | Bureau Master | Configure club identity (multi-club) |
+| 25 | Bureau Master | Manage license key |
+
+---
+
+## Journey 20 — Visitor Requests a Free Trial
+
+**Actor:** Someone interested in trying diving.
+
+1. Navigates to `/trial` (linked from welcome page)
+2. Fills in: name, email, phone, preferred date, message
+3. Submits — honeypot CAPTCHA validates silently
+4. Sees confirmation message
+5. Admin sees the request in Administration → Trial Requests
+6. Admin contacts the visitor to schedule the trial
+
+---
+
+## Journey 21 — Instructor Manages Availability
+
+**Actor:** Active instructor.
+
+1. Clicks **Availability** in the nav bar
+2. Sees weekly calendar grid (current month, Mon–Sun columns)
+3. Clicks **+** on a date cell → picks activity type (e.g., Pool, Apnea, Theory)
+4. Their initials appear as a colored badge on that date
+5. Sees other instructors' initials already on the calendar
+6. Clicks their own initial to remove availability
+7. Events from the event calendar appear as grey badges for context
+
+---
+
+## Journey 22 — Member Reads Translated Article
+
+**Actor:** Romanian member who prefers reading in Romanian.
+
+1. Has set preferred language to Romanian via language selector
+2. Opens an article → sees tabbed interface
+3. Romanian tab is auto-selected (if translation exists)
+4. Can click "Original" tab to read the French source
+5. Can click any other language tab to compare
+6. Auto-translated content shows a 🤖 indicator
+
+---
+
+## Journey 23 — Admin Translates an Article
+
+**Actor:** Bureau member publishing a new article.
+
+1. Creates article in French (the club's primary language)
+2. Publishes it
+3. Views the article → clicks "🌐 Generate translations"
+4. System auto-translates to all 10 other languages via Google Translate
+5. Translations stored in database — instant display for all members
+6. Can manually edit any translation later if needed
+
+---
+
+## Journey 24 — Bureau Master Configures Club Identity
+
+**Actor:** Admin setting up the system for a new club.
+
+1. Goes to Administration → Settings → Club Identity
+2. Fills in: club name, short code, email, address, phone, country
+3. Sets warehouse address and GPS coordinates
+4. Enters IBAN and BIC for payment references
+5. All pages, emails, QR codes, and exports now use the new identity
+6. No code changes needed
+
+---
+
+## Journey 25 — Bureau Master Manages License
+
+**Actor:** Admin of a club that has grown past 100 members.
+
+1. Tries to register member #101 → blocked by license check
+2. Goes to Administration → Settings → License
+3. Sees current status: "Free tier (100 members max)"
+4. Obtains a license key from the project maintainer
+5. Pastes the RSA-signed key into the license field
+6. System verifies signature, club code, and expiry date
+7. Registration unblocked — license valid for 13 months

@@ -33,7 +33,47 @@
                 @endif
                 <h2>{{ $article->title }}</h2>
                 <p class="text-muted small">{{ $article->created_at->format('d/m/Y') }} — {{ $article->author?->name }}</p>
-                <div class="article-body">{!! $article->renderedBody() !!}</div>
+
+                {{-- Translation tabs --}}
+                @php
+                    $currentLocale = app()->getLocale();
+                    $t = $article->translated($currentLocale);
+                    $hasTranslations = !empty($translatedLocales ?? []);
+                    $allLocales = array_unique(array_merge(['original'], $translatedLocales ?? []));
+                @endphp
+                @if($hasTranslations)
+                    <ul class="nav nav-tabs nav-tabs-sm mb-3" role="tablist" style="font-size:.85rem">
+                        <li class="nav-item">
+                            <button class="nav-link {{ !in_array($currentLocale, $translatedLocales ?? []) ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-original">🇫🇷 Original</button>
+                        </li>
+                        @foreach($translatedLocales as $loc)
+                            <li class="nav-item">
+                                <button class="nav-link {{ $loc === $currentLocale ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-{{ $loc }}">{{ strtoupper($loc) }}</button>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane {{ !in_array($currentLocale, $translatedLocales ?? []) ? 'show active' : '' }}" id="tab-original">
+                            <div class="article-body">{!! $article->renderedBody() !!}</div>
+                        </div>
+                        @foreach($article->translations as $tr)
+                            <div class="tab-pane {{ $tr->locale === $currentLocale ? 'show active' : '' }}" id="tab-{{ $tr->locale }}">
+                                @if($tr->auto_translated) <small class="text-muted fst-italic mb-2 d-block">🤖 {{ __('Auto-translated') }}</small> @endif
+                                <div class="article-body">{!! (new \App\Models\Article(['body' => $tr->body]))->renderedBody() !!}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="article-body">{!! $article->renderedBody() !!}</div>
+                @endif
+
+                {{-- Admin: trigger translation --}}
+                @if(auth()->user()?->isBureauMaster())
+                    <form method="POST" action="{{ route('admin.articles.translate', $article) }}" class="mt-2">
+                        @csrf
+                        <button class="btn btn-sm btn-outline-secondary">🌐 {{ __('Generate translations') }}</button>
+                    </form>
+                @endif
 
                 {{-- Dynamic instructor profiles --}}
                 @if(isset($instructors) && $instructors->count())

@@ -418,3 +418,69 @@ Each page has prev/next navigation and a sidebar table of contents.
 | Daily 08:00 | Medical certificate expiry reminders (30/15/7/0 days) |
 | Every minute | Vote auto-open/close |
 | Sunday 03:00 | Weekly database backup (last 4 retained) |
+
+---
+
+## 7. Features Added (Session 2)
+
+### 7.1 Free Trial Page (`/trial`)
+- Public page for non-members to request a trial dive session
+- Form: name, email, phone, preferred date, message
+- Honeypot CAPTCHA (same as registration)
+- Admin management of trial requests in Administration
+
+### 7.2 Multi-Club Support
+- All hardcoded club references replaced with dynamic `ThemeSetting::get()` calls
+- Admin → Settings → Club Identity: name, short code, email, address, phone, country, warehouse GPS, IBAN, BIC
+- Config defaults use generic placeholders (`CLUB`, `example.com`)
+- Seeders use generic text — no club-specific data in committed code
+
+### 7.3 License System
+- `LicenseService` with RSA-SHA256 signature verification
+- Free tier: up to 100 members, no license needed
+- Paid tier: RSA-signed license key required (club code + expiry date)
+- `CheckLicense` middleware blocks new registrations when invalid
+- License tab in Admin → Settings for key entry
+- `scripts/generate-license.php` for key generation
+- Default expiry: 13 months from issue
+
+### 7.4 Instructor Availability Calendar (`/availability`)
+- Weekly grid layout (Mon–Sun columns, week rows)
+- 10 activity types with color codes matching old Google Sheet:
+  - Steinfort (#ff9900), Pool (#c9daf8), Pool Kids (#6d9eeb), Pool PN1 (#1155cc), Pool PN2-3 (#c9daf8/red), Apnea (#00ff00), Fosse (#93c47d), Quarry (#ff00ff), Long Trip (#ffe599), Theory (#d9d9d9)
+- Instructor initials shown as colored badges
+- Click + to pick activity type, click initial to remove
+- Events shown as badges on their dates
+- AJAX toggle (no page reload)
+
+### 7.5 Article Translations
+- `article_translations` table: article_id, locale, title, body, auto_translated flag
+- `ArticleTranslationService` using Google Translate free API
+- Admin can trigger "Generate translations" for all 11 languages from article view
+- Reader sees tabbed interface: Original + translated versions
+- User's preferred locale tab auto-selected
+- `preferred_locale` field on users table, saved on language switch
+- Translations stored permanently — no re-translation on each view
+
+### 7.6 Club Logo & Branding
+- Club logo displayed in header (replaces emoji) and footer
+- Favicon generated from logo
+- `<meta name="generator" content="DivingClub-Manager/1.0">` for discoverability
+- HTML comment and footer link to GitHub repository
+- Searchable via `"DivingClub-Manager"` on Google
+
+### 7.7 Homepage Optimization
+- Page-type articles (schedule, values, history, bureau, instructors, member-figures, contact-info, local, first-certification) marked with `sort_order=-1`
+- HomeController excludes `sort_order < 0` from homepage feed
+- These pages remain accessible via About dropdown menu
+- Homepage shows only news/dynamic content
+
+### 7.8 Safety Documents per Dive Site
+- `safety_docs_folder` field on dive_sites table
+- Links to document library folder displayed on event pages
+- Admin configurable per dive site
+
+### 7.9 Newsletter & Video Article Types
+- Newsletter (📬) and Video (🎬) article types added
+- `renderedBody()` method auto-embeds YouTube/Vimeo URLs as responsive iframes
+- Regex-based URL detection, no external dependencies

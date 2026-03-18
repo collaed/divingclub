@@ -36,10 +36,11 @@ use Illuminate\Support\Facades\Route;
 
 // Locale switch
 Route::get('/locale/{locale}', function (string $locale) {
-    if (in_array($locale, ['en','fr','de','lb','pt','it','nl','es','pl','hu','ro'])) {
+    if (in_array($locale, config('app.available_locales', ['en','fr','de','lb','pt','it','nl','es','pl','hu','ro','sk']))) {
         session(['locale' => $locale]);
-        if (auth()->check() && auth()->user()->detail) {
-            auth()->user()->detail->update(['preferred_language' => $locale]);
+        if (auth()->check()) {
+            auth()->user()->update(['preferred_locale' => $locale]);
+            auth()->user()->detail?->update(['preferred_language' => $locale]);
         }
     }
     return back();
@@ -225,6 +226,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::get('/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('stop-impersonation');
 
         Route::resource('articles', ArticleController::class)->except('show');
+        Route::post('articles/{article}/translate', [ArticleController::class, 'translate'])->name('articles.translate');
         Route::resource('links', LinkController::class)->only(['index', 'store', 'destroy']);
 
         // Document Library

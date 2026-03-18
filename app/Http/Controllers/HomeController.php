@@ -12,6 +12,7 @@ class HomeController extends Controller
         $articles = Article::active()
             ->where('is_public', true)
             ->where('article_type', '!=', 'classified')
+            ->where('sort_order', '>=', 0) // Exclude pages (sort_order=-1 = menu-only page)
             ->with('author.detail')
             ->orderByDesc('created_at')
             ->limit(10)
@@ -24,7 +25,7 @@ class HomeController extends Controller
 
     public function showArticle(string $slug)
     {
-        $article = Article::where('slug', $slug)->active()->firstOrFail();
+        $article = Article::where('slug', $slug)->active()->with('translations')->firstOrFail();
 
         if (!$article->is_public && !auth()->check()) {
             return redirect()->route('login');
@@ -39,6 +40,9 @@ class HomeController extends Controller
                 ->with('user')
                 ->get();
         }
+
+        // Available translation locales for tab UI
+        $extra['translatedLocales'] = $article->translations->pluck('locale')->toArray();
 
         return view('cms.article', compact('article') + $extra);
     }
