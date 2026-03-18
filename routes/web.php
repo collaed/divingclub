@@ -157,6 +157,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Document browser (public files)
     Route::get('/documents', [DocumentBrowserController::class, 'index'])->name('documents.index');
     Route::get('/documents/{file}/download', [DocumentBrowserController::class, 'download'])->name('documents.download');
+    Route::get('/documents/{file}/thumb', [DocumentBrowserController::class, 'thumb'])->name('documents.thumb');
 
     // GDPR
     Route::get('/privacy', [GdprController::class, 'consents'])->name('gdpr.consents');
@@ -242,6 +243,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::put('/library/{file}', [LibraryController::class, 'update'])->name('library.update');
         Route::delete('/library/{file}', [LibraryController::class, 'destroy'])->name('library.destroy');
         Route::get('/library/{file}/download', [LibraryController::class, 'download'])->name('library.download');
+        Route::get('/library/{file}/thumb', [\App\Http\Controllers\Admin\ThumbnailController::class, 'show'])->name('library.thumb');
         Route::post('/library/folder', [LibraryController::class, 'createFolder'])->name('library.create-folder');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::post('/audit-logs/purge', [AuditLogController::class, 'purge'])->name('audit-logs.purge');

@@ -29,4 +29,11 @@ class DocumentBrowserController extends Controller
 
         return Storage::disk('local')->download($file->path, $file->original_name);
     }
+
+    public function thumb(LibraryFile $file)
+    {
+        abort_unless($file->is_public, 403);
+
+        return app(\App\Http\Controllers\Admin\ThumbnailController::class)->show($file);
+    }
 }

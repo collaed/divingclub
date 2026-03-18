@@ -66,18 +66,23 @@
                 @else
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
-                            <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Size') }}</th><th>{{ __('Visibility') }}</th><th>{{ __('Uploaded') }}</th><th></th></tr></thead>
+                            <thead><tr><th style="width:50px"></th><th>{{ __('Name') }}</th><th>{{ __('Size') }}</th><th>{{ __('Visibility') }}</th><th>{{ __('Uploaded') }}</th><th></th></tr></thead>
                             <tbody>
                             @foreach($files as $f)
                                 <tr>
                                     <td>
-                                        @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
-                                        @if(in_array($ext, ['pdf'])) 📄
-                                        @elseif(in_array($ext, ['jpg','jpeg','png','gif','webp'])) 🖼️
-                                        @elseif(in_array($ext, ['doc','docx'])) 📝
-                                        @elseif(in_array($ext, ['xls','xlsx'])) 📊
-                                        @else 📎
+                                        @if($f->hasThumb())
+                                            <img src="{{ route('admin.library.thumb', $f) }}" alt="" style="max-width:40px;max-height:40px;border-radius:3px" loading="lazy">
+                                        @else
+                                            @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
+                                            @if(in_array($ext, ['pdf'])) 📄
+                                            @elseif(in_array($ext, ['doc','docx'])) 📝
+                                            @elseif(in_array($ext, ['xls','xlsx'])) 📊
+                                            @else 📎
+                                            @endif
                                         @endif
+                                    </td>
+                                    <td>
                                         <a href="{{ route('admin.library.download', $f) }}">{{ $f->original_name }}</a>
                                         @if($f->description) <br><small class="text-muted">{{ $f->description }}</small> @endif
                                     </td>

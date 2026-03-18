@@ -40,4 +40,9 @@ class LibraryFile extends Model
 
         return round($bytes / 1048576, 1) . ' MB';
     }
+
+    public function hasThumb(): bool
+    {
+        return str_starts_with($this->mime_type, 'image/') || $this->mime_type === 'application/pdf';
+    }
 }
