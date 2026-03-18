@@ -56,7 +56,8 @@ class FeeCalculationService
     {
         $name = strtoupper(trim(($user->detail?->last_name ?? '') . ' ' . ($user->detail?->first_name ?? '')));
         $opts = $optionals ? '+' . implode('+', $optionals) : '';
-        return "CEP-{$seasonYear}-{$user->id}-{$name}{$opts}";
+        $prefix = \App\Models\ThemeSetting::get('club_short_code', config('club.id', 'CLUB'));
+        return "{$prefix}-{$seasonYear}-{$user->id}-{$name}{$opts}";
     }
 
     /**

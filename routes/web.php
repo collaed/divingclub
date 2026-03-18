@@ -56,8 +56,8 @@ Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr
 
 // Guest auth
 Route::middleware('guest')->group(function () {
-    Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store']);
+    Route::get('/register', [RegisterController::class, 'create'])->middleware(\App\Http\Middleware\CheckLicense::class)->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])->middleware(\App\Http\Middleware\CheckLicense::class);
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store']);
 

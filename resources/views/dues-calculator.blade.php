@@ -110,7 +110,7 @@
                         @if($clubIban)
                             <div class="alert alert-secondary">
                                 <strong>{{ __('Bank Transfer Details') }}:</strong><br>
-                                {{ __('Beneficiary') }}: {{ $theme['club_full_name'] ?? 'Club Européen de Plongée' }}<br>
+                                {{ __('Beneficiary') }}: {{ $theme['club_full_name'] ?? 'Diving Club' }}<br>
                                 IBAN: <code>{{ $clubIban }}</code><br>
                                 {{ __('Amount') }}: €{{ number_format($total, 2) }}<br>
                                 {{ __('Communication') }}: <code>{{ $communication }}</code>

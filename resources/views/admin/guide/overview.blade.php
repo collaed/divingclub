@@ -1,6 +1,6 @@
 @extends('admin.guide.partials.guide-layout')
 @section('content')
-<p>Welcome to the DivingClub administration system — the management platform for Club Européen de Plongée (CEP), Luxembourg.</p>
+<p>Welcome to the DivingClub administration system — the management platform for your diving club.</p>
 
 <h5>What This System Manages</h5>
 <div class="row g-2 mb-3">

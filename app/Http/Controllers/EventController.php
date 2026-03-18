@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\Season;
+use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
 use Illuminate\Http\Request;
@@ -147,7 +148,7 @@ class EventController extends Controller
                         'event_id' => $event->id,
                         'season_year' => $event->event_date->format('Y'),
                         'amount_due' => $totalDue,
-                        'communication' => 'CEP-' . $event->event_date->format('Y') . '-' . $event->id . '-' . $name,
+                        'communication' => ThemeSetting::get('club_short_code', config('club.id', 'CLUB')) . '-' . $event->event_date->format('Y') . '-' . $event->id . '-' . $name,
                         'components' => $components,
                         'status' => 'pending',
                     ]);

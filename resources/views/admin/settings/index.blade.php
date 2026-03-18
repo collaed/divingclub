@@ -7,6 +7,7 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rules" type="button">📋 {{ __('Rules & Compliance') }}</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-appearance" type="button">🎨 {{ __('Appearance') }}</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-technical" type="button">⚙️ {{ __('Technical') }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-license" type="button">🔑 {{ __('License') }}</button></li>
     </ul>
 
     <div class="tab-content">
@@ -123,6 +124,63 @@
             </div>
         </div>
 
+        {{-- Club Identity --}}
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#identitySection">{{ __('Club Identity') }}</button></h2>
+            <div id="identitySection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
+                <div class="accordion-body">
+                    <p class="text-muted small">{{ __('These details appear on public pages, emails, QR codes, and payment communications.') }}</p>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                        @csrf
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ __('Club Full Name') }}</label>
+                                <input type="text" name="club_full_name" class="form-control" value="{{ $themeSettings['club_full_name'] ?? '' }}" placeholder="My Diving Club" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Short Code') }}</label>
+                                <input type="text" name="club_short_code" class="form-control" value="{{ $themeSettings['club_short_code'] ?? '' }}" placeholder="MDC" maxlength="10">
+                                <small class="text-muted">{{ __('Used in payment communications (e.g. MDC-2026-42-NAME)') }}</small>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Contact Email') }}</label>
+                                <input type="email" name="club_email" class="form-control" value="{{ $themeSettings['club_email'] ?? '' }}" placeholder="info@club.example">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ __('Postal Address') }}</label>
+                                <input type="text" name="club_address" class="form-control" value="{{ $themeSettings['club_address'] ?? '' }}" placeholder="B.P. 1162, L-1011 Luxembourg">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Phone') }}</label>
+                                <input type="text" name="club_phone" class="form-control" value="{{ $themeSettings['club_phone'] ?? '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Country') }}</label>
+                                <input type="text" name="club_country" class="form-control" value="{{ $themeSettings['club_country'] ?? '' }}" placeholder="Luxembourg">
+                            </div>
+                        </div>
+                        <hr>
+                        <h6>🏠 {{ __('Warehouse / Club House') }}</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ __('Warehouse Address') }}</label>
+                                <input type="text" name="warehouse_address" class="form-control" value="{{ $themeSettings['warehouse_address'] ?? '' }}" placeholder="123 Main Street, City">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Latitude') }}</label>
+                                <input type="text" name="warehouse_lat" class="form-control" value="{{ $themeSettings['warehouse_lat'] ?? '' }}" placeholder="49.6547">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Longitude') }}</label>
+                                <input type="text" name="warehouse_lon" class="form-control" value="{{ $themeSettings['warehouse_lon'] ?? '' }}" placeholder="6.2197">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Club Identity') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         {{-- Banking --}}
         <div class="accordion-item">
             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bankingSection">{{ __('Banking (IBAN / SEPA)') }}</button></h2>
@@ -142,7 +200,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">{{ __('Beneficiary Name') }}</label>
-                                <input type="text" name="club_full_name" class="form-control" value="{{ $themeSettings['club_full_name'] ?? '' }}" placeholder="Club Européen de Plongée">
+                                <input type="text" name="club_full_name" class="form-control" value="{{ $themeSettings['club_full_name'] ?? '' }}">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Banking Details') }}</button>
@@ -420,6 +478,36 @@
 
     </div>{{-- end technicalAccordion --}}
     </div>{{-- end tab-technical --}}
+
+    {{-- TAB 5: License --}}
+    <div class="tab-pane fade" id="tab-license">
+        @php $lic = \App\Services\LicenseService::status(); @endphp
+        <div class="card dc-card mb-3">
+            <div class="card-body">
+                <h6>📊 {{ __('Installation Status') }}</h6>
+                <p>{{ __('Active members') }}: <strong>{{ $lic['member_count'] }}</strong> / {{ $lic['free_tier_limit'] }} {{ __('free tier') }}</p>
+                @if($lic['is_valid'])
+                    <span class="badge bg-success fs-6">✅ {{ $lic['needs_license'] ? __('Licensed') : __('Free Tier') }}</span>
+                @else
+                    <span class="badge bg-danger fs-6">🔒 {{ __('License Required') }}</span>
+                    <p class="text-danger mt-2">{{ __('New member registration is blocked. Enter a valid license key below.') }}</p>
+                @endif
+            </div>
+        </div>
+        <div class="card dc-card">
+            <div class="card-body">
+                <h6>🔑 {{ __('License Key') }}</h6>
+                <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                    @csrf
+                    <div class="mb-3">
+                        <textarea name="license_key" class="form-control font-monospace" rows="3" placeholder="{{ __('Paste your license key here...') }}">{{ $themeSettings['license_key'] ?? '' }}</textarea>
+                        <small class="text-muted">{{ __('License keys are signed codes that unlock member registration beyond 100 members.') }}</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">{{ __('Save License Key') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>{{-- end tab-license --}}
 
     </div>{{-- end tab-content --}}
 </x-layout>

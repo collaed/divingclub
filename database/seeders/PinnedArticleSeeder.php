@@ -58,9 +58,9 @@ class PinnedArticleSeeder extends Seeder
                 'body' => '<h4>📬 Contact & Social Networks</h4>
 <p><em>Edit this page in Administration → Articles to add your actual contact details and social links.</em></p>
 <h5>Email</h5>
-<p>📧 <a href="mailto:clubcep@gmail.com">clubcep@gmail.com</a></p>
+<p>📧 {{ __('Contact us via the Contact page') }}</p>
 <h5>Postal Address</h5>
-<p>Club Européen de Plongée<br>B.P. 1162<br>L-1011 Luxembourg</p>
+<p>Your Diving Club<br>Address configured in Settings</p>
 <h5>Social Networks</h5>
 <ul>
 <li>📘 Facebook: <a href="#">facebook.com/your-page</a></li>
@@ -79,7 +79,7 @@ class PinnedArticleSeeder extends Seeder
                 'sort_order' => 97,
                 'body' => '<h4>🏛️ Club History</h4>
 <p><em>Edit this page in Administration → Articles to tell the story of your club.</em></p>
-<p>The Club Européen de Plongée (CEP) was founded in Luxembourg by a group of diving enthusiasts who wanted to create a welcoming, multilingual community for underwater exploration.</p>
+<p>This diving club was founded by a group of diving enthusiasts who wanted to create a welcoming, multilingual community for underwater exploration.</p>
 <p>Over the decades, the club has grown from a handful of members to a vibrant community of divers of all levels, nationalities, and backgrounds.</p>
 <h5>Key Milestones</h5>
 <ul>
@@ -119,7 +119,7 @@ class PinnedArticleSeeder extends Seeder
                 'sort_order' => 95,
                 'body' => '<h4>📊 Our Members</h4>
 <p><em>This page shows a snapshot of the club\'s membership. Edit in Administration → Articles to update the figures or add commentary.</em></p>
-<p>The CEP is proud of its diverse, international membership. Here is a breakdown of our community:</p>
+<p>The club is proud of its diverse, international membership. Here is a breakdown of our community:</p>
 <h5>By Gender</h5>
 <p><em>Update with current figures from the Dashboard → Export CSV.</em></p>
 <h5>By Nationality</h5>

@@ -18,7 +18,7 @@ MAIL_ENCRYPTION=tls
 
 # Club-specific
 CLUB_IBAN=LU00 0000 0000 0000 0000
-CLUB_ID=CEP
+CLUB_ID=MYCLUB
 FEDERATION_SALT=change_this_to_a_random_string</code></pre>
 
 <h5>2. Set Up API Keys</h5>

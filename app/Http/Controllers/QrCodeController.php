@@ -22,7 +22,7 @@ class QrCodeController extends Controller
         $vcard .= "FN:{$user->name}\r\n";
         $vcard .= "EMAIL:{$user->primary_email}\r\n";
         if ($d?->phone_mobile) $vcard .= "TEL;TYPE=CELL:{$d->phone_mobile}\r\n";
-        $vcard .= "ORG:Club Européen de Plongée\r\n";
+        $vcard .= "ORG:" . \App\Models\ThemeSetting::get('club_full_name', 'Diving Club') . "\r\n";
         $vcard .= "END:VCARD\r\n";
 
         return $this->generatePng($vcard, "vcard-{$user->id}.png");
@@ -38,7 +38,7 @@ class QrCodeController extends Controller
 
         $epc = "BCD\n002\n1\nSCT\n";
         $epc .= \App\Models\ThemeSetting::get('club_bic') . "\n";
-        $epc .= \App\Models\ThemeSetting::get('club_full_name') ?: "Club Européen de Plongée\n";
+        $epc .= \App\Models\ThemeSetting::get('club_full_name', 'Diving Club') . "\n";
         $epc .= $iban . "\n";
         $epc .= "EUR" . number_format((float)$amount, 2, '.', '') . "\n";
         $epc .= "\n";
@@ -56,7 +56,7 @@ class QrCodeController extends Controller
         $iban = \App\Models\ThemeSetting::get('club_iban') ?: config('club.iban', '');
         $epc = "BCD\n002\n1\nSCT\n";
         $epc .= \App\Models\ThemeSetting::get('club_bic') . "\n";
-        $epc .= \App\Models\ThemeSetting::get('club_full_name') ?: "Club Européen de Plongée\n";
+        $epc .= \App\Models\ThemeSetting::get('club_full_name', 'Diving Club') . "\n";
         $epc .= $iban . "\n";
         $epc .= "EUR" . number_format($payment->amount_due, 2, '.', '') . "\n";
         $epc .= "\n"; // Purpose
@@ -75,7 +75,7 @@ class QrCodeController extends Controller
         }
 
         $key = hash('sha256', $licence->licence_number . config('club.id') . config('club.federation_salt'));
-        $url = "https://verify.clubcep.eu/licence/{$key}";
+        $url = "https://verify." . config('club.domain', 'example.com') . "/licence/{$key}";
 
         return $this->generatePng($url, "federation-{$licence->id}.png");
     }

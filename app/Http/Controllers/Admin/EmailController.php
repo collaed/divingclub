@@ -104,7 +104,7 @@ class EmailController extends Controller
             '{{last_name}}' => $user->detail?->last_name ?? '',
             '{{name}}' => $user->name,
             '{{email}}' => $user->primary_email,
-            '{{club_name}}' => 'Club Européen de Plongée',
+            '{{club_name}}' => \App\Models\ThemeSetting::get('club_full_name', 'Diving Club'),
         ];
         return [
             'subject' => str_replace(array_keys($vars), array_values($vars), $template->subject),

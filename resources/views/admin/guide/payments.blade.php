@@ -22,7 +22,7 @@
 
 <h5>Generating Fees</h5>
 <p>From the Payments page, select a member and click "Generate Fee". The system calculates the amount and creates a <code>payment_expected</code> record with a unique communication string:</p>
-<pre class="bg-light p-2 rounded"><code>CEP-2026-42-DUPONT MARIE+insurance_standard</code></pre>
+<pre class="bg-light p-2 rounded"><code>CLUB-2026-42-DUPONT MARIE+insurance_standard</code></pre>
 <p>This string is used for bank reconciliation matching.</p>
 
 <h5>Bank Reconciliation</h5>

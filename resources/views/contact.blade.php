@@ -7,10 +7,13 @@
                     <div class="row">
                         <div class="col-md-6 mb-4">
                             <h6>📧 {{ __('By Email') }}</h6>
-                            <p><a href="mailto:clubcep@gmail.com">clubcep@gmail.com</a></p>
+                            @php $clubEmail = \App\Models\ThemeSetting::get('club_email'); @endphp
+                            @if($clubEmail)
+                                <p><a href="mailto:{{ $clubEmail }}">{{ $clubEmail }}</a></p>
+                            @endif
 
                             <h6 class="mt-4">📍 {{ __('By Post') }}</h6>
-                            <p>Club Européen de Plongée<br>B.P. 1162<br>L-1011 Luxembourg</p>
+                            <p>{{ \App\Models\ThemeSetting::get('club_full_name', 'Diving Club') }}<br>{{ \App\Models\ThemeSetting::get('club_address', '') }}</p>
                         </div>
                         <div class="col-md-6 mb-4">
                             <h6>🤿 {{ __('Training Locations') }}</h6>

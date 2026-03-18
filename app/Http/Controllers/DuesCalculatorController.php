@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MembershipFee;
 use App\Models\MembershipFeeComponent;
 use App\Models\MemberStatus;
+use App\Models\ThemeSetting;
 use Illuminate\Http\Request;
 
 class DuesCalculatorController extends Controller
@@ -44,7 +45,7 @@ class DuesCalculatorController extends Controller
         $firstName = strtoupper($request->input('first_name', ''));
         $name = trim("$lastName $firstName");
         $opts = $selectedOptionals ? '+' . implode('+', $selectedOptionals) : '';
-        $communication = "CEP-{$year}-{$name}{$opts}";
+        $communication = ThemeSetting::get('club_short_code', config('club.id', 'CLUB')) . "-{$year}-{$name}{$opts}";
 
         $breakdown = [];
         $breakdown[] = ['label' => __('Membership') . ' (' . ($status?->name ?? '—') . ')', 'amount' => $baseFee];

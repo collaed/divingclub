@@ -15,7 +15,7 @@
                     <form method="POST" action="{{ route('admin.payments.import-statement') }}">
                         @csrf
                         <p class="small text-muted">{{ __('Paste bank statement (one line per transaction: date;amount;communication;counterparty)') }}</p>
-                        <textarea name="statement" class="form-control mb-2" rows="5" placeholder="17/03/2026;153.50;CEP-2026-3-DUPONT MARIE;Marie Dupont"></textarea>
+                        <textarea name="statement" class="form-control mb-2" rows="5" placeholder="17/03/2026;153.50;CLUB-2026-3-DUPONT MARIE;Marie Dupont"></textarea>
                         <button class="btn btn-primary btn-sm">{{ __('Import') }}</button>
                     </form>
                 </div>
