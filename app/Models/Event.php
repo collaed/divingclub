@@ -79,6 +79,11 @@ class Event extends Model
         return $this->registrations()->where('status', 'waiting')->orderBy('waiting_list_position');
     }
 
+    public function externalRegistrations()
+    {
+        return $this->hasMany(ExternalRegistration::class);
+    }
+
     public function confirmedCount(): int
     {
         return $this->confirmedRegistrations()->count();

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Admin\AnnualReportController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuditLogController;
@@ -349,6 +350,16 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/votes/{vote}/open', [VoteController::class, 'open'])->name('votes.open');
         Route::post('/votes/{vote}/close', [VoteController::class, 'close'])->name('votes.close');
         Route::post('/votes/{vote}/cancel', [VoteController::class, 'cancel'])->name('votes.cancel');
+
+        // Club Partnerships (inter-club federation)
+        Route::get('/partnerships', [PartnershipController::class, 'index'])->name('partnerships.index');
+        Route::get('/partnerships/create', [PartnershipController::class, 'create'])->name('partnerships.create');
+        Route::post('/partnerships', [PartnershipController::class, 'store'])->name('partnerships.store');
+        Route::delete('/partnerships/{partnership}', [PartnershipController::class, 'destroy'])->name('partnerships.destroy');
+        Route::get('/partnerships/{partnership}/remote-events', [PartnershipController::class, 'remoteEvents'])->name('partnerships.remote-events');
+        Route::get('/partnerships/registrations', [PartnershipController::class, 'registrations'])->name('partnerships.registrations');
+        Route::post('/partnerships/registrations/{registration}/approve', [PartnershipController::class, 'approveRegistration'])->name('partnerships.registrations.approve');
+        Route::post('/partnerships/registrations/{registration}/reject', [PartnershipController::class, 'rejectRegistration'])->name('partnerships.registrations.reject');
     });
 });
 
