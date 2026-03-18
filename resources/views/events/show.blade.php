@@ -35,6 +35,33 @@
                         <div>{!! nl2br(e($event->description)) !!}</div>
                     @endif
 
+                    {{-- Dive Site info --}}
+                    @if($event->diveSite)
+                        <hr>
+                        <h5>🤿 {{ __('Dive Site') }}: {{ $event->diveSite->name }}</h5>
+                        <div class="row">
+                            @if($event->diveSite->image_path)
+                                <div class="col-md-4 mb-2">
+                                    <img src="{{ asset('storage/' . $event->diveSite->image_path) }}" class="img-fluid rounded" alt="{{ $event->diveSite->name }}">
+                                </div>
+                            @endif
+                            <div class="{{ $event->diveSite->image_path ? 'col-md-8' : 'col-12' }}">
+                                <table class="table table-sm table-borderless mb-0">
+                                    @if($event->diveSite->water_type)<tr><th style="width:120px">{{ __('Type') }}</th><td>{{ ucfirst($event->diveSite->water_type) }}</td></tr>@endif
+                                    @if($event->diveSite->max_depth)<tr><th>{{ __('Max Depth') }}</th><td>{{ $event->diveSite->max_depth }}m</td></tr>@endif
+                                    @if($event->diveSite->country)<tr><th>{{ __('Location') }}</th><td>{{ $event->diveSite->region }}{{ $event->diveSite->region && $event->diveSite->country ? ', ' : '' }}{{ $event->diveSite->country }}</td></tr>@endif
+                                </table>
+                                @if($event->diveSite->conditions)<p class="small mb-1"><strong>{{ __('Conditions') }}:</strong> {{ $event->diveSite->conditions }}</p>@endif
+                                @if($event->diveSite->marine_life)<p class="small mb-1"><strong>{{ __('Marine Life') }}:</strong> {{ $event->diveSite->marine_life }}</p>@endif
+                                @if($event->diveSite->safety_notes)<p class="small mb-1 text-danger"><strong>{{ __('Safety') }}:</strong> {{ $event->diveSite->safety_notes }}</p>@endif
+                                @if($event->diveSite->access_notes)<p class="small mb-0"><strong>{{ __('Access') }}:</strong> {{ $event->diveSite->access_notes }}</p>@endif
+                                @if($event->diveSite->latitude && $event->diveSite->longitude)
+                                    <a href="{{ $event->diveSite->mapsUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">📍 {{ __('View on Map') }}</a>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Google Maps embed if API key available --}}
                     @if($event->location && config('club.google_maps_key'))
                         <div class="mt-3 ratio ratio-16x9">
@@ -169,6 +196,31 @@
 
             {{-- Event email --}}
             @if($event->participant_email)
+
+            {{-- Dive Groups link --}}
+            @if(in_array($event->event_type, ['dive', 'training']))
+                <div class="card dc-card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>🤿 {{ __('Dive Groups') }}</span>
+                        <span class="badge bg-secondary">{{ $event->diveGroups->count() }}</span>
+                    </div>
+                    <div class="card-body">
+                        @if($event->diveGroups->count())
+                            @foreach($event->diveGroups as $group)
+                                <div class="mb-1">
+                                    <strong>{{ $group->name }}</strong>
+                                    <span class="badge bg-{{ match($group->dive_mode) { 'supervised' => 'primary', 'autonomous' => 'success', 'training' => 'warning text-dark', 'certification' => 'danger', default => 'secondary' } }}">{{ ucfirst($group->dive_mode) }}</span>
+                                    <span class="small text-muted">({{ $group->members->count() }} {{ __('members') }})</span>
+                                </div>
+                            @endforeach
+                        @else
+                            <p class="small text-muted mb-0">{{ __('No groups planned yet.') }}</p>
+                        @endif
+                        <a href="{{ route('events.dive-groups', $event) }}" class="btn btn-sm btn-outline-primary mt-2 w-100">{{ __('Open Group Planner') }}</a>
+                    </div>
+                </div>
+            @endif
+
                 <div class="card dc-card mb-4">
                     <div class="card-body small">
                         <strong>{{ __('Event Email') }}:</strong><br>
@@ -229,9 +281,16 @@
                         @if($hasConsent)
                             <form method="POST" action="{{ route('events.photo.upload', $event) }}" enctype="multipart/form-data" class="mt-3">
                                 @csrf
-                                <div class="input-group">
-                                    <input type="file" name="photos[]" class="form-control form-control-sm" accept="image/*" multiple required>
-                                    <button class="btn btn-sm btn-primary">{{ __('Upload') }}</button>
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <input type="file" name="photos[]" class="form-control form-control-sm" accept="image/*" multiple required>
+                                    </div>
+                                    <div class="col-auto">
+                                        <input type="text" name="caption" class="form-control form-control-sm" placeholder="{{ __('Caption (optional)') }}">
+                                    </div>
+                                    <div class="col-auto">
+                                        <button class="btn btn-sm btn-primary">{{ __('Upload') }}</button>
+                                    </div>
                                 </div>
                                 <small class="text-muted">{{ __('Max 10MB per photo. Best photos appear first.') }}</small>
                             </form>

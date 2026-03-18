@@ -40,7 +40,7 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        $event->load(['registrations.user.detail', 'instructor.detail', 'responsible.detail', 'season']);
+        $event->load(['registrations.user.detail', 'registrations.user.certificationLevels', 'instructor.detail', 'responsible.detail', 'season', 'diveSite', 'diveGroups.members.user.certificationLevels']);
         $userReg = auth()->check() ? $event->registrations()->where('user_id', auth()->id())->first() : null;
 
         return view('events.show', compact('event', 'userReg'));
@@ -51,7 +51,8 @@ class EventController extends Controller
         $this->authorizeBureau();
         $seasons = Season::orderByDesc('year')->get();
         $instructors = User::whereHas('role', fn($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
-        return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors]);
+        $diveSites = \App\Models\DiveSite::active()->orderBy('name')->get();
+        return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites]);
     }
 
     public function store(Request $request)
@@ -73,7 +74,8 @@ class EventController extends Controller
         $this->authorizeEventEdit($event);
         $seasons = Season::orderByDesc('year')->get();
         $instructors = User::whereHas('role', fn($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
-        return view('events.form', compact('event', 'seasons', 'instructors'));
+        $diveSites = \App\Models\DiveSite::active()->orderBy('name')->get();
+        return view('events.form', compact('event', 'seasons', 'instructors', 'diveSites'));
     }
 
     public function update(Request $request, Event $event)
@@ -190,7 +192,7 @@ class EventController extends Controller
 
     public function uploadPhoto(Request $request, Event $event)
     {
-        $request->validate(['photos.*' => 'required|image|max:10240']);
+        $request->validate(['photos.*' => 'required|image|max:10240', 'caption' => 'nullable|string|max:255']);
 
         // GDPR: check photo_publication consent
         $consent = \App\Models\GdprConsent::where('user_id', auth()->id())
@@ -217,6 +219,7 @@ class EventController extends Controller
                 'event_id' => $event->id,
                 'uploaded_by' => auth()->id(),
                 'path' => $path,
+                'caption' => $request->caption,
                 'quality_score' => $score,
             ]);
         }
@@ -265,6 +268,7 @@ class EventController extends Controller
             'permissions_expire_date' => 'nullable|date',
             'status' => 'nullable|in:scheduled,cancelled,completed',
             'season_id' => 'nullable|exists:seasons,id',
+            'dive_site_id' => 'nullable|exists:dive_sites,id',
         ]);
     }
 

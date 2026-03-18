@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AnnualReportController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DiveSiteController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\GuideController;
@@ -190,6 +191,14 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/photos', [EventController::class, 'uploadPhoto'])->name('events.photo.upload');
     Route::delete('/events/{event}/photos/{photo}', [EventController::class, 'deletePhoto'])->name('events.photo.delete');
 
+    // Dive groups (palanquées)
+    Route::get('/events/{event}/dive-groups', [\App\Http\Controllers\DiveGroupController::class, 'index'])->name('events.dive-groups');
+    Route::post('/events/{event}/dive-groups', [\App\Http\Controllers\DiveGroupController::class, 'store'])->name('events.dive-groups.store');
+    Route::post('/dive-groups/{group}/members', [\App\Http\Controllers\DiveGroupController::class, 'addMember'])->name('dive-groups.add-member');
+    Route::delete('/dive-group-members/{member}', [\App\Http\Controllers\DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
+    Route::delete('/dive-groups/{group}', [\App\Http\Controllers\DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
+    Route::get('/events/{event}/dive-groups/validate', [\App\Http\Controllers\DiveGroupController::class, 'validate_groups'])->name('events.dive-groups.validate');
+
     // Admin routes (Bureau Master)
     Route::middleware('role:bureau_master')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/members', [MemberController::class, 'index'])->name('members.index');
@@ -215,6 +224,20 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/library/folder', [LibraryController::class, 'createFolder'])->name('library.create-folder');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::post('/audit-logs/purge', [AuditLogController::class, 'purge'])->name('audit-logs.purge');
+
+        // Dive Sites
+        Route::get('/dive-sites', [DiveSiteController::class, 'index'])->name('dive-sites.index');
+        Route::get('/dive-sites/create', [DiveSiteController::class, 'create'])->name('dive-sites.create');
+        Route::post('/dive-sites', [DiveSiteController::class, 'store'])->name('dive-sites.store');
+        Route::get('/dive-sites/{diveSite}/edit', [DiveSiteController::class, 'edit'])->name('dive-sites.edit');
+        Route::put('/dive-sites/{diveSite}', [DiveSiteController::class, 'update'])->name('dive-sites.update');
+        Route::delete('/dive-sites/{diveSite}', [DiveSiteController::class, 'destroy'])->name('dive-sites.destroy');
+
+        // Dive Group Rules
+        Route::get('/dive-group-rules', [\App\Http\Controllers\Admin\DiveGroupRuleController::class, 'index'])->name('dive-group-rules.index');
+        Route::post('/dive-group-rules', [\App\Http\Controllers\Admin\DiveGroupRuleController::class, 'store'])->name('dive-group-rules.store');
+        Route::put('/dive-group-rules/{rule}', [\App\Http\Controllers\Admin\DiveGroupRuleController::class, 'update'])->name('dive-group-rules.update');
+        Route::delete('/dive-group-rules/{rule}', [\App\Http\Controllers\Admin\DiveGroupRuleController::class, 'destroy'])->name('dive-group-rules.destroy');
 
         // Annual Report
         Route::get('/annual-report', [AnnualReportController::class, 'show'])->name('annual-report');

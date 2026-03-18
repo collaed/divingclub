@@ -59,6 +59,16 @@ class Event extends Model
         return $this->hasMany(EventPhoto::class)->orderByDesc('quality_score');
     }
 
+    public function diveSite()
+    {
+        return $this->belongsTo(DiveSite::class);
+    }
+
+    public function diveGroups()
+    {
+        return $this->hasMany(DiveGroup::class);
+    }
+
     public function confirmedRegistrations()
     {
         return $this->registrations()->where('status', 'confirmed');

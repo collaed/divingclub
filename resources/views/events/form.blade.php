@@ -136,6 +136,17 @@
                 <input type="url" name="whatsapp_group_url" class="form-control" value="{{ old('whatsapp_group_url', $event->whatsapp_group_url) }}" placeholder="https://chat.whatsapp.com/...">
                 <small class="text-muted">{{ __('Open WhatsApp → Group → Invite via link → Copy link') }}</small>
             </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">{{ __('Dive Site') }}</label>
+                <select name="dive_site_id" class="form-select">
+                    <option value="">{{ __('— None —') }}</option>
+                    @foreach($diveSites ?? [] as $site)
+                        <option value="{{ $site->id }}" @selected(old('dive_site_id', $event->dive_site_id) == $site->id)>
+                            {{ $site->name }}{{ $site->max_depth ? ' (' . $site->max_depth . 'm)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
