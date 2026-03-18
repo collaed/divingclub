@@ -72,11 +72,15 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" href="{{ route('dues.show') }}">{{ __('Dues') }}</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('trial.*') ? 'active fw-bold' : '' }}" href="{{ route('trial.show') }}">🐠 {{ __('Try Diving') }}</a>
+                    </li>
                     {{-- Public info pages (visible to everyone) --}}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {{ request()->routeIs('article.*') && !auth()->check() ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('About') }}</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url('/article/schedule') }}">🗓️ {{ __('Training Schedule') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/article/first-certification') }}">🎓 {{ __('First Certification') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/values') }}">🤝 {{ __('Our Values') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/history') }}">🏛️ {{ __('Club History') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/bureau') }}">👥 {{ __('The Bureau') }}</a></li>
@@ -132,6 +136,7 @@
                                         <li><a class="dropdown-item" href="{{ route('admin.library.index') }}">📁 {{ __('Document Library') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">🤿 {{ __('Dive Sites') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">📋 {{ __('Dive Group Rules') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">🐠 {{ __('Trial Requests') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">{{ __('Audit Log') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">{{ __('Settings') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>

@@ -78,6 +78,7 @@ class DiveSiteController extends Controller
             'image' => 'nullable|image|max:5120',
             'map_image' => 'nullable|image|max:5120',
             'site_plan' => 'nullable|file|mimes:jpg,jpeg,png,gif,svg,pdf|max:10240',
+            'safety_docs_folder' => 'nullable|string|max:255',
             'is_active' => 'boolean',
         ]);
     }

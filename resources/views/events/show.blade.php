@@ -64,6 +64,18 @@
                                     @if($event->diveSite->booking_url)<a href="{{ $event->diveSite->booking_url }}" target="_blank" class="btn btn-sm btn-outline-primary">📅 {{ __('Book') }}</a>@endif
                                     @if($event->diveSite->site_plan_path)<a href="{{ asset('storage/' . $event->diveSite->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-info">📄 {{ __('Site Plan') }}</a>@endif
                                 </div>
+                                {{-- Safety documents --}}
+                                @if($event->diveSite->safety_docs_folder)
+                                    @php $safetyDocs = \App\Models\LibraryFile::where('folder', $event->diveSite->safety_docs_folder)->where('is_public', true)->get(); @endphp
+                                    @if($safetyDocs->count())
+                                        <div class="mt-2">
+                                            <strong class="small">📋 {{ __('Safety Documents') }}:</strong>
+                                            @foreach($safetyDocs as $doc)
+                                                <a href="{{ route('documents.download', $doc) }}" class="btn btn-sm btn-outline-danger ms-1">{{ $doc->original_name }}</a>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                @endif
                             </div>
                             {{-- Map + Weather --}}
                             @if($event->diveSite->latitude && $event->diveSite->longitude)

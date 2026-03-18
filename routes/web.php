@@ -48,6 +48,8 @@ Route::get('/locale/{locale}', function (string $locale) {
 // Public
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/article/{slug}', [HomeController::class, 'showArticle'])->name('article.show');
+Route::get('/trial', [\App\Http\Controllers\TrialController::class, 'show'])->name('trial.show');
+Route::post('/trial', [\App\Http\Controllers\TrialController::class, 'store'])->name('trial.store');
 Route::get('/dues', [DuesCalculatorController::class, 'show'])->name('dues.show');
 Route::post('/dues', [DuesCalculatorController::class, 'calculate'])->name('dues.calculate');
 Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr.sepa.public');
@@ -230,6 +232,10 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/library/folder', [LibraryController::class, 'createFolder'])->name('library.create-folder');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::post('/audit-logs/purge', [AuditLogController::class, 'purge'])->name('audit-logs.purge');
+
+        // Trial requests
+        Route::get('/trial-requests', [\App\Http\Controllers\Admin\TrialRequestController::class, 'index'])->name('trial-requests.index');
+        Route::put('/trial-requests/{trialRequest}', [\App\Http\Controllers\Admin\TrialRequestController::class, 'update'])->name('trial-requests.update');
 
         // Dive Sites
         Route::get('/dive-sites', [DiveSiteController::class, 'index'])->name('dive-sites.index');

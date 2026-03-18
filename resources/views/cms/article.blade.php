@@ -33,7 +33,7 @@
                 @endif
                 <h2>{{ $article->title }}</h2>
                 <p class="text-muted small">{{ $article->created_at->format('d/m/Y') }} — {{ $article->author?->name }}</p>
-                <div class="article-body">{!! $article->body !!}</div>
+                <div class="article-body">{!! $article->renderedBody() !!}</div>
 
                 {{-- Dynamic instructor profiles --}}
                 @if(isset($instructors) && $instructors->count())

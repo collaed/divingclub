@@ -106,6 +106,12 @@
                             <a href="{{ asset('storage/' . $site->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">📄 {{ __('View current plan') }}</a>
                         @endif
                     </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">📋 {{ __('Safety Docs Folder') }}</label>
+                        <input type="text" name="safety_docs_folder" class="form-control" value="{{ old('safety_docs_folder', $site->safety_docs_folder) }}" placeholder="{{ __('e.g. safety/vodelée — folder in Document Library') }}">
+                        <small class="text-muted">{{ __('Folder path in the Document Library containing safety documents for this site.') }}</small>
+                    </div>
                     <div class="col-md-6 d-flex align-items-end">
                         <div class="form-check">
                             <input type="hidden" name="is_active" value="0">

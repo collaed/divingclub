@@ -32,6 +32,8 @@ class Article extends Model
         'gear'         => ['icon' => '🤿', 'color' => '#0077be', 'label' => 'Gear'],
         'classified'   => ['icon' => '🏷️', 'color' => '#ffc107', 'label' => 'Classified'],
         'faq'          => ['icon' => '❓', 'color' => '#adb5bd', 'label' => 'FAQ'],
+        'newsletter'   => ['icon' => '📬', 'color' => '#e83e8c', 'label' => 'Newsletter'],
+        'video'        => ['icon' => '🎬', 'color' => '#e74c3c', 'label' => 'Video'],
     ];
 
     public const MEMBER_TYPES = ['classified'];
@@ -44,6 +46,27 @@ class Article extends Model
     public function isExpired(): bool
     {
         return $this->expires_at && $this->expires_at->isPast();
+    }
+
+    /**
+     * Render body with auto-embedded YouTube/Vimeo links.
+     */
+    public function renderedBody(): string
+    {
+        $body = $this->body ?? '';
+        // YouTube: convert bare URLs to responsive embeds
+        $body = preg_replace(
+            '#(?:<a[^>]*>)?\s*(?:https?://)?(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)([\w-]+)[^\s<]*\s*(?:</a>)?#i',
+            '<div class="ratio ratio-16x9 mb-3"><iframe src="https://www.youtube.com/embed/$1" allowfullscreen loading="lazy"></iframe></div>',
+            $body
+        );
+        // Vimeo
+        $body = preg_replace(
+            '#(?:<a[^>]*>)?\s*(?:https?://)?(?:www\.)?vimeo\.com/(\d+)[^\s<]*\s*(?:</a>)?#i',
+            '<div class="ratio ratio-16x9 mb-3"><iframe src="https://player.vimeo.com/video/$1" allowfullscreen loading="lazy"></iframe></div>',
+            $body
+        );
+        return $body;
     }
 
     public function canBeEditedBy($user): bool
