@@ -20,6 +20,7 @@ class ArticleController extends Controller
         $config->set('HTML.Allowed', 'h2,h3,p,br,strong,b,em,i,u,s,a[href|target],ul,ol,li,blockquote,img[src|alt|style],span[style]');
         $config->set('HTML.TargetBlank', true);
         $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true]);
+
         return (new HTMLPurifier($config))->purify($html);
     }
 
@@ -27,12 +28,14 @@ class ArticleController extends Controller
     {
         $articles = Article::when($request->type, fn ($q, $t) => $q->where('article_type', $t))
             ->orderByDesc('updated_at')->paginate(20);
+
         return view('admin.articles.index', compact('articles'));
     }
 
     public function create(Request $request)
     {
         $votes = Vote::where('status', 'open')->orWhere('status', 'draft')->orderByDesc('created_at')->get();
+
         return view('admin.articles.form', ['article' => new Article(['article_type' => $request->get('type', 'news')]), 'votes' => $votes]);
     }
 
@@ -41,7 +44,7 @@ class ArticleController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
-            'article_type' => 'required|in:' . implode(',', array_keys(Article::TYPES)),
+            'article_type' => 'required|in:'.implode(',', array_keys(Article::TYPES)),
             'is_published' => 'boolean',
             'is_public' => 'boolean',
             'featured_image' => 'nullable|image|max:5120',
@@ -51,7 +54,7 @@ class ArticleController extends Controller
             'gallery_layouts.*' => 'nullable|in:full,half,third',
         ]);
 
-        $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
+        $validated['slug'] = Str::slug($validated['title']).'-'.Str::random(5);
         $validated['author_id'] = auth()->id();
         $validated['is_published'] = $request->boolean('is_published');
         $validated['is_public'] = $request->boolean('is_public');
@@ -70,6 +73,7 @@ class ArticleController extends Controller
     public function edit(Article $article)
     {
         $votes = Vote::where('status', 'open')->orWhere('status', 'draft')->orderByDesc('created_at')->get();
+
         return view('admin.articles.form', compact('article', 'votes'));
     }
 
@@ -78,7 +82,7 @@ class ArticleController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
-            'article_type' => 'required|in:' . implode(',', array_keys(Article::TYPES)),
+            'article_type' => 'required|in:'.implode(',', array_keys(Article::TYPES)),
             'is_published' => 'boolean',
             'is_public' => 'boolean',
             'featured_image' => 'nullable|image|max:5120',
@@ -90,7 +94,7 @@ class ArticleController extends Controller
             'delete_images.*' => 'exists:article_images,id',
         ]);
 
-        $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
+        $validated['slug'] = Str::slug($validated['title']).'-'.Str::random(5);
         $validated['is_published'] = $request->boolean('is_published');
         $validated['is_public'] = $request->boolean('is_public');
         $validated['body'] = $this->purify($validated['body']);
@@ -107,18 +111,24 @@ class ArticleController extends Controller
         $article->update(collect($validated)->except(['gallery', 'gallery_captions', 'gallery_layouts', 'delete_images'])->toArray());
         $this->storeGallery($request, $article);
 
+        // Mark existing translations as stale (will be re-translated lazily on next access)
+        $article->translations()->where('auto_translated', true)->update(['stale' => true]);
+
         return redirect()->route('admin.articles.index')->with('success', __('Article updated.'));
     }
 
     public function destroy(Article $article)
     {
         $article->delete();
+
         return redirect()->route('admin.articles.index')->with('success', __('Article deleted.'));
     }
 
     private function storeGallery(Request $request, Article $article): void
     {
-        if (!$request->hasFile('gallery')) return;
+        if (! $request->hasFile('gallery')) {
+            return;
+        }
         $maxSort = $article->images()->max('sort_order') ?? 0;
         foreach ($request->file('gallery') as $i => $file) {
             ArticleImage::create([
@@ -134,9 +144,10 @@ class ArticleController extends Controller
 
     public function translate(Request $request, Article $article)
     {
-        $locales = config('app.available_locales', ['en','fr','de','lb','pt','it','es','nl','ro','hu','sk']);
+        $locales = config('app.available_locales', ['en', 'fr', 'de', 'lb', 'pt', 'it', 'es', 'nl', 'ro', 'hu', 'sk']);
         $source = $request->input('source_locale', 'fr');
         (new ArticleTranslationService)->translateAll($article, $locales, $source);
+
         return back()->with('success', __('Translations generated for :count languages.', ['count' => count($locales) - 1]));
     }
 }

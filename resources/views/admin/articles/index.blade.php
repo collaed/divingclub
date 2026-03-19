@@ -19,7 +19,7 @@
             <tbody>
                 @foreach($articles as $a)
                     @php $m = $a->typeMeta(); @endphp
-                    <tr class="{{ $a->isExpired() ? 'text-muted' : '' }}">
+                    <tr class="{{ $a->isExpired() ? 'text-muted' : '' }}" style="cursor:pointer" onclick="if(!event.target.closest('button,form'))window.location='{{ route('admin.articles.edit', $a) }}'">
                         <td><span class="badge" style="background:{{ $m['color'] }}">{{ $m['icon'] }} {{ __($m['label']) }}</span></td>
                         <td>{{ $a->title }}@if($a->vote_id) <span class="badge bg-info ms-1">🗳️</span>@endif</td>
                         <td>{!! $a->is_published ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>' !!}</td>

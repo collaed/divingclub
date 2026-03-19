@@ -154,6 +154,16 @@ class EventController extends Controller
 
         // Medical compliance gate — pool, dive, training require valid cert
         if (in_array($event->event_type, ['pool', 'dive', 'training'])) {
+            // Profile completeness gate — require DOB, sex, mobile, emergency contact
+            if (! $targetUser->hasDiveProfile()) {
+                $fields = implode(', ', $targetUser->missingDiveProfileFields());
+                $msg = $targetUser->id === $actor->id
+                    ? __('Please complete your profile before registering: :fields', ['fields' => $fields])
+                    : __(':name must complete their profile: :fields', ['name' => $targetUser->name, 'fields' => $fields]);
+
+                return back()->with('error', $msg);
+            }
+
             if (! app(MedicalComplianceService::class)->isCompliant($targetUser)) {
                 $msg = $targetUser->id === $actor->id
                     ? __('You need a valid medical certificate to register for this event. Please upload one in your profile.')

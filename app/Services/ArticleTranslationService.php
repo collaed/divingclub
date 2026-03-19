@@ -15,16 +15,32 @@ class ArticleTranslationService
     public function translate(Article $article, string $targetLocale, string $sourceLocale = 'fr'): ArticleTranslation
     {
         $existing = $article->translations()->where('locale', $targetLocale)->first();
-        if ($existing) return $existing;
+
+        // Skip if translation exists and is not stale
+        if ($existing && ! $existing->stale) {
+            return $existing;
+        }
 
         $title = $this->googleTranslate($article->title, $sourceLocale, $targetLocale);
         $body = $this->googleTranslate($article->body, $sourceLocale, $targetLocale);
+
+        if ($existing) {
+            $existing->update([
+                'title' => $title ?: $article->title,
+                'body' => $body ?: $article->body,
+                'stale' => false,
+                'auto_translated' => true,
+            ]);
+
+            return $existing;
+        }
 
         return $article->translations()->create([
             'locale' => $targetLocale,
             'title' => $title ?: $article->title,
             'body' => $body ?: $article->body,
             'auto_translated' => true,
+            'stale' => false,
         ]);
     }
 
@@ -34,7 +50,9 @@ class ArticleTranslationService
     public function translateAll(Article $article, array $locales, string $sourceLocale = 'fr'): void
     {
         foreach ($locales as $locale) {
-            if ($locale === $sourceLocale) continue;
+            if ($locale === $sourceLocale) {
+                continue;
+            }
             $this->translate($article, $locale, $sourceLocale);
         }
     }
@@ -49,7 +67,9 @@ class ArticleTranslationService
 
     protected function googleTranslate(string $text, string $from, string $to): ?string
     {
-        if (empty(trim(strip_tags($text)))) return $text;
+        if (empty(trim(strip_tags($text)))) {
+            return $text;
+        }
 
         try {
             $response = Http::get('https://translate.googleapis.com/translate_a/single', [
@@ -60,13 +80,16 @@ class ArticleTranslationService
                 'q' => $text,
             ]);
 
-            if (!$response->ok()) return null;
+            if (! $response->ok()) {
+                return null;
+            }
 
             $data = $response->json();
             $translated = '';
             foreach ($data[0] ?? [] as $segment) {
                 $translated .= $segment[0] ?? '';
             }
+
             return $translated ?: null;
         } catch (\Throwable) {
             return null;

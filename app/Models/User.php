@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, Auditable;
+    use Auditable, HasFactory, Notifiable;
 
     protected $fillable = [
         'username', 'primary_email', 'password', 'role_id', 'status_id', 'email_verified_at', 'preferred_locale',
@@ -45,8 +45,9 @@ class User extends Authenticatable
     {
         $detail = $this->detail;
         if ($detail && $detail->first_name) {
-            return trim($detail->first_name . ' ' . $detail->last_name);
+            return trim($detail->first_name.' '.$detail->last_name);
         }
+
         return $this->username ?? $this->primary_email;
     }
 
@@ -152,11 +153,48 @@ class User extends Authenticatable
     public function isMinor(): bool
     {
         $dob = $this->detail?->date_of_birth;
+
         return $dob && $dob->age < 18;
     }
 
     public function parentalConsents()
     {
         return $this->hasMany(ParentalConsent::class, 'minor_user_id');
+    }
+
+    /** Check if profile has the minimum fields needed for dive/pool/training registration. */
+    public function hasDiveProfile(): bool
+    {
+        $d = $this->detail;
+
+        return $d
+            && $d->date_of_birth
+            && $d->sex
+            && $d->phone_mobile
+            && $d->emergency_contact_name
+            && $d->emergency_contact_phone;
+    }
+
+    /** List which required profile fields are still missing. */
+    public function missingDiveProfileFields(): array
+    {
+        $d = $this->detail;
+        $missing = [];
+
+        $checks = [
+            'date_of_birth' => __('Date of Birth'),
+            'sex' => __('Sex'),
+            'phone_mobile' => __('Mobile Phone'),
+            'emergency_contact_name' => __('Emergency Contact Name'),
+            'emergency_contact_phone' => __('Emergency Contact Phone'),
+        ];
+
+        foreach ($checks as $field => $label) {
+            if (! $d || ! $d->$field) {
+                $missing[] = $label;
+            }
+        }
+
+        return $missing;
     }
 }

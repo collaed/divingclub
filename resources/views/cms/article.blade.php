@@ -44,11 +44,13 @@
                 @if($hasTranslations)
                     <ul class="nav nav-tabs nav-tabs-sm mb-3" role="tablist" style="font-size:.85rem">
                         <li class="nav-item">
-                            <button class="nav-link {{ !in_array($currentLocale, $translatedLocales ?? []) ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-original">🇫🇷 Original</button>
+                            <button class="nav-link fw-bold {{ !in_array($currentLocale, $translatedLocales ?? []) ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-original">🇫🇷 Original</button>
                         </li>
-                        @foreach($translatedLocales as $loc)
+                        @foreach($article->translations as $tr)
                             <li class="nav-item">
-                                <button class="nav-link {{ $loc === $currentLocale ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-{{ $loc }}">{{ strtoupper($loc) }}</button>
+                                <button class="nav-link {{ $tr->locale === $currentLocale ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-{{ $tr->locale }}">
+                                    {{ strtoupper($tr->locale) }}@if($tr->stale) ⚠️@endif
+                                </button>
                             </li>
                         @endforeach
                     </ul>
@@ -58,6 +60,9 @@
                         </div>
                         @foreach($article->translations as $tr)
                             <div class="tab-pane {{ $tr->locale === $currentLocale ? 'show active' : '' }}" id="tab-{{ $tr->locale }}">
+                                @if($tr->stale)
+                                    <div class="alert alert-warning py-1 small">⚠️ {{ __('This translation may be outdated — the original article was modified.') }}</div>
+                                @endif
                                 @if($tr->auto_translated) <small class="text-muted fst-italic mb-2 d-block">🤖 {{ __('Auto-translated') }}</small> @endif
                                 <div class="article-body">{!! (new \App\Models\Article(['body' => $tr->body]))->renderedBody() !!}</div>
                             </div>
@@ -103,6 +108,82 @@
                             </div>
                         @endforeach
                     </div>
+                @endif
+
+                {{-- Live member statistics charts --}}
+                @if(isset($memberStats))
+                    <div class="alert alert-info py-2 mt-4">
+                        📊 {{ __('Live data from :count active members', ['count' => $memberStats['total']]) }}
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card h-100"><div class="card-body">
+                                <h6>{{ __('By Gender') }}</h6>
+                                <div style="height:220px"><canvas id="chartGender"></canvas></div>
+                            </div></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100"><div class="card-body">
+                                <h6>{{ __('By Age Bracket') }}</h6>
+                                <div style="height:220px"><canvas id="chartAge"></canvas></div>
+                            </div></div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card"><div class="card-body">
+                                <h6>{{ __('By Certification Level') }}</h6>
+                                <div id="wrapCert"><canvas id="chartCert"></canvas></div>
+                            </div></div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card"><div class="card-body">
+                                <h6>{{ __('By Nationality') }}</h6>
+                                <div id="wrapNat"><canvas id="chartNat"></canvas></div>
+                            </div></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100"><div class="card-body">
+                                <h6>{{ __('By Preferred Language') }}</h6>
+                                <div style="height:260px"><canvas id="chartLang"></canvas></div>
+                            </div></div>
+                        </div>
+                    </div>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+                    <script>
+                    const palette = ['#003366','#0066cc','#3399ff','#66ccff','#99ddff','#ccf0ff','#ff9933','#ff6600','#cc3300','#993300','#669966','#339933','#006600','#996699','#663366'];
+                    const stats = @json($memberStats);
+
+                    // Country → flag emoji mapping
+                    const flags = {France:'🇫🇷',Luxembourg:'🇱🇺',Belgium:'🇧🇪',Romania:'🇷🇴',Portugal:'🇵🇹',Italy:'🇮🇹',Germany:'🇩🇪',Poland:'🇵🇱',Greece:'🇬🇷',Spain:'🇪🇸',Netherlands:'🇳🇱',Hungary:'🇭🇺',Ireland:'🇮🇪',UK:'🇬🇧','United Kingdom':'🇬🇧',Austria:'🇦🇹',Switzerland:'🇨🇭',Croatia:'🇭🇷',Serbia:'🇷🇸',Bulgaria:'🇧🇬',Czechia:'🇨🇿','Czech Republic':'🇨🇿',Slovakia:'🇸🇰',Slovenia:'🇸🇮',Sweden:'🇸🇪',Denmark:'🇩🇰',Finland:'🇫🇮',Norway:'🇳🇴',Turkey:'🇹🇷',Morocco:'🇲🇦',Tunisia:'🇹🇳',Algeria:'🇩🇿',Brazil:'🇧🇷',USA:'🇺🇸',Canada:'🇨🇦',Russia:'🇷🇺',Ukraine:'🇺🇦',China:'🇨🇳',Japan:'🇯🇵',India:'🇮🇳',Lebanon:'🇱🇧',Iran:'🇮🇷',Colombia:'🇨🇴',Mexico:'🇲🇽',Philippines:'🇵🇭',Vietnam:'🇻🇳',Thailand:'🇹🇭',Lithuania:'🇱🇹',Latvia:'🇱🇻',Estonia:'🇪🇪',Malta:'🇲🇹',Cyprus:'🇨🇾',Iceland:'🇮🇸',Albania:'🇦🇱',Kosovo:'🇽🇰','Bosnia':'🇧🇦','North Macedonia':'🇲🇰',Montenegro:'🇲🇪',Moldova:'🇲🇩',Georgia:'🇬🇪',Armenia:'🇦🇲',Azerbaijan:'🇦🇿'};
+                    const langFlags = {en:'🇬🇧',fr:'🇫🇷',de:'🇩🇪',lb:'🇱🇺',pt:'🇵🇹',it:'🇮🇹',nl:'🇳🇱',es:'🇪🇸',pl:'🇵🇱',hu:'🇭🇺',ro:'🇷🇴',el:'🇬🇷',cs:'🇨🇿',sk:'🇸🇰',hr:'🇭🇷',bg:'🇧🇬',sv:'🇸🇪',da:'🇩🇰',fi:'🇫🇮',no:'🇳🇴',tr:'🇹🇷',ru:'🇷🇺',uk:'🇺🇦',ar:'🇱🇧',zh:'🇨🇳',ja:'🇯🇵'};
+                    const langNames = {en:'English',fr:'Français',de:'Deutsch',lb:'Lëtzebuergesch',pt:'Português',it:'Italiano',nl:'Nederlands',es:'Español',pl:'Polski',hu:'Magyar',ro:'Română',el:'Ελληνικά',cs:'Čeština',sk:'Slovenčina',hr:'Hrvatski',bg:'Български',sv:'Svenska',da:'Dansk',fi:'Suomi',no:'Norsk',tr:'Türkçe',ru:'Русский',uk:'Українська',ar:'العربية',zh:'中文',ja:'日本語'};
+
+                    const noSkip = {autoSkip:false, font:{size:13}};
+                    const base = {responsive:true, maintainAspectRatio:false};
+
+                    // Gender — doughnut
+                    const genderLabels = Object.keys(stats.gender).map(g => g === 'M' ? '♂ {{ __("Male") }}' : '♀ {{ __("Female") }}');
+                    new Chart(document.getElementById('chartGender'), {type:'doughnut', data:{labels:genderLabels, datasets:[{data:Object.values(stats.gender), backgroundColor:['#0066cc','#ff6699']}]}, options:{...base, plugins:{legend:{position:'bottom'}}}});
+
+                    // Age — vertical bar
+                    new Chart(document.getElementById('chartAge'), {type:'bar', data:{labels:Object.keys(stats.age), datasets:[{label:'{{ __("Members") }}', data:Object.values(stats.age), backgroundColor:'#0066cc'}]}, options:{...base, plugins:{legend:{display:false}}, scales:{x:{ticks:noSkip}, y:{beginAtZero:true}}}});
+
+                    // Certification — horizontal bar, fixed wrapper height
+                    const certH = Math.max(250, Object.keys(stats.certification).length * 32);
+                    document.getElementById('wrapCert').style.height = certH + 'px';
+                    new Chart(document.getElementById('chartCert'), {type:'bar', data:{labels:Object.keys(stats.certification), datasets:[{label:'{{ __("Members") }}', data:Object.values(stats.certification), backgroundColor:'#339933'}]}, options:{...base, indexAxis:'y', plugins:{legend:{display:false}}, scales:{y:{ticks:noSkip}}}});
+
+                    // Nationality — horizontal bar with flags, fixed wrapper height
+                    const natKeys = Object.keys(stats.nationality);
+                    const natLabels = natKeys.map(n => (flags[n]||'') + ' ' + n);
+                    const natH = Math.max(300, natKeys.length * 32);
+                    document.getElementById('wrapNat').style.height = natH + 'px';
+                    new Chart(document.getElementById('chartNat'), {type:'bar', data:{labels:natLabels, datasets:[{label:'{{ __("Members") }}', data:Object.values(stats.nationality), backgroundColor:'#ff9933'}]}, options:{...base, indexAxis:'y', plugins:{legend:{display:false}}, scales:{y:{ticks:noSkip}}}});
+
+                    // Language — doughnut with flags
+                    const langKeys = Object.keys(stats.language);
+                    const langLabels = langKeys.map(l => (langFlags[l]||'') + ' ' + (langNames[l]||l.toUpperCase()));
+                    new Chart(document.getElementById('chartLang'), {type:'doughnut', data:{labels:langLabels, datasets:[{data:Object.values(stats.language), backgroundColor:palette}]}, options:{...base, plugins:{legend:{position:'bottom', labels:{font:{size:12}}}}}});
+                    </script>
                 @endif
 
                 {{-- Image gallery --}}

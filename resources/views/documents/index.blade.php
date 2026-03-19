@@ -52,7 +52,7 @@
                 <div class="card-header py-2">{{ __('Folders') }}</div>
                 <div class="list-group list-group-flush">
                     @foreach($folders as $f)
-                        @php $depth = substr_count(trim($f, '/'), '/'); @endphp
+                        @php $depth = $f === '/' ? 0 : substr_count(trim($f, '/'), '/') + 1; @endphp
                         <a href="{{ route('documents.index', ['folder' => $f]) }}"
                            class="list-group-item list-group-item-action py-1 {{ $folder === $f ? 'active' : '' }}"
                            style="padding-left:{{ 12 + $depth * 16 }}px; font-size:0.85rem">
@@ -79,28 +79,66 @@
 
         {{-- File list --}}
         <div class="col-md-9">
-            <div class="card dc-card">
-                <div class="card-header py-2 d-flex justify-content-between">
-                    <span>📂 {{ $folder }}</span>
-                    <span class="badge bg-secondary">{{ $files->count() }} {{ __('files') }}</span>
+            @if($canManage)
+            <div id="dropZone" class="card dc-card" style="transition:background .2s">
+                {{-- Drag-drop overlay --}}
+                <div id="dropOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="display:none!important;background:rgba(0,102,204,.15);border:3px dashed #0066cc;border-radius:.375rem;z-index:10;pointer-events:none">
+                    <span class="fs-4 text-primary fw-bold">📂 {{ __('Drop files here') }}</span>
                 </div>
-                @if($files->isEmpty())
-                    <div class="card-body text-muted text-center py-4">{{ __('No files in this folder.') }}</div>
-                @else
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width:40px"></th>
-                                    <th>{{ __('Name') }}</th>
-                                    <th>{{ __('Size') }}</th>
-                                    <th>{{ __('Access') }}</th>
-                                    <th>{{ __('Date') }}</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($files as $f)
+            @else
+            <div class="card dc-card">
+            @endif
+                <div class="card-header py-2 d-flex justify-content-between">
+                    <span>
+                        {{-- Breadcrumb navigation --}}
+                        <a href="{{ route('documents.index', ['folder' => '/']) }}" class="text-decoration-none">📂 {{ __('Root') }}</a>
+                        @if($folder !== '/')
+                            @php
+                                $parts = array_filter(explode('/', $folder));
+                                $path = '';
+                            @endphp
+                            @foreach($parts as $part)
+                                @php $path .= '/' . $part; @endphp
+                                / <a href="{{ route('documents.index', ['folder' => $path]) }}" class="text-decoration-none">{{ $part }}</a>
+                            @endforeach
+                        @endif
+                    </span>
+                    <span class="badge bg-secondary">{{ $subfolders->count() }} {{ __('folders') }}, {{ $files->count() }} {{ __('files') }}</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:40px"></th>
+                                <th>{{ __('Name') }}</th>
+                                <th>{{ __('Size') }}</th>
+                                <th>{{ __('Access') }}</th>
+                                <th>{{ __('Date') }}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {{-- Parent folder link --}}
+                        @if($folder !== '/')
+                            @php $parent = dirname($folder) === '.' ? '/' : dirname($folder); @endphp
+                            <tr style="cursor:pointer" onclick="window.location='{{ route('documents.index', ['folder' => $parent]) }}'">
+                                <td>📁</td>
+                                <td colspan="5"><a href="{{ route('documents.index', ['folder' => $parent]) }}" class="text-decoration-none">..</a></td>
+                            </tr>
+                        @endif
+
+                        {{-- Subfolders --}}
+                        @foreach($subfolders as $sf)
+                            <tr style="cursor:pointer" onclick="window.location='{{ route('documents.index', ['folder' => $sf]) }}'">
+                                <td>📁</td>
+                                <td><a href="{{ route('documents.index', ['folder' => $sf]) }}" class="text-decoration-none fw-bold">{{ basename($sf) }}</a></td>
+                                <td></td><td></td><td></td><td></td>
+                            </tr>
+                        @endforeach
+
+                        {{-- Files --}}
+                        @foreach($files as $f)
                                 <tr>
                                     <td>
                                         @if($f->hasThumb())
@@ -153,10 +191,13 @@
                                     </td>
                                 </tr>
                             @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
+
+                        @if($subfolders->isEmpty() && $files->isEmpty())
+                            <tr><td colspan="6" class="text-muted text-center py-3">{{ __('Empty folder.') }}</td></tr>
+                        @endif
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {{-- Visibility legend --}}
@@ -168,4 +209,35 @@
             </div>
         </div>
     </div>
+
+    @if($canManage)
+    <script>
+    (function(){
+        const zone = document.getElementById('dropZone');
+        const overlay = document.getElementById('dropOverlay');
+        let dragCounter = 0;
+
+        zone.addEventListener('dragenter', e => { e.preventDefault(); dragCounter++; overlay.style.cssText='display:flex!important;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,102,204,.15);border:3px dashed #0066cc;border-radius:.375rem;z-index:10;pointer-events:none;align-items:center;justify-content:center'; });
+        zone.addEventListener('dragleave', e => { e.preventDefault(); if(--dragCounter<=0){dragCounter=0; overlay.style.display='none';} });
+        zone.addEventListener('dragover', e => e.preventDefault());
+        zone.addEventListener('drop', e => {
+            e.preventDefault(); dragCounter=0; overlay.style.display='none';
+            const files = e.dataTransfer.files;
+            if(!files.length) return;
+            const fd = new FormData();
+            fd.append('_token', '{{ csrf_token() }}');
+            fd.append('folder', '{{ $folder }}');
+            fd.append('visibility', 'members');
+            for(let i=0;i<files.length;i++) fd.append('files[]', files[i]);
+            const btn = document.createElement('div');
+            btn.className='alert alert-info py-2 mt-2';
+            btn.textContent='⏳ {{ __("Uploading") }} '+files.length+' {{ __("file(s)…") }}';
+            zone.after(btn);
+            fetch('{{ route("documents.upload") }}', {method:'POST', body:fd})
+                .then(r => { if(r.ok||r.redirected) location.reload(); else btn.textContent='❌ {{ __("Upload failed") }}'; })
+                .catch(() => btn.textContent='❌ {{ __("Upload failed") }}');
+        });
+    })();
+    </script>
+    @endif
 </x-layout>

@@ -74,6 +74,7 @@ Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
 Route::post('/trial', [TrialController::class, 'store'])->name('trial.store');
 Route::get('/dues', [DuesCalculatorController::class, 'show'])->name('dues.show');
 Route::post('/dues', [DuesCalculatorController::class, 'calculate'])->name('dues.calculate');
+Route::get('/cotisation', fn () => view('cotisation', ['cfg' => config('cotisation')]))->name('cotisation');
 Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr.sepa.public');
 Route::get('/qr/payment', [QrCodeController::class, 'signedPaymentQr'])->name('qr.payment.signed');
 Route::get('/pay/verify', [QrCodeController::class, 'verifyPayment'])->name('payment.verify');
@@ -117,6 +118,8 @@ Route::middleware('guest')->group(function () {
 // OAuth
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('auth.social.redirect');
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('auth.social.callback');
+Route::post('/auth/social/confirm-link', [SocialAuthController::class, 'confirmLink'])->middleware('auth')->name('auth.social.confirm-link');
+Route::post('/auth/social/dismiss-link', [SocialAuthController::class, 'dismissLink'])->middleware('auth')->name('auth.social.dismiss-link');
 
 // Email verification
 Route::middleware('auth')->group(function () {
@@ -178,7 +181,6 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Document browser (role-based visibility, upload for instructors/bureau)
     Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');
-    Route::get('/cotisation', fn () => view('cotisation', ['cfg' => config('cotisation')]))->name('cotisation');
     Route::get('/documents', [DocumentBrowserController::class, 'index'])->name('documents.index');
     Route::get('/documents/{file}/download', [DocumentBrowserController::class, 'download'])->name('documents.download');
     Route::get('/documents/{file}/thumb', [DocumentBrowserController::class, 'thumb'])->name('documents.thumb');
@@ -216,9 +218,11 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/buddies/{buddyRequest}/respond', [BuddyController::class, 'respond'])->name('buddies.respond');
     Route::post('/buddies/{buddyRequest}/close', [BuddyController::class, 'close'])->name('buddies.close');
 
-    // Instructor Availability
-    Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');
-    Route::post('/availability/toggle', [InstructorAvailabilityController::class, 'toggle'])->name('availability.toggle');
+    // Instructor Availability (bureau & instructors only)
+    Route::middleware('role:bureau_master,bureau_finance,bureau_technical,instructor')->group(function () {
+        Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');
+        Route::post('/availability/toggle', [InstructorAvailabilityController::class, 'toggle'])->name('availability.toggle');
+    });
     Route::get('/classifieds/create', [ClassifiedController::class, 'create'])->name('classifieds.create');
     Route::post('/classifieds', [ClassifiedController::class, 'store'])->name('classifieds.store');
     Route::get('/classifieds/{article}/edit', [ClassifiedController::class, 'edit'])->name('classifieds.edit');

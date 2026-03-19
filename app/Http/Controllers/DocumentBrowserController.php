@@ -37,6 +37,7 @@ class DocumentBrowserController extends Controller
         $folder = $request->get('folder', '/');
 
         $files = LibraryFile::visibleTo($user)->inFolder($folder)
+            ->where('original_name', '!=', '.folder')
             ->orderBy('original_name')->get();
 
         // Build folder tree from all visible files
@@ -54,7 +55,17 @@ class DocumentBrowserController extends Controller
 
         $canManage = LibraryFile::canManage($user);
 
-        return view('documents.index', compact('files', 'folder', 'folders', 'canManage'));
+        // Subfolders of current folder (direct children only)
+        $subfolders = $folders->filter(function ($f) use ($folder) {
+            if ($f === $folder) {
+                return false;
+            }
+            $parent = dirname($f) === '.' ? '/' : dirname($f);
+
+            return $parent === rtrim($folder, '/') || ($folder === '/' && $parent === '');
+        })->values();
+
+        return view('documents.index', compact('files', 'folder', 'folders', 'subfolders', 'canManage'));
     }
 
     public function upload(Request $request)
@@ -84,6 +95,10 @@ class DocumentBrowserController extends Controller
             ]);
         }
 
+        // Remove folder placeholder now that real files exist
+        LibraryFile::where('folder', $request->input('folder'))
+            ->where('original_name', '.folder')->delete();
+
         return back()->with('success', __(':count file(s) uploaded.', ['count' => count($request->file('files'))]));
     }
 
@@ -95,7 +110,25 @@ class DocumentBrowserController extends Controller
         $parent = $request->input('parent', '/');
         $newFolder = rtrim($parent, '/').'/'.$request->input('name');
 
-        return redirect()->route('documents.index', ['folder' => $newFolder]);
+        // Check if folder already has files
+        if (LibraryFile::where('folder', $newFolder)->exists()) {
+            return redirect()->route('documents.index', ['folder' => $newFolder]);
+        }
+
+        // Create a hidden placeholder so the folder appears in the sidebar
+        LibraryFile::create([
+            'filename' => '.folder',
+            'original_name' => '.folder',
+            'path' => '',
+            'mime_type' => 'inode/directory',
+            'size' => 0,
+            'folder' => $newFolder,
+            'visibility' => 'members',
+            'uploaded_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('documents.index', ['folder' => $newFolder])
+            ->with('success', __('Folder created.'));
     }
 
     public function updateFile(Request $request, LibraryFile $file)

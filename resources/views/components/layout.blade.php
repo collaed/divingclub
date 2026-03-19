@@ -75,82 +75,103 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('/') ? 'active fw-bold' : '' }}" href="/">{{ __('Home') }}</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('dues.*') || request()->routeIs('cotisation') ? 'active fw-bold' : '' }}" href="{{ route('cotisation') }}">{{ __('Cotisation') }}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('trial.*') ? 'active fw-bold' : '' }}" href="{{ route('trial.show') }}">🐠 {{ __('Try Diving') }}</a>
-                    </li>
-                    {{-- Public info pages (visible to everyone) --}}
+
+                    {{-- About — always visible --}}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('article.*') && !auth()->check() ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('About') }}</a>
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('article.*') && !request()->routeIs('article.schedule') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('About') }}</a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url('/article/schedule') }}">🗓️ {{ __('Training Schedule') }}</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/article/first-certification') }}">🎓 {{ __('First Certification') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/values') }}">🤝 {{ __('Our Values') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/history') }}">🏛️ {{ __('Club History') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/bureau') }}">👥 {{ __('The Bureau') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/instructors') }}">🎓 {{ __('Our Instructors') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/member-figures') }}">📊 {{ __('Our Members') }}</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/article/local') }}">🏠 {{ __('Our Warehouse') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/contact-info') }}">📬 {{ __('Contact & Social') }}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ route('cotisation') }}">💶 {{ __('Cotisation & Fees') }}</a></li>
                         </ul>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('trial.*') ? 'active fw-bold' : '' }}" href="{{ route('trial.show') }}">🐠 {{ __('Try Diving') }}</a>
+                    </li>
+
                     @auth
+                        {{-- Calendar --}}
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('events.*') ? 'active fw-bold' : '' }}" href="{{ route('events.index') }}">{{ __('Calendar') }}</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('classifieds.*') ? 'active fw-bold' : '' }}" href="{{ route('classifieds.index') }}">🏷️ {{ __('Classifieds') }}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('buddies.*') ? 'active fw-bold' : '' }}" href="{{ route('buddies.index') }}">🤝 {{ __('Buddies') }}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('availability.*') ? 'active fw-bold' : '' }}" href="{{ route('availability.index') }}">📅 {{ __('Availability') }}</a>
-                        </li>
+
+                        {{-- Members --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('article.*') || request()->routeIs('documents.*') || request()->routeIs('gallery') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Info') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('buddies.*') || request()->routeIs('availability.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Members') }}</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('members.directory') }}">{{ __('Members Directory') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('members.trombinoscope') }}">{{ __('Trombinoscope') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('documents.index') }}">📁 {{ __('Documents') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('gallery') }}">📸 {{ __('Photo Gallery') }}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('contact') }}">{{ __('Contact Us') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('members.directory') }}">📇 {{ __('Directory') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('members.trombinoscope') }}">📸 {{ __('Trombinoscope') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('buddies.index') }}">🤝 {{ __('Buddies') }}</a></li>
+                                @if(auth()->user()->isBureau() || auth()->user()->hasRole('instructor'))
+                                    <li><a class="dropdown-item" href="{{ route('availability.index') }}">📅 {{ __('Availability') }}</a></li>
+                                @endif
                             </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('profile.*') ? 'active fw-bold' : '' }}" href="{{ route('profile.show') }}">{{ __('My Profile') }}</a>
+
+                        {{-- Resources --}}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') || request()->routeIs('classifieds.*') || request()->routeIs('cotisation') || request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url('/article/schedule') }}">🗓️ {{ __('Training Schedule') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url('/article/first-certification') }}">🎓 {{ __('First Certification') }}</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('documents.index') }}">📁 {{ __('Documents') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('gallery') }}">📸 {{ __('Photo Gallery') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('classifieds.index') }}">🏷️ {{ __('Classifieds') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url('/article/local') }}">🏠 {{ __('Our Warehouse') }}</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('cotisation') }}">💶 {{ __('Cotisation') }}</a></li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('gdpr.*') ? 'active fw-bold' : '' }}" href="{{ route('gdpr.consents') }}">{{ __('Privacy') }}</a>
+
+                        {{-- My Account --}}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('profile.*') || request()->routeIs('gdpr.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('My Account') }}</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ route('profile.show') }}">👤 {{ __('My Profile') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('gdpr.consents') }}">🔒 {{ __('Privacy') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('contact') }}">📬 {{ __('Contact Us') }}</a></li>
+                            </ul>
                         </li>
+
+                        {{-- Administration --}}
                         @if(auth()->user()->isBureau())
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Administration') }}</a>
+                                <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Admin') }}</a>
                                 <ul class="dropdown-menu">
                                     @if(auth()->user()->isBureauMaster())
-                                        <li><a class="dropdown-item" href="{{ route('admin.dashboard.index') }}">{{ __('Dashboard') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.dashboard.index') }}">📊 {{ __('Dashboard') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
+                                        {{-- People --}}
                                         <li><a class="dropdown-item" href="{{ route('admin.members.index') }}">{{ __('Members') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.guardians.index') }}">👨‍👧 {{ __('Minors & Consent') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">🐠 {{ __('Trial Requests') }}</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        {{-- Finance --}}
                                         <li><a class="dropdown-item" href="{{ route('admin.seasons.index') }}">{{ __('Seasons') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.payments.index') }}">{{ __('Payments') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.equipment.index') }}">{{ __('Equipment') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
+                                        {{-- Content --}}
+                                        <li><a class="dropdown-item" href="{{ route('admin.articles.index') }}">{{ __('Articles') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.links.index') }}">{{ __('Links') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.library.index') }}">📁 {{ __('Documents') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.email.index') }}">{{ __('Email') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.votes.index') }}">{{ __('Votes') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.articles.index') }}">{{ __('Articles') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.links.index') }}">{{ __('Links') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.library.index') }}">📁 {{ __('Document Library') }}</a></li>
+                                        {{-- Diving --}}
+                                        <li><a class="dropdown-item" href="{{ route('admin.equipment.index') }}">{{ __('Equipment') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">🤿 {{ __('Dive Sites') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">📋 {{ __('Dive Group Rules') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">🐠 {{ __('Trial Requests') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.guardians.index') }}">👨‍👧 {{ __('Minors & Consent') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">{{ __('Audit Log') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">{{ __('Settings') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
+                                        {{-- System --}}
+                                        <li><a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">{{ __('Audit Log') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">⚙️ {{ __('Settings') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.guide.index') }}">📖 {{ __('Admin Guide') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.annual-report') }}">📊 {{ __('Annual Report') }}</a></li>
                                     @endif
@@ -178,6 +199,34 @@
 
     {{-- Flash messages --}}
     <div class="container mt-3">
+        {{-- Pending social link confirmation --}}
+        @auth
+            @if(session('pending_social_link'))
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    🔗 {{ __('A :provider account wants to link to your profile.', ['provider' => ucfirst(session('pending_social_link.provider'))]) }}
+                    <form method="POST" action="{{ route('auth.social.confirm-link') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-success ms-2">{{ __('Confirm Link') }}</button>
+                    </form>
+                    <form method="POST" action="{{ route('auth.social.dismiss-link') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary ms-1">{{ __('Dismiss') }}</button>
+                    </form>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+
+            {{-- Profile completeness banner --}}
+            @if(!auth()->user()->hasDiveProfile())
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    📋 {{ __('Complete your profile to register for dives:') }}
+                    <strong>{{ implode(', ', auth()->user()->missingDiveProfileFields()) }}</strong>
+                    — <a href="{{ route('profile.show') }}" class="alert-link">{{ __('Edit Profile') }}</a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+        @endauth
+
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -187,6 +236,12 @@
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{ session('warning') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
