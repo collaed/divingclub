@@ -1,8 +1,10 @@
+<!-- Event detail page: registration, participants, payments, dive site, communications, photo gallery | ClubCEP.eu -->
 <x-layout :title="$event->title">
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('events.index') }}">{{ __('Calendar') }}</a></li><li class="breadcrumb-item active">{{ $event->title }}</li></ol></nav>
 
     <div class="row">
         <div class="col-lg-8">
+            {{-- Event details: type, status, date/time, location, dive site, weather --}}
             <div class="card dc-card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <div>
@@ -145,6 +147,7 @@
             @endif
         </div>
 
+        {{-- Sidebar: registration form, participant list, payments, communications --}}
         <div class="col-lg-4">
             {{-- Registration --}}
             @auth
@@ -158,6 +161,10 @@
                             @endif
                             <form method="POST" action="{{ route('events.cancel-registration', $event) }}" onsubmit="return confirm('{{ __('Cancel registration?') }}')">
                                 @csrf
+                                <input type="hidden" name="user_id" value="{{ auth()->id() }}">
+                                <div class="mb-2">
+                                    <input type="text" name="cancel_comment" class="form-control form-control-sm" placeholder="{{ __('Reason (optional)') }}">
+                                </div>
                                 <button class="btn btn-outline-danger btn-sm">{{ __('Cancel Registration') }}</button>
                             </form>
                         @elseif($event->isRegistrationOpen())
@@ -170,6 +177,9 @@
                             @endif
                             <form method="POST" action="{{ route('events.register', $event) }}">
                                 @csrf
+                                <div class="mb-2">
+                                    <input type="text" name="comment" class="form-control form-control-sm" placeholder="{{ __('Comment (optional)') }}">
+                                </div>
                                 <button class="btn btn-primary w-100">
                                     {{ $event->isFull() ? __('Join Waiting List') : __('Register') }}
                                 </button>
@@ -183,39 +193,111 @@
                                 <p class="small">{{ __('Opens') }}: {{ $event->inscription_open_at->format('d/m/Y H:i') }}</p>
                             @endif
                         @endif
+
+                        {{-- Register another person --}}
+                        @if($event->isRegistrationOpen() && $members->count())
+                            <hr>
+                            <form method="POST" action="{{ route('events.register', $event) }}">
+                                @csrf
+                                <label class="form-label small fw-bold">{{ __('Register another person') }}</label>
+                                <select name="user_id" class="form-select form-select-sm mb-2" required>
+                                    <option value="">{{ __('Select member…') }}</option>
+                                    @foreach($members as $m)
+                                        @if(!$event->registrations->where('user_id', $m->id)->whereIn('status', ['confirmed','waiting'])->count())
+                                            <option value="{{ $m->id }}">{{ $m->name }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                                <input type="text" name="comment" class="form-control form-control-sm mb-2" placeholder="{{ __('Comment (optional)') }}">
+                                <button class="btn btn-outline-primary btn-sm w-100">{{ __('Register') }}</button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             @endauth
 
-            {{-- Participant list (visible to bureau/instructor) --}}
-            @if(auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? [])))
-                <div class="card dc-card mb-4">
-                    <div class="card-header">{{ __('Participants') }}</div>
-                    <div class="list-group list-group-flush">
-                        @foreach($event->registrations->where('status', 'confirmed') as $reg)
-                            @php $regMed = app(\App\Services\MedicalComplianceService::class)->getStatus($reg->user); @endphp
-                            <div class="list-group-item d-flex justify-content-between small">
-                                <span>{{ $reg->user->name }} <span class="badge bg-{{ $regMed['badge'] }}" style="font-size:0.6rem;">{{ __($regMed['label']) }}</span></span>
-                                <span class="badge bg-success">{{ __('Confirmed') }}</span>
-                            </div>
-                        @endforeach
-                        @foreach($event->registrations->where('status', 'waiting')->sortBy('waiting_list_position') as $reg)
-                            <div class="list-group-item d-flex justify-content-between small">
-                                <span>{{ $reg->user->name }}</span>
-                                <span class="badge bg-warning text-dark">#{{ $reg->waiting_list_position }}</span>
-                            </div>
-                        @endforeach
-                    </div>
+            {{-- Participant list --}}
+            @php
+                $confirmed = $event->registrations->where('status', 'confirmed');
+                $waiting = $event->registrations->where('status', 'waiting')->sortBy('waiting_list_position');
+                $cancelled = $event->registrations->where('status', 'cancelled');
+                $instructorRegs = $confirmed->filter(fn($r) => $r->user->role_id === 3 || $r->user->detail?->active_instructor);
+                $memberRegs = $confirmed->reject(fn($r) => $r->user->role_id === 3 || $r->user->detail?->active_instructor);
+                $isPrivileged = auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? []));
+            @endphp
+            <div class="card dc-card mb-4">
+                <div class="card-header d-flex justify-content-between">
+                    <span>{{ __('Participants') }} ({{ $confirmed->count() }}{{ $event->max_participants ? '/'.$event->max_participants : '' }})</span>
+                    @if($cancelled->count() && $isPrivileged)
+                        <a href="#" class="small" onclick="document.getElementById('cancelled-list').classList.toggle('d-none'); return false;">{{ __('show/hide cancelled') }}</a>
+                    @endif
                 </div>
+                <div class="card-body p-0">
+                    {{-- Instructors --}}
+                    @if($instructorRegs->count())
+                        <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Instructors') }}</small></div>
+                        @foreach($instructorRegs as $reg)
+                            @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event])
+                        @endforeach
+                    @endif
+                    {{-- Members --}}
+                    @if($memberRegs->count())
+                        <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Members') }}</small></div>
+                        @foreach($memberRegs as $reg)
+                            @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event])
+                        @endforeach
+                    @endif
+                    {{-- Waiting list --}}
+                    @if($waiting->count())
+                        <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Waiting List') }}</small></div>
+                        @foreach($waiting as $reg)
+                            @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event, 'showPosition' => true])
+                        @endforeach
+                    @endif
+                    {{-- Cancelled (hidden by default, privileged only) --}}
+                    @if($cancelled->count() && $isPrivileged)
+                        <div id="cancelled-list" class="d-none">
+                            <div class="px-3 pt-2 pb-1"><small class="fw-bold text-danger">{{ __('Cancelled') }}</small></div>
+                            @foreach($cancelled as $reg)
+                                @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event, 'showCancel' => true])
+                            @endforeach
+                        </div>
+                    @endif
+                    @if($confirmed->count() === 0 && $waiting->count() === 0)
+                        <p class="text-muted small p-3 mb-0">{{ __('No registrations yet.') }}</p>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Payment status per participant (visible to bureau/instructor) --}}
+            @if($isPrivileged)
+                @php $eventPayments = \App\Models\PaymentExpected::where('event_id', $event->id)->with('user.detail')->get(); @endphp
+                @if($eventPayments->count())
+                    <div class="card dc-card mb-4">
+                        <div class="card-header">💳 {{ __('Payment Status') }}</div>
+                        <div class="list-group list-group-flush">
+                            @foreach($eventPayments as $pay)
+                                <div class="list-group-item d-flex justify-content-between small">
+                                    <span>{{ $pay->user?->name }}</span>
+                                    <span>
+                                        €{{ number_format($pay->amount_due, 2) }}
+                                        <span class="badge bg-{{ $pay->status === 'paid' ? 'success' : ($pay->status === 'partial' ? 'info' : 'warning text-dark') }}">{{ ucfirst($pay->status) }}</span>
+                                        @if($pay->paid_at) <small class="text-muted">{{ $pay->paid_at->format('d/m') }}</small> @endif
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             @endif
 
-            {{-- Payment due for this event --}}
+            {{-- Personal payment due --}}
             @auth
                 @php $userPayment = \App\Models\PaymentExpected::where('event_id', $event->id)->where('user_id', auth()->id())->first(); @endphp
                 @if($userPayment)
                     <div class="card dc-card mb-4 {{ $userPayment->status === 'paid' ? 'border-success' : 'border-warning' }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <span>💳 {{ __('Payment') }}</span>
+                            <span>💳 {{ __('Your Payment') }}</span>
                             <span class="badge bg-{{ $userPayment->status === 'paid' ? 'success' : 'warning text-dark' }}">{{ ucfirst($userPayment->status) }}</span>
                         </div>
                         <div class="card-body">
@@ -248,9 +330,6 @@
                 @endif
             @endauth
 
-            {{-- Event email --}}
-            @if($event->participant_email)
-
             {{-- Dive Groups link --}}
             @if(in_array($event->event_type, ['dive', 'training']))
                 <div class="card dc-card mb-4">
@@ -275,6 +354,8 @@
                 </div>
             @endif
 
+            {{-- Event email --}}
+            @if($event->participant_email)
                 <div class="card dc-card mb-4">
                     <div class="card-body small">
                         <strong>{{ __('Event Email') }}:</strong><br>
@@ -294,6 +375,33 @@
                     </div>
                 </div>
             @endif
+
+            {{-- Communication history --}}
+            @if($emailHistory->count())
+                <div class="card dc-card mb-4">
+                    <div class="card-header d-flex justify-content-between">
+                        <span>📧 {{ __('Communications') }}</span>
+                        <span class="badge bg-secondary">{{ $emailHistory->count() }}</span>
+                    </div>
+                    <div class="card-body p-0" style="max-height:400px; overflow-y:auto">
+                        @foreach($emailHistory as $mail)
+                            <div class="border-bottom p-2 small">
+                                <div class="d-flex justify-content-between text-muted" style="font-size:0.7rem">
+                                    <span>{{ $mail->from_name ?? $mail->user?->name ?? __('System') }} @if($mail->from_email)<{{ $mail->from_email }}>@endif</span>
+                                    <span>{{ $mail->created_at->format('d/m/Y H:i') }}</span>
+                                </div>
+                                <div class="fw-bold">{{ $mail->subject }}</div>
+                                @if($mail->body)
+                                    <details class="mt-1">
+                                        <summary class="text-muted" style="font-size:0.7rem; cursor:pointer">{{ __('Show message') }}</summary>
+                                        <div class="mt-1 p-2 bg-light rounded" style="font-size:0.75rem; white-space:pre-wrap">{{ Str::limit($mail->body, 2000) }}</div>
+                                    </details>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -308,12 +416,22 @@
                 @endif
             </div>
             <div class="card-body">
+                {{-- Ken Burns slideshow of best photos --}}
+                @if($photos->count() > 1)
+                    <x-slideshow :photos="$photos->take(12)" height="250px" :interval="5000" />
+                    <div class="mb-3"></div>
+                @endif
+
+                {{-- Thumbnail grid for browsing/managing --}}
                 @if($photos->count())
                     <div class="row g-2">
                         @foreach($photos as $photo)
                             <div class="col-6 col-md-3 position-relative">
                                 <img src="{{ asset('storage/' . $photo->path) }}" alt="{{ $photo->caption }}" class="img-fluid rounded slideshow-img cursor-pointer" style="height:150px; width:100%; object-fit:cover;" onclick="openSlide({{ $loop->index }})">
                                 <span class="position-absolute top-0 end-0 badge bg-dark bg-opacity-50 m-1" title="{{ __('Quality') }}">{{ $photo->quality_score }}%</span>
+                                @if($photo->has_faces)
+                                    <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-1" title="{{ __('Contains faces — hidden from public') }}">👤</span>
+                                @endif
                                 @if(auth()->check() && (auth()->user()->isBureau() || $photo->uploaded_by === auth()->id()))
                                     <form method="POST" action="{{ route('events.photo.delete', [$event, $photo]) }}" class="position-absolute bottom-0 end-0 m-1" onsubmit="return confirm('{{ __('Delete photo?') }}')">
                                         @csrf @method('DELETE')

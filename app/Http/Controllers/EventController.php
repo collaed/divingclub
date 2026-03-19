@@ -1,22 +1,49 @@
 <?php
 
+/**
+ * Event CRUD, registration, cancellation, and photo management.
+ *
+ * Handles the full event lifecycle: creation, editing, self-registration,
+ * proxy registration (bureau/instructor registering any member), cancellation
+ * with audit trail, waiting list auto-promotion, deposit-based payment generation,
+ * and GDPR-compliant photo uploads with auto-social-media publishing.
+ *
+ * @author  ClubCEP.eu
+ *
+ * @see     \App\Models\Event
+ * @see     \App\Models\EventRegistration
+ * @see     \App\Services\MedicalComplianceService  — medical cert gate for dive events
+ */
+
 namespace App\Http\Controllers;
 
+use App\Models\DiveSite;
+use App\Models\EmailLog;
 use App\Models\Event;
+use App\Models\EventPhoto;
 use App\Models\EventRegistration;
+use App\Models\GdprConsent;
+use App\Models\PaymentExpected;
 use App\Models\Season;
 use App\Models\ThemeSetting;
 use App\Models\User;
+use App\Services\FaceDetectionService;
+use App\Services\ImageQualityService;
 use App\Services\MedicalComplianceService;
+use App\Services\SocialPublishService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
+    // ─── Calendar Views ────────────────────────────────────────
+
     public function index(Request $request)
     {
         $view = $request->get('view', 'month');
-        $date = $request->get('date') ? \Carbon\Carbon::parse($request->get('date')) : now();
+        $date = $request->get('date') ? Carbon::parse($request->get('date')) : now();
 
         $query = Event::where('status', '!=', 'cancelled');
 
@@ -41,19 +68,29 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        $event->load(['registrations.user.detail', 'registrations.user.certificationLevels', 'instructor.detail', 'responsible.detail', 'season', 'diveSite', 'diveGroups.members.user.certificationLevels']);
+        $event->load([
+            'registrations.user.detail', 'registrations.user.certificationLevels',
+            'registrations.registeredByUser.detail', 'registrations.cancelledByUser.detail',
+            'instructor.detail', 'responsible.detail', 'season', 'diveSite',
+            'diveGroups.members.user.certificationLevels',
+        ]);
         $userReg = auth()->check() ? $event->registrations()->where('user_id', auth()->id())->first() : null;
+        $emailHistory = EmailLog::where('event_id', $event->id)->orderByDesc('created_at')->get();
+        $members = auth()->check() ? User::with('detail')->whereHas('role', fn ($q) => $q->where('id', '>', 1))->orderBy('username')->get() : collect();
 
-        return view('events.show', compact('event', 'userReg'));
+        return view('events.show', compact('event', 'userReg', 'emailHistory', 'members'));
     }
+
+    // ─── Event CRUD ──────────────────────────────────────────
 
     public function create()
     {
         $this->authorizeBureau();
         $seasons = Season::orderByDesc('year')->get();
-        $instructors = User::whereHas('role', fn($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
-        $diveSites = \App\Models\DiveSite::active()->orderBy('name')->get();
+        $instructors = User::whereHas('role', fn ($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
+        $diveSites = DiveSite::active()->orderBy('name')->get();
         $locationSuggestions = $this->topLocations();
+
         return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites, 'locationSuggestions' => $locationSuggestions]);
     }
 
@@ -66,7 +103,7 @@ class EventController extends Controller
         $data['participant_email'] = null; // will be set after creation
 
         $event = Event::create($data);
-        $event->update(['participant_email' => 'event-' . $event->id . '@' . config('club.domain')]);
+        $event->update(['participant_email' => 'event-'.$event->id.'@'.config('club.domain')]);
 
         return redirect()->route('events.show', $event)->with('success', __('Event created.'));
     }
@@ -75,9 +112,10 @@ class EventController extends Controller
     {
         $this->authorizeEventEdit($event);
         $seasons = Season::orderByDesc('year')->get();
-        $instructors = User::whereHas('role', fn($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
-        $diveSites = \App\Models\DiveSite::active()->orderBy('name')->get();
+        $instructors = User::whereHas('role', fn ($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
+        $diveSites = DiveSite::active()->orderBy('name')->get();
         $locationSuggestions = $this->topLocations();
+
         return view('events.form', compact('event', 'seasons', 'instructors', 'diveSites', 'locationSuggestions'));
     }
 
@@ -87,48 +125,67 @@ class EventController extends Controller
         $data = $this->validateEvent($request);
         $data['assistant_ids'] = $request->assistant_ids ? array_map('intval', explode(',', $request->assistant_ids)) : [];
         $event->update($data);
+
         return redirect()->route('events.show', $event)->with('success', __('Event updated.'));
     }
 
-    public function register(Event $event)
-    {
-        $user = auth()->user();
+    // ─── Registration & Cancellation ──────────────────────────
+    // Supports self-registration and proxy registration (any member can be
+    // registered by bureau/instructor). Medical compliance is enforced for
+    // pool, dive, and training events. Waiting list auto-promotes on cancel.
 
-        if (!$event->isRegistrationOpen()) {
+    public function register(Event $event, Request $request)
+    {
+        $actor = auth()->user();
+        $targetUserId = $request->input('user_id', $actor->id);
+        $targetUser = User::findOrFail($targetUserId);
+        $comment = $request->input('comment');
+
+        if (! $event->isRegistrationOpen()) {
             return back()->with('error', __('Registration is not open for this event.'));
         }
 
-        if ($event->registrations()->where('user_id', $user->id)->whereIn('status', ['confirmed', 'waiting'])->exists()) {
-            return back()->with('error', __('You are already registered.'));
+        if ($event->registrations()->where('user_id', $targetUser->id)->whereIn('status', ['confirmed', 'waiting'])->exists()) {
+            return back()->with('error', __(':name is already registered.', ['name' => $targetUser->name]));
         }
 
         // Remove old cancelled registration if re-registering
-        $event->registrations()->where('user_id', $user->id)->where('status', 'cancelled')->delete();
+        $event->registrations()->where('user_id', $targetUser->id)->where('status', 'cancelled')->delete();
 
         // Medical compliance gate — pool, dive, training require valid cert
         if (in_array($event->event_type, ['pool', 'dive', 'training'])) {
-            if (!app(MedicalComplianceService::class)->isCompliant($user)) {
-                return back()->with('error', __('You need a valid medical certificate to register for this event. Please upload one in your profile.'));
+            if (! app(MedicalComplianceService::class)->isCompliant($targetUser)) {
+                $msg = $targetUser->id === $actor->id
+                    ? __('You need a valid medical certificate to register for this event. Please upload one in your profile.')
+                    : __(':name needs a valid medical certificate.', ['name' => $targetUser->name]);
+
+                return back()->with('error', $msg);
             }
         }
 
-        DB::transaction(function () use ($event, $user) {
+        DB::transaction(function () use ($event, $targetUser, $actor, $comment) {
+            $registeredBy = $targetUser->id !== $actor->id ? $actor->id : null;
+
             if ($event->isFull()) {
-                if (!$event->waiting_list_enabled) {
+                if (! $event->waiting_list_enabled) {
                     return back()->with('error', __('Event is full.'));
                 }
                 $pos = ($event->waitingRegistrations()->max('waiting_list_position') ?? 0) + 1;
                 EventRegistration::create([
                     'event_id' => $event->id,
-                    'user_id' => $user->id,
+                    'user_id' => $targetUser->id,
                     'status' => 'waiting',
                     'waiting_list_position' => $pos,
+                    'comment' => $comment,
+                    'registered_by' => $registeredBy,
                 ]);
             } else {
                 EventRegistration::create([
                     'event_id' => $event->id,
-                    'user_id' => $user->id,
+                    'user_id' => $targetUser->id,
                     'status' => 'confirmed',
+                    'comment' => $comment,
+                    'registered_by' => $registeredBy,
                 ]);
 
                 // Auto-generate payment only for deposits (not estimated_cost)
@@ -138,19 +195,19 @@ class EventController extends Controller
                     $amt = $event->{"deposit_{$i}_amount"};
                     if ($amt > 0) {
                         $totalDue += $amt;
-                        $components[] = ['label' => __('Deposit') . " $i" . ($event->{"deposit_{$i}_date"} ? ' (' . $event->{"deposit_{$i}_date"}->format('d/m/Y') . ')' : ''), 'amount' => (float) $amt];
+                        $components[] = ['label' => __('Deposit')." $i".($event->{"deposit_{$i}_date"} ? ' ('.$event->{"deposit_{$i}_date"}->format('d/m/Y').')' : ''), 'amount' => (float) $amt];
                     }
                 }
                 if ($totalDue > 0) {
-                    $detail = $user->detail;
+                    $detail = $targetUser->detail;
                     $name = strtoupper($detail?->last_name ?? 'MEMBER');
-                    \App\Models\PaymentExpected::create([
-                        'user_id' => $user->id,
+                    PaymentExpected::create([
+                        'user_id' => $targetUser->id,
                         'type' => 'event',
                         'event_id' => $event->id,
                         'season_year' => $event->event_date->format('Y'),
                         'amount_due' => $totalDue,
-                        'communication' => ThemeSetting::get('club_short_code', config('club.id', 'CLUB')) . '-' . $event->event_date->format('Y') . '-' . $event->id . '-' . $name,
+                        'communication' => ThemeSetting::get('club_short_code', config('club.id', 'CLUB')).'-'.$event->event_date->format('Y').'-'.$event->id.'-'.$name,
                         'components' => $components,
                         'status' => 'pending',
                     ]);
@@ -158,19 +215,28 @@ class EventController extends Controller
             }
         });
 
-        return back()->with('success', __('Registration successful.'));
+        $who = $targetUser->id !== $actor->id ? $targetUser->name : __('You');
+
+        return back()->with('success', __(':who registered successfully.', ['who' => $who]));
     }
 
-    public function cancelRegistration(Event $event)
+    public function cancelRegistration(Event $event, Request $request)
     {
-        $reg = $event->registrations()->where('user_id', auth()->id())->firstOrFail();
+        $actor = auth()->user();
+        $targetUserId = $request->input('user_id', $actor->id);
+        $reg = $event->registrations()->where('user_id', $targetUserId)->whereIn('status', ['confirmed', 'waiting'])->firstOrFail();
         $wasConfirmed = $reg->status === 'confirmed';
 
-        $reg->update(['status' => 'cancelled']);
+        $reg->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+            'cancelled_by' => $actor->id !== (int) $targetUserId ? $actor->id : null,
+            'cancel_comment' => $request->input('cancel_comment'),
+        ]);
 
         // Cancel unpaid payment
-        \App\Models\PaymentExpected::where('event_id', $event->id)
-            ->where('user_id', auth()->id())
+        PaymentExpected::where('event_id', $event->id)
+            ->where('user_id', $targetUserId)
             ->where('status', 'pending')
             ->delete();
 
@@ -179,7 +245,6 @@ class EventController extends Controller
             $next = $event->waitingRegistrations()->first();
             if ($next) {
                 $next->update(['status' => 'confirmed', 'waiting_list_position' => null]);
-                // TODO: Send promotion notification email (Phase 6)
             }
         }
 
@@ -190,8 +255,13 @@ class EventController extends Controller
     {
         $this->authorizeBureau();
         $event->update(['status' => 'cancelled']);
+
         return redirect()->route('events.index')->with('success', __('Event cancelled.'));
     }
+
+    // ─── Photo Gallery (GDPR-gated) ──────────────────────────
+    // Only confirmed participants with photo_publication GDPR consent can upload.
+    // Photos are auto-scored by quality heuristic and published to social media.
 
     public function uploadPhoto(Request $request, Event $event)
     {
@@ -202,52 +272,52 @@ class EventController extends Controller
         ]);
 
         // GDPR: check photo_publication consent
-        $consent = \App\Models\GdprConsent::where('user_id', auth()->id())
+        $consent = GdprConsent::where('user_id', auth()->id())
             ->where('consent_type', 'photo_publication')->where('granted', true)->exists();
-        if (!$consent) {
+        if (! $consent) {
             return back()->with('error', __('You must grant photo publication consent in Privacy settings before uploading event photos.'));
         }
 
         foreach ($request->file('photos', []) as $file) {
-            $path = $file->store('event-photos/' . $event->id, 'public');
+            $realPath = $file->getRealPath();
+            $path = $file->store('event-photos/'.$event->id, 'public');
 
-            // Auto quality score based on file size + dimensions (simple heuristic)
-            $size = $file->getSize();
-            $img = @getimagesize($file->getRealPath());
-            $megapixels = $img ? ($img[0] * $img[1]) / 1_000_000 : 0;
-            $score = min(100, (int)(
-                ($megapixels >= 2 ? 40 : $megapixels * 20) +
-                ($size > 500_000 ? 30 : ($size / 500_000) * 30) +
-                ($img && $img[0] > $img[1] ? 20 : 10) + // landscape bonus
-                ($img && $img[0] >= 1920 ? 10 : 0) // HD bonus
-            ));
+            // Quality score (sharpness, exposure, saturation, contrast, resolution)
+            $score = app(ImageQualityService::class)->score($realPath);
 
-            $photo = \App\Models\EventPhoto::create([
+            // Face detection — photos with faces are hidden from public/anonymous pages
+            $hasFaces = app(FaceDetectionService::class)->hasFaces($realPath);
+
+            $photo = EventPhoto::create([
                 'event_id' => $event->id,
                 'uploaded_by' => auth()->id(),
                 'path' => $path,
                 'caption' => $request->caption,
                 'quality_score' => $score,
+                'has_faces' => $hasFaces,
                 'gdpr_consent' => true,
             ]);
 
             // Auto-publish to social media if eligible
-            app(\App\Services\SocialPublishService::class)->publishToFacebook($photo);
+            app(SocialPublishService::class)->publishToFacebook($photo);
         }
 
         return back()->with('success', __('Photos uploaded.'));
     }
 
-    public function deletePhoto(Event $event, \App\Models\EventPhoto $photo)
+    public function deletePhoto(Event $event, EventPhoto $photo)
     {
         $user = auth()->user();
         abort_unless($photo->event_id === $event->id, 404);
         abort_unless($user->isBureau() || $photo->uploaded_by === $user->id, 403);
 
-        \Illuminate\Support\Facades\Storage::disk('public')->delete($photo->path);
+        Storage::disk('public')->delete($photo->path);
         $photo->delete();
+
         return back()->with('success', __('Photo deleted.'));
     }
+
+    // ─── Authorization & Helpers ──────────────────────────────
 
     private function validateEvent(Request $request): array
     {
@@ -288,11 +358,16 @@ class EventController extends Controller
         abort_unless(auth()->user()->isBureau(), 403);
     }
 
+    /** Bureau can always edit; instructors can edit their own events until permissions expire. */
     private function authorizeEventEdit(Event $event): void
     {
         $user = auth()->user();
-        if ($user->isBureau()) return;
-        if ($event->instructor_id === $user->id && (!$event->permissions_expire_date || $event->permissions_expire_date->isFuture())) return;
+        if ($user->isBureau()) {
+            return;
+        }
+        if ($event->instructor_id === $user->id && (! $event->permissions_expire_date || $event->permissions_expire_date->isFuture())) {
+            return;
+        }
         abort(403);
     }
 

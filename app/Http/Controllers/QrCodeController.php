@@ -1,9 +1,20 @@
 <?php
 
+/**
+ * QR code generation: vCard, SEPA EPC, federation licence, and signed payment URLs.
+ *
+ * Signed payment QRs encode a URL (not raw bank details) so the club's TLS
+ * certificate proves identity and an HMAC signature prevents tampering.
+ * This mitigates quishing attacks on EPC QR codes.
+ *
+ * @author ClubCEP.eu
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\MemberLicence;
 use App\Models\PaymentExpected;
+use App\Models\ThemeSetting;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\Writer\PngWriter;
@@ -21,46 +32,118 @@ class QrCodeController extends Controller
         $vcard .= "N:{$d?->last_name};{$d?->first_name}\r\n";
         $vcard .= "FN:{$user->name}\r\n";
         $vcard .= "EMAIL:{$user->primary_email}\r\n";
-        if ($d?->phone_mobile) $vcard .= "TEL;TYPE=CELL:{$d->phone_mobile}\r\n";
-        $vcard .= "ORG:" . \App\Models\ThemeSetting::get('club_full_name', 'Diving Club') . "\r\n";
+        if ($d?->phone_mobile) {
+            $vcard .= "TEL;TYPE=CELL:{$d->phone_mobile}\r\n";
+        }
+        $vcard .= 'ORG:'.ThemeSetting::get('club_full_name', 'Diving Club')."\r\n";
         $vcard .= "END:VCARD\r\n";
 
         return $this->generatePng($vcard, "vcard-{$user->id}.png");
     }
 
+    // ─── Signed Payment QR (anti-quishing) ─────────────────────
+
+    /** Generate a QR containing a signed verification URL instead of raw EPC data. */
+    public function signedPaymentQr(Request $request)
+    {
+        $amount = round((float) $request->query('amount', 0), 2);
+        $communication = $request->query('communication', '');
+
+        if ($amount <= 0) {
+            return response('Invalid amount', 400);
+        }
+
+        $url = self::buildSignedUrl($amount, $communication);
+
+        return $this->generatePng($url, 'payment-qr.png', false);
+    }
+
+    /** Verification page — user lands here after scanning the QR. */
+    public function verifyPayment(Request $request)
+    {
+        $amount = (float) $request->query('a', 0);
+        $communication = $request->query('c', '');
+        $expires = (int) $request->query('e', 0);
+        $signature = $request->query('s', '');
+
+        // Verify signature
+        $payload = $amount.'|'.$communication.'|'.$expires;
+        $expected = hash_hmac('sha256', $payload, config('app.key'));
+
+        if (! hash_equals($expected, $signature)) {
+            return view('payment-verify', ['valid' => false, 'error' => __('Invalid signature — this QR code may have been tampered with.')]);
+        }
+
+        if ($expires < time()) {
+            return view('payment-verify', ['valid' => false, 'error' => __('This payment QR has expired. Please generate a new one.')]);
+        }
+
+        $cfg = config('cotisation');
+
+        return view('payment-verify', [
+            'valid' => true,
+            'amount' => $amount,
+            'communication' => $communication,
+            'iban' => $cfg['iban'],
+            'bic' => $cfg['bic'],
+            'beneficiary' => $cfg['beneficiary'],
+            'bank' => $cfg['bank'],
+        ]);
+    }
+
+    /** Build a signed URL with HMAC and expiry. */
+    public static function buildSignedUrl(float $amount, string $communication): string
+    {
+        $expires = time() + 86400 * 30; // 30 days validity
+        $payload = $amount.'|'.$communication.'|'.$expires;
+        $signature = hash_hmac('sha256', $payload, config('app.key'));
+
+        return route('payment.verify', [
+            'a' => $amount,
+            'c' => $communication,
+            'e' => $expires,
+            's' => $signature,
+        ]);
+    }
+
+    // ─── Legacy EPC QR (kept for backward compatibility) ───────
+
     public function sepaPublic(Request $request)
     {
         $amount = $request->query('amount', 0);
         $communication = $request->query('communication', '');
-        $iban = \App\Models\ThemeSetting::get('club_iban') ?: config('club.iban', '');
+        $iban = ThemeSetting::get('club_iban') ?: config('club.iban', '');
 
-        if (!$iban) return response('No IBAN configured', 400);
+        if (! $iban) {
+            return response('No IBAN configured', 400);
+        }
 
         $epc = "BCD\n002\n1\nSCT\n";
-        $epc .= \App\Models\ThemeSetting::get('club_bic') . "\n";
-        $epc .= \App\Models\ThemeSetting::get('club_full_name', 'Diving Club') . "\n";
-        $epc .= $iban . "\n";
-        $epc .= "EUR" . number_format((float)$amount, 2, '.', '') . "\n";
+        $epc .= ThemeSetting::get('club_bic')."\n";
+        $epc .= ThemeSetting::get('club_full_name', 'Diving Club')."\n";
+        $epc .= $iban."\n";
+        $epc .= 'EUR'.number_format((float) $amount, 2, '.', '')."\n";
         $epc .= "\n";
-        $epc .= $communication . "\n";
+        $epc .= $communication."\n";
 
-        return $this->generatePng($epc, "sepa-dues.png", false);
+        return $this->generatePng($epc, 'sepa-dues.png', false);
     }
 
     public function sepa(PaymentExpected $payment)
     {
         $user = auth()->user();
-        if ($payment->user_id !== $user->id && !$user->isBureauMaster()) abort(403);
+        if ($payment->user_id !== $user->id && ! $user->isBureauMaster()) {
+            abort(403);
+        }
 
-        // SEPA EPC QR format
-        $iban = \App\Models\ThemeSetting::get('club_iban') ?: config('club.iban', '');
+        $iban = ThemeSetting::get('club_iban') ?: config('club.iban', '');
         $epc = "BCD\n002\n1\nSCT\n";
-        $epc .= \App\Models\ThemeSetting::get('club_bic') . "\n";
-        $epc .= \App\Models\ThemeSetting::get('club_full_name', 'Diving Club') . "\n";
-        $epc .= $iban . "\n";
-        $epc .= "EUR" . number_format($payment->amount_due, 2, '.', '') . "\n";
-        $epc .= "\n"; // Purpose
-        $epc .= $payment->communication . "\n";
+        $epc .= ThemeSetting::get('club_bic')."\n";
+        $epc .= ThemeSetting::get('club_full_name', 'Diving Club')."\n";
+        $epc .= $iban."\n";
+        $epc .= 'EUR'.number_format($payment->amount_due, 2, '.', '')."\n";
+        $epc .= "\n";
+        $epc .= $payment->communication."\n";
 
         return $this->generatePng($epc, "sepa-{$payment->id}.png", false);
     }
@@ -68,14 +151,16 @@ class QrCodeController extends Controller
     public function federation(MemberLicence $licence)
     {
         $user = auth()->user();
-        if ($licence->user_id !== $user->id && !$user->isBureauMaster()) abort(403);
+        if ($licence->user_id !== $user->id && ! $user->isBureauMaster()) {
+            abort(403);
+        }
 
-        if (!$licence->licence_number) {
+        if (! $licence->licence_number) {
             return back()->with('error', __('No licence number — licence pending.'));
         }
 
-        $key = hash('sha256', $licence->licence_number . config('club.id') . config('club.federation_salt'));
-        $url = "https://verify." . config('club.domain', 'example.com') . "/licence/{$key}";
+        $key = hash('sha256', $licence->licence_number.config('club.id').config('club.federation_salt'));
+        $url = 'https://verify.'.config('club.domain', 'example.com')."/licence/{$key}";
 
         return $this->generatePng($url, "federation-{$licence->id}.png");
     }
@@ -83,7 +168,7 @@ class QrCodeController extends Controller
     private function generatePng(string $data, string $filename, bool $download = true): Response
     {
         $result = Builder::create()
-            ->writer(new PngWriter())
+            ->writer(new PngWriter)
             ->data($data)
             ->encoding(new Encoding('UTF-8'))
             ->size(300)
@@ -91,7 +176,9 @@ class QrCodeController extends Controller
             ->build();
 
         $headers = ['Content-Type' => 'image/png'];
-        if ($download) $headers['Content-Disposition'] = "attachment; filename={$filename}";
+        if ($download) {
+            $headers['Content-Disposition'] = "attachment; filename={$filename}";
+        }
 
         return response($result->getString(), 200, $headers);
     }

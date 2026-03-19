@@ -1,3 +1,4 @@
+<!-- Trello-style dive group planner: drag-drop assignment, rule validation, auto-propose fiche de sécurité | ClubCEP.eu -->
 <x-layout :title="__('Dive Groups') . ' — ' . $event->title">
     <nav aria-label="breadcrumb"><ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{{ route('events.index') }}">{{ __('Calendar') }}</a></li>
@@ -39,13 +40,16 @@
         ];
     @endphp
 
+    {{-- Board layout: Trello-style horizontal columns with drag-drop support --}}
     <style>
         .dg-board { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; align-items: flex-start; }
         .dg-column { min-width: 260px; max-width: 300px; flex-shrink: 0; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; }
         .dg-column-header { padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
         .dg-column-body { padding: 8px; min-height: 80px; }
-        .dg-card { padding: 8px 10px; margin-bottom: 6px; border-radius: 6px; border: 1px solid #dee2e6; cursor: grab; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; transition: box-shadow 0.15s; }
+        .dg-card { padding: 8px 10px; margin-bottom: 6px; border-radius: 6px; border: 1px solid #dee2e6; cursor: grab; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; transition: box-shadow 0.15s; user-select: none; -webkit-user-select: none; }
         .dg-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+        .dg-card .drag-handle { cursor: grab; padding: 0 6px; font-size: 1rem; color: #aaa; flex-shrink: 0; }
+        .dg-card .drag-handle:hover { color: #333; }
         .dg-card.dragging { opacity: 0.5; }
         .dg-column-body.drag-over { background: #e3f2fd; border-radius: 6px; }
         .dg-purpose { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; color: white; display: inline-block; }
@@ -53,11 +57,45 @@
         .dg-unassigned { min-width: 260px; max-width: 300px; flex-shrink: 0; }
     </style>
 
-    {{-- Validation bar --}}
-    @if($canManage && $event->diveGroups->count())
-    <div class="d-flex gap-2 mb-3 align-items-center">
-        <button class="btn btn-success btn-sm" onclick="validateGroups()">✅ {{ __('Validate All Groups') }}</button>
+    {{-- Stale groups warning: registrations changed since groups were last edited --}}
+    @if($groupsStale && $event->diveGroups->count())
+        <div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3">
+            <span>⚠️ {{ __('Registrations have changed since groups were last edited. Some participants may be unassigned or cancelled.') }}</span>
+            <button class="btn btn-warning btn-sm" onclick="proposeGroups()">🔄 {{ __('Reprocess') }}</button>
+        </div>
+    @endif
+
+    {{-- Toolbar: validate groups against federation rules + auto-propose --}}
+    @if($canManage)
+    <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+        @if($event->diveGroups->count())
+            <button class="btn btn-success btn-sm" onclick="validateGroups()">✅ {{ __('Validate All Groups') }}</button>
+            <a href="{{ route('events.dive-groups.print', $event) }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨️ {{ __('Print Fiche PDF') }}</a>
+        @endif
+        <div class="input-group input-group-sm" style="width:auto">
+            <span class="input-group-text">{{ __('Max depth') }}</span>
+            <input type="number" id="proposeDepth" class="form-control" value="{{ $event->diveSite?->max_depth ?? 20 }}" min="1" max="60" style="width:60px">
+            <span class="input-group-text">m</span>
+            <button class="btn btn-primary" onclick="proposeGroups()">🤖 {{ __('Auto-propose (Fiche de Sécurité)') }}</button>
+        </div>
         <div id="validationResult" class="flex-grow-1"></div>
+    </div>
+
+    {{-- Proposal preview (hidden until generated) --}}
+    <div id="proposalPreview" class="d-none mb-3">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white d-flex justify-content-between">
+                <span>📋 {{ __('Proposed Fiche de Sécurité') }}</span>
+                <div>
+                    <button class="btn btn-sm btn-light" onclick="applyProposal()">✅ {{ __('Apply') }}</button>
+                    <button class="btn btn-sm btn-outline-light" onclick="document.getElementById('proposalPreview').classList.add('d-none')">✕</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="proposalWarnings"></div>
+                <div id="proposalBoard" class="dg-board"></div>
+            </div>
+        </div>
     </div>
     @endif
 
@@ -76,7 +114,8 @@
                             $rank = $uc?->rank ?? 0;
                         @endphp
                         <div class="dg-card" style="background:{{ rankColor($rank) }}" draggable="{{ $canManage ? 'true' : 'false' }}" data-user-id="{{ $reg->user_id }}">
-                            <div>
+                            @if($canManage)<span class="drag-handle" title="{{ __('Drag') }}">⠿</span>@endif
+                            <div style="flex:1;min-width:0">
                                 <strong>{{ $reg->user->detail?->first_name }} {{ $reg->user->detail?->last_name }}</strong>
                                 <br>
                                 @if($uc)
@@ -150,7 +189,8 @@
                             $rank = $cert?->rank ?? 0;
                         @endphp
                         <div class="dg-card" style="background:{{ rankColor($rank) }}" draggable="{{ $canManage ? 'true' : 'false' }}" data-user-id="{{ $m->user_id }}" data-member-id="{{ $m->id }}">
-                            <div>
+                            @if($canManage)<span class="drag-handle" title="{{ __('Drag') }}">⠿</span>@endif
+                            <div style="flex:1;min-width:0">
                                 @if($m->role === 'leader')👑 @endif
                                 <strong>{{ $m->user->detail?->first_name }} {{ $m->user->detail?->last_name }}</strong>
                                 <br>
@@ -209,22 +249,34 @@
 
     @if($canManage)
     <script>
-    // Drag & drop between columns
-    document.querySelectorAll('.dg-card[draggable="true"]').forEach(card => {
-        card.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('text/plain', JSON.stringify({
-                userId: card.dataset.userId,
-                memberId: card.dataset.memberId || null,
-                fromGroup: card.closest('[data-group]').dataset.group
-            }));
-            card.classList.add('dragging');
-        });
-        card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    // Drag & drop between columns — use event delegation on the board
+    // so dynamically added cards also work
+    const board = document.querySelector('.dg-board');
+
+    board.addEventListener('dragstart', e => {
+        const card = e.target.closest('.dg-card[draggable="true"]');
+        if (!card) return;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+            userId: card.dataset.userId,
+            memberId: card.dataset.memberId || null,
+            fromGroup: card.closest('[data-group]').dataset.group
+        }));
+        card.classList.add('dragging');
     });
 
-    document.querySelectorAll('.dg-column-body').forEach(col => {
-        col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
-        col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    board.addEventListener('dragend', e => {
+        const card = e.target.closest('.dg-card');
+        if (card) card.classList.remove('dragging');
+    });
+
+    // Drop zones: all elements with data-group attribute
+    document.querySelectorAll('[data-group]').forEach(col => {
+        col.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; col.classList.add('drag-over'); });
+        col.addEventListener('dragleave', e => {
+            // Only remove highlight when actually leaving the column (not entering a child)
+            if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+        });
         col.addEventListener('drop', e => {
             e.preventDefault();
             col.classList.remove('drag-over');
@@ -275,6 +327,182 @@
                     result.innerHTML = html + '</div>';
                 }
             });
+    }
+
+    // ── Auto-propose (fiche de sécurité) ──────────────────────
+    let currentProposal = null;
+
+    function rankColorJS(rank) {
+        if (!rank) return '#f8d7da';
+        if (rank <= 20) return '#d4edda';
+        if (rank <= 45) return '#cce5ff';
+        if (rank <= 69) return '#d1ecf1';
+        if (rank <= 99) return '#fff3cd';
+        return '#e2d5f1';
+    }
+
+    // Render a draggable card for the proposal board
+    function proposalCard(p, isLeader) {
+        return '<div class="dg-card" draggable="true" data-user-id="' + p.user_id + '" data-rank="' + p.rank + '" data-cert="' + p.cert_code + '" data-name="' + p.name + '" style="background:' + rankColorJS(p.rank) + '">' +
+            '<span class="drag-handle">⠿</span>' +
+            '<div style="flex:1;min-width:0">' + (isLeader ? '👑 ' : '') +
+            '<strong>' + p.name + '</strong><br>' +
+            '<span class="badge bg-info" style="font-size:0.7rem">' + p.cert_code + '</span>' +
+            (isLeader ? ' <span class="text-muted" style="font-size:0.65rem">{{ __("Leader") }}</span>' : '') +
+            '</div></div>';
+    }
+
+    // Wire drag-drop on the proposal board (called after rendering)
+    function wireProposalDragDrop() {
+        const pBoard = document.getElementById('proposalBoard');
+
+        pBoard.querySelectorAll('.dg-card[draggable="true"]').forEach(card => {
+            card.addEventListener('dragstart', e => {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', JSON.stringify({
+                    userId: card.dataset.userId,
+                    fromProposalGroup: card.closest('[data-proposal-group]')?.dataset.proposalGroup || 'unassigned'
+                }));
+                card.classList.add('dragging');
+            });
+            card.addEventListener('dragend', () => card.classList.remove('dragging'));
+        });
+
+        pBoard.querySelectorAll('[data-proposal-group]').forEach(col => {
+            col.addEventListener('dragover', e => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                col.classList.add('drag-over');
+            });
+            col.addEventListener('dragleave', e => { if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over'); });
+            col.addEventListener('drop', e => {
+                e.preventDefault();
+                col.classList.remove('drag-over');
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const card = pBoard.querySelector('.dg-card[data-user-id="' + data.userId + '"]');
+                if (!card) return;
+
+                // Find the card we're dropping onto to insert before it
+                const target = e.target.closest('.dg-card');
+                if (target && target !== card && col.contains(target)) {
+                    col.insertBefore(card, target);
+                } else {
+                    col.appendChild(card);
+                }
+
+                updateLeaderBadges();
+            });
+        });
+    }
+
+    // First card in each proposal group column is the leader
+    function updateLeaderBadges() {
+        document.getElementById('proposalBoard').querySelectorAll('[data-proposal-group]').forEach(col => {
+            if (col.dataset.proposalGroup === 'unassigned') return;
+            col.querySelectorAll('.dg-card').forEach((card, i) => {
+                const div = card.querySelector('div');
+                const name = card.dataset.name;
+                const cert = card.dataset.cert;
+                const isLeader = (i === 0);
+                div.innerHTML = (isLeader ? '👑 ' : '') +
+                    '<strong>' + name + '</strong><br>' +
+                    '<span class="badge bg-info" style="font-size:0.7rem">' + cert + '</span>' +
+                    (isLeader ? ' <span class="text-muted" style="font-size:0.65rem">{{ __("Leader") }}</span>' : '');
+            });
+        });
+    }
+
+    function proposeGroups() {
+        const depth = document.getElementById('proposeDepth').value;
+        const preview = document.getElementById('proposalPreview');
+        const pBoard = document.getElementById('proposalBoard');
+        const warnings = document.getElementById('proposalWarnings');
+
+        pBoard.innerHTML = '<span class="text-muted">{{ __("Calculating…") }}</span>';
+        warnings.innerHTML = '';
+        preview.classList.remove('d-none');
+
+        fetch('{{ route("events.dive-groups.propose", $event) }}?max_depth=' + depth)
+            .then(r => r.json())
+            .then(data => {
+                currentProposal = data;
+
+                if (data.warnings.length) {
+                    warnings.innerHTML = '<div class="alert alert-warning py-1 small mb-2">' +
+                        data.warnings.join('<br>') + '</div>';
+                }
+
+                let html = '';
+
+                // Unassigned column (droppable too — park people here)
+                html += '<div class="dg-column"><div class="dg-column-header">📋 {{ __("Unassigned") }}</div>' +
+                    '<div class="dg-column-body" data-proposal-group="unassigned">';
+                (data.unassigned || []).forEach(p => { html += proposalCard(p, false); });
+                html += '</div></div>';
+
+                // Group columns
+                data.groups.forEach((g, i) => {
+                    const modeColors = {supervised:'primary', autonomous:'success', training:'warning', certification:'danger'};
+                    html += '<div class="dg-column" data-gname="' + g.name + '" data-gmode="' + g.dive_mode + '" data-gdepth="' + (g.planned_depth||'') + '">' +
+                        '<div class="dg-column-header">' + g.name +
+                        '<br><span class="badge bg-' + (modeColors[g.dive_mode]||'secondary') + '" style="font-size:0.7rem">' + g.dive_mode + '</span>' +
+                        ' <span class="badge bg-info" style="font-size:0.7rem">' + (g.planned_depth||'?') + 'm</span></div>' +
+                        '<div class="dg-column-body" data-proposal-group="' + i + '">';
+
+                    html += proposalCard(g.leader, true);
+                    g.members.forEach(m => { html += proposalCard(m, false); });
+                    html += '</div></div>';
+                });
+
+                pBoard.innerHTML = html || '<span class="text-muted">{{ __("No groups could be formed.") }}</span>';
+                wireProposalDragDrop();
+            });
+    }
+
+    // Apply reads the current DOM state, not the original proposal object
+    function applyProposal() {
+        if (!confirm('{{ __("Apply this proposal? Existing groups will be replaced.") }}')) return;
+
+        const pBoard = document.getElementById('proposalBoard');
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("events.dive-groups.apply-proposal", $event) }}';
+
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden'; csrf.name = '_token'; csrf.value = '{{ csrf_token() }}';
+        form.appendChild(csrf);
+
+        // Read groups from DOM — each .dg-column with data-gname is a group
+        let gi = 0;
+        pBoard.querySelectorAll('.dg-column[data-gname]').forEach(col => {
+            const cards = col.querySelectorAll('.dg-card[data-user-id]');
+            if (cards.length === 0) return; // skip empty groups
+
+            const addHidden = (name, val) => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = name; inp.value = val;
+                form.appendChild(inp);
+            };
+
+            addHidden('groups[' + gi + '][name]', col.dataset.gname);
+            addHidden('groups[' + gi + '][dive_mode]', col.dataset.gmode);
+            addHidden('groups[' + gi + '][planned_depth]', col.dataset.gdepth);
+
+            // First card = leader, rest = members
+            cards.forEach((card, ci) => {
+                if (ci === 0) {
+                    addHidden('groups[' + gi + '][leader_id]', card.dataset.userId);
+                } else {
+                    addHidden('groups[' + gi + '][member_ids][]', card.dataset.userId);
+                }
+            });
+            gi++;
+        });
+
+        if (gi === 0) { alert('{{ __("No groups to apply.") }}'); return; }
+
+        document.body.appendChild(form);
+        form.submit();
     }
     </script>
     @endif

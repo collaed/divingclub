@@ -1,11 +1,10 @@
 <?php
 
-use App\Http\Controllers\InstallController;
-use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Admin\AnnualReportController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EquipmentController;
@@ -15,37 +14,52 @@ use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MemberController;
+use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\SeasonController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\ThumbnailController;
+use App\Http\Controllers\Admin\TrialRequestController;
 use App\Http\Controllers\Admin\VoteController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\BuddyController;
+use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\ClassifiedController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DiveGroupController;
 use App\Http\Controllers\DocumentBrowserController;
 use App\Http\Controllers\DuesCalculatorController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GdprController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InstallController;
+use App\Http\Controllers\InstructorAvailabilityController;
 use App\Http\Controllers\MembersDirectoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\TrialController;
 use App\Http\Controllers\VotePublicController;
+use App\Http\Middleware\CheckLicense;
+use App\Models\User;
+use App\Models\UserEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
 // Locale switch
 Route::get('/locale/{locale}', function (string $locale) {
-    if (in_array($locale, config('app.available_locales', ['en','fr','de','lb','pt','it','nl','es','pl','hu','ro','sk']))) {
+    if (in_array($locale, config('app.available_locales', ['en', 'fr', 'de', 'lb', 'pt', 'it', 'nl', 'es', 'pl', 'hu', 'ro', 'sk']))) {
         session(['locale' => $locale]);
         if (auth()->check()) {
             auth()->user()->update(['preferred_locale' => $locale]);
             auth()->user()->detail?->update(['preferred_language' => $locale]);
         }
     }
+
     return back();
 })->name('locale.switch');
 
@@ -56,41 +70,45 @@ Route::post('/install', [InstallController::class, 'run'])->name('install.run');
 // Public
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/article/{slug}', [HomeController::class, 'showArticle'])->name('article.show');
-Route::get('/trial', [\App\Http\Controllers\TrialController::class, 'show'])->name('trial.show');
-Route::post('/trial', [\App\Http\Controllers\TrialController::class, 'store'])->name('trial.store');
+Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
+Route::post('/trial', [TrialController::class, 'store'])->name('trial.store');
 Route::get('/dues', [DuesCalculatorController::class, 'show'])->name('dues.show');
 Route::post('/dues', [DuesCalculatorController::class, 'calculate'])->name('dues.calculate');
 Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr.sepa.public');
-Route::get('/calendar.ics', [\App\Http\Controllers\CalendarFeedController::class, 'ical'])->name('calendar.ics');
+Route::get('/qr/payment', [QrCodeController::class, 'signedPaymentQr'])->name('qr.payment.signed');
+Route::get('/pay/verify', [QrCodeController::class, 'verifyPayment'])->name('payment.verify');
+Route::get('/calendar.ics', [CalendarFeedController::class, 'ical'])->name('calendar.ics');
 
 // Guest auth
 Route::middleware('guest')->group(function () {
-    Route::get('/register', [RegisterController::class, 'create'])->middleware(\App\Http\Middleware\CheckLicense::class)->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->middleware(\App\Http\Middleware\CheckLicense::class);
+    Route::get('/register', [RegisterController::class, 'create'])->middleware(CheckLicense::class)->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])->middleware(CheckLicense::class);
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store']);
 
     // Password reset
-    Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('password.request');
+    Route::get('/forgot-password', fn () => view('auth.forgot-password'))->name('password.request');
     Route::post('/forgot-password', function (Request $request) {
         $request->validate(['email' => 'required|email']);
-        \Illuminate\Support\Facades\Password::sendResetLink(['email' => $request->email]);
+        Password::sendResetLink(['email' => $request->email]);
+
         return back()->with('success', __('Reset link sent if the email exists.'));
     })->name('password.email');
-    Route::get('/reset-password/{token}', fn($token) => view('auth.reset-password', ['token' => $token]))->name('password.reset');
+    Route::get('/reset-password/{token}', fn ($token) => view('auth.reset-password', ['token' => $token]))->name('password.reset');
     Route::post('/reset-password', function (Request $request) {
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
             'password' => 'required|confirmed|min:8',
         ]);
-        $status = \Illuminate\Support\Facades\Password::reset(
+        $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
                 $user->forceFill(['password' => $password])->save();
             }
         );
-        return $status === \Illuminate\Support\Facades\Password::PASSWORD_RESET
+
+        return $status === Password::PASSWORD_RESET
             ? redirect()->route('login')->with('success', __('Password reset!'))
             : back()->withErrors(['email' => __($status)]);
     })->name('password.update');
@@ -102,17 +120,19 @@ Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'
 
 // Email verification
 Route::middleware('auth')->group(function () {
-    Route::get('/email/verify', fn() => view('auth.verify-email'))->name('verification.notice');
+    Route::get('/email/verify', fn () => view('auth.verify-email'))->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
         // Also mark user_emails as verified
-        \App\Models\UserEmail::where('user_id', $request->user()->id)
+        UserEmail::where('user_id', $request->user()->id)
             ->where('email', $request->user()->primary_email)
             ->update(['is_verified' => true]);
+
         return redirect()->route('profile.show')->with('success', __('Email verified!'));
     })->middleware('signed')->name('verification.verify');
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
+
         return back()->with('success', __('Verification link sent!'));
     })->middleware('throttle:6,1')->name('verification.send');
 });
@@ -123,7 +143,8 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')-
 // Password reset request (works for both guests and authenticated users)
 Route::post('/request-password-reset', function (Request $request) {
     $request->validate(['email' => 'required|email']);
-    \Illuminate\Support\Facades\Password::sendResetLink(['email' => $request->email]);
+    Password::sendResetLink(['email' => $request->email]);
+
     return back()->with('success', __('Reset link sent if the email exists.'));
 })->name('password.request.send');
 
@@ -153,12 +174,18 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::get('/members/trombinoscope', [MembersDirectoryController::class, 'trombinoscope'])->name('members.trombinoscope');
 
     // Contact
-    Route::get('/contact', fn() => view('contact'))->name('contact');
+    Route::get('/contact', fn () => view('contact'))->name('contact');
 
-    // Document browser (public files)
+    // Document browser (role-based visibility, upload for instructors/bureau)
+    Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');
+    Route::get('/cotisation', fn () => view('cotisation', ['cfg' => config('cotisation')]))->name('cotisation');
     Route::get('/documents', [DocumentBrowserController::class, 'index'])->name('documents.index');
     Route::get('/documents/{file}/download', [DocumentBrowserController::class, 'download'])->name('documents.download');
     Route::get('/documents/{file}/thumb', [DocumentBrowserController::class, 'thumb'])->name('documents.thumb');
+    Route::post('/documents/upload', [DocumentBrowserController::class, 'upload'])->name('documents.upload');
+    Route::post('/documents/folder', [DocumentBrowserController::class, 'createFolder'])->name('documents.create-folder');
+    Route::put('/documents/{file}', [DocumentBrowserController::class, 'updateFile'])->name('documents.update');
+    Route::delete('/documents/{file}', [DocumentBrowserController::class, 'destroy'])->name('documents.destroy');
 
     // GDPR
     Route::get('/privacy', [GdprController::class, 'consents'])->name('gdpr.consents');
@@ -184,14 +211,14 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::get('/classifieds', [ClassifiedController::class, 'index'])->name('classifieds.index');
 
     // Looking for Buddies
-    Route::get('/buddies', [\App\Http\Controllers\BuddyController::class, 'index'])->name('buddies.index');
-    Route::post('/buddies', [\App\Http\Controllers\BuddyController::class, 'store'])->name('buddies.store');
-    Route::post('/buddies/{buddyRequest}/respond', [\App\Http\Controllers\BuddyController::class, 'respond'])->name('buddies.respond');
-    Route::post('/buddies/{buddyRequest}/close', [\App\Http\Controllers\BuddyController::class, 'close'])->name('buddies.close');
+    Route::get('/buddies', [BuddyController::class, 'index'])->name('buddies.index');
+    Route::post('/buddies', [BuddyController::class, 'store'])->name('buddies.store');
+    Route::post('/buddies/{buddyRequest}/respond', [BuddyController::class, 'respond'])->name('buddies.respond');
+    Route::post('/buddies/{buddyRequest}/close', [BuddyController::class, 'close'])->name('buddies.close');
 
     // Instructor Availability
-    Route::get('/availability', [\App\Http\Controllers\InstructorAvailabilityController::class, 'index'])->name('availability.index');
-    Route::post('/availability/toggle', [\App\Http\Controllers\InstructorAvailabilityController::class, 'toggle'])->name('availability.toggle');
+    Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');
+    Route::post('/availability/toggle', [InstructorAvailabilityController::class, 'toggle'])->name('availability.toggle');
     Route::get('/classifieds/create', [ClassifiedController::class, 'create'])->name('classifieds.create');
     Route::post('/classifieds', [ClassifiedController::class, 'store'])->name('classifieds.store');
     Route::get('/classifieds/{article}/edit', [ClassifiedController::class, 'edit'])->name('classifieds.edit');
@@ -214,12 +241,15 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::delete('/events/{event}/photos/{photo}', [EventController::class, 'deletePhoto'])->name('events.photo.delete');
 
     // Dive groups (palanquées)
-    Route::get('/events/{event}/dive-groups', [\App\Http\Controllers\DiveGroupController::class, 'index'])->name('events.dive-groups');
-    Route::post('/events/{event}/dive-groups', [\App\Http\Controllers\DiveGroupController::class, 'store'])->name('events.dive-groups.store');
-    Route::post('/dive-groups/{group}/members', [\App\Http\Controllers\DiveGroupController::class, 'addMember'])->name('dive-groups.add-member');
-    Route::delete('/dive-group-members/{member}', [\App\Http\Controllers\DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
-    Route::delete('/dive-groups/{group}', [\App\Http\Controllers\DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
-    Route::get('/events/{event}/dive-groups/validate', [\App\Http\Controllers\DiveGroupController::class, 'validate_groups'])->name('events.dive-groups.validate');
+    Route::get('/events/{event}/dive-groups', [DiveGroupController::class, 'index'])->name('events.dive-groups');
+    Route::post('/events/{event}/dive-groups', [DiveGroupController::class, 'store'])->name('events.dive-groups.store');
+    Route::post('/dive-groups/{group}/members', [DiveGroupController::class, 'addMember'])->name('dive-groups.add-member');
+    Route::delete('/dive-group-members/{member}', [DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
+    Route::delete('/dive-groups/{group}', [DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
+    Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validate_groups'])->name('events.dive-groups.validate');
+    Route::get('/events/{event}/dive-groups/propose', [DiveGroupController::class, 'propose'])->name('events.dive-groups.propose');
+    Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
+    Route::get('/events/{event}/dive-groups/print', [DiveGroupController::class, 'printFiche'])->name('events.dive-groups.print');
 
     // Admin routes (Bureau Master)
     Route::middleware('role:bureau_master')->prefix('admin')->name('admin.')->group(function () {
@@ -228,8 +258,9 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');
         Route::post('/members/{user}/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
         Route::post('/members/{user}/impersonate', [MemberController::class, 'impersonate'])->name('impersonate');
-        Route::post('/members/{user}/send-reset', function (\App\Models\User $user) {
-            \Illuminate\Support\Facades\Password::sendResetLink(['email' => $user->primary_email]);
+        Route::post('/members/{user}/send-reset', function (User $user) {
+            Password::sendResetLink(['email' => $user->primary_email]);
+
             return back()->with('success', __('Password reset link sent to :email', ['email' => $user->primary_email]));
         })->name('send-reset');
         Route::get('/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('stop-impersonation');
@@ -244,7 +275,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::put('/library/{file}', [LibraryController::class, 'update'])->name('library.update');
         Route::delete('/library/{file}', [LibraryController::class, 'destroy'])->name('library.destroy');
         Route::get('/library/{file}/download', [LibraryController::class, 'download'])->name('library.download');
-        Route::get('/library/{file}/thumb', [\App\Http\Controllers\Admin\ThumbnailController::class, 'show'])->name('library.thumb');
+        Route::get('/library/{file}/thumb', [ThumbnailController::class, 'show'])->name('library.thumb');
         Route::post('/library/folder', [LibraryController::class, 'createFolder'])->name('library.create-folder');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->name('audit-logs.export');
@@ -253,8 +284,8 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/audit-logs/retention', [AuditLogController::class, 'updateRetention'])->name('audit-logs.retention');
 
         // Trial requests
-        Route::get('/trial-requests', [\App\Http\Controllers\Admin\TrialRequestController::class, 'index'])->name('trial-requests.index');
-        Route::put('/trial-requests/{trialRequest}', [\App\Http\Controllers\Admin\TrialRequestController::class, 'update'])->name('trial-requests.update');
+        Route::get('/trial-requests', [TrialRequestController::class, 'index'])->name('trial-requests.index');
+        Route::put('/trial-requests/{trialRequest}', [TrialRequestController::class, 'update'])->name('trial-requests.update');
 
         // Guardians & Parental Consent
         Route::get('/guardians', [GuardianController::class, 'index'])->name('guardians.index');
@@ -273,10 +304,10 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::delete('/dive-sites/{diveSite}', [DiveSiteController::class, 'destroy'])->name('dive-sites.destroy');
 
         // Dive Group Rules
-        Route::get('/dive-group-rules', [\App\Http\Controllers\Admin\DiveGroupRuleController::class, 'index'])->name('dive-group-rules.index');
-        Route::post('/dive-group-rules', [\App\Http\Controllers\Admin\DiveGroupRuleController::class, 'store'])->name('dive-group-rules.store');
-        Route::put('/dive-group-rules/{rule}', [\App\Http\Controllers\Admin\DiveGroupRuleController::class, 'update'])->name('dive-group-rules.update');
-        Route::delete('/dive-group-rules/{rule}', [\App\Http\Controllers\Admin\DiveGroupRuleController::class, 'destroy'])->name('dive-group-rules.destroy');
+        Route::get('/dive-group-rules', [DiveGroupRuleController::class, 'index'])->name('dive-group-rules.index');
+        Route::post('/dive-group-rules', [DiveGroupRuleController::class, 'store'])->name('dive-group-rules.store');
+        Route::put('/dive-group-rules/{rule}', [DiveGroupRuleController::class, 'update'])->name('dive-group-rules.update');
+        Route::delete('/dive-group-rules/{rule}', [DiveGroupRuleController::class, 'destroy'])->name('dive-group-rules.destroy');
 
         // Annual Report
         Route::get('/annual-report', [AnnualReportController::class, 'show'])->name('annual-report');
@@ -379,13 +410,14 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 });
 
 // Offline page for PWA
-Route::get('/offline', fn() => view('offline'))->name('offline');
+Route::get('/offline', fn () => view('offline'))->name('offline');
 
 // Web-based cron trigger for shared hosting (use with cron-job.org)
-Route::get('/cron/run', function (\Illuminate\Http\Request $request) {
+Route::get('/cron/run', function (Request $request) {
     abort_unless($request->query('key') === config('app.cron_key'), 403);
-    \Illuminate\Support\Facades\Artisan::call('schedule:run');
-    return response('OK ' . now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
+    Artisan::call('schedule:run');
+
+    return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
 })->name('cron.run');
 
 // Public voting (token-based, no login required)

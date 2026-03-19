@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Event registration model with full audit trail.
+ *
+ * Tracks who registered, who cancelled, and why — supporting both self-registration
+ * and proxy registration (bureau/instructor registering on behalf of a member).
+ * Includes waiting list positioning and check-in/check-out timestamps for events.
+ *
+ * @author  ClubCEP.eu
+ *
+ * @see     \App\Http\Controllers\EventController  — registration/cancellation logic
+ */
+
 namespace App\Models;
 
 use App\Traits\Auditable;
@@ -9,12 +21,23 @@ class EventRegistration extends Model
 {
     use Auditable;
 
-    protected $fillable = ['event_id', 'user_id', 'status', 'waiting_list_position', 'checked_in_at', 'checked_out_at', 'checked_in_by'];
+    protected $fillable = [
+        'event_id', 'user_id', 'status', 'comment',
+        'registered_by', 'waiting_list_position',
+        'cancelled_at', 'cancelled_by', 'cancel_comment',
+        'checked_in_at', 'checked_out_at', 'checked_in_by',
+    ];
 
     protected function casts(): array
     {
-        return ['checked_in_at' => 'datetime', 'checked_out_at' => 'datetime'];
+        return [
+            'checked_in_at' => 'datetime',
+            'checked_out_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+        ];
     }
+
+    // ─── Relationships ────────────────────────────────────────
 
     public function event()
     {
@@ -24,5 +47,17 @@ class EventRegistration extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Who performed the registration (null = self-registration). */
+    public function registeredByUser()
+    {
+        return $this->belongsTo(User::class, 'registered_by');
+    }
+
+    /** Who cancelled the registration (null = self-cancellation). */
+    public function cancelledByUser()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 }

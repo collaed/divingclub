@@ -26,3 +26,9 @@ yarn-error.log
 database/seeders/data/cep_members.json
 database/seeders/data/parse_joomla_export.php
 fulldata_clubcep.txt
+
+# Local photo folders
+/insp_pictures/*
+!/insp_pictures/.gitkeep
+/divepics/*
+!/divepics/.gitkeep

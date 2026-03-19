@@ -44,11 +44,13 @@
                                 <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Optional') }}">
                             </div>
                             <div class="col-md-2">
-                                <div class="form-check">
-                                    <input type="hidden" name="is_public" value="0">
-                                    <input type="checkbox" name="is_public" value="1" class="form-check-input" id="uploadPublic">
-                                    <label class="form-check-label" for="uploadPublic">{{ __('Public') }}</label>
-                                </div>
+                                <label class="form-label">{{ __('Visible to') }}</label>
+                                <select name="visibility" class="form-select form-select-sm">
+                                    <option value="public">🌍 {{ __('Public') }}</option>
+                                    <option value="members" selected>👥 {{ __('Members') }}</option>
+                                    <option value="instructors">🎓 {{ __('Instructors') }}</option>
+                                    <option value="bureau">🔒 {{ __('Bureau') }}</option>
+                                </select>
                             </div>
                             <div class="col-md-2">
                                 <button class="btn btn-primary btn-sm w-100">{{ __('Upload') }}</button>
@@ -91,10 +93,11 @@
                                         <form method="POST" action="{{ route('admin.library.update', $f) }}" class="d-inline">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="folder" value="{{ $f->folder }}">
-                                            <input type="hidden" name="is_public" value="{{ $f->is_public ? '0' : '1' }}">
-                                            <button class="btn btn-sm {{ $f->is_public ? 'btn-success' : 'btn-outline-secondary' }}">
-                                                {{ $f->is_public ? __('Public') : __('Private') }}
-                                            </button>
+                                            <select name="visibility" class="form-select form-select-sm py-0" style="font-size:0.75rem;width:auto" onchange="this.form.submit()">
+                                                @foreach(['public' => '🌍', 'members' => '👥', 'instructors' => '🎓', 'bureau' => '🔒'] as $v => $icon)
+                                                    <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>{{ $icon }} {{ ucfirst($v) }}</option>
+                                                @endforeach
+                                            </select>
                                         </form>
                                     </td>
                                     <td class="text-nowrap small">{{ $f->created_at->format('d/m/Y') }}<br>{{ $f->uploader?->name }}</td>

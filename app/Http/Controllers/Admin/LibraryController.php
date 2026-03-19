@@ -17,7 +17,7 @@ class LibraryController extends Controller
         // Get distinct folders for navigation
         $folders = LibraryFile::selectRaw('DISTINCT folder')->orderBy('folder')->pluck('folder')
             ->flatMap(fn ($f) => collect(explode('/', trim($f, '/')))->filter()->reduce(function ($carry, $part) {
-                $carry[] = ($carry->last() ?? '') . '/' . $part;
+                $carry[] = ($carry->last() ?? '').'/'.$part;
 
                 return $carry;
             }, collect()))
@@ -35,12 +35,11 @@ class LibraryController extends Controller
             'files' => 'required|array|min:1',
             'files.*' => 'file|max:51200',
             'folder' => 'required|string',
-            'is_public' => 'boolean',
+            'visibility' => 'required|in:public,members,instructors,bureau',
             'description' => 'nullable|string|max:500',
         ]);
 
         $folder = $request->input('folder', '/');
-        $isPublic = $request->boolean('is_public');
 
         foreach ($request->file('files') as $file) {
             $path = $file->store('library', 'local');
@@ -51,7 +50,7 @@ class LibraryController extends Controller
                 'mime_type' => $file->getMimeType(),
                 'size' => $file->getSize(),
                 'folder' => $folder,
-                'is_public' => $isPublic,
+                'visibility' => $request->input('visibility'),
                 'description' => $request->input('description'),
                 'uploaded_by' => auth()->id(),
             ]);
@@ -63,12 +62,12 @@ class LibraryController extends Controller
     public function update(Request $request, LibraryFile $file)
     {
         $request->validate([
-            'is_public' => 'boolean',
+            'visibility' => 'required|in:public,members,instructors,bureau',
             'folder' => 'required|string',
             'description' => 'nullable|string|max:500',
         ]);
 
-        $file->update($request->only('is_public', 'folder', 'description'));
+        $file->update($request->only('visibility', 'folder', 'description'));
 
         return back()->with('success', __('File updated.'));
     }

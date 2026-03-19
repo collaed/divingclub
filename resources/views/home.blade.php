@@ -1,4 +1,15 @@
 <x-layout :title="__('Home')">
+    {{-- Hero slideshow — best public photos with Ken Burns effect --}}
+    @if($heroPhotos->count())
+        <x-slideshow :photos="$heroPhotos" height="350px" :interval="7000" :rounded="true">
+            <div class="text-center px-4">
+                <h2 class="fw-bold mb-2">Club Européen de Plongée</h2>
+                <p class="mb-0 fs-5">{{ __('Dive with us in Luxembourg') }} 🤿</p>
+            </div>
+        </x-slideshow>
+        <div class="mb-4"></div>
+    @endif
+
     <div class="row">
         <div class="col-lg-8">
             <h4 class="mb-4">{{ __('Welcome to DivingClub') }}</h4>
@@ -40,6 +51,16 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Photo gallery widget --}}
+            @if($heroPhotos->count())
+                <div class="card dc-card mb-4">
+                    <div class="card-header">📸 {{ __('Recent Photos') }}</div>
+                    <div class="card-body p-0">
+                        <x-slideshow :photos="$heroPhotos" height="200px" :interval="5000" :rounded="false" />
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </x-layout>

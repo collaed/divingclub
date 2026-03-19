@@ -76,7 +76,7 @@
                         <a class="nav-link {{ request()->is('/') ? 'active fw-bold' : '' }}" href="/">{{ __('Home') }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" href="{{ route('dues.show') }}">{{ __('Dues') }}</a>
+                        <a class="nav-link {{ request()->routeIs('dues.*') || request()->routeIs('cotisation') ? 'active fw-bold' : '' }}" href="{{ route('cotisation') }}">{{ __('Cotisation') }}</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('trial.*') ? 'active fw-bold' : '' }}" href="{{ route('trial.show') }}">🐠 {{ __('Try Diving') }}</a>
@@ -110,11 +110,12 @@
                             <a class="nav-link {{ request()->routeIs('availability.*') ? 'active fw-bold' : '' }}" href="{{ route('availability.index') }}">📅 {{ __('Availability') }}</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('article.*') || request()->routeIs('documents.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Info') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('article.*') || request()->routeIs('documents.*') || request()->routeIs('gallery') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Info') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('members.directory') }}">{{ __('Members Directory') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('members.trombinoscope') }}">{{ __('Trombinoscope') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('documents.index') }}">📁 {{ __('Documents') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('gallery') }}">📸 {{ __('Photo Gallery') }}</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('contact') }}">{{ __('Contact Us') }}</a></li>
                             </ul>
