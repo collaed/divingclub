@@ -343,6 +343,25 @@
             <div id="themeSection" class="accordion-collapse collapse show" data-bs-parent="#appearanceAccordion">
                 <div class="accordion-body">
                     {{-- Presets --}}
+                    {{-- UI Style presets --}}
+                    <h6>{{ __('UI Style') }}</h6>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        @foreach(\App\Services\ThemeService::stylePresets() as $key => $meta)
+                            <form method="POST" action="{{ route('admin.settings.theme.update') }}" class="d-inline">
+                                @csrf
+                                <input type="hidden" name="ui_style" value="{{ $key }}">
+                                <button class="btn btn-sm {{ ($themeSettings['ui_style'] ?? 'rounded') === $key ? 'btn-primary' : 'btn-outline-secondary' }}" title="{{ $meta['desc'] }}">
+                                    {{ $meta['label'] }}
+                                </button>
+                            </form>
+                        @endforeach
+                    </div>
+                    <p class="text-muted small mb-3">
+                        @php $currentStyle = \App\Services\ThemeService::stylePresets()[$themeSettings['ui_style'] ?? 'rounded'] ?? null; @endphp
+                        {{ $currentStyle['desc'] ?? '' }}
+                    </p>
+
+                    {{-- Color Presets --}}
                     <h6>{{ __('Quick Presets') }}</h6>
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         @foreach($themePresets as $name => $colors)

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Powered by DivingClub-Manager — https://github.com/collaed/divingclub -->
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -43,6 +43,8 @@
                     <span><span class="dc-brand-accent">{{ $theme['logo_accent_text'] ?? 'Diving' }}</span>{{ $theme['logo_plain_text'] ?? 'Club' }}</span>
                 </a>
                 <div class="text-white d-flex align-items-center gap-3">
+                    {{-- Dark mode toggle --}}
+                    <button class="dc-dark-toggle" onclick="toggleDarkMode()" title="{{ __('Toggle dark mode') }}" id="darkToggle">🌙</button>
                     {{-- Language selector --}}
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-light dropdown-toggle py-0 px-2" data-bs-toggle="dropdown" aria-label="Language">
@@ -220,5 +222,22 @@
             <p class="mb-0 small opacity-75">© {{ date('Y') }} — {{ __('Powered by') }} <a href="https://github.com/collaed/divingclub" class="text-white" target="_blank">DivingClub-Manager</a></p>
         </div>
     </footer>
+    {{-- Dark mode persistence --}}
+    <script>
+    (function(){
+        var t = localStorage.getItem('dc_theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', t);
+        var b = document.getElementById('darkToggle');
+        if(b) b.textContent = t === 'dark' ? '☀️' : '🌙';
+    })();
+    function toggleDarkMode(){
+        var h = document.documentElement;
+        var t = h.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        h.setAttribute('data-bs-theme', t);
+        localStorage.setItem('dc_theme', t);
+        var b = document.getElementById('darkToggle');
+        if(b) b.textContent = t === 'dark' ? '☀️' : '🌙';
+    }
+    </script>
 </body>
 </html>

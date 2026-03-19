@@ -155,7 +155,7 @@ class SettingsController extends Controller
 
     public function updateTheme(Request $request)
     {
-        $allowed = ['primary_color','secondary_color','accent_color','header_gradient_start','header_gradient_end','footer_bg','body_bg','body_color','logo_text','logo_emoji','logo_accent_text','logo_plain_text','club_full_name','layout_width','card_style','header_bubbles','preset','club_iban','club_bic','club_email','club_address','club_phone','club_country','warehouse_address','warehouse_lat','warehouse_lon','club_short_code','social_auto_publish','fb_group_is_closed','fb_group_id','license_key'];
+        $allowed = ['primary_color','secondary_color','accent_color','header_gradient_start','header_gradient_end','footer_bg','body_bg','body_color','logo_text','logo_emoji','logo_accent_text','logo_plain_text','club_full_name','layout_width','card_style','header_bubbles','preset','club_iban','club_bic','club_email','club_address','club_phone','club_country','warehouse_address','warehouse_lat','warehouse_lon','club_short_code','social_auto_publish','fb_group_is_closed','fb_group_id','license_key','ui_style'];
         foreach ($allowed as $key) {
             if ($request->has($key)) ThemeSetting::set($key, $request->input($key));
         }
