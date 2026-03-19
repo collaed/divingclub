@@ -32,4 +32,13 @@
 
 <h5>API Keys</h5>
 <p>Shows the status of all configured API integrations. See <a href="{{ route('admin.guide.show', 'api-keys') }}">API Keys & OAuth Setup</a> for details.</p>
+
+<h5>Club Identity</h5>
+<p>Set the club's full name, short code, email, address, phone, country, and warehouse/clubhouse location with GPS coordinates. These appear on public pages, emails, QR codes, and payment communications.</p>
+
+<h5>Banking (IBAN / SEPA)</h5>
+<p>Enter the club IBAN and BIC. Used to generate EPC QR codes on the dues calculator and payment pages.</p>
+
+<h5>Social Media Auto-Publish</h5>
+<p>Configure Facebook group auto-publishing. See <a href="{{ route('admin.guide.show', 'social-media') }}">Social Media Auto-Publish</a> for details.</p>
 @endsection

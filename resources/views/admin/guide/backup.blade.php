@@ -23,7 +23,9 @@ tar czf divingclub-full-$(date +%Y%m%d).tar.gz \
     <thead><tr><th>Schedule</th><th>Task</th></tr></thead>
     <tbody>
         <tr><td>Daily 08:00</td><td>Medical certificate expiry reminders (30/15/7/0 days)</td></tr>
+        <tr><td>Hourly</td><td>Auto-translate one untranslated article</td></tr>
         <tr><td>Every minute</td><td>Vote auto-open/close (checks opens_at/closes_at)</td></tr>
+        <tr><td>1st of month 04:00</td><td>Audit log auto-purge (per retention policy)</td></tr>
         <tr><td>Sunday 03:00</td><td>Weekly database backup</td></tr>
     </tbody>
 </table>

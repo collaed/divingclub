@@ -421,6 +421,12 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 31 | System (cron) | schedule:run → auto-translate oldest article |
 | 32 | Dive Director | Dive Group Planner → mixed-level palanquée |
 | 33 | Small club admin | Wasmer deploy → /install → SQLite → operational |
+| 34 | Bureau Master | Minors & Consent → link guardian → record consent |
+| 35 | Member | Event photos → GDPR consent → auto-publish |
+| 36 | Bureau Master | Settings → Social Media → Facebook auto-publish |
+| 37 | Bureau Master | Audit Log → filter → detail diff → export CSV → retention |
+| 38 | Member | Buddy Finder → post request → respond → close |
+| 39 | Anonymous/Member | Dues Calculator → fee breakdown → EPC QR code |
 
 ---
 
@@ -614,3 +620,90 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 5. Install completes. DB is ~2 MB, well within 100 MB free tier.
 6. Configure theme, upload logo, set federation preferences.
 7. Invite members. Club operational.
+
+---
+
+## Journey 34 — Bureau Manages Minors & Parental Consent
+
+**Actor:** Bureau master onboarding a 14-year-old member.
+
+1. The minor's parent registers the child (or the bureau creates the account).
+2. Opens **Administration → Minors & Consent**.
+3. Sees the minor listed with age, no guardian linked, consent badges all ✗.
+4. Expands the minor's row → **Link Guardian**: selects the parent's member account, relationship = "Parent".
+5. **Record Consent**: selects "General", uploads the signed parental authorization form (PDF scan).
+6. Records additional consents: "Events" (can participate), "Medical" (club can manage medical certs).
+7. Leaves "Photos" unchecked — parent doesn't want the child's photos published.
+8. Dashboard worklist no longer shows "Minors without guardian" for this child.
+9. When the minor turns 18, they manage their own consents via the Privacy page.
+
+---
+
+## Journey 35 — Member Uploads Event Photos with GDPR Consent
+
+**Actor:** A member who participated in a dive trip.
+
+1. Opens the **event detail page** for the completed trip.
+2. Scrolls to the **Photos** section.
+3. Clicks **Choose Files** → selects 5 photos from the trip.
+4. Adds a caption: "Vis Island wreck dive, 28m".
+5. Checks the **GDPR consent checkbox**: "I consent to these photos being shared on the club's social media channels".
+6. Clicks **Upload** → photos appear in the gallery, sorted by quality score.
+7. If social media auto-publish is enabled and the FB group is confirmed closed, photos are automatically posted to the Facebook group.
+8. The social publish log tracks each post's status (published/failed).
+
+---
+
+## Journey 36 — Bureau Configures Social Media Auto-Publish
+
+**Actor:** Bureau master setting up Facebook integration.
+
+1. Creates a Facebook App at developers.facebook.com, gets a Page Token with `publish_to_groups` permission.
+2. Adds `FACEBOOK_PAGE_TOKEN=...` to `.env`.
+3. Opens **Administration → Settings → Technical → Social Media Auto-Publish**.
+4. Sets **Facebook Group ID** (from the group URL).
+5. Confirms **"FB Group is Closed"** = Yes (privacy requirement).
+6. Enables **Auto-Publish**.
+7. Saves. From now on, event photos uploaded with GDPR consent are auto-posted.
+8. If any condition fails (no consent, group not closed, publish disabled), photos stay local only.
+
+---
+
+## Journey 37 — Bureau Reviews the Audit Log
+
+**Actor:** Bureau master investigating a data change.
+
+1. Opens **Administration → Audit Log**.
+2. Filters by model type "User", action "updated", date range last 7 days.
+3. Sees a list of changes with summaries (which fields changed).
+4. Clicks **View** on a suspicious entry → opens the **detail page**.
+5. Sees a field-by-field diff: `status_id` changed from 3 to 1, `role_id` from 5 to 2.
+6. Notes the IP address and user agent — confirms it was a legitimate admin action.
+7. Clicks **📥 Export** to download filtered results as CSV for the bureau meeting.
+8. Sets **retention policy** to 24 months → system auto-purges older entries monthly.
+
+---
+
+## Journey 38 — Member Uses the Buddy Finder
+
+**Actor:** A certified diver looking for a buddy for a weekend dive.
+
+1. Clicks **Buddies** in the nav bar.
+2. Sees open buddy requests from other members.
+3. Clicks **Post a Request**: "Looking for a buddy for Remerschen quarry, Saturday 10am, max 20m".
+4. Other members see the request → one clicks **Respond** with a message.
+5. Original poster sees the response, contacts the buddy directly.
+6. After the dive, clicks **Close** to remove the request.
+
+---
+
+## Journey 39 — Member Uses the Dues Calculator
+
+**Actor:** Prospective member checking costs before joining.
+
+1. Navigates to `/dues` (linked from welcome page, no login required).
+2. Selects a membership status (e.g., "Actif").
+3. Optionally selects add-ons (insurance level, double affiliation).
+4. Sees the calculated annual fee with breakdown.
+5. Scans the **EPC QR code** with their banking app → pre-filled SEPA transfer with club IBAN, amount, and communication string.
+6. Decides to register based on the transparent pricing.

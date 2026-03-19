@@ -14,13 +14,19 @@
                                 @case('overview') 🏠 @break
                                 @case('first-steps') 🚀 @break
                                 @case('members') 👥 @break
+                                @case('minors') 👨‍👧 @break
                                 @case('seasons-events') 📅 @break
+                                @case('dive-groups') 🫧 @break
                                 @case('medical') 🏥 @break
                                 @case('payments') 💰 @break
                                 @case('equipment') 🤿 @break
+                                @case('content') 📰 @break
                                 @case('email') ✉️ @break
                                 @case('voting') 🗳️ @break
+                                @case('partnerships') 🤝 @break
+                                @case('social-media') 📱 @break
                                 @case('gdpr') 🔒 @break
+                                @case('audit-log') 📋 @break
                                 @case('settings') ⚙️ @break
                                 @case('api-keys') 🔑 @break
                                 @case('backup') 💾 @break

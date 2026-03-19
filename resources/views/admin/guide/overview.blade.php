@@ -5,16 +5,20 @@
 <h5>What This System Manages</h5>
 <div class="row g-2 mb-3">
     @foreach([
-        '👥 Members' => 'Profiles, roles, statuses, multi-federation licences, photos, certification levels',
-        '📅 Events' => 'Calendar, recurring seasons, registration, waiting lists, WhatsApp groups',
-        '🏥 Medical' => 'Certificate tracking per federation, automated reminders',
-        '💰 Payments' => 'Fee calculation, bank reconciliation, SEPA QR codes',
+        '👥 Members' => 'Profiles, roles, statuses, multi-federation licences, certification levels, guardian/minor management',
+        '📅 Events' => 'Calendar, recurring seasons, registration, waiting lists, WhatsApp groups, event photos',
+        '🫧 Dive Groups' => 'Palanquée planner, 39 rules across 5 federations, mixed-level validation',
+        '🏥 Medical' => 'Certificate tracking per federation, automated reminders, compliance gate',
+        '💰 Payments' => 'Fee calculation, bank reconciliation with IBAN matching, SEPA QR codes',
         '🤿 Equipment' => 'Inventory, loans, maintenance scheduling',
-        '✉️ Email' => 'Templates, group targeting, send log',
+        '📰 Content' => 'Typed articles, auto-translation, image galleries, comments, classifieds, document library',
+        '✉️ Email' => 'Templates, group targeting, bilingual, send log',
         '🗳️ Voting' => 'Simple polls and anonymous elections, multi-select, public results',
-        '🔒 GDPR' => 'Consent management, data export, erasure',
-        '📊 Dashboard' => 'Statistics, charts, CSV exports',
-        '📰 CMS' => 'Typed articles, image galleries, threaded comments, classifieds',
+        '🤝 Partnerships' => 'Inter-club federation API, symmetric key exchange, cross-registration',
+        '📱 Social Media' => 'Facebook auto-publish with triple GDPR gate',
+        '🔒 GDPR' => 'Consent management, parental consent for minors, data export, erasure',
+        '📋 Audit Log' => 'Full change history, diff view, CSV export, retention policy',
+        '📊 Dashboard' => 'Statistics, bureau worklist, CSV exports',
     ] as $label => $desc)
         <div class="col-md-6"><div class="border rounded p-2"><strong>{{ $label }}</strong><br><small class="text-muted">{{ $desc }}</small></div></div>
     @endforeach

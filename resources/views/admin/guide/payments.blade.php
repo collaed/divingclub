@@ -29,7 +29,7 @@
 <ol>
     <li>Go to Payments → Reconciliation</li>
     <li><strong>Import</strong> — paste bank statement text (format: <code>date;amount;communication;counterparty</code> per line)</li>
-    <li><strong>Auto-match</strong> — system fuzzy-matches transactions against expected payments using communication string, amount, and member name (score 0–100, threshold 60)</li>
+    <li><strong>Auto-match</strong> — system fuzzy-matches transactions against expected payments using communication string (+80), amount (+20), last name (+30), and IBAN (+50). Score 0–100, threshold 60 to auto-match</li>
     <li><strong>Review</strong> — confirm correct matches, ignore false positives</li>
     <li>Confirmed matches update payment status to "paid"</li>
 </ol>

@@ -29,6 +29,9 @@
 <h5>Cookie Consent</h5>
 <p>Unauthenticated visitors see a cookie consent banner. Accepting sets a 1-year cookie. The banner is shown via JavaScript — no tracking occurs before consent.</p>
 
+<h5>Parental Consent for Minors</h5>
+<p>Members under 18 require parental consent. Go to Administration → Minors & Consent to link guardians and record consent for: general membership, events, photos, and medical. See the <a href="{{ route('admin.guide.show', 'minors') }}">Minors & Parental Consent</a> guide for details.</p>
+
 <h5>Audit Trail</h5>
 <p>All data modifications are logged via the Auditable trait. The audit log (Administration → Audit Log) shows who changed what, when, with old and new values.</p>
 @endsection
