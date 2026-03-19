@@ -27,6 +27,35 @@
         <div class="col-md-3"><div class="card dc-card text-center p-3"><h3>{{ $stats['equipment_by_status']->sum() }}</h3><small class="text-muted">{{ __('Equipment Items') }}</small></div></div>
     </div>
 
+    @if(collect($worklist)->sum() > 0)
+    <div class="card dc-card mb-4 border-warning">
+        <div class="card-header bg-warning bg-opacity-10">📋 {{ __('Bureau Worklist') }}</div>
+        <div class="list-group list-group-flush">
+            @if($worklist['unverified_certs'] > 0)
+                <a href="{{ route('admin.members.index') }}?filter=unverified_cert" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Medical certificates to verify') }} <span class="badge bg-danger">{{ $worklist['unverified_certs'] }}</span></a>
+            @endif
+            @if($worklist['expiring_certs'] > 0)
+                <a href="{{ route('admin.members.index') }}?filter=expiring_cert" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Certificates expiring within 30 days') }} <span class="badge bg-warning text-dark">{{ $worklist['expiring_certs'] }}</span></a>
+            @endif
+            @if($worklist['missing_medical'] > 0)
+                <a href="{{ route('admin.members.index') }}?filter=no_medical" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Active members without medical cert') }} <span class="badge bg-danger">{{ $worklist['missing_medical'] }}</span></a>
+            @endif
+            @if($worklist['pending_payments'] > 0)
+                <a href="{{ route('admin.payments.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Pending payments') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_payments'] }}</span></a>
+            @endif
+            @if($worklist['pending_external_regs'] > 0)
+                <a href="{{ route('admin.partnerships.registrations') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('External registrations to review') }} <span class="badge bg-info">{{ $worklist['pending_external_regs'] }}</span></a>
+            @endif
+            @if($worklist['unverified_emails'] > 0)
+                <span class="list-group-item d-flex justify-content-between">{{ __('Members with unverified email') }} <span class="badge bg-secondary">{{ $worklist['unverified_emails'] }}</span></span>
+            @endif
+            @if($worklist['missing_iban'] > 0)
+                <span class="list-group-item d-flex justify-content-between">{{ __('Active members without IBAN') }} <span class="badge bg-secondary">{{ $worklist['missing_iban'] }}</span></span>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <div class="row g-3">
         <div class="col-md-6">
             <div class="card dc-card">

@@ -58,7 +58,10 @@ class GdprController extends Controller
 
     public function confirmErasure(Request $request)
     {
-        $request->validate(['confirm' => 'required|accepted']);
+        $request->validate([
+            'confirm' => 'required|accepted',
+            'password' => 'required|current_password',
+        ]);
         $user = auth()->user();
 
         // Delete documents

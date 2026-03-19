@@ -11,10 +11,15 @@
         <tbody>
         @forelse($regs as $r)
         <tr>
-            <td>{{ $r->external_member_name }}<br><small class="text-muted">{{ $r->external_member_email }}</small></td>
+            <td>{{ $r->external_member_name }}<br><small class="text-muted">{{ $r->external_member_email }}</small>
+                @if($r->external_member_phone)<br><small>📞 {{ $r->external_member_phone }}</small>@endif
+            </td>
             <td>{{ $r->partnership->name ?? '?' }}</td>
             <td>{{ $r->event->title ?? '?' }}<br><small>{{ $r->event->event_date ?? '' }}</small></td>
-            <td>{{ $r->external_cert_level }}</td>
+            <td>{{ $r->external_cert_level }}
+                @if($r->external_member_federation)<br><small class="text-muted">{{ $r->external_member_federation }}</small>@endif
+                @if($r->external_member_licence_no)<br><small class="text-muted">#{{ $r->external_member_licence_no }}</small>@endif
+            </td>
             <td>@if($r->external_medical_valid_until)
                 <span class="{{ $r->external_medical_valid_until->isPast() ? 'text-danger' : 'text-success' }}">{{ $r->external_medical_valid_until->format('d/m/Y') }}</span>
                 @else — @endif</td>

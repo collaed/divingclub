@@ -43,6 +43,13 @@
             @error('country') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">{{ __('IBAN') }} <small class="text-muted">({{ __('for faster payment reconciliation') }})</small></label>
+            <input type="text" name="iban" class="form-control @error('iban') is-invalid @enderror" value="{{ old('iban', $d?->iban) }}" placeholder="LU00 0000 0000 0000 0000">
+            @error('iban') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+    </div>
     <hr>
     <h6>{{ __('Emergency Contact') }}</h6>
     <div class="row">

@@ -76,6 +76,8 @@ class BankReconciliationService
             'paid_at' => $tx->transaction_date,
             'reconciled_by' => auth()->user()?->name,
             'reconciled_at' => now(),
+            'bank_statement_ref' => $tx->statement_ref ?? $tx->transaction_ref,
+            'bank_statement_date' => $tx->transaction_date,
         ]);
 
         $tx->update(['status' => 'confirmed', 'confirmed_by' => auth()->id()]);

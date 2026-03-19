@@ -19,6 +19,11 @@
                         <label class="form-check-label">{{ __('I understand and wish to proceed') }}</label>
                         @error('confirm') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Enter your password to confirm') }}</label>
+                        <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
+                        @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
                     <button class="btn btn-danger">{{ __('Erase My Data') }}</button>
                     <a href="{{ route('gdpr.consents') }}" class="btn btn-outline-secondary ms-2">{{ __('Cancel') }}</a>
                 </form>

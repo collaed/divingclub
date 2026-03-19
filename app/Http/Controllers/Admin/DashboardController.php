@@ -33,7 +33,18 @@ class DashboardController extends Controller
             'next_events' => Event::where('event_date', '>=', now())->orderBy('event_date')->limit(5)->get(),
         ];
 
-        return view('admin.dashboard.index', compact('stats', 'season'));
+        // Bureau worklist: pending actions
+        $worklist = [
+            'unverified_certs' => Document::where('category', 'medical')->where('is_current', true)->whereNull('verified_at')->count(),
+            'expiring_certs' => Document::where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)])->count(),
+            'pending_payments' => PaymentExpected::where('status', 'pending')->where('season_year', $season)->count(),
+            'pending_external_regs' => \App\Models\ExternalRegistration::where('status', 'pending')->count(),
+            'unverified_emails' => User::whereNull('email_verified_at')->count(),
+            'missing_medical' => User::whereDoesntHave('documents', fn($q) => $q->where('category', 'medical')->where('is_current', true))->whereHas('status', fn($q) => $q->where('slug', 'actif'))->count(),
+            'missing_iban' => User::whereHas('detail', fn($q) => $q->whereNull('iban'))->whereHas('status', fn($q) => $q->where('slug', 'actif'))->count(),
+        ];
+
+        return view('admin.dashboard.index', compact('stats', 'season', 'worklist'));
     }
 
     public function exportCsv(Request $request)
