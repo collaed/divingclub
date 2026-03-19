@@ -105,7 +105,18 @@ class BankReconciliationService
             $score += 30;
         }
 
+        // IBAN match: counterparty IBAN matches member's stored IBAN
+        $iban = $pe->user?->detail?->iban;
+        if ($iban && $tx->counterparty && $this->normalizeIban($iban) === $this->normalizeIban($tx->counterparty)) {
+            $score += 50;
+        }
+
         return min($score, 100);
+    }
+
+    private function normalizeIban(string $iban): string
+    {
+        return strtoupper(preg_replace('/\s+/', '', $iban));
     }
 
     private function parseDate(string $d): string

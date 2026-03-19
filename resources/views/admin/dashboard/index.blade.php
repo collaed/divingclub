@@ -27,7 +27,8 @@
         <div class="col-md-3"><div class="card dc-card text-center p-3"><h3>{{ $stats['equipment_by_status']->sum() }}</h3><small class="text-muted">{{ __('Equipment Items') }}</small></div></div>
     </div>
 
-    @if(collect($worklist)->sum() > 0)
+    @php $worklistCount = collect($worklist)->reject(fn($v) => $v instanceof \Illuminate\Support\Collection || $v instanceof \Illuminate\Database\Eloquent\Collection)->sum() + ($worklist['birthdays_14d']->count()); @endphp
+    @if($worklistCount > 0)
     <div class="card dc-card mb-4 border-warning">
         <div class="card-header bg-warning bg-opacity-10">📋 {{ __('Bureau Worklist') }}</div>
         <div class="list-group list-group-flush">
@@ -51,6 +52,22 @@
             @endif
             @if($worklist['missing_iban'] > 0)
                 <span class="list-group-item d-flex justify-content-between">{{ __('Active members without IBAN') }} <span class="badge bg-secondary">{{ $worklist['missing_iban'] }}</span></span>
+            @endif
+            @if($worklist['new_members_unconfirmed'] > 0)
+                <a href="{{ route('admin.members.index') }}?filter=no_status" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('New members to confirm (no status)') }} <span class="badge bg-info">{{ $worklist['new_members_unconfirmed'] }}</span></a>
+            @endif
+            @if($worklist['unmatched_transactions'] > 0)
+                <a href="{{ route('admin.payments.reconciliation') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Unmatched bank transactions') }} <span class="badge bg-warning text-dark">{{ $worklist['unmatched_transactions'] }}</span></a>
+            @endif
+            @if($worklist['birthdays_14d']->count() > 0)
+                <div class="list-group-item">
+                    🎂 {{ __('Birthdays next 2 weeks') }}
+                    <ul class="mb-0 mt-1 small">
+                        @foreach($worklist['birthdays_14d'] as $bd)
+                            <li>{{ $bd->first_name }} {{ $bd->last_name }} — {{ $bd->date_of_birth->format('d/m') }}</li>
+                        @endforeach
+                    </ul>
+                </div>
             @endif
         </div>
     </div>

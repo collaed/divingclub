@@ -42,6 +42,11 @@ class DashboardController extends Controller
             'unverified_emails' => User::whereNull('email_verified_at')->count(),
             'missing_medical' => User::whereDoesntHave('documents', fn($q) => $q->where('category', 'medical')->where('is_current', true))->whereHas('status', fn($q) => $q->where('slug', 'actif'))->count(),
             'missing_iban' => User::whereHas('detail', fn($q) => $q->whereNull('iban'))->whereHas('status', fn($q) => $q->where('slug', 'actif'))->count(),
+            'new_members_unconfirmed' => User::whereNull('status_id')->whereNotNull('email_verified_at')->count(),
+            'birthdays_14d' => \App\Models\MemberDetail::whereNotNull('date_of_birth')
+                ->whereRaw('DAYOFYEAR(date_of_birth) BETWEEN DAYOFYEAR(NOW()) AND DAYOFYEAR(NOW()) + 14')
+                ->with('user')->orderByRaw('DAYOFYEAR(date_of_birth)')->get(),
+            'unmatched_transactions' => \App\Models\BankTransaction::where('status', 'unmatched')->count(),
         ];
 
         return view('admin.dashboard.index', compact('stats', 'season', 'worklist'));
