@@ -144,6 +144,7 @@
                                         <li><a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">🤿 {{ __('Dive Sites') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">📋 {{ __('Dive Group Rules') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">🐠 {{ __('Trial Requests') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.guardians.index') }}">👨‍👧 {{ __('Minors & Consent') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">{{ __('Audit Log') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">{{ __('Settings') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>

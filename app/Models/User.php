@@ -135,4 +135,28 @@ class User extends Authenticatable
     {
         return $this->hasRole('bureau_master');
     }
+
+    // Guardian / minor relationships
+    public function guardians()
+    {
+        return $this->belongsToMany(User::class, 'guardian_links', 'minor_user_id', 'guardian_user_id')
+            ->withPivot('relationship')->withTimestamps();
+    }
+
+    public function minors()
+    {
+        return $this->belongsToMany(User::class, 'guardian_links', 'guardian_user_id', 'minor_user_id')
+            ->withPivot('relationship')->withTimestamps();
+    }
+
+    public function isMinor(): bool
+    {
+        $dob = $this->detail?->date_of_birth;
+        return $dob && $dob->age < 18;
+    }
+
+    public function parentalConsents()
+    {
+        return $this->hasMany(ParentalConsent::class, 'minor_user_id');
+    }
 }

@@ -476,6 +476,43 @@
             </div>
         </div>
 
+        {{-- Social Media Auto-Publish --}}
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#socialSection">{{ __('Social Media Auto-Publish') }}</button></h2>
+            <div id="socialSection" class="accordion-collapse collapse" data-bs-parent="#technicalAccordion">
+                <div class="accordion-body">
+                    <p class="text-muted small">{{ __('When enabled, event photos with GDPR consent will be auto-published to the configured Facebook group (if it is marked as closed).') }}</p>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                        @csrf
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Auto-Publish') }}</label>
+                                <select name="social_auto_publish" class="form-select">
+                                    <option value="0" {{ ($themeSettings['social_auto_publish'] ?? '0') === '0' ? 'selected' : '' }}>{{ __('Disabled') }}</option>
+                                    <option value="1" {{ ($themeSettings['social_auto_publish'] ?? '0') === '1' ? 'selected' : '' }}>{{ __('Enabled') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('FB Group is Closed') }}</label>
+                                <select name="fb_group_is_closed" class="form-select">
+                                    <option value="0" {{ ($themeSettings['fb_group_is_closed'] ?? '0') === '0' ? 'selected' : '' }}>{{ __('No / Unknown') }}</option>
+                                    <option value="1" {{ ($themeSettings['fb_group_is_closed'] ?? '0') === '1' ? 'selected' : '' }}>{{ __('Yes, confirmed closed') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ __('Facebook Group ID') }}</label>
+                                <input type="text" name="fb_group_id" class="form-control" value="{{ $themeSettings['fb_group_id'] ?? '' }}" placeholder="123456789012345">
+                            </div>
+                        </div>
+                        <div class="alert alert-info small py-2">
+                            ℹ️ {{ __('Photos are only published when ALL conditions are met: uploader gave GDPR consent, admin confirmed FB group is closed, and auto-publish is enabled. Facebook Page Token must be set in .env as') }} <code>FACEBOOK_PAGE_TOKEN</code>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Social Settings') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>{{-- end technicalAccordion --}}
     </div>{{-- end tab-technical --}}
 

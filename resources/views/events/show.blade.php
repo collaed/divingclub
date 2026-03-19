@@ -346,6 +346,10 @@
                                         <button class="btn btn-sm btn-primary">{{ __('Upload') }}</button>
                                     </div>
                                 </div>
+                                <div class="form-check mt-1">
+                                    <input type="checkbox" name="gdpr_consent" value="1" class="form-check-input" id="gdprPhotoConsent" required>
+                                    <label class="form-check-label small" for="gdprPhotoConsent">{{ __('I consent to these photos being shared on the club\'s social media channels') }}</label>
+                                </div>
                                 <small class="text-muted">{{ __('Max 10MB per photo. Best photos appear first.') }}</small>
                             </form>
                         @else

@@ -23,3 +23,11 @@ Schedule::call(function () {
     Vote::where('status', 'draft')->where('opens_at', '<=', now())->update(['status' => 'open']);
     Vote::where('status', 'open')->where('closes_at', '<=', now())->update(['status' => 'closed']);
 })->everyMinute();
+
+// Auto-purge audit logs per retention policy (monthly)
+Schedule::call(function () {
+    $months = (int) \App\Models\ThemeSetting::get('audit_retention_months', 24);
+    if ($months > 0) {
+        \App\Models\AuditLog::where('created_at', '<', now()->subMonths($months))->delete();
+    }
+})->monthlyOn(1, '04:00');

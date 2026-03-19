@@ -47,6 +47,9 @@ class DashboardController extends Controller
                 ->whereRaw('DAYOFYEAR(date_of_birth) BETWEEN DAYOFYEAR(NOW()) AND DAYOFYEAR(NOW()) + 14')
                 ->with('user')->orderByRaw('DAYOFYEAR(date_of_birth)')->get(),
             'unmatched_transactions' => \App\Models\BankTransaction::where('status', 'unmatched')->count(),
+            'minors_no_guardian' => User::whereHas('detail', fn($q) => $q->whereNotNull('date_of_birth')
+                ->whereRaw('date_of_birth > DATE_SUB(NOW(), INTERVAL 18 YEAR)'))
+                ->whereDoesntHave('guardians')->count(),
         ];
 
         return view('admin.dashboard.index', compact('stats', 'season', 'worklist'));

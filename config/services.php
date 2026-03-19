@@ -21,6 +21,7 @@ return [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
+        'page_token' => env('FACEBOOK_PAGE_TOKEN'),
     ],
     'x' => [
         'client_id' => env('X_CLIENT_ID'),

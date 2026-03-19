@@ -59,6 +59,9 @@
             @if($worklist['unmatched_transactions'] > 0)
                 <a href="{{ route('admin.payments.reconciliation') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Unmatched bank transactions') }} <span class="badge bg-warning text-dark">{{ $worklist['unmatched_transactions'] }}</span></a>
             @endif
+            @if($worklist['minors_no_guardian'] > 0)
+                <a href="{{ route('admin.guardians.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">👨‍👧 {{ __('Minors without guardian') }} <span class="badge bg-danger">{{ $worklist['minors_no_guardian'] }}</span></a>
+            @endif
             @if($worklist['birthdays_14d']->count() > 0)
                 <div class="list-group-item">
                     🎂 {{ __('Birthdays next 2 weeks') }}

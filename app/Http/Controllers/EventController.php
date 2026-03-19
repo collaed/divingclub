@@ -195,7 +195,11 @@ class EventController extends Controller
 
     public function uploadPhoto(Request $request, Event $event)
     {
-        $request->validate(['photos.*' => 'required|image|max:10240', 'caption' => 'nullable|string|max:255']);
+        $request->validate([
+            'photos.*' => 'required|image|max:10240',
+            'caption' => 'nullable|string|max:255',
+            'gdpr_consent' => 'required|accepted',
+        ]);
 
         // GDPR: check photo_publication consent
         $consent = \App\Models\GdprConsent::where('user_id', auth()->id())
@@ -218,13 +222,17 @@ class EventController extends Controller
                 ($img && $img[0] >= 1920 ? 10 : 0) // HD bonus
             ));
 
-            \App\Models\EventPhoto::create([
+            $photo = \App\Models\EventPhoto::create([
                 'event_id' => $event->id,
                 'uploaded_by' => auth()->id(),
                 'path' => $path,
                 'caption' => $request->caption,
                 'quality_score' => $score,
+                'gdpr_consent' => true,
             ]);
+
+            // Auto-publish to social media if eligible
+            app(\App\Services\SocialPublishService::class)->publishToFacebook($photo);
         }
 
         return back()->with('success', __('Photos uploaded.'));

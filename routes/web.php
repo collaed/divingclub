@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveSiteController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EquipmentController;
+use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
@@ -246,11 +247,22 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::get('/library/{file}/thumb', [\App\Http\Controllers\Admin\ThumbnailController::class, 'show'])->name('library.thumb');
         Route::post('/library/folder', [LibraryController::class, 'createFolder'])->name('library.create-folder');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->name('audit-logs.export');
+        Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
         Route::post('/audit-logs/purge', [AuditLogController::class, 'purge'])->name('audit-logs.purge');
+        Route::post('/audit-logs/retention', [AuditLogController::class, 'updateRetention'])->name('audit-logs.retention');
 
         // Trial requests
         Route::get('/trial-requests', [\App\Http\Controllers\Admin\TrialRequestController::class, 'index'])->name('trial-requests.index');
         Route::put('/trial-requests/{trialRequest}', [\App\Http\Controllers\Admin\TrialRequestController::class, 'update'])->name('trial-requests.update');
+
+        // Guardians & Parental Consent
+        Route::get('/guardians', [GuardianController::class, 'index'])->name('guardians.index');
+        Route::post('/guardians/link', [GuardianController::class, 'linkGuardian'])->name('guardians.link');
+        Route::delete('/guardians/{link}', [GuardianController::class, 'unlinkGuardian'])->name('guardians.unlink');
+        Route::post('/guardians/consent', [GuardianController::class, 'storeConsent'])->name('guardians.consent');
+        Route::delete('/guardians/consent/{consent}', [GuardianController::class, 'revokeConsent'])->name('guardians.consent.revoke');
+        Route::get('/guardians/consent/{consent}/download', [GuardianController::class, 'downloadConsent'])->name('guardians.consent.download');
 
         // Dive Sites
         Route::get('/dive-sites', [DiveSiteController::class, 'index'])->name('dive-sites.index');
