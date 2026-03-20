@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>DivingClub-Manager — User Journeys</title>
+  <title>DivingClub — User Journeys</title>
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -16,8 +16,75 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">DivingClub-Manager — User Journeys</h1>
+<h1 class="title">DivingClub — User Journeys</h1>
 </header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#divingclub-user-journeys">DivingClub — User Journeys</a>
+<ul>
+<li><a href="#journey-1-anonymous-visitor-browses-the-site">Journey 1 — Anonymous Visitor Browses the Site</a></li>
+<li><a href="#journey-2-new-user-registers">Journey 2 — New User Registers</a></li>
+<li><a href="#journey-3-new-member-completes-their-profile">Journey 3 — New Member Completes Their Profile</a></li>
+<li><a href="#journey-4-member-browses-and-participates">Journey 4 — Member Browses and Participates</a></li>
+<li><a href="#journey-5-member-posts-a-classified-ad">Journey 5 — Member Posts a Classified Ad</a></li>
+<li><a href="#journey-6-member-cancels-an-event-registration">Journey 6 — Member Cancels an Event Registration</a></li>
+<li><a href="#journey-7-instructor-fills-in-their-bio">Journey 7 — Instructor Fills In Their Bio</a></li>
+<li><a href="#journey-8-member-votes-in-a-simple-poll-trip-proposal">Journey 8 — Member Votes in a Simple Poll (Trip Proposal)</a></li>
+<li><a href="#journey-9-member-votes-in-the-annual-secret-ballot">Journey 9 — Member Votes in the Annual Secret Ballot</a></li>
+<li><a href="#journey-10-bureau-member-verifies-a-medical-certificate">Journey 10 — Bureau Member Verifies a Medical Certificate</a></li>
+<li><a href="#journey-11-bureau-exports-medical-data-for-the-federation">Journey 11 — Bureau Exports Medical Data for the Federation</a></li>
+<li><a href="#journey-12-bureau-manages-the-document-library">Journey 12 — Bureau Manages the Document Library</a></li>
+<li><a href="#journey-13-bureau-creates-a-season-and-generates-events">Journey 13 — Bureau Creates a Season and Generates Events</a></li>
+<li><a href="#journey-14-bureau-manages-payments">Journey 14 — Bureau Manages Payments</a></li>
+<li><a href="#journey-15-bureau-publishes-content">Journey 15 — Bureau Publishes Content</a></li>
+<li><a href="#journey-16-bureau-sends-a-club-wide-email">Journey 16 — Bureau Sends a Club-Wide Email</a></li>
+<li><a href="#journey-17-bureau-runs-the-annual-election">Journey 17 — Bureau Runs the Annual Election</a></li>
+<li><a href="#journey-18-bureau-manages-equipment">Journey 18 — Bureau Manages Equipment</a></li>
+<li><a href="#journey-19-bureau-master-full-system-setup-from-scratch">Journey 19 — Bureau Master: Full System Setup from Scratch</a>
+<ul>
+<li><a href="#phase-1-deployment">Phase 1 — Deployment</a></li>
+<li><a href="#phase-2-initial-configuration">Phase 2 — Initial Configuration</a></li>
+<li><a href="#phase-3-content-setup">Phase 3 — Content Setup</a></li>
+<li><a href="#phase-4-season-events">Phase 4 — Season &amp; Events</a></li>
+<li><a href="#phase-5-members">Phase 5 — Members</a></li>
+<li><a href="#phase-6-ongoing-operations">Phase 6 — Ongoing Operations</a></li>
+<li><a href="#phase-7-optional-integrations">Phase 7 — Optional Integrations</a></li>
+</ul></li>
+<li><a href="#summary-matrix">Summary Matrix</a></li>
+<li><a href="#journey-20-visitor-requests-a-free-trial">Journey 20 — Visitor Requests a Free Trial</a></li>
+<li><a href="#journey-21-instructor-manages-availability">Journey 21 — Instructor Manages Availability</a></li>
+<li><a href="#journey-22-member-reads-translated-article">Journey 22 — Member Reads Translated Article</a></li>
+<li><a href="#journey-23-admin-translates-an-article">Journey 23 — Admin Translates an Article</a></li>
+<li><a href="#journey-24-bureau-master-configures-club-identity">Journey 24 — Bureau Master Configures Club Identity</a></li>
+<li><a href="#journey-25-bureau-master-manages-license">Journey 25 — Bureau Master Manages License</a></li>
+<li><a href="#journey-26-bureau-master-runs-the-install-wizard">Journey 26 — Bureau Master Runs the Install Wizard</a></li>
+<li><a href="#journey-27-bureau-master-sets-up-inter-club-partnership">Journey 27 — Bureau Master Sets Up Inter-Club Partnership</a></li>
+<li><a href="#journey-28-bureau-master-creates-a-federated-event">Journey 28 — Bureau Master Creates a Federated Event</a></li>
+<li><a href="#journey-29-member-registers-for-a-partner-clubs-event">Journey 29 — Member Registers for a Partner Club’s Event</a></li>
+<li><a href="#journey-30-admin-emails-all-event-participants">Journey 30 — Admin Emails All Event Participants</a></li>
+<li><a href="#journey-31-system-auto-translates-articles">Journey 31 — System Auto-Translates Articles</a></li>
+<li><a href="#journey-32-dive-director-plans-a-mixed-level-dive">Journey 32 — Dive Director Plans a Mixed-Level Dive</a></li>
+<li><a href="#journey-33-new-club-deploys-on-wasmer-free-tier">Journey 33 — New Club Deploys on Wasmer (Free Tier)</a></li>
+<li><a href="#journey-34-bureau-manages-minors-parental-consent">Journey 34 — Bureau Manages Minors &amp; Parental Consent</a></li>
+<li><a href="#journey-35-member-uploads-event-photos-with-gdpr-consent">Journey 35 — Member Uploads Event Photos with GDPR Consent</a></li>
+<li><a href="#journey-36-bureau-configures-social-media-auto-publish">Journey 36 — Bureau Configures Social Media Auto-Publish</a></li>
+<li><a href="#journey-37-bureau-reviews-the-audit-log">Journey 37 — Bureau Reviews the Audit Log</a></li>
+<li><a href="#journey-38-member-uses-the-buddy-finder">Journey 38 — Member Uses the Buddy Finder</a></li>
+<li><a href="#journey-39-member-uses-the-dues-calculator">Journey 39 — Member Uses the Dues Calculator</a></li>
+<li><a href="#journey-40-member-reads-technical-diving-articles">Journey 40 — Member Reads Technical Diving Articles</a></li>
+<li><a href="#journey-41-member-imports-dive-logs-from-their-computer">Journey 41 — Member Imports Dive Logs from Their Computer</a></li>
+<li><a href="#journey-42-bureau-exports-dive-data-for-dan-research">Journey 42 — Bureau Exports Dive Data for DAN Research</a></li>
+<li><a href="#journey-43-bureau-manages-dive-sites">Journey 43 — Bureau Manages Dive Sites</a></li>
+<li><a href="#journey-44-bureau-customizes-the-homepage-layout">Journey 44 — Bureau Customizes the Homepage Layout</a></li>
+<li><a href="#journey-45-member-subscribes-to-the-ical-calendar-feed">Journey 45 — Member Subscribes to the iCal Calendar Feed</a></li>
+<li><a href="#journey-46-bureau-generates-the-annual-report">Journey 46 — Bureau Generates the Annual Report</a></li>
+<li><a href="#journey-47-system-runs-scheduled-tasks-via-http-cron">Journey 47 — System Runs Scheduled Tasks via HTTP Cron</a></li>
+<li><a href="#journey-48-member-links-ffessm-infolicencié-via-qr-scan">Journey 48 — Member Links FFESSM InfoLicencié via QR Scan</a></li>
+<li><a href="#journey-49-member-resets-their-password">Journey 49 — Member Resets Their Password</a></li>
+<li><a href="#journey-50-developer-reviews-intercepted-emails">Journey 50 — Developer Reviews Intercepted Emails</a></li>
+</ul></li>
+</ul>
+</nav>
 <h1 id="divingclub-user-journeys">DivingClub — User Journeys</h1>
 <p>Scenarios ordered from simplest (anonymous visitor) to most complex (system setup from scratch).</p>
 <hr />
@@ -40,7 +107,7 @@
 <li>Reads any <strong>public article</strong> linked from the home page (articles marked <code>is_public=true</code>)</li>
 <li>Decides to register → clicks <strong>Register</strong></li>
 </ol>
-<p><strong>Accessible without login:</strong> Welcome, About pages (7), Dues Calculator, public articles, Contact, language switch, iCal feed, Offline page (PWA).</p>
+<p><strong>Accessible without login:</strong> Welcome, About pages (7), Dues Calculator, public articles, Contact, language switch, iCal feed, Offline page (PWA), Password Reset.</p>
 <hr />
 <h2 id="journey-2-new-user-registers">Journey 2 — New User Registers</h2>
 <p><strong>Actor:</strong> The visitor from Journey 1.</p>
@@ -56,6 +123,7 @@
 <li>The account now has role <code>member</code> and status <code>actif</code> (or whatever the admin assigns)</li>
 <li>All member features are now unlocked</li>
 </ol>
+<p><strong>Forgot password?</strong> See Journey 49.</p>
 <hr />
 <h2 id="journey-3-new-member-completes-their-profile">Journey 3 — New Member Completes Their Profile</h2>
 <p><strong>Actor:</strong> A freshly registered, verified member.</p>
@@ -74,6 +142,15 @@
 <li>Adds their <strong>federation licence</strong> (e.g. FFESSM)</li>
 <li>Adds their <strong>certification level</strong> (e.g. FFESSM N2) with obtained date</li>
 <li>Sets it as <strong>primary certification</strong></li>
+</ul></li>
+<li>Opens <strong>Renewal tab</strong>
+<ul>
+<li>Sees their FFESSM licence details</li>
+<li>Taps the <strong>📷 Scan QR</strong> button → phone camera opens</li>
+<li>Points at their FFESSM membership card QR code</li>
+<li>System reads the URL (<code>https://l.ffessm.fr/c.asp?id={number}_{KEY}</code>) and extracts the 6-char key</li>
+<li>Key auto-fills → clicks <strong>Save</strong></li>
+<li>FFESSM InfoLicencié link and verification QR code now appear on their profile</li>
 </ul></li>
 <li>Opens <strong>Medical Cert tab</strong>
 <ul>
@@ -109,6 +186,7 @@
 <li>Opens <strong>Info → Members Directory</strong> — searches for a fellow member</li>
 <li>Opens <strong>Info → Trombinoscope</strong> — browses the photo grid</li>
 <li>Opens <strong>Info → Documents</strong> — downloads a public file (e.g. club statutes PDF)</li>
+<li>Opens <strong>Gallery</strong> — browses event photos in a lightbox grid</li>
 <li>Opens <strong>Privacy</strong> — toggles photo publication consent, downloads their data as JSON</li>
 <li>Subscribes to the <strong>iCal feed</strong> (<code>/calendar.ics</code>) in their phone calendar app — events sync automatically</li>
 <li>Imports dive logs from their dive computer via <strong>UDDF import</strong> (see Journey 41)</li>
@@ -326,7 +404,7 @@
 <li>Runs <code>php artisan migrate</code> → creates all 48 tables</li>
 <li>Runs <code>php artisan db:seed</code> → creates the admin user, roles, statuses</li>
 <li>Runs <code>php artisan db:seed --class=CertificationLevelSeeder</code> → 105 certification levels across 11 federations</li>
-<li>Runs <code>php artisan db:seed --class=PinnedArticleSeeder</code> → 7 public stub articles</li>
+<li>Runs <code>php artisan db:seed --class=CepSeeder</code> → 38 articles with translations, 7 public stub articles</li>
 <li>Runs <code>php artisan storage:link</code> → makes uploads accessible</li>
 <li>Starts the server: <code>php artisan serve</code> (or configures Nginx/Apache)</li>
 </ol>
@@ -377,7 +455,7 @@
 <li>Generates <strong>membership fees</strong> and sends payment emails (see Journey 14)</li>
 </ol>
 <h3 id="phase-6-ongoing-operations">Phase 6 — Ongoing Operations</h3>
-<ol start="24" type="1">
+<ol start="25" type="1">
 <li>Publishes <strong>news articles</strong> as things happen (see Journey 15)</li>
 <li>Runs the <strong>annual election</strong> at the AGM (see Journey 17)</li>
 <li>Exports <strong>medical data</strong> for federation submission annually (see Journey 11)</li>
@@ -389,9 +467,10 @@
 <li>Manages <strong>dive sites</strong> with emergency data (see Journey 43)</li>
 <li>Customizes the <strong>homepage layout</strong> — reorder widgets, set visibility (see Journey 44)</li>
 <li>Exports club dive data to <strong>DAN DL7</strong> for research (see Journey 42)</li>
+<li>Members scan their FFESSM cards to link <strong>InfoLicencié</strong> (see Journey 48)</li>
 </ol>
 <h3 id="phase-7-optional-integrations">Phase 7 — Optional Integrations</h3>
-<ol start="32" type="1">
+<ol start="37" type="1">
 <li>Configures <strong>OAuth</strong> providers in <code>.env</code> (Google, Facebook, Microsoft client IDs/secrets)</li>
 <li>Configures <strong>Google Maps API key</strong> for event location maps</li>
 <li>Sets up <strong>scheduled tasks</strong> via cron: `* * * * * cd /path &amp;&amp; php artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1`
@@ -435,7 +514,7 @@
 <tr class="even">
 <td>4</td>
 <td>Active member</td>
-<td>Home, Articles, Calendar, Events, Directory, Documents, iCal, UDDF</td>
+<td>Home, Articles, Calendar, Events, Directory, Documents, Gallery, iCal, UDDF</td>
 </tr>
 <tr class="odd">
 <td>5</td>
@@ -651,6 +730,21 @@
 <td>47</td>
 <td>System</td>
 <td>HTTP cron endpoints for shared hosting without crontab</td>
+</tr>
+<tr class="even">
+<td>48</td>
+<td>FFESSM member</td>
+<td>Profile → Renewal → 📷 scan card QR → InfoLicencié link + QR</td>
+</tr>
+<tr class="odd">
+<td>49</td>
+<td>Member</td>
+<td>Forgot Password → email reset link → new password</td>
+</tr>
+<tr class="even">
+<td>50</td>
+<td>Developer</td>
+<td>Staging mail viewer → preview intercepted emails</td>
 </tr>
 </tbody>
 </table>
@@ -1038,5 +1132,49 @@
 <li>Returns <code>OK</code> with timestamp on success, <code>403</code> on invalid key.</li>
 <li>Alternative to the standard `* * * * * php artisan schedule:run` cron entry.</li>
 </ol>
+<hr />
+<h2 id="journey-48-member-links-ffessm-infolicencié-via-qr-scan">Journey 48 — Member Links FFESSM InfoLicencié via QR Scan</h2>
+<p><strong>Actor:</strong> FFESSM member who has their physical licence card.</p>
+<ol type="1">
+<li>Opens <strong>My Profile → Renewal tab</strong></li>
+<li>Sees their FFESSM licence number but no verification link yet</li>
+<li>Taps the <strong>📷</strong> button next to the FFESSM Key field</li>
+<li>Phone camera opens (rear-facing, using native BarcodeDetector API)</li>
+<li>Points at the QR code on their FFESSM membership card</li>
+<li>System reads the URL: <code>https://l.ffessm.fr/c.asp?id={number}_{KEY}</code></li>
+<li>Extracts the 6-character key (e.g. <code>UYDCFY</code>) and fills the input field</li>
+<li>Clicks <strong>Save</strong> → key stored in <code>member_licences.federation_key</code></li>
+<li>Profile now shows:
+<ul>
+<li>A QR code linking to <code>https://infolicencie.ffessm.fr/Home/InfoLicence?number={num}&amp;key={key}</code></li>
+<li>A clickable 🔗 link to view the full licence on FFESSM’s portal (certifications, insurance, club)</li>
+</ul></li>
+<li>Bureau can also scan/enter keys for any member from the admin member profile</li>
+</ol>
+<p><strong>Browser support:</strong> Chrome (Android/desktop), Safari 17+, Edge. Falls back to manual text entry on unsupported browsers.</p>
+<hr />
+<h2 id="journey-49-member-resets-their-password">Journey 49 — Member Resets Their Password</h2>
+<p><strong>Actor:</strong> A member who forgot their password.</p>
+<ol type="1">
+<li>Clicks <strong>Forgot Password?</strong> on the login page</li>
+<li>Enters their email address → clicks <strong>Send Reset Link</strong></li>
+<li>Receives an email with a password reset link (valid for 60 minutes)</li>
+<li>Clicks the link → enters a new password (twice)</li>
+<li>Clicks <strong>Reset Password</strong> → redirected to login with success message</li>
+<li>Logs in with the new password</li>
+</ol>
+<hr />
+<h2 id="journey-50-developer-reviews-intercepted-emails">Journey 50 — Developer Reviews Intercepted Emails</h2>
+<p><strong>Actor:</strong> Developer or admin in staging/dev environment.</p>
+<ol type="1">
+<li>Mail is configured with <code>MAIL_MAILER=log</code> (all emails written to <code>storage/logs/laravel.log</code>)</li>
+<li>Opens <code>/staging-mail</code> in the browser</li>
+<li>Sees a list of all intercepted emails: subject, recipient, date</li>
+<li>Clicks an email → sees the rendered HTML preview</li>
+<li>Clicks <strong>Raw</strong> to see the full email source</li>
+<li>Uses this to verify email templates, variable substitution, and delivery logic without sending real emails</li>
+<li>Clicks <strong>Clear</strong> to purge the staging mailbox</li>
+</ol>
+<p><strong>Note:</strong> Only available when <code>APP_ENV</code> is not <code>production</code>.</p>
 </body>
 </html>

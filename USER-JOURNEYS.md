@@ -22,7 +22,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 5. Reads any **public article** linked from the home page (articles marked `is_public=true`)
 6. Decides to register → clicks **Register**
 
-**Accessible without login:** Welcome, About pages (7), Dues Calculator, public articles, Contact, language switch, iCal feed, Offline page (PWA).
+**Accessible without login:** Welcome, About pages (7), Dues Calculator, public articles, Contact, language switch, iCal feed, Offline page (PWA), Password Reset.
 
 ---
 
@@ -39,6 +39,8 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 5. The account now has role `member` and status `actif` (or whatever the admin assigns)
 6. All member features are now unlocked
 
+**Forgot password?** See Journey 49.
+
 ---
 
 ## Journey 3 — New Member Completes Their Profile
@@ -54,12 +56,19 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
    - Adds their **federation licence** (e.g. FFESSM)
    - Adds their **certification level** (e.g. FFESSM N2) with obtained date
    - Sets it as **primary certification**
-4. Opens **Medical Cert tab**
+4. Opens **Renewal tab**
+   - Sees their FFESSM licence details
+   - Taps the **📷 Scan QR** button → phone camera opens
+   - Points at their FFESSM membership card QR code
+   - System reads the URL (`https://l.ffessm.fr/c.asp?id={number}_{KEY}`) and extracts the 6-char key
+   - Key auto-fills → clicks **Save**
+   - FFESSM InfoLicencié link and verification QR code now appear on their profile
+5. Opens **Medical Cert tab**
    - Uploads their medical certificate (PDF or photo)
    - Selects the **type** (GP, ENT, Sports Medicine)
    - Sets the **exam date**
    - Sees status: "Not yet verified" — waits for bureau confirmation
-5. Opens **Language tab** — sets preferred language to French
+6. Opens **Language tab** — sets preferred language to French
 
 ---
 
@@ -82,9 +91,10 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 5. Opens **Info → Members Directory** — searches for a fellow member
 6. Opens **Info → Trombinoscope** — browses the photo grid
 7. Opens **Info → Documents** — downloads a public file (e.g. club statutes PDF)
-8. Opens **Privacy** — toggles photo publication consent, downloads their data as JSON
-9. Subscribes to the **iCal feed** (`/calendar.ics`) in their phone calendar app — events sync automatically
-10. Imports dive logs from their dive computer via **UDDF import** (see Journey 41)
+8. Opens **Gallery** — browses event photos in a lightbox grid
+9. Opens **Privacy** — toggles photo publication consent, downloads their data as JSON
+10. Subscribes to the **iCal feed** (`/calendar.ics`) in their phone calendar app — events sync automatically
+11. Imports dive logs from their dive computer via **UDDF import** (see Journey 41)
 
 ---
 
@@ -365,25 +375,26 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 21. Assigns correct **roles** (instructor, assistant, bureau_member) and **statuses**
 22. Can **impersonate** any member to see the system from their perspective (yellow banner shown, all actions audit-logged)
 23. Verifies uploaded **medical certificates** (see Journey 10)
-23. Generates **membership fees** and sends payment emails (see Journey 14)
+24. Generates **membership fees** and sends payment emails (see Journey 14)
 
 ### Phase 6 — Ongoing Operations
-24. Publishes **news articles** as things happen (see Journey 15)
-25. Runs the **annual election** at the AGM (see Journey 17)
-26. Exports **medical data** for federation submission annually (see Journey 11)
-27. Manages **equipment** loans and maintenance (see Journey 18)
-28. Monitors the **dashboard** for statistics and trends
-29. Generates the **annual report** for the AGM (see Journey 46)
-30. Reviews **audit logs** periodically (see Journey 37)
-31. Checks **GDPR** erasure requests if any come in
-32. Manages **dive sites** with emergency data (see Journey 43)
-33. Customizes the **homepage layout** — reorder widgets, set visibility (see Journey 44)
-34. Exports club dive data to **DAN DL7** for research (see Journey 42)
+25. Publishes **news articles** as things happen (see Journey 15)
+26. Runs the **annual election** at the AGM (see Journey 17)
+27. Exports **medical data** for federation submission annually (see Journey 11)
+28. Manages **equipment** loans and maintenance (see Journey 18)
+29. Monitors the **dashboard** for statistics and trends
+30. Generates the **annual report** for the AGM (see Journey 46)
+31. Reviews **audit logs** periodically (see Journey 37)
+32. Checks **GDPR** erasure requests if any come in
+33. Manages **dive sites** with emergency data (see Journey 43)
+34. Customizes the **homepage layout** — reorder widgets, set visibility (see Journey 44)
+35. Exports club dive data to **DAN DL7** for research (see Journey 42)
+36. Members scan their FFESSM cards to link **InfoLicencié** (see Journey 48)
 
 ### Phase 7 — Optional Integrations
-32. Configures **OAuth** providers in `.env` (Google, Facebook, Microsoft client IDs/secrets)
-33. Configures **Google Maps API key** for event location maps
-34. Sets up **scheduled tasks** via cron: `* * * * * cd /path && php artisan schedule:run >> /dev/null 2>&1`
+37. Configures **OAuth** providers in `.env` (Google, Facebook, Microsoft client IDs/secrets)
+38. Configures **Google Maps API key** for event location maps
+39. Sets up **scheduled tasks** via cron: `* * * * * cd /path && php artisan schedule:run >> /dev/null 2>&1`
     - Medical reminders (daily 08:00)
     - Vote auto-open/close (every minute)
     - Weekly backup (Sunday 03:00)
@@ -397,7 +408,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 1 | Anonymous visitor | Welcome, About pages, Dues Calculator |
 | 2 | New user | Register, Verify Email |
 | 3 | New member | Profile (all tabs) |
-| 4 | Active member | Home, Articles, Calendar, Events, Directory, Documents, iCal, UDDF |
+| 4 | Active member | Home, Articles, Calendar, Events, Directory, Documents, Gallery, iCal, UDDF |
 | 5 | Member (seller) | Classifieds |
 | 6 | Member (cancelling) | Event Detail, Profile Registrations |
 | 7 | Instructor | Profile → Diving → Instructor Bio |
@@ -441,6 +452,9 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 45 | Member | Calendar → Subscribe iCal → events sync to phone |
 | 46 | Bureau | Annual Report → statistics → PDF export for AGM |
 | 47 | System | HTTP cron endpoints for shared hosting without crontab |
+| 48 | FFESSM member | Profile → Renewal → 📷 scan card QR → InfoLicencié link + QR |
+| 49 | Member | Forgot Password → email reset link → new password |
+| 50 | Developer | Staging mail viewer → preview intercepted emails |
 
 ---
 
@@ -863,3 +877,53 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 4. Each endpoint validates the `CRON_KEY` before executing.
 5. Returns `OK` with timestamp on success, `403` on invalid key.
 6. Alternative to the standard `* * * * * php artisan schedule:run` cron entry.
+
+---
+
+## Journey 48 — Member Links FFESSM InfoLicencié via QR Scan
+
+**Actor:** FFESSM member who has their physical licence card.
+
+1. Opens **My Profile → Renewal tab**
+2. Sees their FFESSM licence number but no verification link yet
+3. Taps the **📷** button next to the FFESSM Key field
+4. Phone camera opens (rear-facing, using native BarcodeDetector API)
+5. Points at the QR code on their FFESSM membership card
+6. System reads the URL: `https://l.ffessm.fr/c.asp?id={number}_{KEY}`
+7. Extracts the 6-character key (e.g. `UYDCFY`) and fills the input field
+8. Clicks **Save** → key stored in `member_licences.federation_key`
+9. Profile now shows:
+   - A QR code linking to `https://infolicencie.ffessm.fr/Home/InfoLicence?number={num}&key={key}`
+   - A clickable 🔗 link to view the full licence on FFESSM's portal (certifications, insurance, club)
+10. Bureau can also scan/enter keys for any member from the admin member profile
+
+**Browser support:** Chrome (Android/desktop), Safari 17+, Edge. Falls back to manual text entry on unsupported browsers.
+
+---
+
+## Journey 49 — Member Resets Their Password
+
+**Actor:** A member who forgot their password.
+
+1. Clicks **Forgot Password?** on the login page
+2. Enters their email address → clicks **Send Reset Link**
+3. Receives an email with a password reset link (valid for 60 minutes)
+4. Clicks the link → enters a new password (twice)
+5. Clicks **Reset Password** → redirected to login with success message
+6. Logs in with the new password
+
+---
+
+## Journey 50 — Developer Reviews Intercepted Emails
+
+**Actor:** Developer or admin in staging/dev environment.
+
+1. Mail is configured with `MAIL_MAILER=log` (all emails written to `storage/logs/laravel.log`)
+2. Opens `/staging-mail` in the browser
+3. Sees a list of all intercepted emails: subject, recipient, date
+4. Clicks an email → sees the rendered HTML preview
+5. Clicks **Raw** to see the full email source
+6. Uses this to verify email templates, variable substitution, and delivery logic without sending real emails
+7. Clicks **Clear** to purge the staging mailbox
+
+**Note:** Only available when `APP_ENV` is not `production`.
