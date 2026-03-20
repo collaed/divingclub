@@ -38,8 +38,8 @@
                 @if($event->start_time) — {{ \Carbon\Carbon::parse($event->start_time)->format('H:i') }}@endif
             </td>
             <td style="border:none; width:40%; text-align:right; font-size:9px;">
-                <strong>Club Européen de Plongée</strong><br>
-                ClubCEP.eu<br>
+                <strong>{{ \App\Models\ThemeSetting::get('club_full_name', config('app.name')) }}</strong><br>
+                {{ parse_url(config('app.url'), PHP_URL_HOST) ?: config('app.url') }}<br>
                 @if($event->diveSite)
                     📍 {{ $event->diveSite->name }}<br>
                     @if($event->diveSite->max_depth)
@@ -124,7 +124,7 @@
     </div>
 
     <div class="footer">
-        Club Européen de Plongée (ClubCEP.eu) — Fiche de sécurité générée automatiquement. Vérifiez les aptitudes avant immersion.
+        {{ \App\Models\ThemeSetting::get('club_full_name', config('app.name')) }} — Fiche de sécurité générée automatiquement. Vérifiez les aptitudes avant immersion.
     </div>
 </body>
 </html>

@@ -1,66 +1,226 @@
+{{-- Homepage with configurable widget layout | ClubCEP.eu --}}
 <x-layout :title="__('Home')">
-    {{-- Hero slideshow — best public photos with Ken Burns effect --}}
-    @if($heroPhotos->count())
-        <x-slideshow :photos="$heroPhotos" height="350px" :interval="7000" :rounded="true">
-            <div class="text-center px-4">
-                <h2 class="fw-bold mb-2">Club Européen de Plongée</h2>
-                <p class="mb-0 fs-5">{{ __('Dive with us in Luxembourg') }} 🤿</p>
-            </div>
-        </x-slideshow>
-        <div class="mb-4"></div>
+
+    @if($isAdmin)
+        <div class="d-flex justify-content-end mb-2">
+            <button id="editToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleEditMode()">⚙️ {{ __('Edit Layout') }}</button>
+        </div>
     @endif
 
-    <div class="row">
-        <div class="col-lg-8">
-            <h4 class="mb-4">{{ __('Welcome to DivingClub') }}</h4>
-            @forelse($articles as $article)
-                @php $m = $article->typeMeta(); @endphp
-                <div class="card dc-card mb-4" style="border-left: 4px solid {{ $m['color'] }};">
-                    @if($article->featured_image)
-                        <img src="{{ asset('storage/' . $article->featured_image) }}" class="card-img-top" alt="{{ $article->title }}">
-                    @endif
-                    <div class="card-body">
-                        <span class="badge mb-2" style="background:{{ $m['color'] }}">{{ $m['icon'] }} {{ __($m['label']) }}</span>
-                        @if($article->vote_id) <span class="badge bg-info">🗳️ {{ __('Vote') }}</span> @endif
-                        <h5 class="card-title">{{ $article->title }}</h5>
-                        <p class="card-text">{!! Str::limit(strip_tags($article->body), 300) !!}</p>
-                        <a href="{{ route('article.show', $article->slug) }}" class="btn btn-outline-primary btn-sm">{{ __('Read more') }}</a>
+    {{-- Top zone (full width) --}}
+    <div id="zone-top" data-zone="top">
+        @foreach($widgets->where('zone', 'top') as $i => $widget)
+            @if($widget['enabled'] && !($widget['hidden_by_role'] ?? false))
+                <div class="hp-widget" data-index="{{ $i }}" data-type="{{ $widget['type'] }}">
+                    <div class="hp-widget-bar d-none">
+                        <span class="hp-drag-handle" title="Drag">⠿</span>
+                        <span class="badge bg-secondary">{{ $widgetTypes[$widget['type']]['icon'] ?? '' }} {{ $widgetTypes[$widget['type']]['label'] ?? $widget['type'] }}</span>
+                        <select class="form-select form-select-sm hp-visibility" style="width:auto;font-size:.75rem" data-index="{{ $i }}">
+                            @foreach(['public' => '🌍 Public', 'members' => '👥 Members', 'instructors' => '🎓 Instructors', 'bureau' => '🔒 Bureau'] as $v => $label)
+                                <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
                     </div>
-                    <div class="card-footer text-muted small">
-                        {{ $article->created_at->format('d/m/Y') }} — {{ $article->author?->name }}
-                    </div>
-                </div>
-            @empty
-                <div class="card dc-card">
-                    <div class="card-body text-center py-5">
-                        <h5>🤿 {{ __('Welcome to DivingClub') }}</h5>
-                        <p class="text-muted">{{ __('Your diving club management system is ready.') }}</p>
-                    </div>
-                </div>
-            @endforelse
-        </div>
-        <div class="col-lg-4">
-            <div class="card dc-card mb-4">
-                <div class="card-header">{{ __('Quick Links') }}</div>
-                <div class="list-group list-group-flush">
-                    @foreach($links as $link)
-                        <a href="{{ $link->url }}" class="list-group-item list-group-item-action" target="_blank">{{ $link->title }}</a>
-                    @endforeach
-                    @if($links->isEmpty())
-                        <div class="list-group-item text-muted">{{ __('No links yet.') }}</div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Photo gallery widget --}}
-            @if($heroPhotos->count())
-                <div class="card dc-card mb-4">
-                    <div class="card-header">📸 {{ __('Recent Photos') }}</div>
-                    <div class="card-body p-0">
-                        <x-slideshow :photos="$heroPhotos" height="200px" :interval="5000" :rounded="false" />
-                    </div>
+                    @include('home._' . $widget['type'], ['widget' => $widget])
                 </div>
             @endif
+        @endforeach
+    </div>
+
+    <div class="row">
+        {{-- Main zone --}}
+        <div class="col-lg-8">
+            <div id="zone-main" data-zone="main">
+                @foreach($widgets->where('zone', 'main') as $i => $widget)
+                    @if($widget['enabled'] && !($widget['hidden_by_role'] ?? false))
+                        <div class="hp-widget" data-index="{{ $i }}" data-type="{{ $widget['type'] }}">
+                            <div class="hp-widget-bar d-none">
+                                <span class="hp-drag-handle" title="Drag">⠿</span>
+                                <span class="badge bg-secondary">{{ $widgetTypes[$widget['type']]['icon'] ?? '' }} {{ $widgetTypes[$widget['type']]['label'] ?? $widget['type'] }}</span>
+                                <select class="form-select form-select-sm hp-visibility" style="width:auto;font-size:.75rem" data-index="{{ $i }}">
+                                    @foreach(['public' => '🌍 Public', 'members' => '👥 Members', 'instructors' => '🎓 Instructors', 'bureau' => '🔒 Bureau'] as $v => $label)
+                                        <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
+                            </div>
+                            @include('home._' . $widget['type'], ['widget' => $widget])
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Sidebar zone --}}
+        <div class="col-lg-4">
+            <div id="zone-sidebar" data-zone="sidebar">
+                @foreach($widgets->where('zone', 'sidebar') as $i => $widget)
+                    @if($widget['enabled'] && !($widget['hidden_by_role'] ?? false))
+                        <div class="hp-widget" data-index="{{ $i }}" data-type="{{ $widget['type'] }}">
+                            <div class="hp-widget-bar d-none">
+                                <span class="hp-drag-handle" title="Drag">⠿</span>
+                                <span class="badge bg-secondary">{{ $widgetTypes[$widget['type']]['icon'] ?? '' }} {{ $widgetTypes[$widget['type']]['label'] ?? $widget['type'] }}</span>
+                                <select class="form-select form-select-sm hp-visibility" style="width:auto;font-size:.75rem" data-index="{{ $i }}">
+                                    @foreach(['public' => '🌍 Public', 'members' => '👥 Members', 'instructors' => '🎓 Instructors', 'bureau' => '🔒 Bureau'] as $v => $label)
+                                        <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
+                            </div>
+                            @include('home._' . $widget['type'], ['widget' => $widget])
+                        </div>
+                    @endif
+                @endforeach
+            </div>
         </div>
     </div>
+
+    @if($isAdmin)
+    {{-- Disabled widgets panel (shown in edit mode) --}}
+    <div id="disabledPanel" class="d-none mt-3">
+        <div class="card border-dashed">
+            <div class="card-header py-2 bg-light">📦 {{ __('Available Widgets (click to add)') }}</div>
+            <div class="card-body d-flex flex-wrap gap-2" id="disabledList"></div>
+        </div>
+    </div>
+
+    <style>
+    .hp-editing .hp-widget { outline: 2px dashed #ccc; outline-offset: 2px; margin-bottom: 12px; position: relative; }
+    .hp-editing .hp-widget:hover { outline-color: #0066cc; }
+    .hp-editing .hp-widget-bar { display: flex !important; align-items: center; gap: 6px; padding: 4px 8px; background: #f0f0f0; border-bottom: 1px solid #ddd; font-size: 0.8rem; }
+    .hp-drag-handle { cursor: grab; font-size: 1.1rem; user-select: none; }
+    .hp-widget.dragging { opacity: 0.4; }
+    .hp-drop-indicator { height: 4px; background: #0066cc; margin: 4px 0; border-radius: 2px; }
+    </style>
+
+    <script>
+    let editMode = false;
+    let layout = @json($widgets->values());
+    const widgetTypes = @json($widgetTypes);
+    const saveUrl = '{{ route("admin.homepage-layout.save") }}';
+    const csrf = '{{ csrf_token() }}';
+
+    function toggleEditMode() {
+        editMode = !editMode;
+        document.body.classList.toggle('hp-editing', editMode);
+        document.getElementById('editToggle').innerHTML = editMode ? '💾 {{ __("Save & Close") }}' : '⚙️ {{ __("Edit Layout") }}';
+        document.getElementById('disabledPanel').classList.toggle('d-none', !editMode);
+
+        // Show/hide widget bars
+        document.querySelectorAll('.hp-widget-bar').forEach(b => b.classList.toggle('d-none', !editMode));
+
+        if (editMode) {
+            enableDragDrop();
+            renderDisabledWidgets();
+        } else {
+            saveLayout();
+        }
+    }
+
+    function enableDragDrop() {
+        document.querySelectorAll('.hp-widget').forEach(w => {
+            w.draggable = true;
+            w.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', w.dataset.index);
+                w.classList.add('dragging');
+            });
+            w.addEventListener('dragend', () => w.classList.remove('dragging'));
+        });
+
+        document.querySelectorAll('[data-zone]').forEach(zone => {
+            zone.addEventListener('dragover', e => { e.preventDefault(); });
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                const target = e.target.closest('.hp-widget');
+                const zoneEl = e.target.closest('[data-zone]');
+                if (!zoneEl) return;
+
+                const widget = layout[fromIdx];
+                widget.zone = zoneEl.dataset.zone;
+
+                // Move in DOM
+                const dragged = document.querySelector(`.hp-widget[data-index="${fromIdx}"]`);
+                if (target && target !== dragged) {
+                    const rect = target.getBoundingClientRect();
+                    const mid = rect.top + rect.height / 2;
+                    if (e.clientY < mid) target.before(dragged);
+                    else target.after(dragged);
+                } else {
+                    zoneEl.appendChild(dragged);
+                }
+
+                rebuildLayoutFromDOM();
+            });
+        });
+
+        // Remove buttons
+        document.querySelectorAll('.hp-remove').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const w = btn.closest('.hp-widget');
+                const idx = parseInt(w.dataset.index);
+                layout[idx].enabled = false;
+                w.remove();
+                renderDisabledWidgets();
+            });
+        });
+
+        // Visibility selectors
+        document.querySelectorAll('.hp-visibility').forEach(sel => {
+            sel.addEventListener('change', () => {
+                const idx = parseInt(sel.dataset.index);
+                layout[idx].visibility = sel.value;
+            });
+        });
+    }
+
+    function rebuildLayoutFromDOM() {
+        const newLayout = [];
+        ['top', 'main', 'sidebar'].forEach(zone => {
+            const el = document.getElementById('zone-' + zone);
+            el.querySelectorAll('.hp-widget').forEach(w => {
+                const idx = parseInt(w.dataset.index);
+                layout[idx].zone = zone;
+                newLayout.push(layout[idx]);
+            });
+        });
+        // Add disabled widgets at the end
+        layout.filter(w => !w.enabled).forEach(w => newLayout.push(w));
+        layout = newLayout;
+        // Re-index
+        document.querySelectorAll('.hp-widget').forEach((w, i) => w.dataset.index = layout.indexOf(layout.find(l => l.type === w.dataset.type && l.enabled)));
+    }
+
+    function renderDisabledWidgets() {
+        const list = document.getElementById('disabledList');
+        const disabled = layout.filter(w => !w.enabled);
+        if (!disabled.length) {
+            list.innerHTML = '<span class="text-muted small">{{ __("All widgets are active.") }}</span>';
+            return;
+        }
+        list.innerHTML = disabled.map(w => {
+            const meta = widgetTypes[w.type] || {};
+            return `<button class="btn btn-sm btn-outline-primary" onclick="enableWidget('${w.type}')">${meta.icon || ''} ${meta.label || w.type}</button>`;
+        }).join('');
+    }
+
+    function enableWidget(type) {
+        const w = layout.find(l => l.type === type && !l.enabled);
+        if (!w) return;
+        w.enabled = true;
+        // Reload page to render the widget (server-side rendering needed)
+        saveLayout().then(() => location.reload());
+    }
+
+    function saveLayout() {
+        rebuildLayoutFromDOM();
+        return fetch(saveUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf},
+            body: JSON.stringify({layout: layout})
+        });
+    }
+    </script>
+    @endif
 </x-layout>

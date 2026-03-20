@@ -548,6 +548,9 @@
                     <span class="badge bg-danger fs-6">🔒 {{ __('License Required') }}</span>
                     <p class="text-danger mt-2">{{ __('New member registration is blocked. Enter a valid license key below.') }}</p>
                 @endif
+                @if(!($lic['integrity_ok'] ?? true))
+                    <div class="alert alert-danger mt-2 mb-0 py-1 small">⚠️ {{ __('Integrity check failed — license service may have been tampered with.') }}</div>
+                @endif
             </div>
         </div>
         <div class="card dc-card">

@@ -34,6 +34,7 @@ use App\Http\Controllers\DuesCalculatorController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GdprController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\HomepageLayoutController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InstructorAvailabilityController;
 use App\Http\Controllers\MembersDirectoryController;
@@ -257,6 +258,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Admin routes (Bureau Master)
     Route::middleware('role:bureau_master')->prefix('admin')->name('admin.')->group(function () {
+        Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
         Route::get('/members', [MemberController::class, 'index'])->name('members.index');
         Route::get('/members/{user}/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');

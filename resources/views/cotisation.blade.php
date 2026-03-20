@@ -117,7 +117,7 @@
                                 <div class="text-center mt-3">
                                     <img id="sepaQr" src="" alt="Payment QR" class="border rounded p-1" style="max-width:180px;display:none">
                                     <p class="text-muted mt-1 mb-0" style="font-size:0.65rem">
-                                        🔐 {{ __('Signed QR — links to a verified ClubCEP.eu page with payment details.') }}
+                                        🔐 {{ __('Signed QR — links to a verified :club page with payment details.', ['club' => \App\Models\ThemeSetting::get('club_full_name', config('app.name'))]) }}
                                     </p>
                                 </div>
                             </div>

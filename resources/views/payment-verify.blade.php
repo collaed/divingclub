@@ -9,7 +9,7 @@
                     </div>
                     <div class="card-body">
                         <p class="small text-muted mb-3">
-                            🔒 {{ __('This payment request was cryptographically signed by ClubCEP.eu. The details below are authentic.') }}
+                            🔒 {{ __('This payment request was cryptographically signed by :club. The details below are authentic.', ['club' => \App\Models\ThemeSetting::get('club_full_name', config('app.name'))]) }}
                         </p>
 
                         <table class="table table-sm">
@@ -30,7 +30,7 @@
                         </div>
                     </div>
                     <div class="card-footer small text-muted text-center">
-                        🔐 {{ __('Signed by') }} ClubCEP.eu · {{ __('Domain verified via TLS certificate') }}
+                        🔐 {{ __('Signed by') }} {{ \App\Models\ThemeSetting::get('club_full_name', config('app.name')) }} · {{ __('Domain verified via TLS certificate') }}
                     </div>
                 </div>
             @else

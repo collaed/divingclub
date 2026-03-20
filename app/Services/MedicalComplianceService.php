@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Medical certificate compliance evaluation and status checking.
+ *
+ * Evaluates uploaded medical certificates against federation-specific rules
+ * (FFESSM age brackets, LIFRAS calendar-based validity). Determines expiry
+ * dates, supersedes previous certificates, and provides compliance status
+ * for dive registration gates.
+ *
+ * @author ClubCEP.eu
+ */
+
 namespace App\Services;
 
 use App\Models\Document;
@@ -24,8 +35,8 @@ class MedicalComplianceService
         $userFederationIds = $user->licences()->pluck('federation_id')->toArray();
 
         $rules = MedicalComplianceRule::query()
-            ->when($userFederationIds, fn($q) => $q->whereIn('federation_id', $userFederationIds))
-            ->when($age !== null, fn($q) => $q->where('age_bracket_low', '<=', $age)->where('age_bracket_high', '>=', $age))
+            ->when($userFederationIds, fn ($q) => $q->whereIn('federation_id', $userFederationIds))
+            ->when($age !== null, fn ($q) => $q->where('age_bracket_low', '<=', $age)->where('age_bracket_high', '>=', $age))
             ->get();
 
         if ($rules->isEmpty()) {
@@ -35,6 +46,7 @@ class MedicalComplianceService
                 'is_compliant' => null,
                 'compliance_notes' => 'No matching compliance rules found — using default 12 months. Bureau review needed.',
             ]);
+
             return;
         }
 
@@ -75,7 +87,7 @@ class MedicalComplianceService
         return $user->documents()
             ->where('category', 'medical')
             ->where('is_current', true)
-            ->where(fn($q) => $q->whereNull('expiry_date')->orWhere('expiry_date', '>', now()))
+            ->where(fn ($q) => $q->whereNull('expiry_date')->orWhere('expiry_date', '>', now()))
             ->exists();
     }
 
@@ -89,7 +101,7 @@ class MedicalComplianceService
             ->where('is_current', true)
             ->first();
 
-        if (!$cert) {
+        if (! $cert) {
             return ['status' => 'missing', 'badge' => 'danger', 'label' => 'No Certificate', 'days' => null, 'cert' => null];
         }
 

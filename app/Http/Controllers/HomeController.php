@@ -1,10 +1,19 @@
 <?php
 
+/**
+ * Public-facing homepage and CMS article rendering.
+ *
+ * index() loads the configurable widget layout (hero, articles, events, etc.)
+ * with per-widget visibility filtering. showArticle() renders CMS pages with
+ * auto-translation, stale refresh, and live member statistics for the
+ * member-figures slug.
+ *
+ * @author ClubCEP.eu
+ */
+
 namespace App\Http\Controllers;
 
 use App\Models\Article;
-use App\Models\EventPhoto;
-use App\Models\Link;
 use App\Models\MemberDetail;
 use App\Services\ArticleTranslationService;
 
@@ -12,23 +21,28 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $articles = Article::active()
-            ->where('is_public', true)
-            ->where('article_type', '!=', 'classified')
-            ->where('sort_order', '>=', 0)
-            ->with('author.detail')
-            ->orderByDesc('created_at')
-            ->limit(10)
-            ->get();
+        $layout = HomepageLayoutController::getLayout();
+        $widgetTypes = HomepageLayoutController::widgetTypes();
+        $user = auth()->user();
 
-        $links = Link::where('is_public', true)->orderBy('sort_order')->get();
+        // Load data for each enabled + visible widget
+        $widgets = collect($layout)->map(function ($w) use ($user) {
+            if (! ($w['enabled'] ?? false)) {
+                return $w;
+            }
+            if (! HomepageLayoutController::isVisibleTo($w, $user)) {
+                $w['hidden_by_role'] = true;
 
-        // Best photos for hero — no faces for anonymous visitors, all for members
-        $heroPhotos = auth()->check()
-            ? EventPhoto::bestForMembers(8)->get()
-            : EventPhoto::bestPublic(8)->get();
+                return $w;
+            }
+            $w['data'] = HomepageLayoutController::loadWidgetData($w);
 
-        return view('home', compact('articles', 'links', 'heroPhotos'));
+            return $w;
+        });
+
+        $isAdmin = $user?->isBureauMaster();
+
+        return view('home', compact('widgets', 'widgetTypes', 'isAdmin'));
     }
 
     public function showArticle(string $slug)
