@@ -1,4 +1,3 @@
-kind: wasmer.io/App.v0
 name: clubcep
 app_id: da_nm3IetwUkO1G
 owner: eddycollart
@@ -39,4 +38,5 @@ jobs:
     fetch:
       path: /
       timeout: 30s
+kind: wasmer.io/App.v0
 description: DivingClub-Manager — Diving club management system
