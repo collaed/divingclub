@@ -191,10 +191,11 @@ class ProfileController extends Controller
         return back()->with('success', __('Private info updated.'))->withInput(['tab' => 'private']);
     }
 
-    /** Bureau-only: set the FFESSM InfoLicencié verification key on a member's licence. */
+    /** Set the FFESSM InfoLicencié verification key — member (own licence) or bureau. */
     public function updateFederationKey(Request $request, MemberLicence $licence)
     {
-        if (! auth()->user()->isBureauMaster()) abort(403);
+        $user = auth()->user();
+        if ($licence->user_id !== $user->id && ! $user->isBureauMaster()) abort(403);
         $request->validate(['federation_key' => 'nullable|string|max:20']);
         $licence->update(['federation_key' => strtoupper(trim($request->federation_key))]);
         return back()->with('success', __('Federation key updated.'))->withInput(['tab' => 'renewal']);

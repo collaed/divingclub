@@ -105,6 +105,7 @@ class CepSeeder extends Seeder
                     $user->licences()->create([
                         'federation_id'  => $fedId,
                         'licence_number' => $m['licence_number'],
+                        'federation_key' => $m['federation_key'] ?? null,
                     ]);
                 }
             }

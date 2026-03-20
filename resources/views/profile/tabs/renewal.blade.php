@@ -1,3 +1,4 @@
+{{-- ClubCEP.eu — Membership renewal tab: licence info, FFESSM InfoLicencié QR + scanner --}}
 @php $licences = $target->licences()->with('federation')->get(); @endphp
 <h6>{{ __('Membership Renewal') }}</h6>
 <p class="text-muted small">{{ __('This tab is read-only for members. Bureau can edit licence details.') }}</p>
@@ -16,6 +17,7 @@
             @if($lic->federation->acronym === 'FFESSM' && $lic->licence_number)
                 @php
                     $ffessmNumber = preg_replace('/^[A-Z]-\d{2}-/', '', $lic->licence_number);
+                    $canEdit = $viewer->isBureauMaster() || $viewer->id === $target->id;
                 @endphp
                 @if($lic->federation_key)
                     <div class="mt-3 p-3 bg-light rounded">
@@ -32,21 +34,31 @@
                     </div>
                 @else
                     <div class="mt-2">
-                        <small class="text-muted">ℹ️ {{ __('FFESSM verification key not set.') }}</small>
+                        <small class="text-muted">ℹ️ {{ __('FFESSM verification key not set.') }}
+                            @if($canEdit)
+                                {{ __('Scan your FFESSM card QR code below to set it.') }}
+                            @endif
+                        </small>
                     </div>
                 @endif
 
-                {{-- Bureau can set the federation key --}}
-                @if($viewer->isBureauMaster())
-                    <form method="POST" action="{{ route('profile.update.federation-key', $lic) }}" class="mt-2">
+                {{-- Key edit form (member self + bureau) --}}
+                @if($canEdit)
+                    <form method="POST" action="{{ route('profile.update.federation-key', $lic) }}" class="mt-2" id="ffessm-key-form-{{ $lic->id }}">
                         @csrf
-                        <div class="input-group input-group-sm" style="max-width:400px">
+                        <div class="input-group input-group-sm" style="max-width:500px">
                             <span class="input-group-text">{{ __('FFESSM Key') }}</span>
-                            <input type="text" name="federation_key" class="form-control font-monospace" value="{{ $lic->federation_key }}" placeholder="ABCDEF" maxlength="20" pattern="[A-Za-z0-9]+">
-                            <button class="btn btn-outline-primary">{{ __('Save') }}</button>
+                            <input type="text" name="federation_key" id="ffessm-key-{{ $lic->id }}" class="form-control font-monospace" value="{{ $lic->federation_key }}" placeholder="ABCDEF" maxlength="20" pattern="[A-Za-z0-9]+">
+                            <button type="button" class="btn btn-outline-secondary" onclick="startQrScan({{ $lic->id }})" title="{{ __('Scan QR') }}">📷</button>
+                            <button type="submit" class="btn btn-outline-primary">{{ __('Save') }}</button>
                         </div>
-                        <small class="text-muted">{{ __('6-char key from the FFESSM InfoLicencié QR code') }}</small>
+                        <small class="text-muted">{{ __('6-char key from the FFESSM card QR code, or use 📷 to scan it') }}</small>
                     </form>
+                    {{-- Camera viewfinder (hidden until scan button pressed) --}}
+                    <div id="qr-scanner-{{ $lic->id }}" class="mt-2" style="display:none; max-width:400px;">
+                        <video id="qr-video-{{ $lic->id }}" style="width:100%; border-radius:.375rem;" playsinline></video>
+                        <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="stopQrScan({{ $lic->id }})">{{ __('Cancel') }}</button>
+                    </div>
                 @endif
             @endif
         </div>
@@ -55,4 +67,62 @@
 
 @if($licences->isEmpty())
     <p class="text-muted">{{ __('No licence records yet.') }}</p>
+@endif
+
+{{-- QR scanner script — uses native BarcodeDetector API (Chrome/Android/Safari 17+) --}}
+@if($licences->where('federation.acronym', 'FFESSM')->isNotEmpty())
+@push('scripts')
+<script>
+/**
+ * FFESSM card QR scanner — extracts the federation key from the QR URL.
+ * QR format: https://l.ffessm.fr/c.asp?id={number}_{KEY}
+ * Uses the native BarcodeDetector API (no external library needed).
+ */
+let activeStream = null;
+let activeScanner = null;
+
+function startQrScan(licId) {
+    const container = document.getElementById('qr-scanner-' + licId);
+    const video = document.getElementById('qr-video-' + licId);
+    container.style.display = 'block';
+
+    if (!('BarcodeDetector' in window)) {
+        alert('{{ __("Your browser does not support QR scanning. Please enter the key manually or use Chrome on Android.") }}');
+        container.style.display = 'none';
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+            activeStream = stream;
+            video.srcObject = stream;
+            video.play();
+            const detector = new BarcodeDetector({ formats: ['qr_code'] });
+            activeScanner = setInterval(async () => {
+                try {
+                    const codes = await detector.detect(video);
+                    for (const code of codes) {
+                        const match = code.rawValue.match(/[?&]id=(\d+)_([A-Z]+)/);
+                        if (match) {
+                            document.getElementById('ffessm-key-' + licId).value = match[2];
+                            stopQrScan(licId);
+                            return;
+                        }
+                    }
+                } catch(e) {}
+            }, 300);
+        })
+        .catch(() => {
+            alert('{{ __("Camera access denied.") }}');
+            container.style.display = 'none';
+        });
+}
+
+function stopQrScan(licId) {
+    if (activeScanner) { clearInterval(activeScanner); activeScanner = null; }
+    if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+    document.getElementById('qr-scanner-' + licId).style.display = 'none';
+}
+</script>
+@endpush
 @endif

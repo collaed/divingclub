@@ -300,5 +300,6 @@
         if(b) b.textContent = t === 'dark' ? '☀️' : '🌙';
     }
     </script>
+    @stack('scripts')
 </body>
 </html>
