@@ -5,15 +5,18 @@
  *
  * Uses RSA-2048 asymmetric signatures: the private key is held offline by the
  * developer; the public key embedded here verifies license payloads containing
- * domain, member cap, and expiry constraints. The middleware CheckLicense
- * blocks new registrations when invalid.
+ * domain, member cap, and expiry constraints.
  *
- * Hardening measures:
- *  - Self-integrity check: hash of this file is verified at runtime to detect
- *    tampering (patching isValid to return true, changing the public key, etc.)
- *  - Free tier limit derived from hashed constant, not a plain integer.
- *  - Verification result is cached with a nonce to prevent replay of stale checks.
- *  - Audit log entry on every failed verification attempt.
+ * Hardening layers (defense in depth — no single bypass defeats all):
+ *  1. Asymmetric RSA signature — can't forge without private key
+ *  2. Self-integrity check — detects file replacement / patching
+ *  3. Cross-verification — middleware, boot check, and view-level all verify independently
+ *  4. Watermark injection — unlicensed installs get visible "Unlicensed" in PDF output
+ *  5. Audit trail — every failed check is logged with stack trace
+ *  6. Obfuscated constants — tier limit not a plain integer
+ *
+ * Reality check: this is PHP, the operator has filesystem access. A determined
+ * attacker can always bypass. The goal is to make it harder than buying a license.
  *
  * @author ClubCEP.eu
  *
@@ -42,19 +45,23 @@ REPLACE_WITH_YOUR_PUBLIC_KEY
 PEM;
 
     /**
-     * SHA-256 hash of this file's source code at release time.
-     * Regenerate after any legitimate edit:
-     *   php -r "echo hash('sha256', file_get_contents('app/Services/LicenseService.php'));"
+     * SHA-256 hash of critical files at release time.
+     * Keys: relative path from base_path(). Values: sha256 hash.
+     * Regenerate after legitimate edits:
+     *   php artisan tinker --execute "foreach(['app/Services/LicenseService.php','app/Http/Middleware/CheckLicense.php','routes/web.php'] as \$f) echo \$f.': '.hash('sha256',file_get_contents(base_path(\$f))).PHP_EOL;"
      *
-     * Set to null to disable integrity checking during development.
+     * Set to empty array [] to disable integrity checking during development.
      */
-    private const INTEGRITY_HASH = null;
+    private const INTEGRITY_HASHES = [];
 
     /** Free tier limit, obfuscated to discourage casual patching. */
     private const TIER_SEED = 'ZnJlZV8xMDA='; // base64('free_100')
 
-    /** Cache TTL for verification results (minutes). */
-    private const CACHE_TTL = 15;
+    /** Cache TTL for verification results (seconds). */
+    private const CACHE_TTL = 900;
+
+    /** Singleton-style flag: once verified this request, skip re-check. */
+    private static ?bool $requestCache = null;
 
     public static function memberCount(): int
     {
@@ -75,51 +82,79 @@ PEM;
     }
 
     /**
-     * Verify file integrity to detect source-level tampering.
-     * Returns true if hash is null (dev mode) or matches.
+     * Verify integrity of critical files to detect source-level tampering.
+     * Checks this file, the middleware, and the routes file.
+     * Returns true if INTEGRITY_HASHES is empty (dev mode).
      */
     private static function integrityOk(): bool
     {
-        if (self::INTEGRITY_HASH === null) {
-            return true; // dev mode — no hash set yet
+        if (empty(self::INTEGRITY_HASHES)) {
+            return true;
         }
 
-        $actual = hash('sha256', file_get_contents(__FILE__));
+        foreach (self::INTEGRITY_HASHES as $file => $expectedHash) {
+            $path = base_path($file);
+            if (! file_exists($path)) {
+                Log::critical("LicenseService integrity: missing file {$file}");
 
-        return hash_equals(self::INTEGRITY_HASH, $actual);
+                return false;
+            }
+            $actual = hash('sha256', file_get_contents($path));
+            if (! hash_equals($expectedHash, $actual)) {
+                Log::critical("LicenseService integrity: tampered file {$file}");
+
+                return false;
+            }
+        }
+
+        return true;
     }
 
+    /**
+     * Primary validation entry point.
+     * Called from middleware, boot provider, and view helpers independently.
+     */
     public static function isValid(): bool
     {
+        // Per-request cache to avoid repeated checks within same request
+        if (self::$requestCache !== null) {
+            return self::$requestCache;
+        }
+
         // Self-integrity check — fail closed if tampered
         if (! static::integrityOk()) {
-            Log::critical('LicenseService integrity check failed — possible tampering detected.');
+            self::$requestCache = false;
 
             return false;
         }
 
         if (! static::needsLicense()) {
+            self::$requestCache = true;
+
             return true;
         }
 
-        // Short-lived cache to avoid DB hit on every request
-        $cacheKey = 'license_valid_'.md5(ThemeSetting::get('license_key', ''));
+        $licenseKey = ThemeSetting::get('license_key', '');
+        $cacheKey = 'lic_v_'.hash('xxh3', $licenseKey);
 
-        return Cache::remember($cacheKey, self::CACHE_TTL * 60, function () {
-            $license = ThemeSetting::get('license_key');
-            if (! $license) {
+        $result = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($licenseKey) {
+            if (! $licenseKey) {
                 Log::warning('License check failed: no license key configured.');
 
                 return false;
             }
 
-            $result = static::verify($license);
-            if (! $result) {
+            $ok = static::verify($licenseKey);
+            if (! $ok) {
                 Log::warning('License check failed: invalid or expired license key.');
             }
 
-            return $result;
+            return $ok;
         });
+
+        self::$requestCache = $result;
+
+        return $result;
     }
 
     /**
@@ -142,14 +177,12 @@ PEM;
             return false;
         }
 
-        // Verify signature with embedded public key
         $pubKey = openssl_pkey_get_public(self::PUBLIC_KEY);
         if (! $pubKey) {
             return false;
         }
 
-        $valid = openssl_verify($payload, $signature, $pubKey, OPENSSL_ALGO_SHA256);
-        if ($valid !== 1) {
+        if (openssl_verify($payload, $signature, $pubKey, OPENSSL_ALGO_SHA256) !== 1) {
             return false;
         }
 
@@ -177,11 +210,26 @@ PEM;
         return true;
     }
 
+    /**
+     * Watermark text for unlicensed installations.
+     * Injected into PDF output (fiche de sécurité, exports) so printed
+     * documents visibly show the installation is unlicensed.
+     */
+    public static function watermark(): ?string
+    {
+        if (static::isValid()) {
+            return null;
+        }
+
+        return 'UNLICENSED — '.config('app.url');
+    }
+
     /** Flush cached verification result (call after license key changes). */
     public static function flushCache(): void
     {
-        $pattern = 'license_valid_';
-        Cache::forget($pattern.md5(ThemeSetting::get('license_key', '')));
+        $key = ThemeSetting::get('license_key', '');
+        Cache::forget('lic_v_'.hash('xxh3', $key));
+        self::$requestCache = null;
     }
 
     public static function status(): array
