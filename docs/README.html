@@ -187,7 +187,7 @@
 </tr>
 <tr class="even">
 <td><strong>Admin Guide</strong></td>
-<td>21-page in-app documentation</td>
+<td>20-page in-app documentation</td>
 </tr>
 </tbody>
 </table>
@@ -214,12 +214,11 @@
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a><span class="co"># Database</span></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a><span class="ex">php</span> artisan migrate</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a><span class="ex">php</span> artisan db:seed</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a><span class="ex">php</span> artisan db:seed --class=CertificationLevelSeeder</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a><span class="ex">php</span> artisan db:seed --class=SampleDataSeeder</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a><span class="co"># Storage &amp; serve</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a><span class="ex">php</span> artisan storage:link</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a><span class="ex">php</span> artisan serve --port=8080</span></code></pre></div>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a><span class="ex">php</span> artisan db:seed --class=SampleDataSeeder</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a><span class="co"># Storage &amp; serve</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a><span class="ex">php</span> artisan storage:link</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a><span class="ex">php</span> artisan serve --port=8080</span></code></pre></div>
 <h3 id="test-accounts">Test Accounts</h3>
 <table>
 <thead>
@@ -245,10 +244,14 @@
 <p>Plus 20 sample personas from <code>SampleDataSeeder</code>.</p>
 <hr />
 <h2 id="deployment">Deployment</h2>
-<h3 id="linux-ubuntu-22.04">Linux (Ubuntu 22.04+)</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="fu">bash</span> deploy.sh</span></code></pre></div>
-<h3 id="windows-powershell">Windows (PowerShell)</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>.\deploy.<span class="fu">ps1</span> -Port 8080</span></code></pre></div>
+<h3 id="linux-macos">Linux / macOS</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ex">composer</span> install --no-dev</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ex">npm</span> ci <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> run build</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="ex">php</span> artisan migrate --force</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="ex">php</span> artisan config:cache</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="ex">php</span> artisan route:cache</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a><span class="ex">php</span> artisan view:cache</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="ex">php</span> artisan storage:link</span></code></pre></div>
 <h3 id="wasmer-edge-docker">Wasmer / Edge / Docker</h3>
 <p>The app is a standard Laravel 11 application. It should work on any PHP 8.3+ hosting that supports MySQL. For Wasmer Edge specifically:</p>
 <ul>
@@ -259,8 +262,8 @@
 <li>⚠️ File uploads — use S3-compatible storage (<code>FILESYSTEM_DISK=s3</code>) since local storage may not persist</li>
 <li>⚠️ Queues — use <code>QUEUE_CONNECTION=sync</code> unless you have a worker process</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="co"># Build for Wasmer</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">wasmer</span> deploy --app-name=divingclub</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="co"># Build for Wasmer</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">wasmer</span> deploy --app-name=divingclub</span></code></pre></div>
 <hr />
 <h2 id="environment-variables">Environment Variables</h2>
 <h3 id="essential">Essential</h3>
@@ -382,7 +385,7 @@ scripts/
 <li>As an admin, I can impersonate any member to troubleshoot their experience</li>
 <li>As an admin, I can view dashboard statistics with charts and export data as CSV</li>
 <li>As an admin, I can manage the license key for clubs exceeding 100 members</li>
-<li>As an admin, I can follow the 21-page in-app admin guide for setup and operations</li>
+<li>As an admin, I can follow the 20-page in-app admin guide for setup and operations</li>
 <li>As an admin, I can create, inspect, download, and delete backups (DB + files) from the admin UI</li>
 <li>As an admin, I can view the bureau worklist on the dashboard showing pending actions (unverified certs, expiring medical, missing IBAN, minors without guardian, upcoming birthdays)</li>
 </ol>

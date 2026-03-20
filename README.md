@@ -33,7 +33,7 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **Multi-Club** | Dynamic club identity (name, address, IBAN, warehouse GPS), no hardcoded values |
 | **License** | RSA-signed license system, free tier up to 100 members, 13-month default expiry |
 | **PWA** | Installable, offline page, service worker |
-| **Admin Guide** | 21-page in-app documentation |
+| **Admin Guide** | 20-page in-app documentation |
 
 ## Numbers
 
@@ -61,7 +61,6 @@ php artisan key:generate
 # Database
 php artisan migrate
 php artisan db:seed
-php artisan db:seed --class=CertificationLevelSeeder
 php artisan db:seed --class=SampleDataSeeder
 
 # Storage & serve
@@ -82,14 +81,15 @@ Plus 20 sample personas from `SampleDataSeeder`.
 
 ## Deployment
 
-### Linux (Ubuntu 22.04+)
+### Linux / macOS
 ```bash
-bash deploy.sh
-```
-
-### Windows (PowerShell)
-```powershell
-.\deploy.ps1 -Port 8080
+composer install --no-dev
+npm ci && npm run build
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan storage:link
 ```
 
 ### Wasmer / Edge / Docker
@@ -228,7 +228,7 @@ scripts/
 33. As an admin, I can impersonate any member to troubleshoot their experience
 34. As an admin, I can view dashboard statistics with charts and export data as CSV
 35. As an admin, I can manage the license key for clubs exceeding 100 members
-36. As an admin, I can follow the 21-page in-app admin guide for setup and operations
+36. As an admin, I can follow the 20-page in-app admin guide for setup and operations
 37. As an admin, I can create, inspect, download, and delete backups (DB + files) from the admin UI
 38. As an admin, I can view the bureau worklist on the dashboard showing pending actions (unverified certs, expiring medical, missing IBAN, minors without guardian, upcoming birthdays)
 

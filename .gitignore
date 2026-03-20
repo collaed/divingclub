@@ -24,6 +24,7 @@ yarn-error.log
 
 # Private member data (PII)
 database/seeders/data/cep_members.json
+database/seeders/data/cep_articles_private.json
 database/seeders/data/parse_joomla_export.php
 fulldata_clubcep.txt
 
