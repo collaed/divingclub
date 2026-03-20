@@ -6,8 +6,9 @@
  * Seeds the standard package data that every diving club needs:
  * roles, member statuses, federations, certification levels, and
  * dive group rules. Club-specific data (members, events, dive sites)
- * is NOT seeded here — that's handled by the CepMemberSeeder and
+ * is NOT seeded here — that's handled by the CepSeeder and
  * DiveSiteSeeder which are only run for the ClubCEP.eu instance.
+ * Run:  php artisan db:seed --class=CepSeeder
  *
  * @author ClubCEP.eu
  */

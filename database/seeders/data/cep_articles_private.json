@@ -1,0 +1,255 @@
+[
+    {
+        "title": "bonjour à tous",
+        "slug": "bonjour-a-tous",
+        "article_type": "news",
+        "is_public": true,
+        "is_published": true,
+        "sort_order": 0,
+        "body": "je suis nouveau, je grandis, je m'améliore...",
+        "translations": [
+            {
+                "locale": "de",
+                "title": "Hallo zusammen",
+                "body": "Ich bin neu, ich wachse, ich verbessere mich ..."
+            },
+            {
+                "locale": "en",
+                "title": "Hello everyone",
+                "body": "I'm new, I'm growing, I'm improving..."
+            },
+            {
+                "locale": "es",
+                "title": "Hola a todos",
+                "body": "Soy nueva, estoy creciendo, estoy mejorando..."
+            },
+            {
+                "locale": "hu",
+                "title": "Hello mindenkinek",
+                "body": "Új vagyok, fejlődök, fejlődök..."
+            },
+            {
+                "locale": "it",
+                "title": "Ciao a tutti",
+                "body": "Sono nuovo, sto crescendo, sto migliorando..."
+            },
+            {
+                "locale": "lb",
+                "title": "Moien alleguer",
+                "body": "Ech sinn nei, ech wuessen, ech verbesseren ..."
+            },
+            {
+                "locale": "nl",
+                "title": "Hallo allemaal",
+                "body": "Ik ben nieuw, ik groei, ik verbeter..."
+            },
+            {
+                "locale": "pl",
+                "title": "Witam wszystkich",
+                "body": "Jestem nowy, rozwijam się, doskonalę..."
+            },
+            {
+                "locale": "pt",
+                "title": "Olá pessoal",
+                "body": "Sou novo, estou crescendo, estou melhorando..."
+            },
+            {
+                "locale": "ro",
+                "title": "Bună ziua tuturor",
+                "body": "Sunt nou, cresc, mă perfecționez..."
+            }
+        ]
+    },
+    {
+        "title": "Sortie plongée à Nemo 33 — Retour en images",
+        "slug": "nemo33-recap",
+        "article_type": "news",
+        "is_public": true,
+        "is_published": true,
+        "sort_order": 0,
+        "body": "<p>Ce samedi, 14 plongeurs du club se sont retrouvés à Nemo 33 pour une journée d'entraînement en fosse. La profondeur maximale de 34,5 mètres a permis aux candidats N2 de travailler leurs exercices en conditions réelles.<\/p><p>Les palanquées ont été organisées en trois groupes : un groupe N1 encadré par Michel (E3) dans la zone 0-12m, un groupe N2 avec Jérôme (E4) dans la zone 20-33m, et un groupe autonome P3\/P4 en exploration libre.<\/p><p>Points positifs : excellente visibilité (>15m), température agréable (33°C), et un buffet bien garni à la sortie. Prochaine sortie fosse prévue le 12 avril — inscriptions ouvertes sur le calendrier.<\/p>",
+        "translations": [
+            {
+                "locale": "de",
+                "title": "Tauchausflug zur Nemo 33 – Zurück in Bildern",
+                "body": "<p>An diesem Samstag trafen sich 14 Taucher des Clubs bei Nemo 33 zu einem Tag zum Boxentraining. Die maximale Tiefe von 34,5 Metern ermöglichte es den N2-Kandidaten, unter realen Bedingungen an ihren Übungen zu arbeiten.<\/p><p>Die Gruppen wurden in drei Gruppen eingeteilt: eine N1-Gruppe unter der Leitung von Michel (E3) in der 0-12-m-Zone, eine N2-Gruppe mit Jérôme (E4) in der 20-33-m-Zone und eine autonome P3\/P4-Gruppe in freier Erkundung.<\/p><p>Positive Punkte: ausgezeichnete Sicht (>15 m), Temperatur angenehm (33°C) und ein gut sortiertes Buffet am Ausgang. Der nächste Boxenausflug ist für den 12. April geplant – Anmeldungen im Kalender möglich.<\/p>"
+            },
+            {
+                "locale": "en",
+                "title": "Diving trip to Nemo 33 — Back in pictures",
+                "body": "<p>This Saturday, 14 divers from the club met at Nemo 33 for a day of pit training. The maximum depth of 34.5 meters allowed the N2 candidates to work on their exercises in real conditions.<\/p><p>The groups were organized into three groups: an N1 group supervised by Michel (E3) in the 0-12m zone, an N2 group with Jérôme (E4) in the 20-33m zone, and an autonomous P3\/P4 group in free exploration.<\/p><p>Positive points: excellent visibility (>15m), temperature pleasant (33°C), and a well-stocked buffet at the exit. Next pit outing scheduled for April 12 — registrations open on the calendar.<\/p>"
+            },
+            {
+                "locale": "es",
+                "title": "Viaje de buceo a Nemo 33 — De vuelta en imágenes",
+                "body": "<p>Este sábado, 14 buceadores del club se reunieron en Nemo 33 para un día de entrenamiento en boxes. La profundidad máxima de 34,5 metros permitió a los candidatos N2 trabajar en sus ejercicios en condiciones reales.<\/p><p>Los grupos se organizaron en tres grupos: un grupo N1 supervisado por Michel (E3) en la zona 0-12 m, un grupo N2 con Jérôme (E4) en la zona 20-33 m, y un grupo autónomo P3\/P4 en exploración libre.<\/p><p>Puntos positivos: excelente visibilidad (>15 m), temperatura agradable. (33°C), y un buffet bien surtido a la salida. La próxima salida a boxes está prevista para el 12 de abril: inscripciones abiertas en el calendario.<\/p>"
+            },
+            {
+                "locale": "hu",
+                "title": "Búvártúra a Nemo 33-hoz — Vissza képekben",
+                "body": "<p>Ezen a szombaton a klub 14 búvára találkozott a Nemo 33-ban egy napos boxedzésen. A 34,5 méteres maximális mélység lehetővé tette az N2-es jelöltek számára, hogy valós körülmények között végezhessék gyakorlataikat.<\/p><p>A csoportok három csoportba szerveződtek: egy Michel által felügyelt N1-es csoport (E3) a 0-12 m-es zónában, egy N2-es csoport Jérôme-mal (E4) a 20-33 méteres zónában, és egy autonóm szabad P3\/P4-láthatósági csoport.<\/plo>P4. (>15m), kellemes hőmérséklet (33°C), jól felszerelt büfé a kijáratnál. Következő boxutca a tervek szerint április 12-én lesz – a regisztráció a naptárban megnyílik.<\/p>"
+            },
+            {
+                "locale": "it",
+                "title": "Viaggio subacqueo a Nemo 33 — Di nuovo in foto",
+                "body": "<p>Questo sabato, 14 subacquei del club si sono incontrati al Nemo 33 per una giornata di allenamento in fossa. La profondità massima di 34,5 metri ha permesso ai candidati N2 di lavorare sui loro esercizi in condizioni reali.<\/p><p>I gruppi sono stati organizzati in tre gruppi: un gruppo N1 supervisionato da Michel (E3) nella zona 0-12m, un gruppo N2 con Jérôme (E4) nella zona 20-33m e un gruppo autonomo P3\/P4 in esplorazione libera.<\/p><p>Punti positivi: visibilità eccellente (>15m), temperatura piacevole (33°C), e un ricco buffet all'uscita. Prossima uscita ai box prevista per il 12 aprile: le iscrizioni sono aperte sul calendario.<\/p>"
+            },
+            {
+                "locale": "lb",
+                "title": "Tauchreis op Nemo 33 - Zréck an de Biller",
+                "body": "<p>Dëse Samschdeg hu sech 14 Taucher aus dem Veräin um Nemo 33 getraff fir en Dag Pit Training. Déi maximal Déift vun 34,5 Meter erlaabt den N2-Kandidaten un hiren Übungen an realen Konditiounen ze schaffen.<\/p><p>D'Gruppen goufen an dräi Gruppen organiséiert: eng N1-Grupp, déi vum Michel (E3) iwwerwaacht gëtt an der Zone 0-12m, en N2-Grupp mam Jérôme (E4) an der Zone 20-33m an der Zone 20-33m, an e Grupp vun der autonomer P3-Exploratioun\/P4<\/p4. Punkten: exzellent Visibilitéit (>15m), Temperatur agreabel (33°C), an e gutt gefëllte Buffet op der Sortie. Nächst Pit Ausfluch geplangt fir den 12. Abrëll - Umeldunge ginn um Kalenner op.<\/p>"
+            },
+            {
+                "locale": "nl",
+                "title": "Duiktrip naar Nemo 33 — Terug in foto's",
+                "body": "<p>Deze zaterdag kwamen 14 duikers van de club bijeen bij Nemo 33 voor een dagje pittraining. Dankzij de maximale diepte van 34,5 meter konden de N2-kandidaten in reële omstandigheden aan hun oefeningen werken.<\/p><p>De groepen werden in drie groepen georganiseerd: een N1-groep onder toezicht van Michel (E3) in de 0-12m-zone, een N2-groep met Jérôme (E4) in de 20-33m-zone, en een autonome P3\/P4-groep in vrije verkenning.<\/p><p>Positieve punten: uitstekend zicht (>15m), aangename temperatuur (33°C), en een goed gevuld buffet bij de uitgang. Volgende pituitje gepland voor 12 april - inschrijvingen openen op de kalender.<\/p>"
+            },
+            {
+                "locale": "pl",
+                "title": "Wyprawa nurkowa na Nemo 33 — Powrót na zdjęcia",
+                "body": "<p>W tę sobotę 14 nurków z klubu spotkało się na Nemo 33 na jednodniowym szkoleniu w pit-stopie. Maksymalna głębokość wynosząca 34,5 m umożliwiła kandydatom N2 pracę nad ćwiczeniami w rzeczywistych warunkach.<\/p><p>Grupy podzielono na trzy grupy: grupa N1 nadzorowana przez Michela (E3) w strefie 0-12 m, grupa N2 z Jérôme (E4) w strefie 20-33 m oraz autonomiczna grupa P3\/P4 w swobodnej eksploracji.<\/p><p>Pozytywne punkty: doskonała widoczność (>15 m), przyjemna temperatura (33°C), a na wyjściu dobrze zaopatrzony bufet. Następny pit-out zaplanowany na 12 kwietnia — zapisy otwieramy w kalendarzu.<\/p>"
+            },
+            {
+                "locale": "pt",
+                "title": "Viagem de mergulho no Nemo 33 — De volta às fotos",
+                "body": "<p>Neste sábado, 14 mergulhadores do clube se reuniram no Nemo 33 para um dia de treino nas boxes. A profundidade máxima de 34,5 metros permitiu aos candidatos N2 trabalhar os seus exercícios em condições reais.<\/p><p>Os grupos foram organizados em três grupos: um grupo N1 supervisionado por Michel (E3) na zona 0-12m, um grupo N2 com Jérôme (E4) na zona 20-33m, e um grupo autónomo P3\/P4 em exploração livre.<\/p><p>Pontos positivos: excelente visibilidade (>15m), temperatura agradável (33°C), e um buffet bem abastecido na saída. Próxima saída marcada para 12 de abril — inscrições abertas no calendário.<\/p>"
+            },
+            {
+                "locale": "ro",
+                "title": "Excursie de scufundări la Nemo 33 — Înapoi în imagini",
+                "body": "<p>Sâmbăta aceasta, 14 scafandri din club s-au întâlnit la Nemo 33 pentru o zi de antrenament la boxă. Adâncimea maximă de 34,5 metri le-a permis candidaților N2 să-și lucreze la exercițiile în condiții reale.<\/p><p>Grupele au fost organizate în trei grupe: un grup N1 supravegheat de Michel (E3) în zona 0-12m, un grup N2 cu Jérôme (E4) în zona 20-33m și un grup autonom P:<333m și un grup autonom de explorare P<3>p4. vizibilitate (>15m), temperatura placuta (33°C), si un bufet bine aprovizionat la iesire. Următoarea ieșire la groapă programată pentru 12 aprilie — înscrierile sunt deschise în calendar.<\/p>"
+            }
+        ]
+    },
+    {
+        "title": "Formation Niveau 2 — Inscriptions ouvertes",
+        "slug": "formation-n2-2026",
+        "article_type": "news",
+        "is_public": true,
+        "is_published": true,
+        "sort_order": 0,
+        "body": "<p>La formation N2 (PE40 + PA20) démarre le mois prochain. Cette qualification vous permet de plonger encadré jusqu'à 40 mètres et en autonomie jusqu'à 20 mètres.<\/p><h5>Prérequis<\/h5><ul><li>Être titulaire du N1 (PE20) ou équivalent CMAS 1★<\/li><li>Certificat médical de non contre-indication de moins d'un an<\/li><li>Licence FFESSM ou LIFRAS en cours de validité<\/li><li>Minimum 20 plongées en milieu naturel<\/li><\/ul><h5>Programme<\/h5><p>8 plongées techniques en carrière (Vodelée, Floreffe) + 4 plongées de validation en milieu naturel. Théorie les mardis soirs au local. Examen théorique en fin de formation.<\/p><p>Tarif : inclus dans la cotisation annuelle. Seuls les frais de carrière (±8€\/plongée) sont à votre charge.<\/p>",
+        "translations": [
+            {
+                "locale": "de",
+                "title": "Schulung der Stufe 2 – Anmeldung geöffnet",
+                "body": "<p>Das N2-Training (PE40 + PA20) beginnt nächsten Monat. Mit dieser Qualifikation können Sie unter Aufsicht bis zu 40 Meter und unabhängig bis zu 20 Meter tauchen.<\/p><h5>Voraussetzungen<\/h5><ul><li>N1 (PE20) oder gleichwertiges CMAS 1★ besitzen<\/li><li>Ärztliches Attest ohne Kontraindikation von weniger als einem Jahr<\/li><li>Gültige FFESSM- oder LIFRAS-Lizenz<\/li><li>Mindestens 20 Tauchgänge in einem Naturtauchgang Umgebung<\/li><\/ul><h5>Programm<\/h5><p>8 technische Tauchgänge in einem Steinbruch (Vodelée, Floreffe) + 4 Validierungstauchgänge in einer natürlichen Umgebung. Theorie am Dienstagabend im Lokal. Theoretische Prüfung am Ende der Ausbildung.<\/p><p>Preis: im Jahresbeitrag enthalten. Lediglich die Steinbruchgebühren (±8€\/Tauchgang) liegen in Ihrer Verantwortung.<\/p>"
+            },
+            {
+                "locale": "en",
+                "title": "Level 2 training — Registration open",
+                "body": "<p>N2 training (PE40 + PA20) starts next month. This qualification allows you to dive supervised up to 40 meters and independently up to 20 meters.<\/p><h5>Prerequisites<\/h5><ul><li>Hold N1 (PE20) or equivalent CMAS 1★<\/li><li>Medical certificate of no contraindication of less than one year<\/li><li>Valid FFESSM or LIFRAS license<\/li><li>Minimum 20 dives in a natural environment<\/li><\/ul><h5>Program<\/h5><p>8 technical dives in a quarry (Vodelée, Floreffe) + 4 validation dives in a natural environment. Theory on Tuesday evenings at the local. Theoretical exam at the end of training.<\/p><p>Price: included in the annual fee. Only the quarry fees (±8€\/dive) are your responsibility.<\/p>"
+            },
+            {
+                "locale": "es",
+                "title": "Formación de nivel 2 — Inscripciones abiertas",
+                "body": "<p>El entrenamiento N2 (PE40 + PA20) comienza el próximo mes. Esta titulación te permite bucear supervisado hasta 40 metros y de forma independiente hasta 20 metros.<\/p><h5>Requisitos<\/h5><ul><li>Estar en posesión de N1 (PE20) o equivalente CMAS 1★<\/li><li>Certificado médico de no contraindicación de menos de un año<\/li><li>Licencia FFESSM o LIFRAS en vigor<\/li><li>Mínimo 20 inmersiones en condiciones naturales entorno<\/li><\/ul><h5>Programa<\/h5><p>8 inmersiones técnicas en una cantera (Vodelée, Floreffe) + 4 inmersiones de validación en un entorno natural. Teoría los martes por la tarde en el local. Examen teórico al finalizar la formación.<\/p><p>Precio: incluido en la cuota anual. Sólo los gastos de cantera (±8€\/inmersión) son tu responsabilidad.<\/p>"
+            },
+            {
+                "locale": "hu",
+                "title": "2. szintű képzés — Regisztráció nyitva",
+                "body": "<p>Az N2 képzés (PE40 + PA20) a következő hónapban kezdődik. Ez a képesítés lehetővé teszi, hogy felügyelt merüléssel 40 méterig, önállóan pedig 20 méterig merüljön.<\/p><h5>Előfeltételek<\/h5><ul><li>N1 (PE20) vagy azzal egyenértékű CMAS 1★ tartása<\/li><li>Egy évnél rövidebb orvosi igazolás arról, hogy nincs ellenjavallat<\/li><li>Érvényes FR>Minimum\/LI0esli FFESSm vagy LI20 környezet<\/li><\/ul><h5>Program<\/h5><p>8 technikai merülés kőbányában (Vodelée, Floreffe) + 4 érvényesítő merülés természetes környezetben. Elmélet kedd esténként a helyiben. Elméleti vizsga a képzés végén.<\/p><p>Ár: az éves díj tartalmazza. Csak a kőbánya díja (±8 €\/merülés) az Ön felelőssége.<\/p>"
+            },
+            {
+                "locale": "it",
+                "title": "Formazione di livello 2: iscrizioni aperte",
+                "body": "<p>La formazione N2 (PE40 + PA20) inizia il mese prossimo. Questa qualifica ti consente di immergerti sotto supervisione fino a 40 metri e in modo indipendente fino a 20 metri.<\/p><h5>Prerequisiti<\/h5><ul><li>Possesso di N1 (PE20) o CMAS 1 equivalente<\/li><li>Certificato medico di assenza di controindicazioni inferiore a un anno<\/li><li>Licenza FFESSM o LIFRAS valida<\/li><li>Minimo 20 immersioni in ambiente naturale ambiente<\/li><\/ul><h5>Programma<\/h5><p>8 immersioni tecniche in cava (Vodelée, Floreffe) + 4 immersioni di convalida in ambiente naturale. Teoria il martedì sera al locale. Esame teorico al termine della formazione.<\/p><p>Prezzo: incluso nella quota annuale. Solo le tasse di cava (±8€\/immersione) sono a tuo carico.<\/p>"
+            },
+            {
+                "locale": "lb",
+                "title": "Niveau 2 Training - Umeldung op",
+                "body": "<p>N2 Training (PE40 + PA20) fänkt den nächste Mount un. Dës Qualifikatioun erlaabt Iech iwwerwaacht bis zu 40 Meter an onofhängeg bis zu 20 Meter ze tauchen.<\/p><h5>Viraussetzungen<\/h5><ul><li>Halt N1 (PE20) oder gläichwäerteg CMAS 1★<\/li><li>Medizinesch Zertifikat ouni Kontraindikatioun vu manner wéi engem Joer<\/li><li>Gëlteg FFESSM oder 2000000 Ëmwelt<\/li><\/ul><h5>Programm<\/h5><p>8 technesch Tauchen an engem Steebroch (Vodelée, Floreffe) + 4 Validatiounstaucher an engem natierlechen Ëmfeld. Theorie op Dënschdeg owes op der lokal. Theoreteschen Examen um Enn vun der Formatioun.<\/p><p>Präis: am Jorespräis abegraff. Nëmmen d'Steebrochfraisen (±8€\/Tauch) sinn är Verantwortung.<\/p>"
+            },
+            {
+                "locale": "nl",
+                "title": "Niveau 2-training — Inschrijving geopend",
+                "body": "<p>N2-training (PE40 + PA20) start volgende maand. Met deze kwalificatie kun je onder toezicht duiken tot 40 meter en zelfstandig duiken tot 20 meter.<\/p><h5>Vereisten<\/h5><ul><li>In bezit van N1 (PE20) of gelijkwaardig CMAS 1★<\/li><li>Medische verklaring zonder contra-indicatie van minder dan één jaar<\/li><li>Geldige FFESSM- of LIFRAS-licentie<\/li><li>Minimaal 20 duiken in een natuurlijke omgeving omgeving<\/li><\/ul><h5>Programma<\/h5><p>8 technische duiken in een steengroeve (Vodelée, Floreffe) + 4 validatieduiken in een natuurlijke omgeving. Theorie op dinsdagavonden bij het lokaal. Theoretisch examen aan het einde van de training.<\/p><p>Prijs: inbegrepen in de jaarlijkse vergoeding. Alleen de kosten voor de steengroeve (±8€\/duik) zijn voor uw rekening.<\/p>"
+            },
+            {
+                "locale": "pl",
+                "title": "Szkolenie poziomu 2 — Rejestracja otwarta",
+                "body": "<p>Szkolenie N2 (PE40 + PA20) rozpoczyna się w przyszłym miesiącu. Kwalifikacja ta pozwala na nurkowanie pod nadzorem do 40 metrów i samodzielnie do 20 metrów.<\/p><h5>Wymagania<\/h5><ul><li>Posiadanie certyfikatu N1 (PE20) lub równoważnego CMAS 1★<\/li><li>Zaświadczenie lekarskie o braku przeciwwskazań przez okres krótszy niż rok<\/li><li>Ważna licencja FFESSM lub LIFRAS<\/li><li>Minimalnie 20 nurkowań w środowisku naturalnym środowisko<\/li><\/ul><h5>Program<\/h5><p>8 nurkowań technicznych w kamieniołomie (Vodelée, Floreffe) + 4 nurkowania walidacyjne w środowisku naturalnym. Teoria we wtorkowe wieczory w lokalu. Egzamin teoretyczny na zakończenie szkolenia.<\/p><p>Cena: wliczona w opłatę roczną. Tylko opłaty za kamieniołom (±8€\/nurkowanie) pokrywasz Ty.<\/p>"
+            },
+            {
+                "locale": "pt",
+                "title": "Treinamento nível 2 — Inscrições abertas",
+                "body": "<p>A formação N2 (PE40 + PA20) começa no próximo mês. Esta qualificação permite-lhe mergulhar supervisionado até 40 metros e de forma independente até 20 metros.<\/p><h5>Pré-requisitos<\/h5><ul><li>Ter N1 (PE20) ou equivalente CMAS 1★<\/li><li>Atestado médico sem contra-indicação inferior a um ano<\/li><li>Licença FFESSM ou LIFRAS válida<\/li><li>Mínimo de 20 mergulhos em ambiente natural ambiente<\/li><\/ul><h5>Programa<\/h5><p>8 mergulhos técnicos em pedreira (Vodelée, Floreffe) + 4 mergulhos de validação em ambiente natural. Teoria nas noites de terça-feira no local. Exame teórico no final da formação.<\/p><p>Preço: incluído na anuidade. Apenas as taxas de pedreira (±8€\/mergulho) são da sua responsabilidade.<\/p>"
+            },
+            {
+                "locale": "ro",
+                "title": "Antrenament de nivel 2 — Înregistrare deschisă",
+                "body": "<p>Instruirea N2 (PE40 + PA20) începe luna viitoare. Această calificare vă permite să vă scufundați sub supraveghere până la 40 de metri și independent până la 20 de metri.<\/p><h5>Precondiții<\/h5><ul><li>Dețineți N1 (PE20) sau echivalent CMAS 1★<\/li><li>Certificat medical fără contraindicații de mai puțin de un an<\/li><li>Licență FFESSM sau LIFRASim naturală valabilă<\/2li><li> mediu<\/li><\/ul><h5>Program<\/h5><p>8 scufundări tehnice într-o carieră (Vodelée, Floreffe) + 4 scufundări de validare în mediu natural. Teorie marți seara la local. Examen teoretic la finalul instruirii.<\/p><p>Preț: inclus în taxa anuală. Doar taxele de carieră (±8€\/scufundare) sunt responsabilitatea dvs.<\/p>"
+            }
+        ]
+    },
+    {
+        "title": "Rappel : Assemblée Générale le 15 avril",
+        "slug": "ag-2026",
+        "article_type": "news",
+        "is_public": true,
+        "is_published": true,
+        "sort_order": 0,
+        "body": "<p>L'Assemblée Générale annuelle se tiendra le <strong>mardi 15 avril à 19h30<\/strong> au local du club. Votre présence est importante — nous voterons le budget 2026-2027 et le renouvellement du bureau.<\/p><h5>Ordre du jour<\/h5><ol><li>Rapport moral du président<\/li><li>Rapport financier du trésorier<\/li><li>Bilan des activités 2025-2026 (plongées, formations, sorties)<\/li><li>Budget prévisionnel 2026-2027<\/li><li>Élection du bureau (3 postes à pourvoir)<\/li><li>Questions diverses<\/li><\/ol><p>Un apéritif sera offert après l'AG. Merci de confirmer votre présence via le calendrier pour faciliter l'organisation.<\/p>",
+        "translations": [
+            {
+                "locale": "de",
+                "title": "Erinnerung: Generalversammlung am 15. April",
+                "body": "<p>Die Jahreshauptversammlung findet am <strong>Dienstag, 15. April, um 19:30 Uhr<\/strong> auf dem Vereinsgelände statt. Ihre Anwesenheit ist wichtig – wir werden über den Haushalt 2026-2027 und die Erneuerung des Amtes abstimmen.<\/p><h5>Tagesordnung<\/h5><ol><li>Moralischer Bericht des Präsidenten<\/li><li>Finanzbericht des Schatzmeisters<\/li><li>Überprüfung der Aktivitäten 2025-2026 (Tauchen, Training, Ausflüge)<\/li><li>Vorläufiger Haushalt 2026-2027<\/li><li>Amtswahl (3 Positionen sind zu besetzen)<\/li><li>Diverse Fragen<\/li><\/ol><p>Im Anschluss an die Hauptversammlung wird ein Aperitif angeboten. Bitte bestätigen Sie Ihre Anwesenheit über den Kalender, um die Organisation zu erleichtern.<\/p>"
+            },
+            {
+                "locale": "en",
+                "title": "Reminder: General Meeting on April 15",
+                "body": "<p>The Annual General Meeting will be held on <strong>Tuesday April 15 at 7:30 p.m.<\/strong> at the club premises. Your presence is important — we will vote on the 2026-2027 budget and the renewal of the office.<\/p><h5>Agenda<\/h5><ol><li>Moral report from the president<\/li><li>Financial report from the treasurer<\/li><li>Review of 2025-2026 activities (diving, training, outings)<\/li><li>Provisional budget 2026-2027<\/li><li>Election of office (3 positions to be filled)<\/li><li>Miscellaneous questions<\/li><\/ol><p>An aperitif will be offered after the AGM. Please confirm your presence via the calendar to facilitate organization.<\/p>"
+            },
+            {
+                "locale": "es",
+                "title": "Recordatorio: Asamblea General el 15 de abril",
+                "body": "<p>La Asamblea General Anual se celebrará el <strong>martes 15 de abril a las 19:30 horas<\/strong> en las instalaciones del club. Su presencia es importante: votaremos sobre el presupuesto 2026-2027 y la renovación del cargo.<\/p><h5>Agenda<\/h5><ol><li>Informe moral del presidente<\/li><li>Informe financiero del tesorero<\/li><li>Revisión de las actividades 2025-2026 (buceo, entrenamiento, excursiones)<\/li><li>Presupuesto provisional 2026-2027<\/li><li>Elección de cargos (3 puestos por cubrir)<\/li><li>Preguntas varias<\/li><\/ol><p>Se ofrecerá un aperitivo después de la Asamblea General Anual. Por favor, confirma tu presencia a través del calendario para facilitar la organización.<\/p>"
+            },
+            {
+                "locale": "hu",
+                "title": "Emlékeztető: április 15-i közgyűlés",
+                "body": "<p>Az éves közgyűlést <strong>április 15-én, kedden, 19:30-kor<\/strong> tartják a klub területén. Jelenléte fontos – szavazni fogunk a 2026-2027-es költségvetésről és a hivatal megújításáról.<\/p><h5>Napirend<\/h5><ol><li>Az elnök erkölcsi jelentése<\/li><li>Pénzügyi beszámoló a pénztárostól<\/li><li>A 2025-2026-os tevékenységek áttekintése (búvárkodás, képzés<\/li>kirándulás) 2026-2027<\/li><li>Tisztségválasztás (3 betöltendő pozíció)<\/li><li>Vegyes kérdések<\/li><\/ol><p>A közgyűlés után aperitifet kínálnak. A szervezés megkönnyítése érdekében kérjük, erősítse meg jelenlétét a naptárban.<\/p>"
+            },
+            {
+                "locale": "it",
+                "title": "Promemoria: Assemblea generale del 15 aprile",
+                "body": "<p>L'Assemblea generale annuale si terrà <strong>martedì 15 aprile alle 19:30<\/strong> presso la sede del club. La vostra presenza è importante: voteremo il bilancio 2026-2027 e il rinnovo dell'ufficio.<\/p><h5>Ordine del giorno<\/h5><ol><li>Relazione morale del presidente<\/li><li>Relazione finanziaria del tesoriere<\/li><li>Revisione delle attività 2025-2026 (immersioni, allenamenti, uscite)<\/li><li>Bilancio provvisorio 2026-2027<\/li><li>Elezione della carica (3 posti da coprire)<\/li><li>Domande varie<\/li><\/ol><p>Al termine dell'Assemblea sarà offerto un aperitivo. Si prega di confermare la propria presenza tramite il calendario per facilitare l'organizzazione.<\/p>"
+            },
+            {
+                "locale": "lb",
+                "title": "Erënnerung: Generalversammlung den 15. Abrëll",
+                "body": "<p>D'Generalversammlung gëtt gehalen en <strong>Dënschdeg 15. Abrëll um 19:30<\/strong> am Veräinsraim. Är Präsenz ass wichteg - mir stëmmen iwwer de Budget 2026-2027 an d'Erneierung vum Büro.<\/p><h5>Agenda<\/h5><ol><li>Moralbericht vum President<\/li><li>Finanzbericht vum Tresorier<\/li><li>Iwwerpréiwung vun den Aktivitéiten 2025-2026 (Tauchen, Training, Ausfluch)<\/li>Provisional 2026-2027<\/li><li>Amtswahl (3 Posten ze besetzen)<\/li><li>Diverse Froen<\/li><\/ol><p>No der Generalversammlung gëtt en Apéritif ugebueden. Bestätegt w.e.g. Är Präsenz iwwer de Kalenner fir d'Organisatioun ze vereinfachen.<\/p>"
+            },
+            {
+                "locale": "nl",
+                "title": "Herinnering: Algemene Vergadering op 15 april",
+                "body": "<p>De jaarlijkse algemene vergadering wordt gehouden op <strong>dinsdag 15 april om 19.30 uur<\/strong> in het clubgebouw. Uw aanwezigheid is belangrijk – we zullen stemmen over de begroting 2026-2027 en de vernieuwing van het ambt.<\/p><h5>Agenda<\/h5><ol><li>Moreel rapport van de president<\/li><li>Financieel rapport van de penningmeester<\/li><li>Overzicht van de activiteiten voor 2025-2026 (duiken, training, uitstapjes)<\/li><li>Voorlopige begroting 2026-2027<\/li><li>Maatverkiezing (3 vacatures te vervullen)<\/li><li>Diverse vragen<\/li><\/ol><p>Na de AVA wordt een aperitief aangeboden. Bevestig uw aanwezigheid via de kalender om de organisatie te vergemakkelijken.<\/p>"
+            },
+            {
+                "locale": "pl",
+                "title": "Przypominamy: Walne Zgromadzenie w dniu 15 kwietnia",
+                "body": "<p>Roczne Walne Zgromadzenie odbędzie się <strong>wtorek 15 kwietnia o godzinie 19:30<\/strong> na terenie klubu. Wasza obecność jest ważna – będziemy głosować nad budżetem na lata 2026-2027 i odnowieniem urzędu.<\/p><h5>Porządek obrad<\/h5><ol><li>Raport moralny prezydenta<\/li><li>Sprawozdanie finansowe skarbnika<\/li><li>Przegląd działań na lata 2025-2026 (nurkowanie, szkolenia, wycieczki)<\/li><li>Wstępny budżet 2026-2027<\/li><li>Wybór władz (3 stanowiska do obsadzenia)<\/li><li>Różne pytania<\/li><\/ol><p>Po Walnym Zgromadzeniu zostanie podany aperitif. Prosimy o potwierdzenie obecności poprzez kalendarz, aby ułatwić organizację.<\/p>"
+            },
+            {
+                "locale": "pt",
+                "title": "Lembrete: Assembleia Geral em 15 de abril",
+                "body": "<p>A Assembleia Geral Anual será realizada na <strong>terça-feira, 15 de abril, às 19h30<\/strong> nas instalações do clube. Sua presença é importante — votaremos o orçamento 2026-2027 e a renovação do cargo.<\/p><h5>Agenda<\/h5><ol><li>Relatório moral do presidente<\/li><li>Relatório financeiro do tesoureiro<\/li><li>Revisão das atividades 2025-2026 (mergulho, treinamento, passeios)<\/li><li>Orçamento provisório 2026-2027<\/li><li>Eleição do cargo (3 cargos a preencher)<\/li><li>Questões diversas<\/li><\/ol><p>Um aperitivo será oferecido após a Assembleia Geral. Por favor, confirme sua presença através do calendário para facilitar a organização.<\/p>"
+            },
+            {
+                "locale": "ro",
+                "title": "Memento: Adunarea generală din 15 aprilie",
+                "body": "<p>Adunarea generală anuală va avea loc <strong>marți, 15 aprilie, la 19:30<\/strong>, la sediul clubului. Prezența dumneavoastră este importantă — vom vota bugetul 2026-2027 și reînnoirea biroului.<\/p><h5>Agendă<\/h5><ol><li>Raport moral al președintelui<\/li><li>Raport financiar al trezorierului<\/li><li>Revizuirea activităților 2025-2026 (scafandri, buget, ieșiri)<\/li><\/li><li>provizorii 2026-2027<\/li><li>Alegerea funcției (3 posturi de ocupat)<\/li><li>Întrebări diverse<\/li><\/ol><p>În urma AGA va fi oferit un aperitiv. Vă rugăm să vă confirmați prezența prin calendar pentru a facilita organizarea.<\/p>"
+            }
+        ]
+    },
+    {
+        "title": "Historique des Bureaux du CEP",
+        "slug": "historique-bureaux-cep",
+        "article_type": "history",
+        "is_public": false,
+        "is_published": true,
+        "sort_order": 0,
+        "body": "<h4>📋 Historique des Bureaux du CEP<\/h4>\n\n<p>Composition du bureau du Club Européen de Plongée depuis 1999. Données compilées par Etienne Coupez.<\/p>\n\n<div class=\"table-responsive\">\n<table class=\"table table-bordered table-striped table-sm\">\n<thead class=\"table-dark\">\n<tr><th>Année<\/th><th>Président(e)<\/th><th>Vice-Président(e)<\/th><th>Trésorier(ère)<\/th><th>Autres membres<\/th><th>Notes<\/th><\/tr>\n<\/thead>\n<tbody>\n<tr><td>2026<\/td><td><strong>Michel Brochard<\/strong><\/td><td><strong>Eddy Collart<\/strong><\/td><td><strong>Mafalda Collart<\/strong><\/td><td>Pietro Giancola <em>(DT)<\/em>, Keran Chaussard, Lilian Godfrin<\/td><td><\/td><\/tr>\n<tr><td>2025<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Vincent Girard<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Pietro Giancola <em>(DT)<\/em>, Keran Chaussard<\/td><td><\/td><\/tr>\n<tr><td>2024<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Vincent Girard<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Pietro Giancola <em>(DT)<\/em>, Emmanuel Poupin <em>(Fosses)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2023<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Vincent Girard<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Pietro Giancola <em>(DT)<\/em>, Emmanuel Poupin <em>(Fosses)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2022<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Vincent Girard<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Pietro Giancola <em>(DT)<\/em>, Emmanuel Poupin <em>(Fosses)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2021<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Vincent Girard<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Eduardo Heras <em>(Matériel)<\/em>, Emmanuel Poupin<\/td><td><\/td><\/tr>\n<tr><td>2020<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Laura Fevrier<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Yves Oger <em>(Matériel)<\/em>, Roger Kraemer <em>(Sorties)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2019<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Laura Fevrier<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Yves Oger <em>(Matériel)<\/em>, Roger Kraemer <em>(Sorties)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2018<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Laura Fevrier<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Yves Oger <em>(Matériel)<\/em><\/td><td>5 membres<\/td><\/tr>\n<tr><td>2017<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Roger Kraemer<\/strong><\/td><td>Marie-Jo Mangenot <em>(Licences)<\/em>, Yves Oger <em>(Matériel)<\/em>, Erki Pölme <em>(Sorties)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2016<\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Michel Brochard<\/strong> <em>(DT)<\/em><\/td><td><strong>Roger Kraemer<\/strong><\/td><td>Marie-Jo Mangenot <em>(Secr.)<\/em>, Yves Oger <em>(Matériel)<\/em>, Erki Pölme <em>(Sorties)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2015<\/td><td><strong>Gaston Landresse<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Roger Kraemer<\/strong> <em>(Sorties)<\/em><\/td><td>Erki Pölme <em>(Matériel, Sorties)<\/em>, Yves Oger <em>(Matériel)<\/em>, Marie-Jo Mangenot <em>(Relations)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2014<\/td><td><strong>Gaston Landresse<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Etienne Coupez<\/strong> <em>(Webm.)<\/em><\/td><td><strong>Roger Kraemer<\/strong> <em>(Sorties)<\/em><\/td><td>Erki Pölme <em>(Matériel, Sorties)<\/em>, Yves Oger <em>(Matériel)<\/em>, Marie-Jo Mangenot <em>(Relations)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2013<\/td><td><strong>Michel Brochard<\/strong> <em>(DT)<\/em><\/td><td><strong>Gaston Landresse<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Jean-Mi Gavanier<\/strong><\/td><td>Erki Pölme <em>(Matériel, Aff.soc.)<\/em>, Roger Kraemer <em>(Adj.trés., Aff.soc.)<\/em>, Yves Oger <em>(Adj. Matériel)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2012<\/td><td><strong>Michel Brochard<\/strong><\/td><td><strong>Didier Guillaume<\/strong><\/td><td><strong>Jean-Mi Gavanier<\/strong><\/td><td>Gaston Landresse <em>(Secr.)<\/em>, Erki Pölme <em>(Matériel)<\/em>, Roger Kraemer <em>(Adj.trés., Adj.secr.)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2011<\/td><td><strong>Michel Brochard<\/strong><\/td><td><strong>Didier Guillaume<\/strong><\/td><td><strong>Jean-Mi Gavanier<\/strong><\/td><td>Gaston Landresse <em>(Secr.)<\/em>, Erki Pölme <em>(Matériel)<\/em><\/td><td>5 membres<\/td><\/tr>\n<tr><td>2010<\/td><td><strong>Michel Brochard<\/strong><\/td><td><strong>Didier Guillaume<\/strong><\/td><td><strong>Katrin Illend<\/strong><\/td><td>Tibor Ballogh <em>(Secr.)<\/em>, Erki Pölme <em>(Matériel)<\/em><\/td><td>5 membres<\/td><\/tr>\n<tr><td>2009<\/td><td><strong>Michel Brochard<\/strong><\/td><td><strong>Alain Smets<\/strong> <em>(Matériel)<\/em><\/td><td><strong>Clive Godfrey<\/strong><\/td><td>Didier Guillaume <em>(Secr., Reps.mon.)<\/em>, Etienne Coupez <em>(Webm., Adj.trés.)<\/em>, Bettina Berghs <em>(Act.soc.)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2008<\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Jacky Mirto<\/strong> <em>(Matériel)<\/em><\/td><td><strong>Michel Brochard<\/strong><\/td><td>Yves Orville <em>(Resp.tech.)<\/em>, Didier Guillaume <em>(Ass.secr.)<\/em><\/td><td>Pendant 1 mois<\/td><\/tr>\n<tr><td>2008<\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Jacky Mirto<\/strong> <em>(Matériel)<\/em><\/td><td><strong>Erna Van Nueten<\/strong><\/td><td>Yves Orville <em>(Resp.tech.)<\/em>, Patrick Déom <em>(Act.soc.)<\/em><\/td><td>5 membres<\/td><\/tr>\n<tr><td>2007<\/td><td><strong>Guy Legloan<\/strong><\/td><td><strong>Pascale Lucietto<\/strong> <em>(Secr.)<\/em><\/td><td><strong>Erna Van Nueten<\/strong><\/td><td>Jacky Mirto <em>(Matériel)<\/em>, Manu Alvarez <em>(Resp.tech.)<\/em>, Yves Orville <em>(Resp.tech.)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2006<\/td><td><strong>Guy Legloan<\/strong><\/td><td><strong>Alain Smets<\/strong><\/td><td><strong>Didier Guillaume<\/strong><\/td><td>Françoise Nicolas <em>(Secr.)<\/em>, Jacky Mirto <em>(Matériel)<\/em>, Bernard Frère<\/td><td><\/td><\/tr>\n<tr><td>2005<\/td><td><strong>Guy Legloan<\/strong><\/td><td><strong>Alain Smets<\/strong><\/td><td><strong>Didier Guillaume<\/strong><\/td><td>Françoise Nicolas <em>(Secr.)<\/em>, Jacky Mirto <em>(Matériel)<\/em>, Bernard Frère<\/td><td><\/td><\/tr>\n<tr><td>2004<\/td><td><strong>Gaston Landresse<\/strong><\/td><td><strong>Yves Orville<\/strong><\/td><td><strong>Elisabeth Do Vale<\/strong><\/td><td>Françoise Nicolas <em>(Secr.)<\/em>, Abdelghani Gaccem, Yvez Ogé <em>(Matériel)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2003<\/td><td><strong>Johny Polfer<\/strong><\/td><td><strong>Philippe Pipeaux<\/strong><\/td><td><strong>Gaston Landresse<\/strong><\/td><td>Françoise Nicolas <em>(Secr.)<\/em>, Renaud Oury <em>(DT)<\/em>, Yvez Ogé <em>(Matériel)<\/em><\/td><td><\/td><\/tr>\n<tr><td>2002<\/td><td><strong>Johny Polfer<\/strong><\/td><td><strong>?<\/strong><\/td><td><strong>Marc Silvioli<\/strong><\/td><td>Martina Ogé <em>(Secr.)<\/em>, Renaud Oury <em>(DT)<\/em>, Yvez Ogé <em>(Matériel)<\/em><\/td><td><\/td><\/tr>\n<tr><td>1999<\/td><td><strong>Christian Pennera<\/strong><\/td><td>?<\/td><td><strong>Jack Crampon<\/strong><\/td><td><\/td><td>Gaston Landresse et Camille Koedinger réviseurs aux comptes<\/td><\/tr>\n<\/tbody>\n<\/table>\n<\/div>\n\n<p><em>Source : archives du CEP, compilées par Etienne Coupez. Dernière mise à jour : février 2026.<\/em><\/p>"
+    }
+]
