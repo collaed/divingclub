@@ -274,8 +274,11 @@
 <li>Sees an uploaded certificate with status “not verified”</li>
 <li>Reviews the document (downloads it)</li>
 <li>Adjusts the <strong>cert type</strong> dropdown if needed (e.g. member selected GP but it’s actually an ENT cert)</li>
+<li><strong>FFESSM note:</strong> FFESSM does not require a specific ENT certificate. The cert type dropdown reflects federation-specific rules.</li>
 <li>Corrects the <strong>exam date</strong> if the member entered it wrong</li>
 <li>Clicks <strong>Verify</strong> → certificate is marked verified, compliance rules are re-evaluated, expiry date is calculated</li>
+</ol>
+<p><strong>Medical cert &amp; events:</strong> The system compares the event date against the cert expiry date and displays a RED "med cert expired" warning, but members <em>can</em> still register with an expired certificate. Blocking is not enforced.</p>
 </ol>
 <hr />
 <h2 id="journey-11-bureau-exports-medical-data-for-the-federation">Journey 11 — Bureau Exports Medical Data for the Federation</h2>
@@ -365,6 +368,7 @@
 <li>Clicks <strong>Preview</strong> → sees the email rendered with sample data</li>
 <li>Clicks <strong>Send</strong> → emails queued and sent</li>
 <li>Checks the <strong>Send Log</strong> tab to confirm delivery</li>
+<li>Variable tokens (e.g. <code>{{first_name}}</code>) are <strong>escaped before translation</strong> and restored after, preventing the translation engine from mangling them. Translation happens <em>before</em> variable replacement.</li>
 </ol>
 <hr />
 <h2 id="journey-17-bureau-runs-the-annual-election">Journey 17 — Bureau Runs the Annual Election</h2>
@@ -856,6 +860,7 @@
 <li>Admin → Partnerships → External Registrations: see pending registrations.</li>
 <li>Review cert level and medical validity. Approve or reject.</li>
 <li>Approved external members appear on the event participant list.</li>
+<li>External participants are added to the <strong>event email group</strong>. The organizing club receives their <strong>language preference</strong> for multilingual communications.</li>
 </ol>
 <hr />
 <h2 id="journey-29-member-registers-for-a-partner-clubs-event">Journey 29 — Member Registers for a Partner Club’s Event</h2>
@@ -866,6 +871,7 @@
 <li>Member requests to join (via their club admin or future self-service UI).</li>
 <li>Club B sends registration to Club A’s API with member’s name, cert level, medical validity.</li>
 <li>Member receives confirmation once Club A approves.</li>
+<li>The trip may generate one or more <strong>expected payments</strong>. The hosting club may require active membership (or a temporary membership) and/or an extra fee on top of the member price.</li>
 </ol>
 <hr />
 <h2 id="journey-30-admin-emails-all-event-participants">Journey 30 — Admin Emails All Event Participants</h2>
@@ -944,6 +950,8 @@
 <li><strong>Record Consent</strong>: selects “General”, uploads the signed parental authorization form (PDF scan).</li>
 <li>Records additional consents: “Events” (can participate), “Medical” (club can manage medical certs).</li>
 <li>Leaves “Photos” unchecked — parent doesn’t want the child’s photos published.</li>
+<li>The guardian is a <strong>member</strong> (at minimum a "guardian" status with a symbolic 1&euro; fee), ensuring they remain contactable even after the child leaves the club.</li>
+<li>Minors have <strong>public photo publication banned by default</strong>, enforced at system level regardless of other settings.</li>
 <li>Dashboard worklist no longer shows “Minors without guardian” for this child.</li>
 <li>When the minor turns 18, they manage their own consents via the Privacy page.</li>
 </ol>
@@ -958,6 +966,7 @@
 <li>Checks the <strong>GDPR consent checkbox</strong>: “I consent to these photos being shared on the club’s social media channels”.</li>
 <li>Clicks <strong>Upload</strong> → photos appear in the gallery, sorted by quality score.</li>
 <li>If social media auto-publish is enabled and the FB group is confirmed closed, photos are automatically posted to the Facebook group.</li>
+<li>Per-platform toggles: <strong>Post to Facebook group?</strong> (private) and <strong>Post to Instagram?</strong> (public). Different content rules may apply since Instagram is public-facing.</li>
 <li>The social publish log tracks each post’s status (published/failed).</li>
 </ol>
 <hr />
@@ -992,7 +1001,7 @@
 <ol type="1">
 <li>Clicks <strong>Buddies</strong> in the nav bar.</li>
 <li>Sees open buddy requests from other members.</li>
-<li>Clicks <strong>Post a Request</strong>: “Looking for a buddy for Remerschen quarry, Saturday 10am, max 20m”.</li>
+<li>Clicks <strong>Post a Request</strong>: “Looking for a buddy for Remerschen quarry, Saturday 10am, max 20m”., <strong>desired buddy level: N2+</strong>, <strong>max 2 buddies</strong>".</li>
 <li>Other members see the request → one clicks <strong>Respond</strong> with a message.</li>
 <li>Original poster sees the response, contacts the buddy directly.</li>
 <li>After the dive, clicks <strong>Close</strong> to remove the request.</li>
@@ -1101,6 +1110,7 @@
 </ul></li>
 <li>Club events appear in their personal calendar, color-coded by type.</li>
 <li>New events and changes sync automatically (calendar apps poll the feed periodically).</li>
+<li>The iCal feed is <strong>regenerated whenever an event is modified</strong> (title, date, location, cancellation). Attendance numbers (e.g. "12/20 registered") are included in the DESCRIPTION field.</li>
 <li>The iCal feed is public — no authentication required.</li>
 </ol>
 <hr />
@@ -1115,6 +1125,7 @@
 <li>Event statistics: total events, attendance rates, most popular events</li>
 <li>Financial summary: total dues collected, outstanding payments</li>
 <li>Medical compliance: percentage compliant, certificates verified</li>
+<li><strong>Before/after comparisons</strong>: opening vs closing financial balance, member count at start vs end of year (new/departed), summary of main events held</li>
 <li>Equipment: inventory count, loans, maintenance completed</li>
 </ul></li>
 <li>Reviews the report on screen.</li>
@@ -1155,7 +1166,7 @@
 </ul></li>
 <li>Bureau can also scan/enter keys for any member from the admin member profile</li>
 </ol>
-<p><strong>Browser support:</strong> Chrome (Android/desktop), Safari 17+, Edge. Falls back to manual text entry on unsupported browsers.</p>
+<p><strong>Browser support:</strong> Chrome (Android/desktop), Safari 17+, Edge. Falls back to manual text entry on unsupported browsers. <strong>Firefox</strong> does not support the BarcodeDetector API; users on Firefox use manual text entry.</p>
 <hr />
 <h2 id="journey-49-member-resets-their-password">Journey 49 — Member Resets Their Password</h2>
 <p><strong>Actor:</strong> A member who forgot their password.</p>

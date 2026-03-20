@@ -1,5 +1,5 @@
 {{-- Fiche de Sécurité PDF — FFESSM 2024-2025 format | ClubCEP.eu
-     Printable dive safety sheet: 4 palanquée rows max (12-16 divers),
+     Printable dive safety sheet: 3 palanquée rows max (9-12 divers),
      full emergency info block with hospital, hyperbaric chamber, required
      equipment, and VHF/phone contacts from the dive site record.
      Watermarked when installation is unlicensed. --}}
@@ -67,7 +67,7 @@
     @php
         $site = $event->diveSite;
         $clubName = \App\Models\ThemeSetting::get('club_full_name', config('app.name'));
-        $groups = $event->diveGroups->take(4); // Max 4 palanquées per fiche
+        $groups = $event->diveGroups->take(3); // Max 3 palanquées per fiche
     @endphp
 
     {{-- ═══════════ HEADER ═══════════ --}}
@@ -166,7 +166,7 @@
             @endforeach
 
             {{-- Empty rows to fill 4 palanquées if fewer groups exist --}}
-            @for($p = $groups->count(); $p < 4; $p++)
+            @for($p = $groups->count(); $p < 3; $p++)
                 @for($r = 0; $r < 4; $r++)
                     <tr>
                         @if($r === 0)
