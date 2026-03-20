@@ -32,3 +32,7 @@ fulldata_clubcep.txt
 !/insp_pictures/.gitkeep
 /divepics/*
 !/divepics/.gitkeep
+
+# Wasmer deployment
+.env.wasmer
+license-private.pem

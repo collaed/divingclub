@@ -17,13 +17,22 @@ Guide for members, instructors, and visitors of clubs running DivingClub-Manager
 
 1. Visit the club's website and click **Register**
 2. Fill in: first name, last name, email, password
-3. Or click a social login button (Google, Facebook, Microsoft)
+3. Or click a social login button (Google, Facebook, Microsoft, X, Amazon)
 4. Check your inbox for a verification email → click the link
-5. You're in! Your account has the "Member" role by default
+5. You're in! Your account starts with the "pending" role — the bureau will activate it
 
 ### 1.2 Switching Language
 
-Click the language flag in the top navigation bar. 11 languages are available: English, French, German, Luxembourgish, Portuguese, Italian, Dutch, Spanish, Polish, Hungarian, Romanian. Your choice is saved for future visits.
+Click the language flag in the top navigation bar. 11 languages are available: English, French, German, Luxembourgish, Portuguese, Italian, Dutch, Spanish, Polish, Hungarian, Romanian. Your choice is saved for future visits. For logged-in users, the preference is stored in your profile. For guests, it's stored in the session.
+
+### 1.3 Installing as a Phone App (PWA)
+
+The site works as a Progressive Web App:
+
+1. Open the site in Chrome (Android) or Safari (iOS)
+2. Click "Add to Home Screen" or the install prompt
+3. The app icon appears on your phone
+4. Works offline with a fallback page
 
 ---
 
@@ -33,9 +42,9 @@ Click the language flag in the top navigation bar. 11 languages are available: E
 
 Go to **My Profile → Info tab**:
 
-- Name, nationality, sex, date of birth
-- Phone numbers, club email
-- Profile photo (upload or delete)
+- Name, nationality, sex, date of birth, place of birth
+- Phone numbers (home, mobile), club email
+- Profile photo — upload or delete
 
 ### 2.2 Private Information
 
@@ -44,30 +53,42 @@ Go to **My Profile → Info tab**:
 - Full address (street, postal code, city, country)
 - Emergency contact (name, phone, relationship)
 
-This information is only visible to the bureau.
+This information is only visible to the bureau. It's used for emergency situations and federation submissions.
 
 ### 2.3 Diving Credentials
 
 **My Profile → Diving tab**:
 
-- Add your federation licence (e.g., FFESSM, LIFRAS, PADI)
-- Add your certification level (e.g., FFESSM N2, PADI AOW) with the date obtained
-- Set your primary certification — this is used for dive group planning
+- Add your federation licence (e.g., FFESSM, LIFRAS, PADI) with licence number
+- Add your certification level (e.g., FFESSM N2, PADI AOW, CMAS 2★) with the date obtained
+- Set your primary certification — this is used for dive group planning and depth limits
+- You can hold certifications from multiple federations simultaneously
+
+The system includes 105 certification levels across 11 federations with cross-federation equivalence groups (e.g., FFESSM N1 ≈ PADI OWD ≈ CMAS 1★).
 
 ### 2.4 Medical Certificate
 
 **My Profile → Medical Cert tab**:
 
 1. Upload your medical certificate (PDF or photo)
-2. Select the type: General Practitioner, ENT, or Sports Medicine
+2. Select the type: General Practitioner, ENT, Cardiologist, Ophthalmologist, or Other
 3. Enter the exam date
 4. Wait for bureau verification
 
-The system tracks expiry automatically based on your federation's rules and sends reminders at 30, 15, 7, and 0 days before expiration. You cannot register for dive events with an expired certificate.
+The system tracks expiry automatically based on your federation's rules:
+
+- FFESSM: GP every 12 months (all ages), ENT every 12 months (40+)
+- LIFRAS: GP every 12 months (<40), GP every 6 months (40+), Cardio every 24 months (50+)
+
+You'll receive email reminders at 30, 15, 7, and 0 days before expiration. You cannot register for pool, dive, or training events with an expired certificate. Social events are exempt.
 
 ### 2.5 Language Preference
 
 **My Profile → Language tab** — set your preferred language for the interface and article translations.
+
+### 2.6 Multiple Email Addresses
+
+You can have up to 5 email addresses linked to your account. The primary email is used for login and notifications.
 
 ---
 
@@ -77,39 +98,58 @@ The system tracks expiry automatically based on your federation's rules and send
 
 After login, the home page shows:
 
-- Latest articles as cards with type badges and colored borders
+- Latest articles as cards with type badges (News, Safety, Training, etc.) and colored borders
 - Sidebar with upcoming events and quick links
-- Trip proposals with embedded vote forms
+- Trip proposals with embedded vote forms (🗳️ badge)
+- Classifieds are in their own section, not on the home feed
 
-### 3.2 Articles
+### 3.2 About Pages (Public)
 
-Click any article to read the full content. Features:
+Seven pages accessible without login via the "About" dropdown:
 
-- Image gallery with captions
+- **Training Schedule** — pool times, locations, levels, holiday breaks
+- **Our Values** — safety, inclusivity, environment
+- **Club History** — founding story, milestones
+- **The Bureau** — current elected board members
+- **Our Instructors** — instructor cards with bios, specialties, motivation
+- **Our Members** — membership breakdown figures
+- **Contact & Social** — email, address, Facebook, Instagram, WhatsApp
+
+### 3.3 Articles
+
+Click any article to read the full content:
+
+- Type-colored background header bar
+- Featured image and image gallery (full-width, half-width, or third-width layouts with captions)
 - Translation tabs — read in your preferred language, switch to the original or any other language
 - Auto-translated content is marked with a 🤖 indicator
-- Threaded comments (up to 3 levels deep)
-- Previous/Next navigation between articles
+- Threaded comments (up to 3 levels deep) — reply to other members' comments
+- Previous/Next navigation between articles (prioritizes same-type articles)
+- Expired articles show an expiry badge
 
-### 3.3 Calendar
+### 3.4 Calendar
 
-Browse events in month, week, or day view. Click any event for details including:
+Browse events in month, week, or day view. Events are color-coded by type:
 
-- Date, time, location (with Google Maps link)
-- Instructor, certification requirements
-- Registration button (or waiting list if full)
+- 🔵 Blue — Pool training
+- 🔵 Navy — Open water dives
+- 🟢 Green — Training
+- 🟣 Purple — Theory sessions
+- 🟡 Yellow — Social events
 
-### 3.4 Members Directory
+Click any event for details including location (Google Maps link), instructor, certification requirements, and registration.
+
+### 3.5 Members Directory
 
 **Info → Members Directory** — search for fellow members by name.
 
-### 3.5 Trombinoscope
+### 3.6 Trombinoscope
 
 **Info → Trombinoscope** — photo grid of all members.
 
-### 3.6 Documents
+### 3.7 Documents
 
-**Info → Documents** — download public club files (statutes, minutes, etc.).
+**Info → Documents** — download public club files (statutes, AGM minutes, insurance docs, etc.). Files are organized in folders by the bureau.
 
 ---
 
@@ -118,9 +158,10 @@ Browse events in month, week, or day view. Click any event for details including
 ### 4.1 Registering for an Event
 
 1. Open the event from the Calendar or home page
-2. Review the details (location, depth, requirements)
+2. Review the details (location, depth, certification requirements)
 3. Click **Register**
 4. If the event is full, you're placed on the **waiting list** — you'll be auto-promoted if someone cancels
+5. Medical compliance is checked at registration time — you need a valid certificate for pool/dive/training events
 
 ### 4.2 Cancelling a Registration
 
@@ -128,6 +169,24 @@ Browse events in month, week, or day view. Click any event for details including
 2. Click the event → **Cancel Registration**
 3. Any pending payment is automatically deleted
 4. The next person on the waiting list is auto-promoted
+
+### 4.3 WhatsApp Groups
+
+Some events have a WhatsApp group link — look for the green "Join WhatsApp Group" button on the event page.
+
+### 4.4 Event Deposits
+
+Some events (especially trips) have deposit schedules. You'll see the instalment amounts and due dates on the event page.
+
+### 4.5 Event Photos
+
+After a completed event, you can upload photos:
+
+1. Open the event detail page → Photos section
+2. Click **Choose Files** → select photos
+3. Add a caption
+4. Check the GDPR consent checkbox if you agree to social media sharing
+5. Upload — photos appear in the gallery, sorted by quality score
 
 ---
 
@@ -137,9 +196,10 @@ Browse events in month, week, or day view. Click any event for details including
 
 Visit `/dues` (no login required) to estimate your annual fee:
 
-1. Select your membership status
-2. See the calculated amount with breakdown
-3. Scan the **SEPA QR code** with your banking app → pre-filled transfer
+1. Select your membership status (Actif, Junior, Famille, etc.)
+2. Optionally select add-ons (insurance level, double affiliation)
+3. See the calculated amount with breakdown
+4. Scan the **SEPA QR code** with your banking app → pre-filled transfer with club IBAN, amount, and communication string
 
 ### 5.2 Paying Your Dues
 
@@ -155,7 +215,7 @@ Visit `/dues` (no login required) to estimate your annual fee:
 
 1. Click **Classifieds** in the nav
 2. Click **Post a Classified**
-3. Fill in: title, description, photo
+3. Fill in: title (e.g., "Selling Mares BCD, size M"), description (rich text), upload a photo
 4. Your ad is active for 30 days
 
 ### 6.2 Managing Your Ads
@@ -164,28 +224,33 @@ Visit `/dues` (no login required) to estimate your annual fee:
 - **Delete** — remove the ad immediately
 - **Renew** — reactivate an expired ad
 
+After 25 days, the status changes to "Expiring soon" (yellow badge).
+
 ---
 
 ## 7. Voting
 
-### 7.1 Simple Polls
+### 7.1 Simple Polls (Trip Proposals)
 
-You'll receive an email with a voting link. Click it to:
+You'll receive an email with a voting link (no login required — the token is your authentication):
 
-1. See the options (e.g., trip destinations)
-2. Select one or more options
+1. See the options (e.g., trip destinations: Croatia, Egypt, Malta)
+2. Select one or more options (if multi-select is enabled)
 3. Submit — you can change your vote later
-4. See live results (if enabled)
+4. See live results as progress bars (if enabled)
 
-### 7.2 Elections
+Votes can also be embedded in trip proposal articles — read the article and vote inline.
+
+### 7.2 Elections (Secret Ballot)
 
 For formal elections (e.g., bureau election):
 
 1. Click the voting link from your email
 2. Read the warning: "Your vote is anonymous and irreversible"
 3. Select one candidate
-4. Cast your vote — you cannot change it
+4. Cast your vote — you cannot change it, and the link between your token and your ballot is permanently severed
 5. Results are hidden until the vote closes
+6. Revisiting the link shows "You have already voted"
 
 ---
 
@@ -196,20 +261,23 @@ For formal elections (e.g., bureau election):
 If you have the Instructor role:
 
 1. Click **Availability** in the nav
-2. Click **+** on a date to mark yourself available
-3. Select the activity type (Pool, Apnea, Theory, etc.)
-4. Your initials appear as a colored badge
-5. Click your initial to remove availability
+2. See the weekly calendar grid (current month, Mon–Sun columns)
+3. Click **+** on a date to mark yourself available
+4. Select the activity type (Pool, Kids, Apnea, Quarry, Theory, etc. — 10 color-coded types)
+5. Your initials appear as a colored badge on that date
+6. See other instructors' initials for coordination
+7. Click your initial to remove availability
+8. Events from the event calendar appear as grey badges for context
 
 ### 8.2 Instructor Bio
 
-**My Profile → Diving tab → Instructor Profile**:
+**My Profile → Diving tab → Instructor Profile** (only visible to instructors):
 
-- Experience & Background
-- Specialties & Interests
-- What motivates you?
+- Experience & Background (e.g., "Diving since 2005, 500+ logged dives")
+- Specialties & Interests (e.g., "Wreck diving, underwater photography, Nitrox")
+- What motivates you? (e.g., "Sharing the passion, helping beginners gain confidence")
 
-This appears on the public **Our Instructors** page.
+This appears on the public **Our Instructors** page — visible to everyone, including non-registered visitors.
 
 ---
 
@@ -217,18 +285,25 @@ This appears on the public **Our Instructors** page.
 
 ### 9.1 Importing from Your Dive Computer
 
-You can upload dive logs from your computer in UDDF format:
+You can upload dive logs from your computer in UDDF format. The system extracts: depth, duration, temperature, deco stops, safety stop detection.
 
-1. Export from your dive computer's app (Mares SSI, Shearwater Cloud, Suunto DM5, etc.)
-2. If your computer doesn't export UDDF, use **Subsurface** (free, open source) as a converter
-3. Go to your dive log → **Import UDDF** → select the file
+**Brand-specific instructions:**
 
-See the article "Exporter vos plongées — Guide par marque d'ordinateur" for brand-specific instructions.
+| Brand | App | Export |
+|-------|-----|--------|
+| **Mares** (Genius, Puck, Quad, Smart) | Mares SSI app | Menu → Share → UDDF |
+| **Shearwater** (Perdix, Teric, Peregrine) | Shearwater Cloud | Select dives → Export → UDDF |
+| **Suunto** (Zoop, D5, EON) | Suunto DM5 (desktop) | File → Export → UDDF |
+| **Garmin** (Descent Mk2/3, G1) | Garmin Connect | ⚠️ .fit only → use Subsurface |
+| **Scubapro** (G2, G3, Luna) | LogTRAK | File → Export → UDDF |
+| **Aqualung/Apeks** (i330R, i770R) | DiverLog+ | Native UDDF export |
+
+**Subsurface** (free, open source, by Linus Torvalds) reads all formats and can convert to UDDF. Download from subsurface-divelog.org.
 
 ### 9.2 Exporting
 
 - **UDDF export** — download your dive logs in universal format
-- **DAN DL7** — the bureau can export all club dives for DAN research
+- **DAN DL7** — the bureau can export all club dives for DAN decompression research (dan.org/PDE)
 
 ---
 
@@ -238,13 +313,17 @@ See the article "Exporter vos plongées — Guide par marque d'ordinateur" for b
 
 Go to **Privacy** to:
 
-- Toggle photo publication consent
-- Download all your personal data as JSON
-- Request account erasure (anonymization)
+- **Consent management** — grant or revoke consent for data processing, marketing emails, and photo publication
+- **Data export** — download all your personal data as JSON (profile, emails, licences, documents metadata, consent history)
+- **Account erasure** — request deletion. Your data is anonymized (name → "ERASED"), documents deleted, social links removed. The anonymized record is kept for audit integrity.
 
-### 10.2 Minors
+### 10.2 Cookie Consent
 
-For members under 18, a guardian must be linked to the account. The guardian manages consents (events, medical, photos) until the member turns 18.
+First-time visitors see a cookie consent banner. No tracking occurs before you accept.
+
+### 10.3 Minors
+
+For members under 18, a guardian must be linked to the account. The guardian manages consents (general, events, photos, medical) until the member turns 18, at which point they manage their own consents via the Privacy page.
 
 ---
 
@@ -252,31 +331,52 @@ For members under 18, a guardian must be linked to the account. The guardian man
 
 1. Click **Buddies** in the nav
 2. See open buddy requests from other members
-3. **Post a Request** — describe when, where, and what depth
-4. Other members can respond
-5. **Close** the request after the dive
+3. **Post a Request** — "Looking for a buddy for Remerschen quarry, Saturday 10am, max 20m"
+4. Other members can respond with a message
+5. Contact the buddy directly to coordinate
+6. **Close** the request after the dive
 
 ---
 
-## 12. PWA — Install on Your Phone
+## 12. Technical Articles
 
-The site works as a Progressive Web App:
+The club maintains a library of diving theory articles with original SVG diagrams, all available in 11 languages:
 
-1. Open the site in Chrome/Safari
-2. Click "Add to Home Screen" (or the install prompt)
-3. The app icon appears on your phone
-4. Works offline with a fallback page
+### Physics
+- **Archimedes' Principle** — buoyancy forces, positive/negative/neutral
+- **Mariotte's Law (Boyle)** — pressure and volume relationship
+- **Henry's Law** — gas dissolution, nitrogen saturation
+- **Dalton's Law** — partial pressures, toxicity thresholds
+
+### Physiology & Safety
+- **Decompression models** — Haldanien vs VPM/RGBM, gradient factors
+- **Nitrogen narcosis** — depth-graded severity chart
+- **Hyperoxia** — oxygen toxicity, PpO₂ limits, VENTID mnemonic
+- **Barotraumas** — squeeze zones, equalization
+
+### Practical Techniques
+- **Ear equalization** — 5 techniques: Valsalva, Frenzel, BTV, Toynbee, Lowry
+- **SMB inflation** — 3 methods: octopus, mouth, inflator
+- **Buddy check** — BWRAF + 4 alternative mnemonics
+- **Successive dives** — consecutive vs successive, breached deco protocol
+- **Gradient factors** — GF Low/High explained, recommended settings
+
+### Gear & Planning
+- **Dive computer export guide** — brand-by-brand instructions
+- **MN90 tables** — planning with French navy tables
+- **Nitrox** — what it is and why use it
+- **Pre-dive checklist** — nothing forgotten
+
+### Safety & First Aid
+- **Dive signs** — underwater communication
+- **First aid** — life-saving gestures for diving accidents
 
 ---
 
-## 13. Technical Articles
+## 13. Free Trial
 
-The club maintains a library of diving theory articles with original SVG diagrams:
+If you're interested in trying diving before committing:
 
-- **Physics**: Archimedes, Mariotte/Boyle, Henry, Dalton
-- **Physiology**: Decompression models, narcosis, hyperoxia, barotraumas
-- **Techniques**: Ear equalization, SMB inflation, buddy check, successive dives
-- **Gear**: Dive computer export guide
-- **Theory**: Gradient factors, MN90 tables, Nitrox
-
-All articles are available in 11 languages with automatic translation.
+1. Visit `/trial` (linked from the welcome page)
+2. Fill in: name, email, phone, preferred date, message
+3. Submit — the club admin will contact you to schedule the trial

@@ -17,13 +17,22 @@ Guide pour les membres, instructeurs et visiteurs des clubs utilisant DivingClub
 
 1. Visitez le site du club et cliquez **S'inscrire**
 2. Remplissez : prénom, nom, email, mot de passe
-3. Ou cliquez sur un bouton de connexion sociale (Google, Facebook, Microsoft)
+3. Ou cliquez sur un bouton de connexion sociale (Google, Facebook, Microsoft, X, Amazon)
 4. Vérifiez votre boîte mail → cliquez sur le lien de vérification
-5. C'est fait ! Votre compte a le rôle « Membre » par défaut
+5. C'est fait ! Votre compte démarre avec le rôle « en attente » — le bureau l'activera
 
 ### 1.2 Changer de langue
 
-Cliquez sur le drapeau dans la barre de navigation. 11 langues disponibles : anglais, français, allemand, luxembourgeois, portugais, italien, néerlandais, espagnol, polonais, hongrois, roumain. Votre choix est mémorisé.
+Cliquez sur le drapeau dans la barre de navigation. 11 langues disponibles : anglais, français, allemand, luxembourgeois, portugais, italien, néerlandais, espagnol, polonais, hongrois, roumain. Votre choix est mémorisé. Pour les utilisateurs connectés, la préférence est sauvée dans le profil. Pour les invités, elle est stockée en session.
+
+### 1.3 Installer comme application (PWA)
+
+Le site fonctionne comme une Progressive Web App :
+
+1. Ouvrez le site dans Chrome (Android) ou Safari (iOS)
+2. Cliquez « Ajouter à l'écran d'accueil » ou l'invite d'installation
+3. L'icône de l'app apparaît sur votre téléphone
+4. Fonctionne hors ligne avec une page de secours
 
 ---
 
@@ -33,9 +42,9 @@ Cliquez sur le drapeau dans la barre de navigation. 11 langues disponibles : ang
 
 Allez dans **Mon Profil → onglet Info** :
 
-- Nom, nationalité, sexe, date de naissance
-- Numéros de téléphone, email du club
-- Photo de profil (upload ou suppression)
+- Nom, nationalité, sexe, date de naissance, lieu de naissance
+- Numéros de téléphone (fixe, mobile), email du club
+- Photo de profil — upload ou suppression
 
 ### 2.2 Informations privées
 
@@ -44,30 +53,42 @@ Allez dans **Mon Profil → onglet Info** :
 - Adresse complète (rue, code postal, ville, pays)
 - Contact d'urgence (nom, téléphone, lien de parenté)
 
-Ces informations ne sont visibles que par le bureau.
+Ces informations ne sont visibles que par le bureau. Elles sont utilisées pour les situations d'urgence et les soumissions fédérales.
 
 ### 2.3 Diplômes de plongée
 
 **Mon Profil → onglet Plongée** :
 
-- Ajoutez votre licence fédérale (ex : FFESSM, LIFRAS, PADI)
-- Ajoutez votre niveau de certification (ex : FFESSM N2, PADI AOW) avec la date d'obtention
-- Définissez votre certification principale — utilisée pour la planification des palanquées
+- Ajoutez votre licence fédérale (ex : FFESSM, LIFRAS, PADI) avec le numéro de licence
+- Ajoutez votre niveau de certification (ex : FFESSM N2, PADI AOW, CMAS 2★) avec la date d'obtention
+- Définissez votre certification principale — utilisée pour la planification des palanquées et les limites de profondeur
+- Vous pouvez détenir des certifications de plusieurs fédérations simultanément
+
+Le système inclut 105 niveaux de certification sur 11 fédérations avec des groupes d'équivalence inter-fédérations (ex : FFESSM N1 ≈ PADI OWD ≈ CMAS 1★).
 
 ### 2.4 Certificat médical
 
 **Mon Profil → onglet Certificat médical** :
 
 1. Uploadez votre certificat médical (PDF ou photo)
-2. Sélectionnez le type : généraliste, ORL ou médecine du sport
+2. Sélectionnez le type : généraliste, ORL, cardiologue, ophtalmologue ou autre
 3. Entrez la date d'examen
 4. Attendez la vérification par le bureau
 
-Le système suit l'expiration automatiquement selon les règles de votre fédération et envoie des rappels à 30, 15, 7 et 0 jours. Vous ne pouvez pas vous inscrire aux sorties plongée avec un certificat expiré.
+Le système suit l'expiration automatiquement selon les règles de votre fédération :
+
+- FFESSM : GP tous les 12 mois (tous âges), ORL tous les 12 mois (40+)
+- LIFRAS : GP tous les 12 mois (<40), GP tous les 6 mois (40+), Cardio tous les 24 mois (50+)
+
+Vous recevrez des rappels par email à 30, 15, 7 et 0 jours avant l'expiration. Vous ne pouvez pas vous inscrire aux événements piscine, plongée ou formation avec un certificat expiré. Les événements sociaux sont exemptés.
 
 ### 2.5 Préférence linguistique
 
 **Mon Profil → onglet Langue** — définissez votre langue préférée pour l'interface et les traductions d'articles.
+
+### 2.6 Adresses email multiples
+
+Vous pouvez avoir jusqu'à 5 adresses email liées à votre compte. L'email principal est utilisé pour la connexion et les notifications.
 
 ---
 
@@ -77,39 +98,58 @@ Le système suit l'expiration automatiquement selon les règles de votre fédér
 
 Après connexion, la page d'accueil affiche :
 
-- Les derniers articles sous forme de cartes avec badges de type et bordures colorées
+- Les derniers articles sous forme de cartes avec badges de type (Actualité, Sécurité, Formation, etc.) et bordures colorées
 - Barre latérale avec les prochains événements et liens rapides
-- Propositions de sortie avec formulaire de vote intégré
+- Propositions de sortie avec formulaire de vote intégré (badge 🗳️)
+- Les petites annonces ont leur propre section
 
-### 3.2 Articles
+### 3.2 Pages « À propos » (publiques)
+
+Sept pages accessibles sans connexion via le menu déroulant « À propos » :
+
+- **Programme d'entraînement** — horaires piscine, lieux, niveaux, vacances
+- **Nos valeurs** — sécurité, inclusivité, environnement
+- **Histoire du club** — fondation, étapes clés
+- **Le Bureau** — membres élus actuels
+- **Nos Instructeurs** — fiches instructeurs avec bio, spécialités, motivation
+- **Nos Membres** — chiffres de l'effectif
+- **Contact et réseaux** — email, adresse, Facebook, Instagram, WhatsApp
+
+### 3.3 Articles
 
 Cliquez sur un article pour lire le contenu complet :
 
-- Galerie d'images avec légendes
+- Barre d'en-tête colorée par type
+- Image à la une et galerie d'images (pleine largeur, demi ou tiers avec légendes)
 - Onglets de traduction — lisez dans votre langue préférée, basculez vers l'original ou toute autre langue
 - Les traductions automatiques sont marquées d'un indicateur 🤖
-- Commentaires filetés (jusqu'à 3 niveaux)
-- Navigation Précédent/Suivant entre articles
+- Commentaires filetés (jusqu'à 3 niveaux) — répondez aux commentaires des autres membres
+- Navigation Précédent/Suivant entre articles (priorité aux articles du même type)
+- Les articles expirés affichent un badge d'expiration
 
-### 3.3 Calendrier
+### 3.4 Calendrier
 
-Parcourez les événements en vue mois, semaine ou jour. Cliquez sur un événement pour voir :
+Parcourez les événements en vue mois, semaine ou jour. Les événements sont colorés par type :
 
-- Date, heure, lieu (avec lien Google Maps)
-- Instructeur, exigences de certification
-- Bouton d'inscription (ou liste d'attente si complet)
+- 🔵 Bleu — Entraînement piscine
+- 🔵 Marine — Plongées en milieu naturel
+- 🟢 Vert — Formation
+- 🟣 Violet — Sessions théoriques
+- 🟡 Jaune — Événements sociaux
 
-### 3.4 Annuaire des membres
+Cliquez sur un événement pour voir les détails : lieu (lien Google Maps), instructeur, exigences de certification et inscription.
+
+### 3.5 Annuaire des membres
 
 **Info → Annuaire** — recherchez un membre par nom.
 
-### 3.5 Trombinoscope
+### 3.6 Trombinoscope
 
 **Info → Trombinoscope** — grille photo de tous les membres.
 
-### 3.6 Documents
+### 3.7 Documents
 
-**Info → Documents** — téléchargez les fichiers publics du club (statuts, PV, etc.).
+**Info → Documents** — téléchargez les fichiers publics du club (statuts, PV d'AG, assurance, etc.). Les fichiers sont organisés en dossiers par le bureau.
 
 ---
 
@@ -118,9 +158,10 @@ Parcourez les événements en vue mois, semaine ou jour. Cliquez sur un événem
 ### 4.1 S'inscrire à un événement
 
 1. Ouvrez l'événement depuis le calendrier ou la page d'accueil
-2. Vérifiez les détails (lieu, profondeur, exigences)
+2. Vérifiez les détails (lieu, profondeur, exigences de certification)
 3. Cliquez **S'inscrire**
 4. Si l'événement est complet, vous êtes placé en **liste d'attente** — promotion automatique si quelqu'un annule
+5. La conformité médicale est vérifiée à l'inscription — vous avez besoin d'un certificat valide pour les événements piscine/plongée/formation
 
 ### 4.2 Annuler une inscription
 
@@ -128,6 +169,24 @@ Parcourez les événements en vue mois, semaine ou jour. Cliquez sur un événem
 2. Cliquez sur l'événement → **Annuler l'inscription**
 3. Tout paiement en attente est automatiquement supprimé
 4. La personne suivante en liste d'attente est promue automatiquement
+
+### 4.3 Groupes WhatsApp
+
+Certains événements ont un lien de groupe WhatsApp — cherchez le bouton vert « Rejoindre le groupe WhatsApp » sur la page de l'événement.
+
+### 4.4 Acomptes
+
+Certains événements (surtout les sorties) ont des échéanciers d'acompte. Vous verrez les montants et dates d'échéance sur la page de l'événement.
+
+### 4.5 Photos d'événement
+
+Après un événement terminé, vous pouvez uploader des photos :
+
+1. Ouvrez la page de détail de l'événement → section Photos
+2. Cliquez **Choisir des fichiers** → sélectionnez les photos
+3. Ajoutez une légende
+4. Cochez la case de consentement RGPD si vous acceptez le partage sur les réseaux sociaux
+5. Uploadez — les photos apparaissent dans la galerie, triées par score de qualité
 
 ---
 
@@ -137,9 +196,10 @@ Parcourez les événements en vue mois, semaine ou jour. Cliquez sur un événem
 
 Visitez `/dues` (sans connexion) pour estimer votre cotisation annuelle :
 
-1. Sélectionnez votre statut de membre
-2. Voyez le montant calculé avec le détail
-3. Scannez le **QR code SEPA** avec votre app bancaire → virement pré-rempli
+1. Sélectionnez votre statut de membre (Actif, Junior, Famille, etc.)
+2. Optionnellement, sélectionnez des options (niveau d'assurance, double affiliation)
+3. Voyez le montant calculé avec le détail
+4. Scannez le **QR code SEPA** avec votre app bancaire → virement pré-rempli avec IBAN du club, montant et communication structurée
 
 ### 5.2 Payer votre cotisation
 
@@ -155,7 +215,7 @@ Visitez `/dues` (sans connexion) pour estimer votre cotisation annuelle :
 
 1. Cliquez **Petites annonces** dans la navigation
 2. Cliquez **Publier une annonce**
-3. Remplissez : titre, description, photo
+3. Remplissez : titre (ex : « Vends gilet Mares, taille M »), description (texte riche), uploadez une photo
 4. Votre annonce est active pendant 30 jours
 
 ### 6.2 Gérer vos annonces
@@ -164,28 +224,33 @@ Visitez `/dues` (sans connexion) pour estimer votre cotisation annuelle :
 - **Supprimer** — retirer l'annonce immédiatement
 - **Renouveler** — réactiver une annonce expirée
 
+Après 25 jours, le statut passe à « Expire bientôt » (badge jaune).
+
 ---
 
 ## 7. Votes
 
-### 7.1 Sondages simples
+### 7.1 Sondages simples (propositions de sortie)
 
-Vous recevrez un email avec un lien de vote :
+Vous recevrez un email avec un lien de vote (pas besoin de connexion — le token est votre authentification) :
 
-1. Voyez les options (ex : destinations de sortie)
-2. Sélectionnez une ou plusieurs options
+1. Voyez les options (ex : destinations de sortie : Croatie, Égypte, Malte)
+2. Sélectionnez une ou plusieurs options (si la multi-sélection est activée)
 3. Validez — vous pouvez modifier votre vote plus tard
-4. Voyez les résultats en direct (si activé)
+4. Voyez les résultats en direct sous forme de barres de progression (si activé)
 
-### 7.2 Élections
+Les votes peuvent aussi être intégrés dans les articles de proposition de sortie — lisez l'article et votez directement.
+
+### 7.2 Élections (scrutin secret)
 
 Pour les élections formelles (ex : élection du bureau) :
 
 1. Cliquez sur le lien de vote dans votre email
 2. Lisez l'avertissement : « Votre vote est anonyme et irréversible »
 3. Sélectionnez un candidat
-4. Votez — vous ne pouvez pas modifier votre choix
-5. Les résultats sont cachés jusqu'à la clôture
+4. Votez — vous ne pouvez pas modifier votre choix, et le lien entre votre token et votre bulletin est définitivement rompu
+5. Les résultats sont cachés jusqu'à la clôture du vote
+6. Revisiter le lien affiche « Vous avez déjà voté »
 
 ---
 
@@ -196,20 +261,23 @@ Pour les élections formelles (ex : élection du bureau) :
 Si vous avez le rôle Instructeur :
 
 1. Cliquez **Disponibilité** dans la navigation
-2. Cliquez **+** sur une date pour vous marquer disponible
-3. Sélectionnez le type d'activité (Piscine, Apnée, Théorie, etc.)
-4. Vos initiales apparaissent comme badge coloré
-5. Cliquez sur vos initiales pour retirer la disponibilité
+2. Voyez la grille calendrier hebdomadaire (mois en cours, colonnes Lun–Dim)
+3. Cliquez **+** sur une date pour vous marquer disponible
+4. Sélectionnez le type d'activité (Piscine, Enfants, Apnée, Carrière, Théorie, etc. — 10 types colorés)
+5. Vos initiales apparaissent comme badge coloré sur cette date
+6. Voyez les initiales des autres instructeurs pour la coordination
+7. Cliquez sur vos initiales pour retirer la disponibilité
+8. Les événements du calendrier apparaissent comme badges gris pour le contexte
 
 ### 8.2 Bio instructeur
 
-**Mon Profil → onglet Plongée → Profil instructeur** :
+**Mon Profil → onglet Plongée → Profil instructeur** (visible uniquement pour les instructeurs) :
 
-- Expérience et parcours
-- Spécialités et centres d'intérêt
-- Ce qui vous motive
+- Expérience et parcours (ex : « Plongeur depuis 2005, 500+ plongées loguées »)
+- Spécialités et centres d'intérêt (ex : « Plongée épave, photo sous-marine, Nitrox »)
+- Ce qui vous motive (ex : « Partager la passion, aider les débutants à prendre confiance »)
 
-Ceci apparaît sur la page publique **Nos Instructeurs**.
+Ceci apparaît sur la page publique **Nos Instructeurs** — visible par tous, y compris les visiteurs non inscrits.
 
 ---
 
@@ -217,18 +285,25 @@ Ceci apparaît sur la page publique **Nos Instructeurs**.
 
 ### 9.1 Importer depuis votre ordinateur de plongée
 
-Vous pouvez uploader vos plongées au format UDDF :
+Vous pouvez uploader vos plongées au format UDDF. Le système extrait : profondeur, durée, température, paliers de décompression, détection d'arrêt de sécurité.
 
-1. Exportez depuis l'app de votre ordinateur (Mares SSI, Shearwater Cloud, Suunto DM5, etc.)
-2. Si votre ordinateur n'exporte pas en UDDF, utilisez **Subsurface** (gratuit, open source) comme convertisseur
-3. Allez dans votre carnet de plongée → **Importer UDDF** → sélectionnez le fichier
+**Instructions par marque :**
 
-Consultez l'article « Exporter vos plongées — Guide par marque d'ordinateur » pour les instructions par marque.
+| Marque | Application | Export |
+|--------|------------|--------|
+| **Mares** (Genius, Puck, Quad, Smart) | App Mares SSI | Menu → Partager → UDDF |
+| **Shearwater** (Perdix, Teric, Peregrine) | Shearwater Cloud | Sélectionner → Export → UDDF |
+| **Suunto** (Zoop, D5, EON) | Suunto DM5 (desktop) | Fichier → Exporter → UDDF |
+| **Garmin** (Descent Mk2/3, G1) | Garmin Connect | ⚠️ .fit uniquement → utiliser Subsurface |
+| **Scubapro** (G2, G3, Luna) | LogTRAK | Fichier → Exporter → UDDF |
+| **Aqualung/Apeks** (i330R, i770R) | DiverLog+ | Export UDDF natif |
+
+**Subsurface** (gratuit, open source, par Linus Torvalds) lit tous les formats et peut convertir en UDDF. Téléchargez sur subsurface-divelog.org.
 
 ### 9.2 Exporter
 
 - **Export UDDF** — téléchargez vos plongées au format universel
-- **DAN DL7** — le bureau peut exporter toutes les plongées du club pour la recherche DAN
+- **DAN DL7** — le bureau peut exporter toutes les plongées du club pour la recherche DAN sur la décompression (dan.org/PDE)
 
 ---
 
@@ -238,13 +313,17 @@ Consultez l'article « Exporter vos plongées — Guide par marque d'ordinateur 
 
 Allez dans **Confidentialité** pour :
 
-- Activer/désactiver le consentement de publication de photos
-- Télécharger toutes vos données personnelles en JSON
-- Demander l'effacement de votre compte (anonymisation)
+- **Gestion des consentements** — accorder ou révoquer le consentement pour le traitement des données, les emails marketing et la publication de photos
+- **Export de données** — télécharger toutes vos données personnelles en JSON (profil, emails, licences, métadonnées des documents, historique des consentements)
+- **Effacement du compte** — demander la suppression. Vos données sont anonymisées (nom → « ERASED »), documents supprimés, liens sociaux retirés. L'enregistrement anonymisé est conservé pour l'intégrité de l'audit.
 
-### 10.2 Mineurs
+### 10.2 Consentement cookies
 
-Pour les membres de moins de 18 ans, un tuteur doit être lié au compte. Le tuteur gère les consentements (événements, médical, photos) jusqu'à la majorité du membre.
+Les visiteurs voient une bannière de consentement cookies. Aucun suivi n'a lieu avant l'acceptation.
+
+### 10.3 Mineurs
+
+Pour les membres de moins de 18 ans, un tuteur doit être lié au compte. Le tuteur gère les consentements (général, événements, photos, médical) jusqu'à la majorité du membre, après quoi il gère ses propres consentements via la page Confidentialité.
 
 ---
 
@@ -252,31 +331,52 @@ Pour les membres de moins de 18 ans, un tuteur doit être lié au compte. Le tut
 
 1. Cliquez **Binômes** dans la navigation
 2. Voyez les demandes ouvertes des autres membres
-3. **Publier une demande** — décrivez quand, où et quelle profondeur
-4. Les autres membres peuvent répondre
-5. **Fermer** la demande après la plongée
+3. **Publier une demande** — « Cherche binôme pour carrière de Remerschen, samedi 10h, max 20m »
+4. Les autres membres peuvent répondre avec un message
+5. Contactez le binôme directement pour coordonner
+6. **Fermer** la demande après la plongée
 
 ---
 
-## 12. PWA — Installer sur votre téléphone
+## 12. Articles techniques
 
-Le site fonctionne comme une Progressive Web App :
+Le club maintient une bibliothèque d'articles de théorie de plongée avec des diagrammes SVG originaux, tous disponibles en 11 langues :
 
-1. Ouvrez le site dans Chrome/Safari
-2. Cliquez « Ajouter à l'écran d'accueil » (ou l'invite d'installation)
-3. L'icône de l'app apparaît sur votre téléphone
-4. Fonctionne hors ligne avec une page de secours
+### Physique
+- **Principe d'Archimède** — forces de flottabilité, positive/négative/neutre
+- **Loi de Mariotte (Boyle)** — relation pression et volume
+- **Loi de Henry** — dissolution des gaz, saturation en azote
+- **Loi de Dalton** — pressions partielles, seuils de toxicité
+
+### Physiologie et sécurité
+- **Modèles de décompression** — Haldanien vs VPM/RGBM, gradient factors
+- **Narcose à l'azote** — tableau de sévérité par profondeur
+- **Hyperoxie** — toxicité de l'oxygène, limites PpO₂, mnémonique VENTID
+- **Barotraumatismes** — zones de squeeze, équilibrage
+
+### Techniques pratiques
+- **Équilibrage des oreilles** — 5 techniques : Valsalva, Frenzel, BTV, Toynbee, Lowry
+- **Gonflage du SMB** — 3 méthodes : octopus, bouche, inflateur
+- **Buddy check** — BWRAF + 4 mnémoniques alternatifs
+- **Plongées successives** — consécutives vs successives, protocole palier interrompu
+- **Gradient factors** — GF Low/High expliqués, réglages recommandés
+
+### Matériel et planification
+- **Guide d'export ordinateur** — instructions par marque
+- **Tables MN90** — planification avec les tables de la Marine nationale
+- **Nitrox** — qu'est-ce que c'est et pourquoi l'utiliser
+- **Checklist pré-plongée** — ne rien oublier
+
+### Sécurité et premiers secours
+- **Signes de plongée** — communication sous-marine
+- **Premiers secours** — les gestes qui sauvent en cas d'accident de plongée
 
 ---
 
-## 13. Articles techniques
+## 13. Essai gratuit
 
-Le club maintient une bibliothèque d'articles de théorie de plongée avec des diagrammes SVG originaux :
+Si vous êtes intéressé par un essai de plongée avant de vous engager :
 
-- **Physique** : Archimède, Mariotte/Boyle, Henry, Dalton
-- **Physiologie** : Modèles de décompression, narcose, hyperoxie, barotraumatismes
-- **Techniques** : Équilibrage des oreilles, gonflage du SMB, buddy check, plongées successives
-- **Matériel** : Guide d'export par marque d'ordinateur
-- **Théorie** : Gradient factors, tables MN90, Nitrox
-
-Tous les articles sont disponibles en 11 langues avec traduction automatique.
+1. Visitez `/trial` (lien depuis la page d'accueil)
+2. Remplissez : nom, email, téléphone, date souhaitée, message
+3. Validez — l'admin du club vous contactera pour planifier l'essai

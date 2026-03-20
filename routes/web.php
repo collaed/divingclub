@@ -44,6 +44,8 @@ use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\VotePublicController;
 use App\Http\Middleware\CheckLicense;
+use App\Jobs\SendMedicalReminders;
+use App\Jobs\WeeklyBackup;
 use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -431,6 +433,28 @@ Route::get('/cron/run', function (Request $request) {
 
     return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
 })->name('cron.run');
+
+// Wasmer Edge cron endpoints (also usable on any stateless host)
+Route::get('/cron/run-schedule', function (Request $request) {
+    abort_unless($request->query('key') === config('app.cron_key'), 403);
+    Artisan::call('schedule:run');
+
+    return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
+})->name('cron.run-schedule');
+
+Route::get('/cron/medical-reminders', function (Request $request) {
+    abort_unless($request->query('key') === config('app.cron_key'), 403);
+    dispatch_sync(new SendMedicalReminders);
+
+    return response('OK', 200, ['Content-Type' => 'text/plain']);
+})->name('cron.medical-reminders');
+
+Route::get('/cron/weekly-backup', function (Request $request) {
+    abort_unless($request->query('key') === config('app.cron_key'), 403);
+    dispatch_sync(new WeeklyBackup);
+
+    return response('OK', 200, ['Content-Type' => 'text/plain']);
+})->name('cron.weekly-backup');
 
 // Public voting (token-based, no login required)
 Route::get('/vote/{token}', [VotePublicController::class, 'show'])->name('vote.show');
