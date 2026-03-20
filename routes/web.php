@@ -41,6 +41,7 @@ use App\Http\Controllers\InstructorAvailabilityController;
 use App\Http\Controllers\MembersDirectoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\StagingMailController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\VotePublicController;
 use App\Http\Middleware\CheckLicense;
@@ -427,6 +428,14 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 Route::get('/offline', fn () => view('offline'))->name('offline');
 
 // Web-based cron trigger for shared hosting (use with cron-job.org)
+// Staging mail viewer (only active when STAGING_MODE=true)
+Route::prefix('staging-mail')->group(function () {
+    Route::get('/', [StagingMailController::class, 'index'])->name('staging.mail.index');
+    Route::get('/{mail}', [StagingMailController::class, 'show'])->name('staging.mail.show');
+    Route::get('/{mail}/raw', [StagingMailController::class, 'raw'])->name('staging.mail.raw');
+    Route::delete('/', [StagingMailController::class, 'clear'])->name('staging.mail.clear');
+});
+
 Route::get('/cron/run', function (Request $request) {
     abort_unless($request->query('key') === config('app.cron_key'), 403);
     Artisan::call('schedule:run');

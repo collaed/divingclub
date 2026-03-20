@@ -1,6 +1,11 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\StagingMailServiceProvider;
+use App\Providers\ThemeServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\ThemeServiceProvider::class,
+    AppServiceProvider::class,
+    ThemeServiceProvider::class,
+    StagingMailServiceProvider::class,
 ];

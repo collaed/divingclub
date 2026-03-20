@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\EmailLog;
 use App\Models\EmailTemplate;
+use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Services\ArticleTranslationService;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ class EmailController extends Controller
     {
         $templates = EmailTemplate::orderBy('name')->get();
         $log = EmailLog::orderByDesc('created_at')->paginate(30);
+
         return view('admin.email.index', compact('templates', 'log'));
     }
 
@@ -29,6 +31,7 @@ class EmailController extends Controller
             'locale' => 'required|string|max:5',
         ]);
         EmailTemplate::create($v);
+
         return back()->with('success', __('Template created.'));
     }
 
@@ -40,12 +43,14 @@ class EmailController extends Controller
             'body' => 'required|string',
         ]);
         $template->update($v);
+
         return back()->with('success', __('Template updated.'));
     }
 
     public function destroyTemplate(EmailTemplate $template)
     {
         $template->delete();
+
         return back()->with('success', __('Template deleted.'));
     }
 
@@ -54,6 +59,7 @@ class EmailController extends Controller
         $template = EmailTemplate::findOrFail($request->template_id);
         $user = User::with('detail')->first();
         $rendered = $this->renderTemplate($template, $user);
+
         return response()->json($rendered);
     }
 
@@ -72,7 +78,7 @@ class EmailController extends Controller
         // Pre-translate subject+body per unique target locale
         $translations = []; // locale => ['subject' => ..., 'body' => ...]
         $translator = app(ArticleTranslationService::class);
-        $locales = $users->pluck('preferred_locale')->filter()->unique()->reject(fn($l) => $l === $sourceLocale);
+        $locales = $users->pluck('preferred_locale')->filter()->unique()->reject(fn ($l) => $l === $sourceLocale);
 
         foreach ($locales as $locale) {
             $translations[$locale] = [
@@ -94,7 +100,7 @@ class EmailController extends Controller
                     ['subject' => $t['subject'], 'body' => $t['body']],
                     $user
                 );
-                $rendered['body'] .= "\n\n--- " . strtoupper($userLocale) . " ---\n\n" . $tRendered['body'];
+                $rendered['body'] .= "\n\n--- ".strtoupper($userLocale)." ---\n\n".$tRendered['body'];
             }
 
             EmailLog::create([
@@ -112,8 +118,13 @@ class EmailController extends Controller
         dispatch(function () {
             $queued = EmailLog::where('status', 'queued')->get();
             foreach ($queued as $log) {
+                if (config('app.staging_mode')) {
+                    $log->update(['status' => 'staging_captured']);
+
+                    continue;
+                }
                 try {
-                    Mail::raw($log->body, fn($m) => $m->to($log->to_email)->subject($log->subject));
+                    Mail::raw($log->body, fn ($m) => $m->to($log->to_email)->subject($log->subject));
                     $log->update(['status' => 'sent', 'attempts' => $log->attempts + 1]);
                 } catch (\Exception $e) {
                     $log->update(['status' => $log->attempts >= 2 ? 'failed' : 'queued', 'attempts' => $log->attempts + 1, 'error' => $e->getMessage()]);
@@ -136,8 +147,9 @@ class EmailController extends Controller
             '{{last_name}}' => $user->detail?->last_name ?? '',
             '{{name}}' => $user->name,
             '{{email}}' => $user->primary_email,
-            '{{club_name}}' => \App\Models\ThemeSetting::get('club_full_name', 'Diving Club'),
+            '{{club_name}}' => ThemeSetting::get('club_full_name', 'Diving Club'),
         ];
+
         return [
             'subject' => str_replace(array_keys($vars), array_values($vars), $texts['subject']),
             'body' => str_replace(array_keys($vars), array_values($vars), $texts['body']),
@@ -148,12 +160,12 @@ class EmailController extends Controller
     {
         return match ($group) {
             'all' => User::with('detail')->whereNotNull('email_verified_at')->get(),
-            'active' => User::with('detail')->whereHas('status', fn($q) => $q->where('slug', 'actif'))->get(),
-            'instructors' => User::with('detail')->whereHas('role', fn($q) => $q->where('slug', 'instructor'))->get(),
-            'bureau' => User::with('detail')->whereHas('role', fn($q) => $q->whereIn('slug', ['bureau_master', 'bureau_finance', 'bureau_technical']))->get(),
-            'expiring_certs' => User::with('detail')->whereHas('documents', fn($q) => $q->where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)]))->get(),
-            'unpaid' => User::with('detail')->whereHas('paymentsExpected', fn($q) => $q->where('status', 'pending'))->get(),
-            'event' => $eventId ? User::with('detail')->whereHas('eventRegistrations', fn($q) => $q->where('event_id', $eventId)->where('status', 'confirmed'))->get() : collect(),
+            'active' => User::with('detail')->whereHas('status', fn ($q) => $q->where('slug', 'actif'))->get(),
+            'instructors' => User::with('detail')->whereHas('role', fn ($q) => $q->where('slug', 'instructor'))->get(),
+            'bureau' => User::with('detail')->whereHas('role', fn ($q) => $q->whereIn('slug', ['bureau_master', 'bureau_finance', 'bureau_technical']))->get(),
+            'expiring_certs' => User::with('detail')->whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)]))->get(),
+            'unpaid' => User::with('detail')->whereHas('paymentsExpected', fn ($q) => $q->where('status', 'pending'))->get(),
+            'event' => $eventId ? User::with('detail')->whereHas('eventRegistrations', fn ($q) => $q->where('event_id', $eventId)->where('status', 'confirmed'))->get() : collect(),
             default => collect(),
         };
     }

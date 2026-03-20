@@ -43,6 +43,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Staging Mode
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the app is protected by HTTP basic auth and all outgoing
+    | emails are captured in-app instead of being sent. Set STAGING_MODE=true
+    | in .env along with STAGING_USER and STAGING_PASS.
+    |
+    */
+
+    'staging_mode' => (bool) env('STAGING_MODE', false),
+    'staging_user' => env('STAGING_USER', 'staging'),
+    'staging_pass' => env('STAGING_PASS', 'staging'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |

@@ -65,6 +65,11 @@
     </header>
 
     {{-- Navigation --}}
+    @if(config('app.staging_mode'))
+        <div class="bg-warning text-dark text-center py-1 small fw-bold">
+            ⚠️ STAGING MODE — Emails captured <a href="{{ route('staging.mail.index') }}" class="text-dark">📬 View Mailbox</a>
+        </div>
+    @endif
     <nav class="dc-navbar navbar navbar-expand-lg">
         <div class="container">
             <button class="navbar-toggler border-primary" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle navigation">

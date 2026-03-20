@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureEmailVerified;
+use App\Http\Middleware\EnsureInstalled;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\StagingBasicAuth;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,12 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
-            'verified.email' => \App\Http\Middleware\EnsureEmailVerified::class,
+            'role' => CheckRole::class,
+            'verified.email' => EnsureEmailVerified::class,
+        ]);
+        $middleware->web(prepend: [
+            StagingBasicAuth::class,
         ]);
         $middleware->web(append: [
-            \App\Http\Middleware\SetLocale::class,
-            \App\Http\Middleware\EnsureInstalled::class,
+            SetLocale::class,
+            EnsureInstalled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
