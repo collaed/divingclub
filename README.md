@@ -17,7 +17,7 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **Dive Planning** | Trello-style group planner, 14 buddy rules, dive site database (13 sites), weather widgets, food options |
 | **Instructor Calendar** | Weekly availability grid, 10 color-coded activity types (pool, kids, apnea, quarry, theory…), instructor initials, AJAX toggle |
 | **Medical** | Per-federation rules, age brackets, automated expiry reminders (30/15/7/0 days), event registration gate |
-| **Payments** | Fee calculator (base × status × age discount + optionals), bank statement reconciliation with fuzzy matching, SEPA QR codes |
+| **Payments** | Fee calculator (base × status × age discount + optionals), assisted bank statement reconciliation with fuzzy matching, SEPA QR codes |
 | **Equipment** | Inventory tracking, loan management, maintenance scheduling with auto-next |
 | **Email** | Templates with variables, 6 target groups, queue with retry, full send log |
 | **Voting** | Simple (changeable) and election (anonymous, irreversible) modes, multi-select, live results, token-based, embeddable in trip proposals |
