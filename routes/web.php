@@ -263,6 +263,9 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
     Route::get('/events/{event}/dive-groups/print', [DiveGroupController::class, 'printFiche'])->name('events.dive-groups.print');
 
+    // Stop impersonation (must be outside bureau_master group — user is impersonated)
+    Route::get('/admin/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('admin.stop-impersonation');
+
     // Admin routes (Bureau Master)
     Route::middleware('role:bureau_master')->prefix('admin')->name('admin.')->group(function () {
         Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
@@ -277,7 +280,6 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
             return back()->with('success', __('Password reset link sent to :email', ['email' => $user->primary_email]));
         })->name('send-reset');
-        Route::get('/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('stop-impersonation');
 
         Route::resource('articles', ArticleController::class)->except('show');
         Route::post('articles/{article}/translate', [ArticleController::class, 'translate'])->name('articles.translate');

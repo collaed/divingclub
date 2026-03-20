@@ -64,6 +64,7 @@ class MemberController extends Controller
     public function stopImpersonation()
     {
         $originalId = session('original_user_id');
+        abort_unless($originalId, 403);
         session()->forget(['impersonating', 'impersonating_name', 'original_user_id']);
 
         if ($originalId) {
