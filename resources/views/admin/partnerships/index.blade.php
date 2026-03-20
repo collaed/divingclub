@@ -1,5 +1,4 @@
-@extends('components.layout')
-@section('content')
+<x-layout :title="__('Partnerships')">
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>🤝 Club Partnerships</h2>
@@ -48,4 +47,4 @@
         </div>
     </div>
 </div>
-@endsection
+</x-layout>

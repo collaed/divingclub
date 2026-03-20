@@ -159,8 +159,15 @@ class QrCodeController extends Controller
             return back()->with('error', __('No licence number — licence pending.'));
         }
 
-        $key = hash('sha256', $licence->licence_number.config('club.id').config('club.federation_salt'));
-        $url = 'https://verify.'.config('club.domain', 'example.com')."/licence/{$key}";
+        // FFESSM InfoLicencié URL: requires numeric part of licence + federation key
+        if ($licence->federation?->acronym === 'FFESSM' && $licence->federation_key) {
+            $number = preg_replace('/^[A-Z]-\d{2}-/', '', $licence->licence_number);
+            $url = "https://infolicencie.ffessm.fr/Home/InfoLicence?number={$number}&key={$licence->federation_key}";
+        } else {
+            // Generic fallback for other federations
+            $key = hash('sha256', $licence->licence_number.config('club.id').config('club.federation_salt'));
+            $url = 'https://verify.'.config('club.domain', 'example.com')."/licence/{$key}";
+        }
 
         return $this->generatePng($url, "federation-{$licence->id}.png");
     }

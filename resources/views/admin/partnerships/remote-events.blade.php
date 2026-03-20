@@ -1,5 +1,4 @@
-@extends('components.layout')
-@section('content')
+<x-layout :title="__('Partnerships')">
 <div class="container py-4">
     <h2>Events from {{ $partnership->name }}</h2>
     <a href="{{ route('admin.partnerships.index') }}" class="btn btn-outline-secondary btn-sm mb-3">← Back</a>
@@ -28,4 +27,4 @@
     <div class="alert alert-info">No federated events available from this partner.</div>
     @endforelse
 </div>
-@endsection
+</x-layout>

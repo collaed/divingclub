@@ -1,5 +1,4 @@
-@extends('components.layout')
-@section('content')
+<x-layout :title="__('Partnerships')">
 <div class="container py-4" style="max-width:700px">
     <h2>Add Partner Club</h2>
 
@@ -43,4 +42,4 @@
         <a href="{{ route('admin.partnerships.index') }}" class="btn btn-link">Cancel</a>
     </form>
 </div>
-@endsection
+</x-layout>

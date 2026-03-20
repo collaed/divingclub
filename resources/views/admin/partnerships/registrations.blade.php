@@ -1,5 +1,4 @@
-@extends('components.layout')
-@section('content')
+<x-layout :title="__('Partnerships')">
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>External Registrations</h2>
@@ -38,4 +37,4 @@
     </table>
     {{ $regs->links() }}
 </div>
-@endsection
+</x-layout>

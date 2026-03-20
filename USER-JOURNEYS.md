@@ -325,7 +325,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 4. Runs `php artisan migrate` → creates all 48 tables
 5. Runs `php artisan db:seed` → creates the admin user, roles, statuses
 6. Runs `php artisan db:seed --class=CertificationLevelSeeder` → 105 certification levels across 11 federations
-7. Runs `php artisan db:seed --class=PinnedArticleSeeder` → 7 public stub articles
+7. Runs `php artisan db:seed --class=CepSeeder` → 38 articles with translations, 7 public stub articles
 8. Runs `php artisan storage:link` → makes uploads accessible
 9. Starts the server: `php artisan serve` (or configures Nginx/Apache)
 

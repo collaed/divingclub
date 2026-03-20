@@ -84,6 +84,7 @@ Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr
 Route::get('/qr/payment', [QrCodeController::class, 'signedPaymentQr'])->name('qr.payment.signed');
 Route::get('/pay/verify', [QrCodeController::class, 'verifyPayment'])->name('payment.verify');
 Route::get('/calendar.ics', [CalendarFeedController::class, 'ical'])->name('calendar.ics');
+Route::get('/contact', fn () => view('contact'))->name('contact');
 
 // Guest auth
 Route::middleware('guest')->group(function () {
@@ -163,6 +164,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/profile/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');
     Route::post('/profile/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
     Route::post('/profile/diving', [ProfileController::class, 'updateDiving'])->name('profile.update.diving');
+    Route::post('/profile/federation-key/{licence}', [ProfileController::class, 'updateFederationKey'])->name('profile.update.federation-key');
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage'])->name('profile.update.language');
     Route::post('/profile/document', [ProfileController::class, 'uploadDocument'])->name('profile.document.upload');
     Route::get('/profile/document/{document}', [ProfileController::class, 'downloadDocument'])->name('profile.document.download');
@@ -180,9 +182,6 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Members directory (visible to all authenticated users)
     Route::get('/members', [MembersDirectoryController::class, 'directory'])->name('members.directory');
     Route::get('/members/trombinoscope', [MembersDirectoryController::class, 'trombinoscope'])->name('members.trombinoscope');
-
-    // Contact
-    Route::get('/contact', fn () => view('contact'))->name('contact');
 
     // Document browser (role-based visibility, upload for instructors/bureau)
     Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');

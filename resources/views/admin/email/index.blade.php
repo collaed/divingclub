@@ -22,7 +22,7 @@
                             <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Name') }}" required></div>
                             <div class="col-md-3"><input type="text" name="slug" class="form-control form-control-sm" placeholder="{{ __('Slug') }}" required></div>
                             <div class="col-md-2"><input type="text" name="locale" class="form-control form-control-sm" value="en" required></div>
-                            <div class="col-12"><input type="text" name="subject" class="form-control form-control-sm" placeholder="{{ __('Subject (use {{first_name}} etc.)') }}" required></div>
+                            <div class="col-12"><input type="text" name="subject" class="form-control form-control-sm" placeholder="@lang('Subject') (use @{{first_name}} etc.)" required></div>
                             <div class="col-12"><textarea name="body" class="form-control form-control-sm" rows="4" placeholder="{{ __('Body') }}" required></textarea></div>
                             <div class="col-12"><button class="btn btn-sm btn-primary">{{ __('Create Template') }}</button></div>
                         </div>
@@ -53,7 +53,7 @@
                         </div>
                         <button class="btn btn-primary btn-sm">{{ __('Send') }}</button>
                     </form>
-                    <p class="small text-muted mt-2">{{ __('Variables: {{first_name}}, {{last_name}}, {{name}}, {{email}}, {{club_name}}') }}</p>
+                    <p class="small text-muted mt-2">@lang('Variables'): @{{first_name}}, @{{last_name}}, @{{name}}, @{{email}}, @{{club_name}}</p>
                 </div>
             </div>
 

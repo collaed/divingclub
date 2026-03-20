@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Models\MemberDetail;
+use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\User;
 use App\Models\UserEmail;
@@ -188,6 +189,15 @@ class ProfileController extends Controller
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
 
         return back()->with('success', __('Private info updated.'))->withInput(['tab' => 'private']);
+    }
+
+    /** Bureau-only: set the FFESSM InfoLicencié verification key on a member's licence. */
+    public function updateFederationKey(Request $request, MemberLicence $licence)
+    {
+        if (! auth()->user()->isBureauMaster()) abort(403);
+        $request->validate(['federation_key' => 'nullable|string|max:20']);
+        $licence->update(['federation_key' => strtoupper(trim($request->federation_key))]);
+        return back()->with('success', __('Federation key updated.'))->withInput(['tab' => 'renewal']);
     }
 
     public function updateDiving(Request $request, ?User $user = null)
