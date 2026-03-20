@@ -1,0 +1,13 @@
+node_modules
+.git
+storage/app/private/library
+storage/app/private/medical
+storage/app/private/scancards
+storage/app/backups
+storage/framework/views
+storage/logs
+tests
+docs
+.env
+.env.wasmer
+.env.testing
