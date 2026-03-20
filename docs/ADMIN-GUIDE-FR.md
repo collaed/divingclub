@@ -893,7 +893,34 @@ Voir `docs/LICENSE-PROCEDURE.md` pour la procédure complète de génération de
 
 ---
 
-## 22. Dépannage
+## 22. Sécurité des fichiers
+
+Les fichiers sensibles (certificats médicaux, scans de cartes, documents du bureau) doivent être stockés dans `storage/app/private/`, **jamais** dans `storage/app/public/`.
+
+| Répertoire | Contenu | Accès HTTP direct |
+|---|---|---|
+| `storage/app/public/avatars/` | Photos de profil | ✅ Public (affiché dans l'annuaire) |
+| `storage/app/public/articles/` | Images des articles CMS | ✅ Public |
+| `storage/app/public/dive-sites/` | Cartes des sites de plongée | ✅ Public |
+| `storage/app/public/images/` | Images du site (club, stock) | ✅ Public |
+| `storage/app/private/documents/` | Certificats médicaux, assurances | 🔒 Via contrôleur authentifié |
+| `storage/app/private/medical/` | Certificats médicaux (import) | 🔒 Non accessible par HTTP |
+| `storage/app/private/scancards/` | Scans de cartes (ID, brevets) | 🔒 Non accessible par HTTP |
+| `storage/app/private/library/` | Documents du bureau (AG, rapports) | 🔒 Via contrôleur authentifié |
+
+Après un import de données, vérifier qu'aucun fichier sensible ne se trouve dans `storage/app/public/` :
+
+```bash
+# Vérifier — aucun résultat attendu
+find storage/app/public/ -name "*medical*" -o -name "*scancard*" -o -name "*cert*"
+
+# Si des fichiers sensibles sont trouvés, les déplacer
+mv storage/app/public/medical storage/app/private/medical
+mv storage/app/public/scancards storage/app/private/scancards
+sudo chown -R www-data:www-data storage/app/private/medical storage/app/private/scancards
+```
+
+## 23. Dépannage
 
 | Problème | Solution |
 |----------|----------|
