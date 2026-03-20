@@ -215,6 +215,7 @@
 <li>Clicks <strong>Cancel Registration</strong> → confirms</li>
 <li>If a payment was pending, it’s automatically deleted</li>
 <li>If the event had a waiting list, the next person is auto-promoted</li>
+<li>If the payment was already <strong>paid</strong>, a <strong>worklist item</strong> is created for the bureau to review refund eligibility (full / partial / none)</li>
 </ol>
 <hr />
 <h2 id="journey-7-instructor-fills-in-their-bio">Journey 7 — Instructor Fills In Their Bio</h2>
@@ -229,7 +230,8 @@
 <li><strong>What motivates you?</strong>: “Sharing the passion, helping beginners gain confidence underwater”</li>
 </ul></li>
 <li>Clicks <strong>Save</strong></li>
-<li>Their profile card now appears on the public <strong>Our Instructors</strong> page — visible to everyone, including non-registered visitors</li>
+<li>Their profile card now appears on the public <strong>Our Instructors</strong> page — visible to everyone, including non-registered visitors (unless they opt out via the <strong>Show on public site</strong> toggle)</li>
+<li>Instructors can toggle <strong>Show on public site</strong> = No to hide their card from the public page while remaining visible internally</li>
 </ol>
 <hr />
 <h2 id="journey-8-member-votes-in-a-simple-poll-trip-proposal">Journey 8 — Member Votes in a Simple Poll (Trip Proposal)</h2>
@@ -257,11 +259,11 @@
 <li>Receives an email: “Annual General Meeting — Bureau Election”</li>
 <li>Clicks the link → opens the <strong>vote page</strong></li>
 <li>Sees a warning: <strong>“Your vote is anonymous and irreversible”</strong></li>
-<li>This is an <strong>election</strong> — single-select, no change allowed, results hidden</li>
-<li>Selects one candidate → clicks <strong>Cast Vote (irreversible)</strong></li>
+<li>This is an <strong>election</strong> — multi-position (e.g. 6 seats), anonymous, irreversible, results hidden until closed</li>
+<li>Selects up to N candidates (where N = number of positions) → clicks <strong>Cast Vote (irreversible)</strong></li>
 <li>Sees the <strong>Thank You</strong> page — no results shown (election mode)</li>
 <li>Cannot vote again — revisiting the link shows “You have already voted”</li>
-<li>After the vote closes, the admin announces results at the AGM</li>
+<li>After the vote closes, results become <strong>accessible to all members</strong> automatically. The admin announces them at the AGM</li>
 </ol>
 <hr />
 <h2 id="journey-10-bureau-member-verifies-a-medical-certificate">Journey 10 — Bureau Member Verifies a Medical Certificate</h2>
@@ -332,9 +334,10 @@
 <li>Clicks <strong>Generate</strong> → creates a payment record with a unique communication string</li>
 <li>Sends a <strong>bulk email</strong> (via Administration → Email) to all members with their amount and communication string</li>
 <li>Members pay via bank transfer using the communication string</li>
-<li>Bureau opens <strong>Reconciliation</strong> → pastes the bank statement</li>
+<li>Bureau opens <strong>Reconciliation</strong> → <strong>uploads a bank statement PDF</strong> (OCR extracts transactions) or pastes text</li>
 <li>System <strong>auto-matches</strong> transactions to payments using fuzzy matching on communication strings</li>
 <li>Bureau reviews matches → clicks <strong>Confirm</strong> for correct matches, <strong>Ignore</strong> for unrelated transactions</li>
+<li>On confirmation, the expected payment is marked as received with <strong>date</strong>, <strong>statement number</strong>, and <strong>page reference</strong>. The record may be archived to a <code>payments_received</code> table</li>
 <li>Dashboard shows updated revenue figures</li>
 </ol>
 <hr />
@@ -370,7 +373,7 @@
 <li>Opens <strong>Administration → Votes → Create</strong></li>
 <li>Sets title: “Bureau Election 2026”</li>
 <li>Selects mode: <strong>Election (anonymous, irreversible)</strong></li>
-<li>Leaves “Allow multiple selections” unchecked (single candidate)</li>
+<li>Sets <strong>Number of positions</strong> (e.g. 6 for the bureau). If fewer candidates than positions, only those obtaining &ge;50% of votes are elected</li>
 <li>Leaves “Show results publicly” unchecked (secret ballot)</li>
 <li>Adds candidate names as options</li>
 <li>Sets opens/closes dates (or leaves blank for manual control)</li>
@@ -873,6 +876,7 @@
 <li>Preview email with variables resolved.</li>
 <li>Send → emails queued for all confirmed participants.</li>
 <li>Bilingual: if member’s preferred locale differs from template locale, translated version appended.</li>
+<li>Variable tokens (e.g. <code>{{first_name}}</code>) are <strong>escaped before translation</strong> and restored after, to prevent the translation engine from mangling them. Translation happens <em>before</em> variable replacement.</li>
 <li>Check email log for delivery status.</li>
 </ol>
 <hr />
