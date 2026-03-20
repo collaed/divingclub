@@ -1,11 +1,11 @@
 kind: wasmer.io/App.v0
 # TODO: Replace with your wasmer.io username
-owner: YOUR_WASMER_USERNAME
+owner: collaed
 name: divingclub
 package: .
 description: "DivingClub-Manager — Diving club management system"
 
-debug: false
+debug: true
 
 redirect:
   force_https: true
@@ -19,7 +19,7 @@ jobs:
     trigger: '*/1 * * * *'
     action:
       fetch:
-        path: /cron/run-schedule?key=REPLACE_WITH_CRON_KEY
+        path: /cron/run-schedule?key=4c28b976cc17277dd9e456919da0b83a4eeb260a1ec0b16e5ca3a92f5a4543da
         timeout: 30s
 
   # Medical certificate expiry reminders — daily 08:00 UTC
@@ -27,7 +27,7 @@ jobs:
     trigger: '0 8 * * *'
     action:
       fetch:
-        path: /cron/medical-reminders?key=REPLACE_WITH_CRON_KEY
+        path: /cron/medical-reminders?key=4c28b976cc17277dd9e456919da0b83a4eeb260a1ec0b16e5ca3a92f5a4543da
         timeout: 60s
 
   # Weekly database backup — Sunday 03:00 UTC
@@ -35,7 +35,7 @@ jobs:
     trigger: '0 3 * * 0'
     action:
       fetch:
-        path: /cron/weekly-backup?key=REPLACE_WITH_CRON_KEY
+        path: /cron/weekly-backup?key=4c28b976cc17277dd9e456919da0b83a4eeb260a1ec0b16e5ca3a92f5a4543da
         timeout: 120s
 
   # Warm up caches after each deploy

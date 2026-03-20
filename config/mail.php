@@ -113,4 +113,16 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Global "To" Override (Staging)
+    |--------------------------------------------------------------------------
+    |
+    | When set, ALL outgoing mail is redirected to this address regardless
+    | of the original recipient. Used in staging to prevent real emails.
+    |
+    */
+
+    'always_to' => env('MAIL_ALWAYS_TO'),
+
 ];

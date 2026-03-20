@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\DivingClubUserProvider;
 use App\Services\LicenseService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,8 +31,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Map 'email' → 'primary_email' for password reset and credential lookups
-        Auth::provider('divingclub', fn ($app, $config) =>
-            new DivingClubUserProvider($app['hash'], $config['model'])
+        Auth::provider('divingclub', fn ($app, $config) => new DivingClubUserProvider($app['hash'], $config['model'])
         );
 
         View::composer('*', function ($view) {
@@ -39,5 +39,10 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('licenseWatermark', LicenseService::watermark());
             }
         });
+
+        // Intercept all outgoing mail in staging — redirect to a single address
+        if (config('app.staging_mode') && $to = config('mail.always_to')) {
+            Mail::alwaysTo($to);
+        }
     }
 }
