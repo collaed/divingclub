@@ -28,6 +28,7 @@ use App\Http\Controllers\BuddyController;
 use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\ClassifiedController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\DiveGroupController;
 use App\Http\Controllers\DocumentBrowserController;
 use App\Http\Controllers\DuesCalculatorController;
@@ -219,6 +220,10 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/buddies/{buddyRequest}/respond', [BuddyController::class, 'respond'])->name('buddies.respond');
     Route::post('/buddies/{buddyRequest}/close', [BuddyController::class, 'close'])->name('buddies.close');
 
+    // Dive data import/export (UDDF + DAN DL7)
+    Route::post('/dive-data/import-uddf', [DiveDataController::class, 'importUddf'])->name('dive-data.import-uddf');
+    Route::get('/dive-data/export-uddf', [DiveDataController::class, 'exportUddf'])->name('dive-data.export-uddf');
+
     // Instructor Availability (bureau & instructors only)
     Route::middleware('role:bureau_master,bureau_finance,bureau_technical,instructor')->group(function () {
         Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');
@@ -259,6 +264,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Admin routes (Bureau Master)
     Route::middleware('role:bureau_master')->prefix('admin')->name('admin.')->group(function () {
         Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
+        Route::get('/export-dan', [DiveDataController::class, 'exportDan'])->name('export-dan');
         Route::get('/members', [MemberController::class, 'index'])->name('members.index');
         Route::get('/members/{user}/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');

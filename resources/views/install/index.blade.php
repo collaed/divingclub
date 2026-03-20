@@ -75,7 +75,23 @@
                         </div>
                     </div>
 
-                    <h5 class="mb-3">3. Admin Account</h5>
+                    <h5 class="mb-3">3. Languages</h5>
+                    <p class="text-muted small mb-2">Select which languages to enable. You can change this later in Settings.</p>
+                    <div class="row mb-4">
+                        @foreach(config('languages', []) as $code => $lang)
+                            <div class="col-6 col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="locales[]" value="{{ $code }}" id="lang_{{ $code }}"
+                                        {{ in_array($code, old('locales', ['en', 'fr'])) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="lang_{{ $code }}">
+                                        {{ $lang['flag'] }} {{ $lang['native'] }}
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <h5 class="mb-3">4. Admin Account</h5>
                     <div class="mb-2">
                         <input type="email" name="admin_email" class="form-control" placeholder="Admin email" value="{{ old('admin_email') }}" required>
                     </div>

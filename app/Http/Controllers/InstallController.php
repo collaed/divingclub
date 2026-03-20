@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
+use App\Models\ThemeSetting;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
@@ -13,7 +17,7 @@ class InstallController extends Controller
     {
         // If already installed, redirect home
         try {
-            if (Schema::hasTable('users') && \App\Models\User::count() > 0) {
+            if (Schema::hasTable('users') && User::count() > 0) {
                 return redirect('/');
             }
         } catch (\Exception $e) {
@@ -33,6 +37,8 @@ class InstallController extends Controller
             'app_name' => 'required|string|max:100',
             'admin_email' => 'required|email',
             'admin_password' => 'required|min:8',
+            'locales' => 'required|array|min:1',
+            'locales.*' => 'string|in:'.implode(',', array_keys(config('languages', []))),
             // MySQL fields (conditional)
             'db_host' => 'required_if:db_driver,mysql',
             'db_port' => 'required_if:db_driver,mysql|nullable|integer',
@@ -45,7 +51,7 @@ class InstallController extends Controller
 
         // Update .env
         $envPath = base_path('.env');
-        if (!file_exists($envPath)) {
+        if (! file_exists($envPath)) {
             copy(base_path('.env.example'), $envPath);
         }
 
@@ -56,7 +62,7 @@ class InstallController extends Controller
 
         if ($driver === 'sqlite') {
             $sqlitePath = database_path('database.sqlite');
-            if (!file_exists($sqlitePath)) {
+            if (! file_exists($sqlitePath)) {
                 touch($sqlitePath);
             }
             $replacements['DB_DATABASE'] = $sqlitePath;
@@ -87,24 +93,28 @@ class InstallController extends Controller
             config(['database.connections.mysql.password' => $replacements['DB_PASSWORD']]);
         }
 
-        \Illuminate\Support\Facades\DB::purge();
-        \Illuminate\Support\Facades\DB::reconnect();
+        DB::purge();
+        DB::reconnect();
 
         // Test connection
         try {
-            \Illuminate\Support\Facades\DB::connection()->getPdo();
+            DB::connection()->getPdo();
         } catch (\Exception $e) {
             return back()->withInput()->withErrors([
-                'db_driver' => 'Database connection failed: ' . $e->getMessage(),
+                'db_driver' => 'Database connection failed: '.$e->getMessage(),
             ]);
         }
 
-        // Run migrations and seed
+        // Run migrations and seed (standard package: roles, federations, certifications, dive rules)
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('db:seed', ['--force' => true]);
 
+        // Save enabled locales and club name
+        ThemeSetting::set('enabled_locales', json_encode($request->input('locales')));
+        ThemeSetting::set('club_full_name', $request->input('app_name'));
+
         // Create admin user
-        $admin = \App\Models\User::create([
+        $admin = User::create([
             'name' => 'Administrator',
             'email' => $request->input('admin_email'),
             'password' => Hash::make($request->input('admin_password')),
@@ -112,7 +122,7 @@ class InstallController extends Controller
         ]);
 
         // Assign bureau_master role if roles table exists
-        $masterRole = \App\Models\Role::where('slug', 'bureau_master')->first();
+        $masterRole = Role::where('slug', 'bureau_master')->first();
         if ($masterRole) {
             $admin->role_id = $masterRole->id;
             $admin->save();
@@ -129,7 +139,7 @@ class InstallController extends Controller
 
         foreach ($values as $key => $value) {
             $escaped = str_contains($value, ' ') || str_contains($value, '#')
-                ? '"' . $value . '"'
+                ? '"'.$value.'"'
                 : $value;
 
             if (preg_match("/^{$key}=.*/m", $content)) {

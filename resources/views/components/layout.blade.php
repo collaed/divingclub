@@ -51,7 +51,7 @@
                             {{ strtoupper(app()->getLocale()) }}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" style="min-width:auto">
-                            @foreach(['en'=>'English','fr'=>'Français','de'=>'Deutsch','lb'=>'Lëtzebuergesch','pt'=>'Português','it'=>'Italiano','nl'=>'Nederlands','es'=>'Español','pl'=>'Polski','hu'=>'Magyar','ro'=>'Română'] as $code => $label)
+                            @foreach(\App\Http\Middleware\SetLocale::enabledLocalesWithLabels() as $code => $label)
                                 <li><a class="dropdown-item {{ app()->getLocale() === $code ? 'active' : '' }}" href="{{ url('locale/' . $code) }}">{{ $label }}</a></li>
                             @endforeach
                         </ul>

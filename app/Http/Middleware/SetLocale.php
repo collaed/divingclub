@@ -1,30 +1,71 @@
 <?php
 
+/**
+ * Middleware: set application locale from user preference, session, or browser.
+ *
+ * Reads enabled locales from theme_settings('enabled_locales') which is
+ * configured during installation. Falls back to all locales in config/languages.php
+ * if no setting exists yet (pre-install or dev mode).
+ *
+ * @author ClubCEP.eu
+ */
+
 namespace App\Http\Middleware;
 
+use App\Models\ThemeSetting;
 use Closure;
 use Illuminate\Http\Request;
 
 class SetLocale
 {
-    protected array $supported = ['en', 'fr', 'de', 'lb', 'pt', 'it', 'nl', 'es', 'pl', 'hu', 'ro'];
+    /** Get the list of enabled locale codes. */
+    public static function enabledLocales(): array
+    {
+        $stored = ThemeSetting::get('enabled_locales');
+        if ($stored) {
+            $decoded = json_decode($stored, true);
+            if (is_array($decoded) && ! empty($decoded)) {
+                return $decoded;
+            }
+        }
+
+        // Fallback: all locales from config
+        return array_keys(config('languages', ['en' => []]));
+    }
+
+    /** Get enabled locales with their labels (for the language selector). */
+    public static function enabledLocalesWithLabels(): array
+    {
+        $all = config('languages', []);
+        $enabled = static::enabledLocales();
+
+        return collect($all)
+            ->only($enabled)
+            ->map(fn ($v) => $v['native'] ?? $v['label'])
+            ->toArray();
+    }
 
     public function handle(Request $request, Closure $next)
     {
+        $supported = static::enabledLocales();
+
         // 1. Authenticated user preference
-        if ($request->user()?->detail?->preferred_language && in_array($request->user()->detail->preferred_language, $this->supported)) {
-            app()->setLocale($request->user()->detail->preferred_language);
+        $userLang = $request->user()?->detail?->preferred_language;
+        if ($userLang && in_array($userLang, $supported)) {
+            app()->setLocale($userLang);
+
             return $next($request);
         }
 
         // 2. Session
-        if (session('locale') && in_array(session('locale'), $this->supported)) {
+        if (session('locale') && in_array(session('locale'), $supported)) {
             app()->setLocale(session('locale'));
+
             return $next($request);
         }
 
         // 3. Browser Accept-Language
-        $preferred = $request->getPreferredLanguage($this->supported);
+        $preferred = $request->getPreferredLanguage($supported);
         if ($preferred) {
             app()->setLocale($preferred);
         }

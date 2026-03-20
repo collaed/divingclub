@@ -7,6 +7,7 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rules" type="button">📋 {{ __('Rules & Compliance') }}</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-appearance" type="button">🎨 {{ __('Appearance') }}</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-technical" type="button">⚙️ {{ __('Technical') }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-languages" type="button">🌍 {{ __('Languages') }}</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-license" type="button">🔑 {{ __('License') }}</button></li>
     </ul>
 
@@ -534,6 +535,34 @@
 
     </div>{{-- end technicalAccordion --}}
     </div>{{-- end tab-technical --}}
+
+    {{-- TAB: Languages --}}
+    <div class="tab-pane fade" id="tab-languages">
+        <div class="card dc-card">
+            <div class="card-body">
+                <h6>🌍 {{ __('Enabled Languages') }}</h6>
+                <p class="text-muted small">{{ __('Uncheck languages you don\'t need. The language selector and translations will only show enabled languages.') }}</p>
+                <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                    @csrf
+                    @php $enabled = \App\Http\Middleware\SetLocale::enabledLocales(); @endphp
+                    <div class="row">
+                        @foreach(config('languages', []) as $code => $lang)
+                            <div class="col-6 col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="enabled_locales[]" value="{{ $code }}" id="locale_{{ $code }}"
+                                        {{ in_array($code, $enabled) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="locale_{{ $code }}">
+                                        {{ $lang['flag'] }} {{ $lang['native'] }} <span class="text-muted small">({{ $lang['label'] }})</span>
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm mt-3">{{ __('Save Languages') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     {{-- TAB 5: License --}}
     <div class="tab-pane fade" id="tab-license">
