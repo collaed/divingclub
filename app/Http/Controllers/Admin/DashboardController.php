@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankTransaction;
 use App\Models\Document;
 use App\Models\Equipment;
 use App\Models\Event;
+use App\Models\ExternalRegistration;
+use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
 use App\Models\User;
@@ -19,7 +22,7 @@ class DashboardController extends Controller
 
         $stats = [
             'total_members' => User::count(),
-            'members_by_status' => MemberStatus::withCount('users')->get()->map(fn($s) => ['name' => $s->name, 'count' => $s->users_count]),
+            'members_by_status' => MemberStatus::withCount('users')->get()->map(fn ($s) => ['name' => $s->name, 'count' => $s->users_count]),
             'new_members_this_year' => User::whereYear('created_at', $season)->count(),
             'events_count' => Event::whereYear('event_date', $season)->count(),
             'avg_attendance' => round(Event::whereYear('event_date', $season)->withCount('confirmedRegistrations')->get()->avg('confirmed_registrations_count') ?? 0, 1),
@@ -27,7 +30,7 @@ class DashboardController extends Controller
             'certs_expiring_30d' => Document::where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)])->count(),
             'revenue' => PaymentExpected::where('status', 'paid')->where('season_year', $season)->sum('amount_paid'),
             'outstanding' => PaymentExpected::where('status', 'pending')->where('season_year', $season)->sum('amount_due'),
-            'upcoming_birthdays' => \App\Models\MemberDetail::whereNotNull('date_of_birth')
+            'upcoming_birthdays' => MemberDetail::whereNotNull('date_of_birth')
                 ->whereRaw('DAYOFYEAR(date_of_birth) BETWEEN DAYOFYEAR(NOW()) AND DAYOFYEAR(NOW()) + 30')
                 ->with('user')->orderByRaw('DAYOFYEAR(date_of_birth)')->limit(10)->get(),
             'next_events' => Event::where('event_date', '>=', now())->orderBy('event_date')->limit(5)->get(),
@@ -38,16 +41,17 @@ class DashboardController extends Controller
             'unverified_certs' => Document::where('category', 'medical')->where('is_current', true)->whereNull('verified_at')->count(),
             'expiring_certs' => Document::where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)])->count(),
             'pending_payments' => PaymentExpected::where('status', 'pending')->where('season_year', $season)->count(),
-            'pending_external_regs' => \App\Models\ExternalRegistration::where('status', 'pending')->count(),
+            'pending_external_regs' => ExternalRegistration::where('status', 'pending')->count(),
             'unverified_emails' => User::whereNull('email_verified_at')->count(),
-            'missing_medical' => User::whereDoesntHave('documents', fn($q) => $q->where('category', 'medical')->where('is_current', true))->whereHas('status', fn($q) => $q->where('slug', 'actif'))->count(),
-            'missing_iban' => User::whereHas('detail', fn($q) => $q->whereNull('iban'))->whereHas('status', fn($q) => $q->where('slug', 'actif'))->count(),
+            'missing_medical' => User::whereDoesntHave('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true))->whereHas('status', fn ($q) => $q->where('slug', 'actif'))->count(),
+            'missing_iban' => User::whereHas('detail', fn ($q) => $q->whereNull('iban'))->whereHas('status', fn ($q) => $q->where('slug', 'actif'))->count(),
             'new_members_unconfirmed' => User::whereNull('status_id')->whereNotNull('email_verified_at')->count(),
-            'birthdays_14d' => \App\Models\MemberDetail::whereNotNull('date_of_birth')
+            'birthdays_14d' => MemberDetail::whereNotNull('date_of_birth')
                 ->whereRaw('DAYOFYEAR(date_of_birth) BETWEEN DAYOFYEAR(NOW()) AND DAYOFYEAR(NOW()) + 14')
                 ->with('user')->orderByRaw('DAYOFYEAR(date_of_birth)')->get(),
-            'unmatched_transactions' => \App\Models\BankTransaction::where('status', 'unmatched')->count(),
-            'minors_no_guardian' => User::whereHas('detail', fn($q) => $q->whereNotNull('date_of_birth')
+            'unmatched_transactions' => BankTransaction::where('status', 'unmatched')->count(),
+            'refund_reviews' => PaymentExpected::where('refund_review_needed', true)->count(),
+            'minors_no_guardian' => User::whereHas('detail', fn ($q) => $q->whereNotNull('date_of_birth')
                 ->whereRaw('date_of_birth > DATE_SUB(NOW(), INTERVAL 18 YEAR)'))
                 ->whereDoesntHave('guardians')->count(),
         ];

@@ -16,15 +16,17 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         $payments = PaymentExpected::with('user.detail')
-            ->when($request->status, fn($q, $s) => $q->where('status', $s))
+            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->orderByDesc('created_at')->paginate(30)->withQueryString();
         $components = MembershipFeeComponent::orderBy('sort_order')->get();
+
         return view('admin.payments.index', compact('payments', 'components'));
     }
 
     public function components()
     {
         $components = MembershipFeeComponent::orderBy('sort_order')->get();
+
         return view('admin.payments.components', compact('components'));
     }
 
@@ -41,24 +43,28 @@ class PaymentController extends Controller
         $v['is_base'] = $request->boolean('is_base');
         $v['is_optional'] = $request->boolean('is_optional');
         MembershipFeeComponent::create($v);
+
         return back()->with('success', __('Component added.'));
     }
 
     public function destroyComponent(MembershipFeeComponent $component)
     {
         $component->delete();
+
         return back()->with('success', __('Component removed.'));
     }
 
     public function calculateFee(Request $request, User $user)
     {
         $calc = app(FeeCalculationService::class)->calculate($user, $request->get('season', date('Y')), $request->get('optionals', []));
+
         return back()->with('success', __('Fee: €:amount — :comm', ['amount' => number_format($calc['amount_due'], 2), 'comm' => $calc['communication']]));
     }
 
     public function generateFee(Request $request, User $user)
     {
         $pe = app(FeeCalculationService::class)->createPaymentExpected($user, $request->get('season', date('Y')), $request->get('optionals', []));
+
         return back()->with('success', __('Payment expected created: €:amount', ['amount' => number_format($pe->amount_due, 2)]));
     }
 
@@ -71,6 +77,7 @@ class PaymentController extends Controller
             'matched' => BankTransaction::where('status', 'matched')->count(),
             'confirmed' => BankTransaction::where('status', 'confirmed')->count(),
         ];
+
         return view('admin.payments.reconciliation', compact('transactions', 'summary'));
     }
 
@@ -78,24 +85,28 @@ class PaymentController extends Controller
     {
         $request->validate(['statement' => 'required|string']);
         $txs = app(BankReconciliationService::class)->parseStatement($request->statement);
+
         return back()->with('success', __(':count transactions imported.', ['count' => count($txs)]));
     }
 
-    public function autoMatch()
+    public function suggestMatches()
     {
-        $matches = app(BankReconciliationService::class)->autoMatch();
-        return back()->with('success', __(':count matches found.', ['count' => count($matches)]));
+        $matches = app(BankReconciliationService::class)->suggestMatches();
+
+        return back()->with('success', __(':count matches suggested — please review and confirm.', ['count' => count($matches)]));
     }
 
     public function confirmMatch(BankTransaction $transaction)
     {
         app(BankReconciliationService::class)->confirmMatch($transaction);
+
         return back()->with('success', __('Match confirmed.'));
     }
 
     public function ignoreTransaction(BankTransaction $transaction)
     {
         $transaction->update(['status' => 'ignored']);
+
         return back()->with('success', __('Transaction ignored.'));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use Carbon\Carbon;
 use Illuminate\Http\Response;
 
 class CalendarFeedController extends Controller
@@ -11,6 +12,7 @@ class CalendarFeedController extends Controller
     {
         $events = Event::where('status', '!=', 'cancelled')
             ->where('event_date', '>=', now()->subMonths(3))
+            ->withCount('confirmedRegistrations')
             ->orderBy('event_date')
             ->get();
 
@@ -21,7 +23,7 @@ class CalendarFeedController extends Controller
             'PRODID:-//DivingClub-Manager//EN',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
-            'X-WR-CALNAME:' . $clubName,
+            'X-WR-CALNAME:'.$clubName,
         ];
 
         foreach ($events as $event) {
@@ -32,18 +34,23 @@ class CalendarFeedController extends Controller
             );
 
             $lines[] = 'BEGIN:VEVENT';
-            $lines[] = 'UID:event-' . $event->id . '@' . parse_url(config('app.url'), PHP_URL_HOST);
-            $lines[] = 'DTSTART:' . $dtStart;
-            $lines[] = 'DTEND:' . $dtEnd;
-            $lines[] = 'SUMMARY:' . $this->escape($event->title);
+            $lines[] = 'UID:event-'.$event->id.'@'.parse_url(config('app.url'), PHP_URL_HOST);
+            $lines[] = 'DTSTART:'.$dtStart;
+            $lines[] = 'DTEND:'.$dtEnd;
+            $lines[] = 'SUMMARY:'.$this->escape($event->title);
             if ($event->location) {
-                $lines[] = 'LOCATION:' . $this->escape($event->location);
+                $lines[] = 'LOCATION:'.$this->escape($event->location);
             }
             if ($event->description) {
-                $lines[] = 'DESCRIPTION:' . $this->escape(strip_tags($event->description));
+                $desc = strip_tags($event->description);
+            } else {
+                $desc = '';
             }
-            $lines[] = 'URL:' . route('events.show', $event);
-            $lines[] = 'DTSTAMP:' . $event->updated_at->format('Ymd\THis\Z');
+            $attendance = $event->confirmed_registrations_count.($event->max_participants ? '/'.$event->max_participants : '').' registered';
+            $desc = $attendance.($desc ? '\n'.$desc : '');
+            $lines[] = 'DESCRIPTION:'.$this->escape($desc);
+            $lines[] = 'URL:'.route('events.show', $event);
+            $lines[] = 'DTSTAMP:'.$event->updated_at->format('Ymd\THis\Z');
             $lines[] = 'END:VEVENT';
         }
 
@@ -57,9 +64,10 @@ class CalendarFeedController extends Controller
 
     private function formatDt($date, ?string $time): string
     {
-        $dateStr = $date instanceof \Carbon\Carbon ? $date->format('Y-m-d') : (string) $date;
+        $dateStr = $date instanceof Carbon ? $date->format('Y-m-d') : (string) $date;
         $dt = $time ? "{$dateStr} {$time}" : $dateStr;
-        return \Carbon\Carbon::parse($dt)->format('Ymd\THis');
+
+        return Carbon::parse($dt)->format('Ymd\THis');
     }
 
     private function escape(string $text): string

@@ -16,6 +16,7 @@ class BuddyController extends Controller
             ->orderBy('dive_date')
             ->get();
         $sites = DiveSite::active()->orderBy('name')->get();
+
         return view('buddies.index', compact('requests', 'sites'));
     }
 
@@ -29,9 +30,12 @@ class BuddyController extends Controller
             'need_type' => 'required|in:buddy,guide,dp',
             'description' => 'nullable|string|max:1000',
             'max_depth' => 'nullable|integer|min:1|max:300',
+            'desired_cert_level' => 'nullable|string|max:50',
+            'max_buddies' => 'nullable|integer|min:1|max:10',
         ]);
         $data['user_id'] = auth()->id();
         BuddyRequest::create($data);
+
         return back()->with('success', __('Buddy request posted.'));
     }
 
@@ -47,6 +51,7 @@ class BuddyController extends Controller
             ['buddy_request_id' => $buddyRequest->id, 'user_id' => auth()->id()],
             ['message' => $request->message, 'status' => 'interested']
         );
+
         return back()->with('success', __('Response sent.'));
     }
 
@@ -54,6 +59,7 @@ class BuddyController extends Controller
     {
         abort_unless($buddyRequest->user_id === auth()->id() || auth()->user()->isBureau(), 403);
         $buddyRequest->update(['is_active' => false]);
+
         return back()->with('success', __('Request closed.'));
     }
 }

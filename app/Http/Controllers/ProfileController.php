@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
-use App\Models\MemberDetail;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\User;
@@ -20,16 +19,21 @@ class ProfileController extends Controller
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
-        if ($target->id !== $viewer->id && !$viewer->isBureauMaster()) abort(403);
+        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+            abort(403);
+        }
 
         $request->validate(['avatar' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120']);
-        $path = $request->file('avatar')->store('avatars/' . $target->id, 'public');
+        $path = $request->file('avatar')->store('avatars/'.$target->id, 'public');
 
         // Delete old avatar
         $old = $target->detail?->avatar_path;
-        if ($old) Storage::disk('public')->delete($old);
+        if ($old) {
+            Storage::disk('public')->delete($old);
+        }
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], ['avatar_path' => $path]);
+
         return back()->with('success', __('Photo updated.'));
     }
 
@@ -37,12 +41,15 @@ class ProfileController extends Controller
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
-        if ($target->id !== $viewer->id && !$viewer->isBureauMaster()) abort(403);
+        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+            abort(403);
+        }
 
         if ($target->detail?->avatar_path) {
             Storage::disk('public')->delete($target->detail->avatar_path);
             $target->detail->update(['avatar_path' => null]);
         }
+
         return back()->with('success', __('Photo removed.'));
     }
 
@@ -53,6 +60,7 @@ class ProfileController extends Controller
         $user->certificationLevels()->syncWithoutDetaching([
             $request->certification_level_id => ['obtained_date' => $request->obtained_date, 'display_priority' => 0],
         ]);
+
         return back()->withInput(['tab' => 'diving'])->with('success', __('Certification added.'));
     }
 
@@ -63,6 +71,7 @@ class ProfileController extends Controller
             ->where('user_id', auth()->id())
             ->where('certification_level_id', $certLevel)
             ->update(['obtained_date' => $request->obtained_date, 'updated_at' => now()]);
+
         return back()->withInput(['tab' => 'diving'])->with('success', __('Certification updated.'));
     }
 
@@ -71,12 +80,14 @@ class ProfileController extends Controller
         $user = auth()->user();
         \DB::table('user_certification_levels')->where('user_id', $user->id)->update(['is_primary' => false]);
         \DB::table('user_certification_levels')->where('user_id', $user->id)->where('certification_level_id', $certLevel)->update(['is_primary' => true, 'display_priority' => \DB::raw('display_priority + 1')]);
+
         return back()->withInput(['tab' => 'diving'])->with('success', __('Primary certification updated.'));
     }
 
     public function removeCertification(int $certLevel)
     {
         auth()->user()->certificationLevels()->detach($certLevel);
+
         return back()->withInput(['tab' => 'diving'])->with('success', __('Certification removed.'));
     }
 
@@ -85,7 +96,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? $viewer;
 
-        if ($target->id !== $viewer->id && !$viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
         }
 
@@ -102,14 +113,14 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? $viewer;
 
-        if ($target->id !== $viewer->id && !$viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
         }
 
         $rules = [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'username' => 'nullable|string|max:255|unique:users,username,' . $target->id,
+            'username' => 'nullable|string|max:255|unique:users,username,'.$target->id,
             'nationality' => 'nullable|string|max:100',
             'phone_private' => 'nullable|string|max:50',
             'phone_office' => 'nullable|string|max:50',
@@ -123,15 +134,15 @@ class ProfileController extends Controller
             $rules['status_id'] = 'nullable|exists:member_statuses,id';
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
-            $rules['adhesion_year'] = 'nullable|integer|min:1900|max:' . date('Y');
+            $rules['adhesion_year'] = 'nullable|integer|min:1900|max:'.date('Y');
             $rules['cotisation_years'] = 'nullable|array';
-            $rules['cotisation_years.*'] = 'integer|min:1900|max:' . (date('Y') + 1);
+            $rules['cotisation_years.*'] = 'integer|min:1900|max:'.(date('Y') + 1);
         }
 
         $validated = $request->validate($rules);
 
         // Block member from changing restricted fields
-        if (!$viewer->isBureauMaster()) {
+        if (! $viewer->isBureauMaster()) {
             if ($request->has('status_id') || $request->has('bureau_member') || $request->has('active_instructor')) {
                 abort(403);
             }
@@ -140,7 +151,7 @@ class ProfileController extends Controller
         DB::transaction(function () use ($target, $validated, $viewer) {
             $target->update(array_filter([
                 'username' => $validated['username'] ?? null,
-            ], fn($v) => $v !== null));
+            ], fn ($v) => $v !== null));
 
             $detailData = collect($validated)->except(['username', 'status_id', 'cotisation_years'])->toArray();
 
@@ -167,7 +178,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? $viewer;
 
-        if ($target->id !== $viewer->id && !$viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
         }
 
@@ -195,9 +206,12 @@ class ProfileController extends Controller
     public function updateFederationKey(Request $request, MemberLicence $licence)
     {
         $user = auth()->user();
-        if ($licence->user_id !== $user->id && ! $user->isBureauMaster()) abort(403);
+        if ($licence->user_id !== $user->id && ! $user->isBureauMaster()) {
+            abort(403);
+        }
         $request->validate(['federation_key' => 'nullable|string|max:20']);
         $licence->update(['federation_key' => strtoupper(trim($request->federation_key))]);
+
         return back()->with('success', __('Federation key updated.'))->withInput(['tab' => 'renewal']);
     }
 
@@ -206,7 +220,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? $viewer;
 
-        if ($target->id !== $viewer->id && !$viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
         }
 
@@ -216,8 +230,9 @@ class ProfileController extends Controller
                 'instructor_bio' => 'nullable|string|max:2000',
                 'instructor_specialties' => 'nullable|string|max:1000',
                 'instructor_motivation' => 'nullable|string|max:1000',
+                'show_on_public_site' => 'boolean',
             ]);
-            $target->detail()->updateOrCreate(['user_id' => $target->id], $request->only('instructor_bio', 'instructor_specialties', 'instructor_motivation'));
+            $target->detail()->updateOrCreate(['user_id' => $target->id], $request->only('instructor_bio', 'instructor_specialties', 'instructor_motivation', 'show_on_public_site'));
 
             return back()->with('success', __('Instructor profile updated.'))->withInput(['tab' => 'diving']);
         }
@@ -244,7 +259,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? $viewer;
 
-        if ($target->id !== $viewer->id && !$viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
         }
 
@@ -262,7 +277,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? $viewer;
 
-        if ($target->id !== $viewer->id && !$viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
         }
 
@@ -274,7 +289,7 @@ class ProfileController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('documents/' . $target->id, 'local');
+        $path = $file->store('documents/'.$target->id, 'local');
 
         $doc = Document::create([
             'user_id' => $target->id,
@@ -299,7 +314,7 @@ class ProfileController extends Controller
     public function downloadDocument(Document $document)
     {
         $viewer = auth()->user();
-        if ($document->user_id !== $viewer->id && !$viewer->isBureauMaster()) {
+        if ($document->user_id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
         }
 
@@ -338,10 +353,10 @@ class ProfileController extends Controller
     public function setPrimaryEmail(UserEmail $email)
     {
         $user = auth()->user();
-        if ($email->user_id !== $user->id && !$user->isBureauMaster()) {
+        if ($email->user_id !== $user->id && ! $user->isBureauMaster()) {
             abort(403);
         }
-        if (!$email->is_verified) {
+        if (! $email->is_verified) {
             return back()->with('error', __('Only verified emails can be set as primary.'));
         }
 
@@ -357,7 +372,7 @@ class ProfileController extends Controller
     public function deleteEmail(UserEmail $email)
     {
         $user = auth()->user();
-        if ($email->user_id !== $user->id && !$user->isBureauMaster()) {
+        if ($email->user_id !== $user->id && ! $user->isBureauMaster()) {
             abort(403);
         }
         if ($email->is_primary) {
@@ -365,6 +380,7 @@ class ProfileController extends Controller
         }
 
         $email->delete();
+
         return back()->with('success', __('Email removed.'));
     }
 

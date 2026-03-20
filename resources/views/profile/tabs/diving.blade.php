@@ -173,6 +173,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <textarea name="instructor_motivation" class="form-control @error('instructor_motivation') is-invalid @enderror" rows="2" placeholder="{{ __('e.g. Sharing the passion, helping beginners gain confidence underwater...') }}">{{ old('instructor_motivation', $d?->instructor_motivation) }}</textarea>
         @error('instructor_motivation') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
+    <div class="mb-3 form-check">
+        <input type="hidden" name="show_on_public_site" value="0">
+        <input type="checkbox" name="show_on_public_site" value="1" class="form-check-input" id="showOnPublicSite" {{ old('show_on_public_site', $d?->show_on_public_site ?? true) ? 'checked' : '' }}>
+        <label class="form-check-label" for="showOnPublicSite">{{ __('Show my profile on the public Instructors page') }}</label>
+    </div>
     <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
 </form>
 @endif

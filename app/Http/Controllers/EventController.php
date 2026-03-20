@@ -244,11 +244,23 @@ class EventController extends Controller
             'cancel_comment' => $request->input('cancel_comment'),
         ]);
 
-        // Cancel unpaid payment
+        // Cancel unpaid payment; flag paid ones for refund review
+        $paidPayment = PaymentExpected::where('event_id', $event->id)
+            ->where('user_id', $targetUserId)
+            ->where('status', 'paid')
+            ->exists();
+
         PaymentExpected::where('event_id', $event->id)
             ->where('user_id', $targetUserId)
             ->where('status', 'pending')
             ->delete();
+
+        if ($paidPayment) {
+            PaymentExpected::where('event_id', $event->id)
+                ->where('user_id', $targetUserId)
+                ->where('status', 'paid')
+                ->update(['refund_review_needed' => true]);
+        }
 
         // Auto-promote first waiting list entry
         if ($wasConfirmed) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventRegistration;
 use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
 use App\Models\User;
@@ -17,7 +18,7 @@ class AnnualReportController extends Controller
         $years = range(date('Y'), (int) (User::min('created_at') ? substr(User::min('created_at'), 0, 4) : date('Y') - 3), -1);
 
         // Members over time (last 5 years)
-        $membersTrend = collect(range($year - 4, $year))->map(fn($y) => [
+        $membersTrend = collect(range($year - 4, $year))->map(fn ($y) => [
             'year' => $y,
             'count' => User::where('created_at', '<=', "$y-12-31")->count(),
         ]);
@@ -32,8 +33,8 @@ class AnnualReportController extends Controller
             return [
                 'month' => $m,
                 'label' => date('M', mktime(0, 0, 0, $m)),
-                'count' => \App\Models\EventRegistration::where('status', 'confirmed')
-                    ->whereHas('event', fn($q) => $q->whereYear('event_date', $year)->whereMonth('event_date', $m))
+                'count' => EventRegistration::where('status', 'confirmed')
+                    ->whereHas('event', fn ($q) => $q->whereYear('event_date', $year)->whereMonth('event_date', $m))
                     ->count(),
             ];
         });
@@ -63,9 +64,26 @@ class AnnualReportController extends Controller
         // Total events
         $totalEvents = Event::whereYear('event_date', $year)->where('status', '!=', 'cancelled')->count();
 
+        // Before/after comparisons
+        $startOfYear = "$year-01-01";
+        $endOfYear = "$year-12-31";
+        $beforeAfter = [
+            'members_start' => User::where('created_at', '<', $startOfYear)->count(),
+            'members_end' => User::where('created_at', '<=', $endOfYear)->count(),
+            'departed' => 0, // TODO: track departures when member status tracking is added
+            'revenue_start' => PaymentExpected::where('season_year', $year - 1)->where('status', 'paid')->sum('amount_paid'),
+            'revenue_end' => $finance['revenue'],
+            'main_events' => Event::whereYear('event_date', $year)
+                ->where('status', '!=', 'cancelled')
+                ->whereIn('event_type', ['dive', 'trip', 'social'])
+                ->withCount('confirmedRegistrations')
+                ->orderByDesc('confirmed_registrations_count')
+                ->limit(10)->get(),
+        ];
+
         return view('admin.annual-report', compact(
             'year', 'years', 'membersTrend', 'eventsByType', 'monthlyParticipation',
-            'socialVsDiving', 'finance', 'membersByStatus', 'newMembers', 'totalEvents'
+            'socialVsDiving', 'finance', 'membersByStatus', 'newMembers', 'totalEvents', 'beforeAfter'
         ));
     }
 }

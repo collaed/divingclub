@@ -71,13 +71,22 @@ class ArticleTranslationService
             return $text;
         }
 
+        // Escape variable tokens so the translation engine doesn't mangle them
+        $placeholders = [];
+        $escaped = preg_replace_callback('/\{\{[^}]+\}\}/', function ($m) use (&$placeholders) {
+            $key = '⟦TK'.count($placeholders).'⟧';
+            $placeholders[$key] = $m[0];
+
+            return $key;
+        }, $text);
+
         try {
             $response = Http::get('https://translate.googleapis.com/translate_a/single', [
                 'client' => 'gtx',
                 'sl' => $from,
                 'tl' => $to,
                 'dt' => 't',
-                'q' => $text,
+                'q' => $escaped,
             ]);
 
             if (! $response->ok()) {
@@ -90,7 +99,12 @@ class ArticleTranslationService
                 $translated .= $segment[0] ?? '';
             }
 
-            return $translated ?: null;
+            if (! $translated) {
+                return null;
+            }
+
+            // Restore tokens
+            return str_replace(array_keys($placeholders), array_values($placeholders), $translated);
         } catch (\Throwable) {
             return null;
         }

@@ -389,7 +389,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/payments/{user}/generate', [PaymentController::class, 'generateFee'])->name('payments.generate');
         Route::get('/payments/reconciliation', [PaymentController::class, 'reconciliation'])->name('payments.reconciliation');
         Route::post('/payments/import-statement', [PaymentController::class, 'importStatement'])->name('payments.import-statement');
-        Route::post('/payments/auto-match', [PaymentController::class, 'autoMatch'])->name('payments.auto-match');
+        Route::post('/payments/suggest-matches', [PaymentController::class, 'suggestMatches'])->name('payments.suggest-matches');
         Route::post('/payments/confirm/{transaction}', [PaymentController::class, 'confirmMatch'])->name('payments.confirm-match');
         Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignoreTransaction'])->name('payments.ignore');
 

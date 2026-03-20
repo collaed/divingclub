@@ -19,7 +19,9 @@ class BankReconciliationService
 
         foreach ($lines as $line) {
             $parts = preg_split('/[;\t]/', $line);
-            if (count($parts) < 2) continue;
+            if (count($parts) < 2) {
+                continue;
+            }
 
             $transactions[] = BankTransaction::create([
                 'transaction_date' => $this->parseDate($parts[0] ?? ''),
@@ -35,7 +37,7 @@ class BankReconciliationService
     /**
      * Auto-match unmatched transactions against pending payments using fuzzy communication match.
      */
-    public function autoMatch(): array
+    public function suggestMatches(): array
     {
         $unmatched = BankTransaction::where('status', 'unmatched')->get();
         $pending = PaymentExpected::whereIn('status', ['pending', 'partial'])->with('user.detail')->get();
@@ -54,7 +56,7 @@ class BankReconciliationService
             }
 
             if ($bestMatch) {
-                $tx->update(['matched_payment_id' => $bestMatch->id, 'match_score' => $bestScore, 'status' => 'matched']);
+                $tx->update(['matched_payment_id' => $bestMatch->id, 'match_score' => $bestScore, 'status' => 'suggested']);
                 $matches[] = ['transaction' => $tx, 'payment' => $bestMatch, 'score' => $bestScore];
             }
         }
@@ -68,7 +70,9 @@ class BankReconciliationService
     public function confirmMatch(BankTransaction $tx): void
     {
         $payment = $tx->matchedPayment;
-        if (!$payment) return;
+        if (! $payment) {
+            return;
+        }
 
         $payment->update([
             'amount_paid' => $payment->amount_paid + $tx->amount,
@@ -125,6 +129,7 @@ class BankReconciliationService
         if (preg_match('#(\d{2})[/\-](\d{2})[/\-](\d{4})#', $d, $m)) {
             return "{$m[3]}-{$m[2]}-{$m[1]}";
         }
+
         return $d ?: now()->format('Y-m-d');
     }
 }

@@ -32,6 +32,8 @@
                                     <span class="badge bg-info" style="font-size:0.7rem">{{ $cert->code }} ({{ $cert->federation?->acronym }})</span>
                                 @endif
                                 @if($req->max_depth)<span class="small text-muted ms-2">{{ __('Max') }} {{ $req->max_depth }}m</span>@endif
+                                @if($req->desired_cert_level)<span class="small text-muted ms-2">{{ __('Level') }}: {{ $req->desired_cert_level }}</span>@endif
+                                @if($req->max_buddies)<span class="small text-muted ms-2">{{ __('Max buddies') }}: {{ $req->max_buddies }}</span>@endif
                                 @if($req->description)<p class="small mb-1 mt-1">{{ $req->description }}</p>@endif
                             </div>
                             @if($req->user_id === auth()->id())
@@ -107,6 +109,12 @@
                         </div>
                         <div class="mb-2">
                             <input type="number" name="max_depth" class="form-control form-control-sm" placeholder="{{ __('Planned max depth (m)') }}" min="1">
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" name="desired_cert_level" class="form-control form-control-sm" placeholder="{{ __('Desired buddy level (e.g. N2+, OWD)') }}">
+                        </div>
+                        <div class="mb-2">
+                            <input type="number" name="max_buddies" class="form-control form-control-sm" placeholder="{{ __('Max number of buddies') }}" min="1" max="10">
                         </div>
                         <div class="mb-2">
                             <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="{{ __('Details, plans, what you want to do…') }}"></textarea>

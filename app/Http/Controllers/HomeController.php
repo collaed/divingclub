@@ -59,6 +59,7 @@ class HomeController extends Controller
         if ($slug === 'instructors') {
             $extra['instructors'] = MemberDetail::whereNotNull('instructor_bio')
                 ->where('instructor_bio', '!=', '')
+                ->where('show_on_public_site', true)
                 ->with('user')
                 ->get();
         }
