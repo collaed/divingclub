@@ -1,6 +1,6 @@
 {
   "package_manager": "npm",
   "build_command": "echo 'Assets pre-built, skipping'",
-  "use_composer": true,
+  "use_composer": True,
   "composer_build_script": "post-update-cmd"
 }
