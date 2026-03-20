@@ -1,5 +1,4 @@
 kind: wasmer.io/App.v0
-# TODO: Replace with your wasmer.io username
 owner: collaed
 name: divingclub
 package: .
@@ -12,6 +11,14 @@ redirect:
 
 scaling:
   mode: single_concurrency
+
+capabilities:
+  database:
+    engine: mysql
+
+locality:
+  regions:
+    - be-mons1
 
 jobs:
   # Vote auto-open/close — every minute
