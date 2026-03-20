@@ -151,7 +151,7 @@ class QrCodeController extends Controller
     public function federation(MemberLicence $licence)
     {
         $user = auth()->user();
-        if ($licence->user_id !== $user->id && ! $user->isBureauMaster()) {
+        if ($licence->user_id !== $user->id && ! $user->isBureau() && ! $user->detail?->active_instructor) {
             abort(403);
         }
 
@@ -169,7 +169,7 @@ class QrCodeController extends Controller
             $url = 'https://verify.'.config('club.domain', 'example.com')."/licence/{$key}";
         }
 
-        return $this->generatePng($url, "federation-{$licence->id}.png");
+        return $this->generatePng($url, "federation-{$licence->id}.png", false);
     }
 
     private function generatePng(string $data, string $filename, bool $download = true): Response

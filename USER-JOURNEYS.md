@@ -926,4 +926,4 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 6. Uses this to verify email templates, variable substitution, and delivery logic without sending real emails
 7. Clicks **Clear** to purge the staging mailbox
 
-**Note:** Only available when `APP_ENV` is not `production`.
+**Note:** Requires `STAGING_MODE=true` in `.env`. When `STAGING_USER` and `STAGING_PASS` are also set, the entire site is protected by HTTP Basic Auth (useful for real staging servers). Leave them empty for local dev.

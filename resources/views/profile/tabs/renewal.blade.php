@@ -18,8 +18,9 @@
                 @php
                     $ffessmNumber = preg_replace('/^[A-Z]-\d{2}-/', '', $lic->licence_number);
                     $canEdit = $viewer->isBureauMaster() || $viewer->id === $target->id;
+                    $canSeeQr = $viewer->id === $target->id || $viewer->isBureau() || $viewer->detail?->active_instructor;
                 @endphp
-                @if($lic->federation_key)
+                @if($lic->federation_key && $canSeeQr)
                     <div class="mt-3 p-3 bg-light rounded">
                         <div class="d-flex align-items-center gap-3">
                             <img src="{{ route('qr.federation', $lic) }}" alt="FFESSM QR" width="120" height="120" class="border rounded">

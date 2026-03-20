@@ -14,8 +14,13 @@ class StagingBasicAuth
             return $next($request);
         }
 
-        $user = config('app.staging_user', 'staging');
-        $pass = config('app.staging_pass', 'staging');
+        $user = config('app.staging_user', '');
+        $pass = config('app.staging_pass', '');
+
+        // Skip basic auth if no credentials configured
+        if (empty($user) && empty($pass)) {
+            return $next($request);
+        }
 
         if ($request->getUser() !== $user || $request->getPassword() !== $pass) {
             return response('', 401)

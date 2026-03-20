@@ -88,6 +88,11 @@ class MedicalExportController extends Controller
         }
 
         $docs = $query->get();
+
+        if ($docs->isEmpty()) {
+            return back()->with('error', __('No medical certificates to export.'));
+        }
+
         $fedName = $federationId ? Federation::find($federationId)?->acronym : 'all';
         $zipPath = storage_path('app/temp/medical-certs-' . $fedName . '-' . date('Y-m-d') . '.zip');
         @mkdir(dirname($zipPath), 0755, true);
@@ -115,6 +120,11 @@ class MedicalExportController extends Controller
         }
 
         $zip->close();
+
+        if (! file_exists($zipPath) || filesize($zipPath) === 0) {
+            @unlink($zipPath);
+            return back()->with('error', __('No certificate files found on disk to export.'));
+        }
 
         return response()->download($zipPath, basename($zipPath))->deleteFileAfterSend();
     }

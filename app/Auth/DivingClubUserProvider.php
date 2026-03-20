@@ -1,0 +1,22 @@
+<?php
+/**
+ * ClubCEP.eu — Custom user provider that maps 'email' to 'primary_email'
+ * for password reset and other credential lookups, since the users table
+ * stores the email in 'primary_email' (not 'email').
+ */
+
+namespace App\Auth;
+
+use Illuminate\Auth\EloquentUserProvider;
+
+class DivingClubUserProvider extends EloquentUserProvider
+{
+    public function retrieveByCredentials(array $credentials): ?\Illuminate\Contracts\Auth\Authenticatable
+    {
+        if (isset($credentials['email'])) {
+            $credentials['primary_email'] = $credentials['email'];
+            unset($credentials['email']);
+        }
+        return parent::retrieveByCredentials($credentials);
+    }
+}

@@ -92,6 +92,11 @@ MAIL_ENCRYPTION=tls
 CLUB_IBAN=LU00 0000 0000 0000 0000
 CLUB_ID=MONCLUB
 FEDERATION_SALT=changer_ceci_par_une_chaine_aleatoire
+
+# Mode staging (optionnel — active la boîte mail de test)
+# STAGING_MODE=true
+# STAGING_USER=staging        ← laisser vide pour désactiver l'auth HTTP Basic
+# STAGING_PASS=changeme
 ```
 
 ### 2.2 Configurer les clés API
