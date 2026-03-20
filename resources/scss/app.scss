@@ -73,6 +73,11 @@ body {
   .dropdown-menu { background: #2d2d44; border-color: #555; }
   .dropdown-item { color: #e0e0e0; &:hover { background: #3a3a52; } }
   a:not(.btn):not(.nav-link):not(.dropdown-item) { color: #6db3f2; }
+  .btn-outline-primary {
+    color: #6db3f2;
+    border-color: #6db3f2;
+    &:hover { background-color: #6db3f2; color: #1a1a2e; }
+  }
 }
 
 .dc-header {

@@ -22,7 +22,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 5. Reads any **public article** linked from the home page (articles marked `is_public=true`)
 6. Decides to register → clicks **Register**
 
-**Accessible without login:** Welcome, About pages (7), Dues Calculator, public articles, Contact, language switch, Offline page (PWA).
+**Accessible without login:** Welcome, About pages (7), Dues Calculator, public articles, Contact, language switch, iCal feed, Offline page (PWA).
 
 ---
 
@@ -83,6 +83,8 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 6. Opens **Info → Trombinoscope** — browses the photo grid
 7. Opens **Info → Documents** — downloads a public file (e.g. club statutes PDF)
 8. Opens **Privacy** — toggles photo publication consent, downloads their data as JSON
+9. Subscribes to the **iCal feed** (`/calendar.ics`) in their phone calendar app — events sync automatically
+10. Imports dive logs from their dive computer via **UDDF import** (see Journey 41)
 
 ---
 
@@ -361,7 +363,8 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 19. Shares the registration URL with existing club members
 20. As members register, reviews their profiles in **Administration → Members**
 21. Assigns correct **roles** (instructor, assistant, bureau_member) and **statuses**
-22. Verifies uploaded **medical certificates** (see Journey 10)
+22. Can **impersonate** any member to see the system from their perspective (yellow banner shown, all actions audit-logged)
+23. Verifies uploaded **medical certificates** (see Journey 10)
 23. Generates **membership fees** and sends payment emails (see Journey 14)
 
 ### Phase 6 — Ongoing Operations
@@ -370,9 +373,12 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 26. Exports **medical data** for federation submission annually (see Journey 11)
 27. Manages **equipment** loans and maintenance (see Journey 18)
 28. Monitors the **dashboard** for statistics and trends
-29. Generates the **annual report** for the AGM
-30. Reviews **audit logs** periodically
+29. Generates the **annual report** for the AGM (see Journey 46)
+30. Reviews **audit logs** periodically (see Journey 37)
 31. Checks **GDPR** erasure requests if any come in
+32. Manages **dive sites** with emergency data (see Journey 43)
+33. Customizes the **homepage layout** — reorder widgets, set visibility (see Journey 44)
+34. Exports club dive data to **DAN DL7** for research (see Journey 42)
 
 ### Phase 7 — Optional Integrations
 32. Configures **OAuth** providers in `.env` (Google, Facebook, Microsoft client IDs/secrets)
@@ -391,7 +397,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 1 | Anonymous visitor | Welcome, About pages, Dues Calculator |
 | 2 | New user | Register, Verify Email |
 | 3 | New member | Profile (all tabs) |
-| 4 | Active member | Home, Articles, Calendar, Events, Directory, Documents |
+| 4 | Active member | Home, Articles, Calendar, Events, Directory, Documents, iCal, UDDF |
 | 5 | Member (seller) | Classifieds |
 | 6 | Member (cancelling) | Event Detail, Profile Registrations |
 | 7 | Instructor | Profile → Diving → Instructor Bio |
@@ -419,7 +425,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 29 | Member (external) | Partner admin → Browse Events → register via API |
 | 30 | Bureau | Email → group "event" → select event → send |
 | 31 | System (cron) | schedule:run → auto-translate oldest article |
-| 32 | Dive Director | Dive Group Planner → mixed-level palanquée |
+| 32 | Dive Director | Dive Group Planner → auto-propose → validate → print fiche de sécurité |
 | 33 | Small club admin | Wasmer deploy → /install → SQLite → operational |
 | 34 | Bureau Master | Minors & Consent → link guardian → record consent |
 | 35 | Member | Event photos → GDPR consent → auto-publish |
@@ -427,6 +433,14 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 37 | Bureau Master | Audit Log → filter → detail diff → export CSV → retention |
 | 38 | Member | Buddy Finder → post request → respond → close |
 | 39 | Anonymous/Member | Dues Calculator → fee breakdown → EPC QR code |
+| 40 | Member | Technical articles with SVG diagrams → multi-language tabs |
+| 41 | Member | Dive log → Import UDDF → parse depth/duration/temp/deco |
+| 42 | Bureau | Export DAN DL7 → upload to dan.org/PDE for research |
+| 43 | Bureau | Dive Sites → emergency data → fiche de sécurité auto-fill |
+| 44 | Bureau Master | Homepage layout → reorder widgets → per-widget visibility |
+| 45 | Member | Calendar → Subscribe iCal → events sync to phone |
+| 46 | Bureau | Annual Report → statistics → PDF export for AGM |
+| 47 | System | HTTP cron endpoints for shared hosting without crontab |
 
 ---
 
@@ -599,13 +613,23 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 1. Open Dive Group Planner for the event.
 2. Select participants from the event registration list.
 3. System loads each diver's federation, cert level, and medical status.
-4. System suggests palanquée/buddy groupings based on federation rules:
+4. Click **Auto-Propose** → system suggests palanquée/buddy groupings based on 39 federation rules:
    - LIFRAS: P1★ needs P3★+ leader, max 4 P1 per palanquée
    - FFESSM: PE-20 needs GP-N4+ guide, max 4 per guide
    - BSAC: Ocean Diver needs Sports Diver+ buddy
-5. Flags medical certificates expiring within 30 days.
-6. Flags divers whose cert level doesn't allow the planned depth.
-7. Director adjusts groups, confirms plan.
+5. Review the proposal → click **Apply** to accept, or adjust manually via drag-and-drop.
+6. Click **Validate** → system checks all groups against federation rules:
+   - ✅ Valid — group composition meets all rules
+   - ❌ Violation — specific rule broken, with explanation and regulation reference
+   - ⚠️ Warning — medical cert expiring within 30 days, or cert level borderline for depth
+7. Flags divers whose cert level doesn't allow the planned depth.
+8. Director adjusts groups, confirms plan.
+9. Click **Print Fiche de Sécurité** → generates FFESSM 2024-2025 format PDF:
+   - 4 palanquées max (12-16 divers) with empty rows for hand-fill
+   - Columns: Pal, Mode, Prof, Rôle, Nom, Brevet, Féd, N° Licence, Aptitude, Méd, H.Imm, H.Sort, DTR, Obs
+   - Dive params sub-row per palanquée: actual depth, deco stops 3/6/9m, safety stop checkbox, GPS
+   - Emergency info block: phone, VHF, hospital + distance, hyperbaric chamber + phone + distance
+   - Required safety equipment from the dive site record
 
 ---
 
@@ -707,3 +731,135 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 4. Sees the calculated annual fee with breakdown.
 5. Scans the **EPC QR code** with their banking app → pre-filled SEPA transfer with club IBAN, amount, and communication string.
 6. Decides to register based on the transparent pricing.
+
+---
+
+## Journey 40 — Member Reads Technical Diving Articles
+
+**Actor:** A member studying for their N2 certification.
+
+1. Opens the **Articles** section → filters by type "Training".
+2. Sees 20+ technical articles with original SVG diagrams covering physics, physiology, techniques, and gear.
+3. Opens **Loi de Mariotte (Boyle)** → reads the explanation with an inline SVG showing volume compression at 1/2/3/4 bar.
+4. Switches to the **English** tab to compare terminology (preparing for a PADI crossover).
+5. Opens **Gradient Factors** → studies the ascent profile comparison chart and recommended GF settings table.
+6. Opens **Dive Computer Export Guide** → follows brand-specific instructions for their Mares Genius to export UDDF.
+7. Reads **Buddy Check (BWRAF)** → memorizes the mnemonic with the SVG diagram showing all check points.
+8. All articles available in 11 languages with automatic translation (🤖 indicator on auto-translated content).
+
+---
+
+## Journey 41 — Member Imports Dive Logs from Their Computer
+
+**Actor:** A member who wants to log their dives on the club platform.
+
+1. Exports dive data from their dive computer's app:
+   - Mares SSI → Menu → Share → UDDF
+   - Shearwater Cloud → Select dives → Export → UDDF
+   - Suunto DM5 → File → Export → UDDF
+   - Garmin Connect → exports .fit → imports into Subsurface → exports UDDF
+   - Scubapro LogTRAK → File → Export → UDDF
+   - Aqualung DiverLog+ → native UDDF export
+2. If their computer doesn't export UDDF natively, uses **Subsurface** (free, open source) as a universal converter.
+3. Goes to their dive log → clicks **Import UDDF** → selects the `.uddf` file.
+4. System parses UDDF 3.2.1: extracts depth profile, duration, temperature, deco stops, safety stop detection.
+5. Dive appears in their personal log.
+6. Can also **Export UDDF** to download all their logged dives in universal format.
+
+---
+
+## Journey 42 — Bureau Exports Dive Data for DAN Research
+
+**Actor:** Bureau master contributing to decompression research.
+
+1. Opens **Administration → Export DAN**.
+2. System generates a DAN DL7 file (pipe-delimited format) containing all club dive logs.
+3. File includes ZDH (header), ZDL (dive log), and ZDT (tissue) records.
+4. Downloads the `.dl7` file.
+5. Uploads it to the DAN Project Dive Exploration portal (dan.org/PDE).
+6. Club contributes to global decompression sickness research.
+
+---
+
+## Journey 43 — Bureau Manages Dive Sites
+
+**Actor:** Bureau master maintaining the dive site database.
+
+1. Opens **Administration → Dive Sites**.
+2. Sees the 13 pre-seeded sites (Luxembourg quarries, Belgian coast, etc.).
+3. Clicks **Create** to add a new site: name, GPS coordinates, max depth, description.
+4. Fills in **emergency data**:
+   - Emergency phone number
+   - VHF channel
+   - Nearest hospital name and distance (km)
+   - Nearest hyperbaric chamber, phone number, and distance (km)
+   - Required safety equipment (O₂ kit, first aid, VHF radio, etc.)
+5. When creating a dive event, selects this site → emergency data auto-populates the fiche de sécurité PDF.
+6. Edits an existing site to update hospital distance after a new facility opens.
+
+---
+
+## Journey 44 — Bureau Customizes the Homepage Layout
+
+**Actor:** Bureau master personalizing the club's home page.
+
+1. Logs in → visits the home page → clicks **Edit Layout** (pencil icon).
+2. Sees the widget toolbar on each section: Latest Articles, Upcoming Events, Quick Links, Hero Banner, Custom HTML.
+3. Drags widgets to reorder them.
+4. Sets **visibility** per widget:
+   - 🌍 Public — visible to everyone including anonymous visitors
+   - 🔒 Members — visible only to logged-in members
+   - 🎓 Instructors — visible only to instructors and bureau
+   - 👔 Bureau — visible only to bureau members
+5. Configures widget options (e.g., number of articles to show, hero title text).
+6. Clicks **Save Layout** → changes take effect immediately.
+7. Anonymous visitors see only public widgets; members see member + public widgets.
+
+---
+
+## Journey 45 — Member Subscribes to the iCal Calendar Feed
+
+**Actor:** A member who wants club events in their phone calendar.
+
+1. Opens the **Calendar** page.
+2. Clicks the **Subscribe (iCal)** link → copies the URL: `https://club-domain.lu/calendar.ics`.
+3. Opens their phone's calendar app (Google Calendar, Apple Calendar, Outlook):
+   - Google Calendar: Settings → Add calendar → From URL → paste
+   - Apple Calendar: File → New Calendar Subscription → paste
+   - Outlook: Add calendar → Subscribe from web → paste
+4. Club events appear in their personal calendar, color-coded by type.
+5. New events and changes sync automatically (calendar apps poll the feed periodically).
+6. The iCal feed is public — no authentication required.
+
+---
+
+## Journey 46 — Bureau Generates the Annual Report
+
+**Actor:** Bureau master preparing for the Annual General Meeting.
+
+1. Opens **Administration → Annual Report**.
+2. Selects the reporting year/season.
+3. System generates a comprehensive report with:
+   - Membership statistics: total members, new registrations, departures, by status/role/federation
+   - Event statistics: total events, attendance rates, most popular events
+   - Financial summary: total dues collected, outstanding payments
+   - Medical compliance: percentage compliant, certificates verified
+   - Equipment: inventory count, loans, maintenance completed
+4. Reviews the report on screen.
+5. Exports as PDF or prints for the AGM presentation.
+
+---
+
+## Journey 47 — System Runs Scheduled Tasks via HTTP Cron
+
+**Actor:** System on shared hosting without cron access.
+
+1. Admin configures `CRON_KEY=secret` in `.env`.
+2. Sets up an external cron service (cron-job.org, UptimeRobot) to ping `{APP_URL}/cron/run?key=secret` every 15 minutes.
+3. On each ping, the system runs all due scheduled tasks:
+   - `/cron/medical-reminders` — sends expiry reminders (30/15/7/0 days)
+   - `/cron/weekly-backup` — database backup (Sundays)
+   - `/cron/run-schedule` — vote auto-open/close, article auto-translation
+4. Each endpoint validates the `CRON_KEY` before executing.
+5. Returns `OK` with timestamp on success, `403` on invalid key.
+6. Alternative to the standard `* * * * * php artisan schedule:run` cron entry.
