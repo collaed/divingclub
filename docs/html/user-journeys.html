@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>DivingClub-Manager — User Journeys</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">DivingClub-Manager — User Journeys</h1>
+</header>
+<h1 id="divingclub-user-journeys">DivingClub — User Journeys</h1>
+<p>Scenarios ordered from simplest (anonymous visitor) to most complex (system setup from scratch).</p>
+<hr />
+<h2 id="journey-1-anonymous-visitor-browses-the-site">Journey 1 — Anonymous Visitor Browses the Site</h2>
+<p><strong>Actor:</strong> Someone who found the club via search or word of mouth.</p>
+<ol type="1">
+<li>Lands on the <strong>Welcome page</strong> — sees club branding, feature highlights, Register/Login buttons</li>
+<li>Opens the <strong>About</strong> dropdown in the nav bar:
+<ul>
+<li>Reads <strong>Training Schedule</strong> — pool times, locations, levels</li>
+<li>Reads <strong>Our Values</strong> — safety, inclusivity, environment</li>
+<li>Reads <strong>Club History</strong> — founding story, milestones</li>
+<li>Reads <strong>The Bureau</strong> — who runs the club</li>
+<li>Reads <strong>Our Instructors</strong> — instructor cards with bios, specialties, motivation</li>
+<li>Reads <strong>Our Members</strong> — membership breakdown figures</li>
+<li>Reads <strong>Contact &amp; Social</strong> — email, address, Facebook, Instagram, WhatsApp</li>
+</ul></li>
+<li>Uses the <strong>Dues Calculator</strong> — enters a hypothetical status, sees estimated fee and SEPA QR code</li>
+<li>Switches language via the <strong>language selector</strong> (e.g. FR → DE → LB)</li>
+<li>Reads any <strong>public article</strong> linked from the home page (articles marked <code>is_public=true</code>)</li>
+<li>Decides to register → clicks <strong>Register</strong></li>
+</ol>
+<p><strong>Accessible without login:</strong> Welcome, About pages (7), Dues Calculator, public articles, Contact, language switch, iCal feed, Offline page (PWA).</p>
+<hr />
+<h2 id="journey-2-new-user-registers">Journey 2 — New User Registers</h2>
+<p><strong>Actor:</strong> The visitor from Journey 1.</p>
+<ol type="1">
+<li>Fills in the <strong>registration form</strong>: first name, last name, email, password
+<ul>
+<li>(Or clicks an <strong>OAuth button</strong>: Google, Facebook, Microsoft)</li>
+<li>Honeypot + timestamp CAPTCHA runs silently in the background</li>
+</ul></li>
+<li>Sees the <strong>“Verify your email”</strong> page — a verification link was sent</li>
+<li>Checks inbox, clicks the verification link</li>
+<li>Redirected to <strong>My Profile</strong> with a success message</li>
+<li>The account now has role <code>member</code> and status <code>actif</code> (or whatever the admin assigns)</li>
+<li>All member features are now unlocked</li>
+</ol>
+<hr />
+<h2 id="journey-3-new-member-completes-their-profile">Journey 3 — New Member Completes Their Profile</h2>
+<p><strong>Actor:</strong> A freshly registered, verified member.</p>
+<ol type="1">
+<li>Opens <strong>My Profile → Info tab</strong>
+<ul>
+<li>Fills in: nationality, sex, date of birth, phone numbers, club email</li>
+<li>Uploads a <strong>profile photo</strong></li>
+</ul></li>
+<li>Opens <strong>Private Info tab</strong>
+<ul>
+<li>Fills in: full address (street, postal code, city, country), emergency contact</li>
+</ul></li>
+<li>Opens <strong>Diving tab</strong>
+<ul>
+<li>Adds their <strong>federation licence</strong> (e.g. FFESSM)</li>
+<li>Adds their <strong>certification level</strong> (e.g. FFESSM N2) with obtained date</li>
+<li>Sets it as <strong>primary certification</strong></li>
+</ul></li>
+<li>Opens <strong>Medical Cert tab</strong>
+<ul>
+<li>Uploads their medical certificate (PDF or photo)</li>
+<li>Selects the <strong>type</strong> (GP, ENT, Sports Medicine)</li>
+<li>Sets the <strong>exam date</strong></li>
+<li>Sees status: “Not yet verified” — waits for bureau confirmation</li>
+</ul></li>
+<li>Opens <strong>Language tab</strong> — sets preferred language to French</li>
+</ol>
+<hr />
+<h2 id="journey-4-member-browses-and-participates">Journey 4 — Member Browses and Participates</h2>
+<p><strong>Actor:</strong> A confirmed member with a verified medical certificate.</p>
+<ol type="1">
+<li>Logs in → lands on the <strong>Home page</strong>
+<ul>
+<li>Sees latest articles as cards with type badges and colored borders</li>
+<li>Sidebar shows quick links and upcoming events</li>
+</ul></li>
+<li>Clicks an article → reads the full <strong>article detail page</strong>
+<ul>
+<li>Scrolls through the <strong>image gallery</strong></li>
+<li>Writes a <strong>comment</strong> at the bottom</li>
+<li>Replies to another member’s comment (threaded, max 3 levels)</li>
+</ul></li>
+<li>Opens <strong>Calendar</strong> → browses events in month/week/day view</li>
+<li>Clicks a <strong>pool training event</strong>
+<ul>
+<li>Sees details, instructor, location (Google Maps link)</li>
+<li>Clicks <strong>Register</strong> — registration confirmed</li>
+<li>(If the event were full, they’d join the <strong>waiting list</strong>)</li>
+</ul></li>
+<li>Opens <strong>Info → Members Directory</strong> — searches for a fellow member</li>
+<li>Opens <strong>Info → Trombinoscope</strong> — browses the photo grid</li>
+<li>Opens <strong>Info → Documents</strong> — downloads a public file (e.g. club statutes PDF)</li>
+<li>Opens <strong>Privacy</strong> — toggles photo publication consent, downloads their data as JSON</li>
+<li>Subscribes to the <strong>iCal feed</strong> (<code>/calendar.ics</code>) in their phone calendar app — events sync automatically</li>
+<li>Imports dive logs from their dive computer via <strong>UDDF import</strong> (see Journey 41)</li>
+</ol>
+<hr />
+<h2 id="journey-5-member-posts-a-classified-ad">Journey 5 — Member Posts a Classified Ad</h2>
+<p><strong>Actor:</strong> A member who wants to sell their old BCD.</p>
+<ol type="1">
+<li>Clicks <strong>Classifieds</strong> in the nav</li>
+<li>Sees the classifieds page — “My Classifieds” section is empty</li>
+<li>Clicks <strong>Post a Classified</strong></li>
+<li>Fills in: title (“Selling Mares BCD, size M”), description (rich text), uploads a photo</li>
+<li>Submits → redirected to classifieds page, sees their ad in “My Classifieds” with status <strong>Active</strong> and expiry date (30 days from now)</li>
+<li>Other members see the ad in the “All Classifieds” section</li>
+<li>After 25 days, the status changes to <strong>Expiring soon</strong> (yellow badge)</li>
+<li>Member clicks <strong>Extend</strong> → expiry pushed 30 more days</li>
+<li>After the ad sells, member clicks <strong>Delete</strong> to remove it</li>
+<li>If the ad expires without action, it disappears from the public list; member can click <strong>Renew</strong> to reactivate</li>
+</ol>
+<hr />
+<h2 id="journey-6-member-cancels-an-event-registration">Journey 6 — Member Cancels an Event Registration</h2>
+<p><strong>Actor:</strong> A member who registered for a dive trip but can’t make it.</p>
+<ol type="1">
+<li>Opens <strong>My Profile → Registrations tab</strong> — sees their upcoming registrations</li>
+<li>Clicks the event → opens the <strong>event detail page</strong></li>
+<li>Clicks <strong>Cancel Registration</strong> → confirms</li>
+<li>If a payment was pending, it’s automatically deleted</li>
+<li>If the event had a waiting list, the next person is auto-promoted</li>
+</ol>
+<hr />
+<h2 id="journey-7-instructor-fills-in-their-bio">Journey 7 — Instructor Fills In Their Bio</h2>
+<p><strong>Actor:</strong> A member with the <code>instructor</code> role (or <code>active_instructor</code> flag).</p>
+<ol type="1">
+<li>Opens <strong>My Profile → Diving tab</strong></li>
+<li>Scrolls past certifications to the <strong>Instructor Profile</strong> section (only visible to instructors)</li>
+<li>Fills in:
+<ul>
+<li><strong>Experience &amp; Background</strong>: “Diving since 2005, FFESSM N4 instructor, 500+ logged dives, Red Sea, Mediterranean, Atlantic”</li>
+<li><strong>Specialties &amp; Interests</strong>: “Wreck diving, underwater photography, Nitrox”</li>
+<li><strong>What motivates you?</strong>: “Sharing the passion, helping beginners gain confidence underwater”</li>
+</ul></li>
+<li>Clicks <strong>Save</strong></li>
+<li>Their profile card now appears on the public <strong>Our Instructors</strong> page — visible to everyone, including non-registered visitors</li>
+</ol>
+<hr />
+<h2 id="journey-8-member-votes-in-a-simple-poll-trip-proposal">Journey 8 — Member Votes in a Simple Poll (Trip Proposal)</h2>
+<p><strong>Actor:</strong> A member who received a vote token by email.</p>
+<ol type="1">
+<li>Receives an email: “Vote on the summer trip destination”</li>
+<li>Clicks the link → opens the <strong>vote page</strong> (no login required, token is authentication)</li>
+<li>Sees the trip proposal description and options:
+<ul>
+<li>🇭🇷 Croatia — Vis Island</li>
+<li>🇪🇬 Egypt — Red Sea</li>
+<li>🇲🇹 Malta — Gozo</li>
+</ul></li>
+<li>This is a <strong>simple vote</strong> with <strong>multi-select</strong> and <strong>public results</strong> enabled</li>
+<li>Checks two options (Croatia + Malta) → clicks <strong>Submit Vote</strong></li>
+<li>Sees the <strong>Thank You</strong> page with live results (progress bars showing percentages)</li>
+<li>Changes their mind → clicks the link again → sees their current selections → unchecks Malta, checks Egypt → clicks <strong>Update Vote</strong></li>
+<li>Results update in real time</li>
+</ol>
+<p><strong>Alternatively:</strong> The vote is embedded in a <strong>trip proposal article</strong> — the member reads the article and votes inline without leaving the page.</p>
+<hr />
+<h2 id="journey-9-member-votes-in-the-annual-secret-ballot">Journey 9 — Member Votes in the Annual Secret Ballot</h2>
+<p><strong>Actor:</strong> A member voting for the new bureau.</p>
+<ol type="1">
+<li>Receives an email: “Annual General Meeting — Bureau Election”</li>
+<li>Clicks the link → opens the <strong>vote page</strong></li>
+<li>Sees a warning: <strong>“Your vote is anonymous and irreversible”</strong></li>
+<li>This is an <strong>election</strong> — single-select, no change allowed, results hidden</li>
+<li>Selects one candidate → clicks <strong>Cast Vote (irreversible)</strong></li>
+<li>Sees the <strong>Thank You</strong> page — no results shown (election mode)</li>
+<li>Cannot vote again — revisiting the link shows “You have already voted”</li>
+<li>After the vote closes, the admin announces results at the AGM</li>
+</ol>
+<hr />
+<h2 id="journey-10-bureau-member-verifies-a-medical-certificate">Journey 10 — Bureau Member Verifies a Medical Certificate</h2>
+<p><strong>Actor:</strong> A bureau member (bureau_master role).</p>
+<ol type="1">
+<li>Opens <strong>Administration → Members</strong> → clicks <strong>View</strong> on a member</li>
+<li>Opens their <strong>Medical Cert tab</strong></li>
+<li>Sees an uploaded certificate with status “not verified”</li>
+<li>Reviews the document (downloads it)</li>
+<li>Adjusts the <strong>cert type</strong> dropdown if needed (e.g. member selected GP but it’s actually an ENT cert)</li>
+<li>Corrects the <strong>exam date</strong> if the member entered it wrong</li>
+<li>Clicks <strong>Verify</strong> → certificate is marked verified, compliance rules are re-evaluated, expiry date is calculated</li>
+</ol>
+<hr />
+<h2 id="journey-11-bureau-exports-medical-data-for-the-federation">Journey 11 — Bureau Exports Medical Data for the Federation</h2>
+<p><strong>Actor:</strong> Bureau master preparing the annual federation submission.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Members</strong></li>
+<li>Clicks the <strong>🏥 Medical Export</strong> dropdown</li>
+<li>Selects the federation (e.g. <strong>FFESSM</strong>) from the dropdown</li>
+<li>Clicks <strong>📋 Member List (CSV)</strong>
+<ul>
+<li>Downloads a semicolon-delimited CSV with columns: Date Demande (empty), NOM, Prénom, Date de naissance, sexe, n° Rue, Pays, CP, Localité, Date Examen Médical</li>
+<li>Opens in Excel, fills in the “Date Demande” column, sends to federation</li>
+</ul></li>
+<li>Clicks <strong>📦 Certificates (ZIP)</strong>
+<ul>
+<li>Downloads a ZIP with all current medical certificates for FFESSM members</li>
+<li>Files named: <code>DUPONT Jean 42 GP.pdf</code>, <code>DUPONT Jean 42 ENT.pdf</code> (no collisions)</li>
+<li>Attaches to the federation submission</li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="journey-12-bureau-manages-the-document-library">Journey 12 — Bureau Manages the Document Library</h2>
+<p><strong>Actor:</strong> Bureau master organizing club files.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Document Library</strong></li>
+<li>Creates folders: <code>/minutes</code>, <code>/statutes</code>, <code>/insurance</code>, <code>/photos</code></li>
+<li>Navigates to <code>/minutes</code> → uploads the latest AGM minutes (PDF), marks as <strong>Public</strong></li>
+<li>Navigates to <code>/insurance</code> → uploads the club’s liability insurance, marks as <strong>Private</strong> (bureau-only)</li>
+<li>Members can now see and download the AGM minutes via <strong>Info → Documents</strong></li>
+<li>The insurance document is only visible in the admin library</li>
+</ol>
+<hr />
+<h2 id="journey-13-bureau-creates-a-season-and-generates-events">Journey 13 — Bureau Creates a Season and Generates Events</h2>
+<p><strong>Actor:</strong> Bureau master setting up the new training year.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Seasons → Create</strong></li>
+<li>Enters: year 2026, start September 1, end June 30</li>
+<li>On the season detail page, adds <strong>weekly patterns</strong>:
+<ul>
+<li>Tuesday 19:30–21:00, Pool Training, Bonnevoie, all levels</li>
+<li>Thursday 19:30–21:00, Pool Training, Mersch, beginners</li>
+<li>Saturday 10:00–12:00, Pool Training, Bonnevoie, advanced</li>
+</ul></li>
+<li>Adds <strong>holidays</strong>: Toussaint (Oct 26–Nov 3), Christmas (Dec 21–Jan 5), Carnival (Feb 28–Mar 4), Easter (Apr 11–Apr 27)</li>
+<li>Clicks <strong>Preview</strong> → sees all generated dates, holidays shown in red</li>
+<li>Clicks <strong>Generate</strong> → 58 events created in one click</li>
+<li>Clicks <strong>Activate</strong> → this becomes the current season</li>
+<li>Members now see all events in the <strong>Calendar</strong></li>
+</ol>
+<hr />
+<h2 id="journey-14-bureau-manages-payments">Journey 14 — Bureau Manages Payments</h2>
+<p><strong>Actor:</strong> Bureau master handling annual dues.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Payments</strong></li>
+<li>For each member, clicks <strong>Calculate</strong> → system computes: base fee × status multiplier + optional add-ons</li>
+<li>Clicks <strong>Generate</strong> → creates a payment record with a unique communication string</li>
+<li>Sends a <strong>bulk email</strong> (via Administration → Email) to all members with their amount and communication string</li>
+<li>Members pay via bank transfer using the communication string</li>
+<li>Bureau opens <strong>Reconciliation</strong> → pastes the bank statement</li>
+<li>System <strong>auto-matches</strong> transactions to payments using fuzzy matching on communication strings</li>
+<li>Bureau reviews matches → clicks <strong>Confirm</strong> for correct matches, <strong>Ignore</strong> for unrelated transactions</li>
+<li>Dashboard shows updated revenue figures</li>
+</ol>
+<hr />
+<h2 id="journey-15-bureau-publishes-content">Journey 15 — Bureau Publishes Content</h2>
+<p><strong>Actor:</strong> Bureau master writing a news article.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Articles → Create</strong></li>
+<li>Selects type: <strong>News</strong> (or Safety, Training, Trip Report, etc.)</li>
+<li>Fills in title, writes body in rich text editor</li>
+<li>Uploads a <strong>featured image</strong></li>
+<li>Adds <strong>gallery images</strong>: a full-width panorama, two half-width action shots, three third-width detail photos — each with captions</li>
+<li>Toggles <strong>Published</strong> and <strong>Public</strong> (visible without login)</li>
+<li>Saves → article appears on the home page with a blue News badge</li>
+</ol>
+<p><strong>For a trip proposal:</strong> 8. Selects type: <strong>Trip Proposal</strong> 9. Creates a <strong>vote</strong> first (Administration → Votes → Create) with destinations as options, multi-select enabled, public results 10. Back in the article form, attaches the vote via the dropdown 11. Saves → article appears with an embedded vote form</p>
+<hr />
+<h2 id="journey-16-bureau-sends-a-club-wide-email">Journey 16 — Bureau Sends a Club-Wide Email</h2>
+<p><strong>Actor:</strong> Bureau master announcing the Christmas party.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Email</strong></li>
+<li>Selects a saved <strong>template</strong> (or writes from scratch)</li>
+<li>Sets subject: “🎄 Christmas Party — December 14”</li>
+<li>Writes body using variables: “Dear {{first_name}}, you’re invited…”</li>
+<li>Selects recipient group: <strong>All active members</strong></li>
+<li>Clicks <strong>Preview</strong> → sees the email rendered with sample data</li>
+<li>Clicks <strong>Send</strong> → emails queued and sent</li>
+<li>Checks the <strong>Send Log</strong> tab to confirm delivery</li>
+</ol>
+<hr />
+<h2 id="journey-17-bureau-runs-the-annual-election">Journey 17 — Bureau Runs the Annual Election</h2>
+<p><strong>Actor:</strong> Bureau master organizing the AGM vote.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Votes → Create</strong></li>
+<li>Sets title: “Bureau Election 2026”</li>
+<li>Selects mode: <strong>Election (anonymous, irreversible)</strong></li>
+<li>Leaves “Allow multiple selections” unchecked (single candidate)</li>
+<li>Leaves “Show results publicly” unchecked (secret ballot)</li>
+<li>Adds candidate names as options</li>
+<li>Sets opens/closes dates (or leaves blank for manual control)</li>
+<li>Saves → clicks <strong>Generate Tokens</strong> → one unique token per eligible member</li>
+<li>Sends tokens via email (Administration → Email, or the system sends them automatically)</li>
+<li>Members vote (see Journey 9)</li>
+<li>After the deadline, clicks <strong>Close Vote</strong></li>
+<li>Views results on the <strong>vote detail page</strong> — only the admin sees the totals</li>
+<li>Announces results at the AGM</li>
+</ol>
+<hr />
+<h2 id="journey-18-bureau-manages-equipment">Journey 18 — Bureau Manages Equipment</h2>
+<p><strong>Actor:</strong> Bureau master tracking club gear.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Equipment → Create</strong></li>
+<li>Adds: “Regulator Aqualung Titan”, serial number, purchase date</li>
+<li>Defines <strong>maintenance rules</strong> in Settings: regulator service every 12 months (mandatory)</li>
+<li>When a member needs gear: opens the equipment detail → clicks <strong>Loan</strong> → selects member</li>
+<li>When returned: clicks <strong>Return</strong></li>
+<li>When maintenance is due: the equipment shows a warning → clicks <strong>Complete Maintenance</strong> → next service auto-scheduled 12 months out</li>
+<li>Loan history is tracked for each item</li>
+</ol>
+<hr />
+<h2 id="journey-19-bureau-master-full-system-setup-from-scratch">Journey 19 — Bureau Master: Full System Setup from Scratch</h2>
+<p><strong>Actor:</strong> The person deploying and configuring the system for the first time.</p>
+<h3 id="phase-1-deployment">Phase 1 — Deployment</h3>
+<ol type="1">
+<li>Clones the repository, runs <code>composer install</code>, <code>npm ci &amp;&amp; npm run build</code></li>
+<li>Copies <code>.env.example</code> → <code>.env</code>, sets database credentials, <code>APP_URL</code>, mail settings</li>
+<li>Runs <code>php artisan key:generate</code></li>
+<li>Runs <code>php artisan migrate</code> → creates all 48 tables</li>
+<li>Runs <code>php artisan db:seed</code> → creates the admin user, roles, statuses</li>
+<li>Runs <code>php artisan db:seed --class=CertificationLevelSeeder</code> → 105 certification levels across 11 federations</li>
+<li>Runs <code>php artisan db:seed --class=PinnedArticleSeeder</code> → 7 public stub articles</li>
+<li>Runs <code>php artisan storage:link</code> → makes uploads accessible</li>
+<li>Starts the server: <code>php artisan serve</code> (or configures Nginx/Apache)</li>
+</ol>
+<h3 id="phase-2-initial-configuration">Phase 2 — Initial Configuration</h3>
+<ol start="10" type="1">
+<li>Logs in as admin (<code>admin@divingclub.eu</code> / <code>password</code>)</li>
+<li>Opens <strong>Administration → Settings</strong>:
+<ul>
+<li><strong>Federations</strong>: verifies the 11 pre-seeded federations are correct, adds any missing ones</li>
+<li><strong>Member Statuses</strong>: verifies the 6 French-slug statuses (actif, fonctionnaire, honoraire, junior, famille, membre_de_droit) and their fee multipliers</li>
+<li><strong>Membership Fees</strong>: sets the base fee per status per season year (e.g. Actif 2026 = €150)</li>
+<li><strong>Medical Compliance Rules</strong>: adds rules per federation (e.g. FFESSM: GP cert every 12 months for under-40, GP + ENT every 12 months for 40+)</li>
+<li><strong>Equipment Maintenance Rules</strong>: adds rules (e.g. regulator service every 12 months, BCD inspection every 24 months)</li>
+<li><strong>Theme &amp; Appearance</strong>: picks a preset (Ocean), customizes colors, uploads the club logo, sets club full name “Club Européen de Plongée”</li>
+<li><strong>Article Type Backgrounds</strong>: sets subtle background colors for each article type</li>
+<li><strong>Banking</strong>: enters the club IBAN, BIC, beneficiary name for SEPA QR codes</li>
+</ul></li>
+<li>Reads the <strong>Admin Guide</strong> (14 pages) for reference</li>
+</ol>
+<h3 id="phase-3-content-setup">Phase 3 — Content Setup</h3>
+<ol start="13" type="1">
+<li>Opens <strong>Administration → Articles</strong> → edits each pinned stub:
+<ul>
+<li><strong>Training Schedule</strong>: fills in actual pool times, locations, holiday breaks</li>
+<li><strong>Our Values</strong>: writes the club’s actual values statement</li>
+<li><strong>Contact &amp; Social</strong>: enters real email, address, Facebook/Instagram/WhatsApp links</li>
+<li><strong>Club History</strong>: writes the founding story, key milestones with dates</li>
+<li><strong>The Bureau</strong>: fills in current president, VP, treasurer, secretary, technical director</li>
+<li><strong>Our Members</strong>: adds current membership figures from the dashboard</li>
+<li>(Our Instructors is auto-populated once instructors fill in their bios)</li>
+</ul></li>
+<li>Opens <strong>Administration → Links</strong> → adds quick links for the home sidebar (federation websites, pool schedules, etc.)</li>
+<li>Opens <strong>Administration → Document Library</strong> → creates folders, uploads club statutes, insurance docs, AGM minutes</li>
+</ol>
+<h3 id="phase-4-season-events">Phase 4 — Season &amp; Events</h3>
+<ol start="16" type="1">
+<li>Creates the first <strong>season</strong> (see Journey 13)</li>
+<li>Generates events from weekly patterns</li>
+<li>Manually creates any one-off events (open water trips, social events)</li>
+</ol>
+<h3 id="phase-5-members">Phase 5 — Members</h3>
+<ol start="19" type="1">
+<li>Shares the registration URL with existing club members</li>
+<li>As members register, reviews their profiles in <strong>Administration → Members</strong></li>
+<li>Assigns correct <strong>roles</strong> (instructor, assistant, bureau_member) and <strong>statuses</strong></li>
+<li>Can <strong>impersonate</strong> any member to see the system from their perspective (yellow banner shown, all actions audit-logged)</li>
+<li>Verifies uploaded <strong>medical certificates</strong> (see Journey 10)</li>
+<li>Generates <strong>membership fees</strong> and sends payment emails (see Journey 14)</li>
+</ol>
+<h3 id="phase-6-ongoing-operations">Phase 6 — Ongoing Operations</h3>
+<ol start="24" type="1">
+<li>Publishes <strong>news articles</strong> as things happen (see Journey 15)</li>
+<li>Runs the <strong>annual election</strong> at the AGM (see Journey 17)</li>
+<li>Exports <strong>medical data</strong> for federation submission annually (see Journey 11)</li>
+<li>Manages <strong>equipment</strong> loans and maintenance (see Journey 18)</li>
+<li>Monitors the <strong>dashboard</strong> for statistics and trends</li>
+<li>Generates the <strong>annual report</strong> for the AGM (see Journey 46)</li>
+<li>Reviews <strong>audit logs</strong> periodically (see Journey 37)</li>
+<li>Checks <strong>GDPR</strong> erasure requests if any come in</li>
+<li>Manages <strong>dive sites</strong> with emergency data (see Journey 43)</li>
+<li>Customizes the <strong>homepage layout</strong> — reorder widgets, set visibility (see Journey 44)</li>
+<li>Exports club dive data to <strong>DAN DL7</strong> for research (see Journey 42)</li>
+</ol>
+<h3 id="phase-7-optional-integrations">Phase 7 — Optional Integrations</h3>
+<ol start="32" type="1">
+<li>Configures <strong>OAuth</strong> providers in <code>.env</code> (Google, Facebook, Microsoft client IDs/secrets)</li>
+<li>Configures <strong>Google Maps API key</strong> for event location maps</li>
+<li>Sets up <strong>scheduled tasks</strong> via cron: `* * * * * cd /path &amp;&amp; php artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1`
+<ul>
+<li>Medical reminders (daily 08:00)</li>
+<li>Vote auto-open/close (every minute)</li>
+<li>Weekly backup (Sunday 03:00)</li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="summary-matrix">Summary Matrix</h2>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 24%" />
+<col style="width: 44%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Journey</th>
+<th>Actor</th>
+<th>Key Screens</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Anonymous visitor</td>
+<td>Welcome, About pages, Dues Calculator</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>New user</td>
+<td>Register, Verify Email</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>New member</td>
+<td>Profile (all tabs)</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Active member</td>
+<td>Home, Articles, Calendar, Events, Directory, Documents, iCal, UDDF</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Member (seller)</td>
+<td>Classifieds</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Member (cancelling)</td>
+<td>Event Detail, Profile Registrations</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Instructor</td>
+<td>Profile → Diving → Instructor Bio</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Voter (poll)</td>
+<td>Vote page (multi-select, public results)</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>Voter (election)</td>
+<td>Vote page (anonymous, irreversible)</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Bureau</td>
+<td>Members → Medical Cert → Verify</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>Bureau</td>
+<td>Members → Medical Export (CSV + ZIP)</td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>Bureau</td>
+<td>Document Library</td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Bureau</td>
+<td>Seasons → Patterns → Generate</td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>Bureau</td>
+<td>Payments → Reconciliation</td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td>Bureau</td>
+<td>Articles → Create (with gallery, vote)</td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td>Bureau</td>
+<td>Email → Compose → Send</td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td>Bureau</td>
+<td>Votes → Election → Tokens → Results</td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td>Bureau</td>
+<td>Equipment → Loan → Maintenance</td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td>Bureau Master</td>
+<td>Full setup: deploy → configure → content → season → members</td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>Anonymous visitor</td>
+<td>Free Trial request</td>
+</tr>
+<tr class="odd">
+<td>21</td>
+<td>Instructor</td>
+<td>Availability calendar — mark/unmark weekly slots</td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td>Member</td>
+<td>Read article in preferred language via translation tabs</td>
+</tr>
+<tr class="odd">
+<td>23</td>
+<td>Bureau</td>
+<td>Trigger article auto-translation to all languages</td>
+</tr>
+<tr class="even">
+<td>24</td>
+<td>Bureau Master</td>
+<td>Configure club identity (multi-club)</td>
+</tr>
+<tr class="odd">
+<td>25</td>
+<td>Bureau Master</td>
+<td>Manage license key</td>
+</tr>
+<tr class="even">
+<td>26</td>
+<td>Bureau Master</td>
+<td>/install wizard → DB choice → admin setup</td>
+</tr>
+<tr class="odd">
+<td>27</td>
+<td>Bureau Master</td>
+<td>Partnerships → Add Partner → key exchange</td>
+</tr>
+<tr class="even">
+<td>28</td>
+<td>Bureau Master</td>
+<td>Event → Federated checkbox → external slots</td>
+</tr>
+<tr class="odd">
+<td>29</td>
+<td>Member (external)</td>
+<td>Partner admin → Browse Events → register via API</td>
+</tr>
+<tr class="even">
+<td>30</td>
+<td>Bureau</td>
+<td>Email → group “event” → select event → send</td>
+</tr>
+<tr class="odd">
+<td>31</td>
+<td>System (cron)</td>
+<td>schedule:run → auto-translate oldest article</td>
+</tr>
+<tr class="even">
+<td>32</td>
+<td>Dive Director</td>
+<td>Dive Group Planner → auto-propose → validate → print fiche de sécurité</td>
+</tr>
+<tr class="odd">
+<td>33</td>
+<td>Small club admin</td>
+<td>Wasmer deploy → /install → SQLite → operational</td>
+</tr>
+<tr class="even">
+<td>34</td>
+<td>Bureau Master</td>
+<td>Minors &amp; Consent → link guardian → record consent</td>
+</tr>
+<tr class="odd">
+<td>35</td>
+<td>Member</td>
+<td>Event photos → GDPR consent → auto-publish</td>
+</tr>
+<tr class="even">
+<td>36</td>
+<td>Bureau Master</td>
+<td>Settings → Social Media → Facebook auto-publish</td>
+</tr>
+<tr class="odd">
+<td>37</td>
+<td>Bureau Master</td>
+<td>Audit Log → filter → detail diff → export CSV → retention</td>
+</tr>
+<tr class="even">
+<td>38</td>
+<td>Member</td>
+<td>Buddy Finder → post request → respond → close</td>
+</tr>
+<tr class="odd">
+<td>39</td>
+<td>Anonymous/Member</td>
+<td>Dues Calculator → fee breakdown → EPC QR code</td>
+</tr>
+<tr class="even">
+<td>40</td>
+<td>Member</td>
+<td>Technical articles with SVG diagrams → multi-language tabs</td>
+</tr>
+<tr class="odd">
+<td>41</td>
+<td>Member</td>
+<td>Dive log → Import UDDF → parse depth/duration/temp/deco</td>
+</tr>
+<tr class="even">
+<td>42</td>
+<td>Bureau</td>
+<td>Export DAN DL7 → upload to dan.org/PDE for research</td>
+</tr>
+<tr class="odd">
+<td>43</td>
+<td>Bureau</td>
+<td>Dive Sites → emergency data → fiche de sécurité auto-fill</td>
+</tr>
+<tr class="even">
+<td>44</td>
+<td>Bureau Master</td>
+<td>Homepage layout → reorder widgets → per-widget visibility</td>
+</tr>
+<tr class="odd">
+<td>45</td>
+<td>Member</td>
+<td>Calendar → Subscribe iCal → events sync to phone</td>
+</tr>
+<tr class="even">
+<td>46</td>
+<td>Bureau</td>
+<td>Annual Report → statistics → PDF export for AGM</td>
+</tr>
+<tr class="odd">
+<td>47</td>
+<td>System</td>
+<td>HTTP cron endpoints for shared hosting without crontab</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="journey-20-visitor-requests-a-free-trial">Journey 20 — Visitor Requests a Free Trial</h2>
+<p><strong>Actor:</strong> Someone interested in trying diving.</p>
+<ol type="1">
+<li>Navigates to <code>/trial</code> (linked from welcome page)</li>
+<li>Fills in: name, email, phone, preferred date, message</li>
+<li>Submits — honeypot CAPTCHA validates silently</li>
+<li>Sees confirmation message</li>
+<li>Admin sees the request in Administration → Trial Requests</li>
+<li>Admin contacts the visitor to schedule the trial</li>
+</ol>
+<hr />
+<h2 id="journey-21-instructor-manages-availability">Journey 21 — Instructor Manages Availability</h2>
+<p><strong>Actor:</strong> Active instructor.</p>
+<ol type="1">
+<li>Clicks <strong>Availability</strong> in the nav bar</li>
+<li>Sees weekly calendar grid (current month, Mon–Sun columns)</li>
+<li>Clicks <strong>+</strong> on a date cell → picks activity type (e.g., Pool, Apnea, Theory)</li>
+<li>Their initials appear as a colored badge on that date</li>
+<li>Sees other instructors’ initials already on the calendar</li>
+<li>Clicks their own initial to remove availability</li>
+<li>Events from the event calendar appear as grey badges for context</li>
+</ol>
+<hr />
+<h2 id="journey-22-member-reads-translated-article">Journey 22 — Member Reads Translated Article</h2>
+<p><strong>Actor:</strong> Romanian member who prefers reading in Romanian.</p>
+<ol type="1">
+<li>Has set preferred language to Romanian via language selector</li>
+<li>Opens an article → sees tabbed interface</li>
+<li>Romanian tab is auto-selected (if translation exists)</li>
+<li>Can click “Original” tab to read the French source</li>
+<li>Can click any other language tab to compare</li>
+<li>Auto-translated content shows a 🤖 indicator</li>
+</ol>
+<hr />
+<h2 id="journey-23-admin-translates-an-article">Journey 23 — Admin Translates an Article</h2>
+<p><strong>Actor:</strong> Bureau member publishing a new article.</p>
+<ol type="1">
+<li>Creates article in French (the club’s primary language)</li>
+<li>Publishes it</li>
+<li>Views the article → clicks “🌐 Generate translations”</li>
+<li>System auto-translates to all 10 other languages via Google Translate</li>
+<li>Translations stored in database — instant display for all members</li>
+<li>Can manually edit any translation later if needed</li>
+</ol>
+<hr />
+<h2 id="journey-24-bureau-master-configures-club-identity">Journey 24 — Bureau Master Configures Club Identity</h2>
+<p><strong>Actor:</strong> Admin setting up the system for a new club.</p>
+<ol type="1">
+<li>Goes to Administration → Settings → Club Identity</li>
+<li>Fills in: club name, short code, email, address, phone, country</li>
+<li>Sets warehouse address and GPS coordinates</li>
+<li>Enters IBAN and BIC for payment references</li>
+<li>All pages, emails, QR codes, and exports now use the new identity</li>
+<li>No code changes needed</li>
+</ol>
+<hr />
+<h2 id="journey-25-bureau-master-manages-license">Journey 25 — Bureau Master Manages License</h2>
+<p><strong>Actor:</strong> Admin of a club that has grown past 100 members.</p>
+<ol type="1">
+<li>Tries to register member #101 → blocked by license check</li>
+<li>Goes to Administration → Settings → License</li>
+<li>Sees current status: “Free tier (100 members max)”</li>
+<li>Obtains a license key from the project maintainer</li>
+<li>Pastes the RSA-signed key into the license field</li>
+<li>System verifies signature, club code, and expiry date</li>
+<li>Registration unblocked — license valid for 13 months</li>
+</ol>
+<hr />
+<h2 id="journey-26-bureau-master-runs-the-install-wizard">Journey 26 — Bureau Master Runs the Install Wizard</h2>
+<p><strong>Actor:</strong> Technical person deploying a new instance.</p>
+<ol type="1">
+<li>Deploy code to server (or Wasmer). Visit the site URL.</li>
+<li>Automatically redirected to <code>/install</code> (EnsureInstalled middleware).</li>
+<li>Enter club name, choose database (SQLite for small clubs/Wasmer, MySQL for larger).</li>
+<li>If MySQL: enter host, port, database, username, password.</li>
+<li>Enter admin email and password.</li>
+<li>Click “Install” → migrations run, reference data seeded (39 dive rules, 110+ cert levels, 11 federations), admin account created.</li>
+<li>Redirected to homepage. Log in with admin credentials.</li>
+<li>Follow Admin Guide → First Steps for post-install configuration.</li>
+</ol>
+<hr />
+<h2 id="journey-27-bureau-master-sets-up-inter-club-partnership">Journey 27 — Bureau Master Sets Up Inter-Club Partnership</h2>
+<p><strong>Actor:</strong> Bureau master of Club A wanting to share events with Club B.</p>
+<ol type="1">
+<li>Admin → Partnerships → Add Partner.</li>
+<li>Enter Club B’s name and base URL. System generates Key ID + Secret.</li>
+<li>Copy Key ID + Secret, send to Club B’s admin (email, Signal, etc.).</li>
+<li>Club B does the same, sends their credentials back.</li>
+<li>Edit partnership, paste Club B’s credentials into “Their credentials”.</li>
+<li>Both clubs now have bidirectional API access.</li>
+<li>Browse Club B’s federated events via “Browse Events” button.</li>
+</ol>
+<hr />
+<h2 id="journey-28-bureau-master-creates-a-federated-event">Journey 28 — Bureau Master Creates a Federated Event</h2>
+<p><strong>Actor:</strong> Bureau master organizing a trip open to partner clubs.</p>
+<ol type="1">
+<li>Create event as usual (title, date, location, cost, cert requirements).</li>
+<li>Check “Federated” checkbox, set “External slots” (e.g., 8).</li>
+<li>Save. Event now appears in the federation API.</li>
+<li>Partner clubs see it when browsing events.</li>
+<li>Partner members register via their club’s interface → API call.</li>
+<li>Admin → Partnerships → External Registrations: see pending registrations.</li>
+<li>Review cert level and medical validity. Approve or reject.</li>
+<li>Approved external members appear on the event participant list.</li>
+</ol>
+<hr />
+<h2 id="journey-29-member-registers-for-a-partner-clubs-event">Journey 29 — Member Registers for a Partner Club’s Event</h2>
+<p><strong>Actor:</strong> Member of Club B wanting to join Club A’s trip.</p>
+<ol type="1">
+<li>Club B admin browses Club A’s federated events.</li>
+<li>Sees “Gozo Trip Oct 2026” with 3/8 external slots taken.</li>
+<li>Member requests to join (via their club admin or future self-service UI).</li>
+<li>Club B sends registration to Club A’s API with member’s name, cert level, medical validity.</li>
+<li>Member receives confirmation once Club A approves.</li>
+</ol>
+<hr />
+<h2 id="journey-30-admin-emails-all-event-participants">Journey 30 — Admin Emails All Event Participants</h2>
+<p><strong>Actor:</strong> Bureau member organizing a dive trip.</p>
+<ol type="1">
+<li>Admin → Email → select template (e.g., “Trip Update”).</li>
+<li>Choose group: “Event participants” → select the event from dropdown.</li>
+<li>Preview email with variables resolved.</li>
+<li>Send → emails queued for all confirmed participants.</li>
+<li>Bilingual: if member’s preferred locale differs from template locale, translated version appended.</li>
+<li>Check email log for delivery status.</li>
+</ol>
+<hr />
+<h2 id="journey-31-system-auto-translates-articles">Journey 31 — System Auto-Translates Articles</h2>
+<p><strong>Actor:</strong> System (scheduled task).</p>
+<ol type="1">
+<li>Hourly cron runs <code>schedule:run</code>.</li>
+<li>Task finds oldest published article without translations.</li>
+<li>Calls Google Translate free API for each configured locale.</li>
+<li>Stores translations in <code>article_translations</code> table with <code>auto_translated = true</code>.</li>
+<li>Next visitor sees translation tabs on the article page.</li>
+<li>Admin can manually trigger translations for any article via “Generate translations” button.</li>
+</ol>
+<hr />
+<h2 id="journey-32-dive-director-plans-a-mixed-level-dive">Journey 32 — Dive Director Plans a Mixed-Level Dive</h2>
+<p><strong>Actor:</strong> Instructor or dive director planning a dive at a quarry.</p>
+<ol type="1">
+<li>Open Dive Group Planner for the event.</li>
+<li>Select participants from the event registration list.</li>
+<li>System loads each diver’s federation, cert level, and medical status.</li>
+<li>Click <strong>Auto-Propose</strong> → system suggests palanquée/buddy groupings based on 39 federation rules:
+<ul>
+<li>LIFRAS: P1★ needs P3★+ leader, max 4 P1 per palanquée</li>
+<li>FFESSM: PE-20 needs GP-N4+ guide, max 4 per guide</li>
+<li>BSAC: Ocean Diver needs Sports Diver+ buddy</li>
+</ul></li>
+<li>Review the proposal → click <strong>Apply</strong> to accept, or adjust manually via drag-and-drop.</li>
+<li>Click <strong>Validate</strong> → system checks all groups against federation rules:
+<ul>
+<li>✅ Valid — group composition meets all rules</li>
+<li>❌ Violation — specific rule broken, with explanation and regulation reference</li>
+<li>⚠️ Warning — medical cert expiring within 30 days, or cert level borderline for depth</li>
+</ul></li>
+<li>Flags divers whose cert level doesn’t allow the planned depth.</li>
+<li>Director adjusts groups, confirms plan.</li>
+<li>Click <strong>Print Fiche de Sécurité</strong> → generates FFESSM 2024-2025 format PDF:
+<ul>
+<li>4 palanquées max (12-16 divers) with empty rows for hand-fill</li>
+<li>Columns: Pal, Mode, Prof, Rôle, Nom, Brevet, Féd, N° Licence, Aptitude, Méd, H.Imm, H.Sort, DTR, Obs</li>
+<li>Dive params sub-row per palanquée: actual depth, deco stops 3/6/9m, safety stop checkbox, GPS</li>
+<li>Emergency info block: phone, VHF, hospital + distance, hyperbaric chamber + phone + distance</li>
+<li>Required safety equipment from the dive site record</li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="journey-33-new-club-deploys-on-wasmer-free-tier">Journey 33 — New Club Deploys on Wasmer (Free Tier)</h2>
+<p><strong>Actor:</strong> Small club wanting a free hosted instance.</p>
+<ol type="1">
+<li>Fork the repo, push to Wasmer Edge.</li>
+<li>Visit the Wasmer URL → install wizard appears.</li>
+<li>Choose SQLite (only option on Wasmer — no MySQL available).</li>
+<li>Set club name, admin credentials.</li>
+<li>Install completes. DB is ~2 MB, well within 100 MB free tier.</li>
+<li>Configure theme, upload logo, set federation preferences.</li>
+<li>Invite members. Club operational.</li>
+</ol>
+<hr />
+<h2 id="journey-34-bureau-manages-minors-parental-consent">Journey 34 — Bureau Manages Minors &amp; Parental Consent</h2>
+<p><strong>Actor:</strong> Bureau master onboarding a 14-year-old member.</p>
+<ol type="1">
+<li>The minor’s parent registers the child (or the bureau creates the account).</li>
+<li>Opens <strong>Administration → Minors &amp; Consent</strong>.</li>
+<li>Sees the minor listed with age, no guardian linked, consent badges all ✗.</li>
+<li>Expands the minor’s row → <strong>Link Guardian</strong>: selects the parent’s member account, relationship = “Parent”.</li>
+<li><strong>Record Consent</strong>: selects “General”, uploads the signed parental authorization form (PDF scan).</li>
+<li>Records additional consents: “Events” (can participate), “Medical” (club can manage medical certs).</li>
+<li>Leaves “Photos” unchecked — parent doesn’t want the child’s photos published.</li>
+<li>Dashboard worklist no longer shows “Minors without guardian” for this child.</li>
+<li>When the minor turns 18, they manage their own consents via the Privacy page.</li>
+</ol>
+<hr />
+<h2 id="journey-35-member-uploads-event-photos-with-gdpr-consent">Journey 35 — Member Uploads Event Photos with GDPR Consent</h2>
+<p><strong>Actor:</strong> A member who participated in a dive trip.</p>
+<ol type="1">
+<li>Opens the <strong>event detail page</strong> for the completed trip.</li>
+<li>Scrolls to the <strong>Photos</strong> section.</li>
+<li>Clicks <strong>Choose Files</strong> → selects 5 photos from the trip.</li>
+<li>Adds a caption: “Vis Island wreck dive, 28m”.</li>
+<li>Checks the <strong>GDPR consent checkbox</strong>: “I consent to these photos being shared on the club’s social media channels”.</li>
+<li>Clicks <strong>Upload</strong> → photos appear in the gallery, sorted by quality score.</li>
+<li>If social media auto-publish is enabled and the FB group is confirmed closed, photos are automatically posted to the Facebook group.</li>
+<li>The social publish log tracks each post’s status (published/failed).</li>
+</ol>
+<hr />
+<h2 id="journey-36-bureau-configures-social-media-auto-publish">Journey 36 — Bureau Configures Social Media Auto-Publish</h2>
+<p><strong>Actor:</strong> Bureau master setting up Facebook integration.</p>
+<ol type="1">
+<li>Creates a Facebook App at developers.facebook.com, gets a Page Token with <code>publish_to_groups</code> permission.</li>
+<li>Adds <code>FACEBOOK_PAGE_TOKEN=...</code> to <code>.env</code>.</li>
+<li>Opens <strong>Administration → Settings → Technical → Social Media Auto-Publish</strong>.</li>
+<li>Sets <strong>Facebook Group ID</strong> (from the group URL).</li>
+<li>Confirms <strong>“FB Group is Closed”</strong> = Yes (privacy requirement).</li>
+<li>Enables <strong>Auto-Publish</strong>.</li>
+<li>Saves. From now on, event photos uploaded with GDPR consent are auto-posted.</li>
+<li>If any condition fails (no consent, group not closed, publish disabled), photos stay local only.</li>
+</ol>
+<hr />
+<h2 id="journey-37-bureau-reviews-the-audit-log">Journey 37 — Bureau Reviews the Audit Log</h2>
+<p><strong>Actor:</strong> Bureau master investigating a data change.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Audit Log</strong>.</li>
+<li>Filters by model type “User”, action “updated”, date range last 7 days.</li>
+<li>Sees a list of changes with summaries (which fields changed).</li>
+<li>Clicks <strong>View</strong> on a suspicious entry → opens the <strong>detail page</strong>.</li>
+<li>Sees a field-by-field diff: <code>status_id</code> changed from 3 to 1, <code>role_id</code> from 5 to 2.</li>
+<li>Notes the IP address and user agent — confirms it was a legitimate admin action.</li>
+<li>Clicks <strong>📥 Export</strong> to download filtered results as CSV for the bureau meeting.</li>
+<li>Sets <strong>retention policy</strong> to 24 months → system auto-purges older entries monthly.</li>
+</ol>
+<hr />
+<h2 id="journey-38-member-uses-the-buddy-finder">Journey 38 — Member Uses the Buddy Finder</h2>
+<p><strong>Actor:</strong> A certified diver looking for a buddy for a weekend dive.</p>
+<ol type="1">
+<li>Clicks <strong>Buddies</strong> in the nav bar.</li>
+<li>Sees open buddy requests from other members.</li>
+<li>Clicks <strong>Post a Request</strong>: “Looking for a buddy for Remerschen quarry, Saturday 10am, max 20m”.</li>
+<li>Other members see the request → one clicks <strong>Respond</strong> with a message.</li>
+<li>Original poster sees the response, contacts the buddy directly.</li>
+<li>After the dive, clicks <strong>Close</strong> to remove the request.</li>
+</ol>
+<hr />
+<h2 id="journey-39-member-uses-the-dues-calculator">Journey 39 — Member Uses the Dues Calculator</h2>
+<p><strong>Actor:</strong> Prospective member checking costs before joining.</p>
+<ol type="1">
+<li>Navigates to <code>/dues</code> (linked from welcome page, no login required).</li>
+<li>Selects a membership status (e.g., “Actif”).</li>
+<li>Optionally selects add-ons (insurance level, double affiliation).</li>
+<li>Sees the calculated annual fee with breakdown.</li>
+<li>Scans the <strong>EPC QR code</strong> with their banking app → pre-filled SEPA transfer with club IBAN, amount, and communication string.</li>
+<li>Decides to register based on the transparent pricing.</li>
+</ol>
+<hr />
+<h2 id="journey-40-member-reads-technical-diving-articles">Journey 40 — Member Reads Technical Diving Articles</h2>
+<p><strong>Actor:</strong> A member studying for their N2 certification.</p>
+<ol type="1">
+<li>Opens the <strong>Articles</strong> section → filters by type “Training”.</li>
+<li>Sees 20+ technical articles with original SVG diagrams covering physics, physiology, techniques, and gear.</li>
+<li>Opens <strong>Loi de Mariotte (Boyle)</strong> → reads the explanation with an inline SVG showing volume compression at 1/2/3/4 bar.</li>
+<li>Switches to the <strong>English</strong> tab to compare terminology (preparing for a PADI crossover).</li>
+<li>Opens <strong>Gradient Factors</strong> → studies the ascent profile comparison chart and recommended GF settings table.</li>
+<li>Opens <strong>Dive Computer Export Guide</strong> → follows brand-specific instructions for their Mares Genius to export UDDF.</li>
+<li>Reads <strong>Buddy Check (BWRAF)</strong> → memorizes the mnemonic with the SVG diagram showing all check points.</li>
+<li>All articles available in 11 languages with automatic translation (🤖 indicator on auto-translated content).</li>
+</ol>
+<hr />
+<h2 id="journey-41-member-imports-dive-logs-from-their-computer">Journey 41 — Member Imports Dive Logs from Their Computer</h2>
+<p><strong>Actor:</strong> A member who wants to log their dives on the club platform.</p>
+<ol type="1">
+<li>Exports dive data from their dive computer’s app:
+<ul>
+<li>Mares SSI → Menu → Share → UDDF</li>
+<li>Shearwater Cloud → Select dives → Export → UDDF</li>
+<li>Suunto DM5 → File → Export → UDDF</li>
+<li>Garmin Connect → exports .fit → imports into Subsurface → exports UDDF</li>
+<li>Scubapro LogTRAK → File → Export → UDDF</li>
+<li>Aqualung DiverLog+ → native UDDF export</li>
+</ul></li>
+<li>If their computer doesn’t export UDDF natively, uses <strong>Subsurface</strong> (free, open source) as a universal converter.</li>
+<li>Goes to their dive log → clicks <strong>Import UDDF</strong> → selects the <code>.uddf</code> file.</li>
+<li>System parses UDDF 3.2.1: extracts depth profile, duration, temperature, deco stops, safety stop detection.</li>
+<li>Dive appears in their personal log.</li>
+<li>Can also <strong>Export UDDF</strong> to download all their logged dives in universal format.</li>
+</ol>
+<hr />
+<h2 id="journey-42-bureau-exports-dive-data-for-dan-research">Journey 42 — Bureau Exports Dive Data for DAN Research</h2>
+<p><strong>Actor:</strong> Bureau master contributing to decompression research.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Export DAN</strong>.</li>
+<li>System generates a DAN DL7 file (pipe-delimited format) containing all club dive logs.</li>
+<li>File includes ZDH (header), ZDL (dive log), and ZDT (tissue) records.</li>
+<li>Downloads the <code>.dl7</code> file.</li>
+<li>Uploads it to the DAN Project Dive Exploration portal (dan.org/PDE).</li>
+<li>Club contributes to global decompression sickness research.</li>
+</ol>
+<hr />
+<h2 id="journey-43-bureau-manages-dive-sites">Journey 43 — Bureau Manages Dive Sites</h2>
+<p><strong>Actor:</strong> Bureau master maintaining the dive site database.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Dive Sites</strong>.</li>
+<li>Sees the 13 pre-seeded sites (Luxembourg quarries, Belgian coast, etc.).</li>
+<li>Clicks <strong>Create</strong> to add a new site: name, GPS coordinates, max depth, description.</li>
+<li>Fills in <strong>emergency data</strong>:
+<ul>
+<li>Emergency phone number</li>
+<li>VHF channel</li>
+<li>Nearest hospital name and distance (km)</li>
+<li>Nearest hyperbaric chamber, phone number, and distance (km)</li>
+<li>Required safety equipment (O₂ kit, first aid, VHF radio, etc.)</li>
+</ul></li>
+<li>When creating a dive event, selects this site → emergency data auto-populates the fiche de sécurité PDF.</li>
+<li>Edits an existing site to update hospital distance after a new facility opens.</li>
+</ol>
+<hr />
+<h2 id="journey-44-bureau-customizes-the-homepage-layout">Journey 44 — Bureau Customizes the Homepage Layout</h2>
+<p><strong>Actor:</strong> Bureau master personalizing the club’s home page.</p>
+<ol type="1">
+<li>Logs in → visits the home page → clicks <strong>Edit Layout</strong> (pencil icon).</li>
+<li>Sees the widget toolbar on each section: Latest Articles, Upcoming Events, Quick Links, Hero Banner, Custom HTML.</li>
+<li>Drags widgets to reorder them.</li>
+<li>Sets <strong>visibility</strong> per widget:
+<ul>
+<li>🌍 Public — visible to everyone including anonymous visitors</li>
+<li>🔒 Members — visible only to logged-in members</li>
+<li>🎓 Instructors — visible only to instructors and bureau</li>
+<li>👔 Bureau — visible only to bureau members</li>
+</ul></li>
+<li>Configures widget options (e.g., number of articles to show, hero title text).</li>
+<li>Clicks <strong>Save Layout</strong> → changes take effect immediately.</li>
+<li>Anonymous visitors see only public widgets; members see member + public widgets.</li>
+</ol>
+<hr />
+<h2 id="journey-45-member-subscribes-to-the-ical-calendar-feed">Journey 45 — Member Subscribes to the iCal Calendar Feed</h2>
+<p><strong>Actor:</strong> A member who wants club events in their phone calendar.</p>
+<ol type="1">
+<li>Opens the <strong>Calendar</strong> page.</li>
+<li>Clicks the <strong>Subscribe (iCal)</strong> link → copies the URL: <code>https://club-domain.lu/calendar.ics</code>.</li>
+<li>Opens their phone’s calendar app (Google Calendar, Apple Calendar, Outlook):
+<ul>
+<li>Google Calendar: Settings → Add calendar → From URL → paste</li>
+<li>Apple Calendar: File → New Calendar Subscription → paste</li>
+<li>Outlook: Add calendar → Subscribe from web → paste</li>
+</ul></li>
+<li>Club events appear in their personal calendar, color-coded by type.</li>
+<li>New events and changes sync automatically (calendar apps poll the feed periodically).</li>
+<li>The iCal feed is public — no authentication required.</li>
+</ol>
+<hr />
+<h2 id="journey-46-bureau-generates-the-annual-report">Journey 46 — Bureau Generates the Annual Report</h2>
+<p><strong>Actor:</strong> Bureau master preparing for the Annual General Meeting.</p>
+<ol type="1">
+<li>Opens <strong>Administration → Annual Report</strong>.</li>
+<li>Selects the reporting year/season.</li>
+<li>System generates a comprehensive report with:
+<ul>
+<li>Membership statistics: total members, new registrations, departures, by status/role/federation</li>
+<li>Event statistics: total events, attendance rates, most popular events</li>
+<li>Financial summary: total dues collected, outstanding payments</li>
+<li>Medical compliance: percentage compliant, certificates verified</li>
+<li>Equipment: inventory count, loans, maintenance completed</li>
+</ul></li>
+<li>Reviews the report on screen.</li>
+<li>Exports as PDF or prints for the AGM presentation.</li>
+</ol>
+<hr />
+<h2 id="journey-47-system-runs-scheduled-tasks-via-http-cron">Journey 47 — System Runs Scheduled Tasks via HTTP Cron</h2>
+<p><strong>Actor:</strong> System on shared hosting without cron access.</p>
+<ol type="1">
+<li>Admin configures <code>CRON_KEY=secret</code> in <code>.env</code>.</li>
+<li>Sets up an external cron service (cron-job.org, UptimeRobot) to ping <code>{APP_URL}/cron/run?key=secret</code> every 15 minutes.</li>
+<li>On each ping, the system runs all due scheduled tasks:
+<ul>
+<li><code>/cron/medical-reminders</code> — sends expiry reminders (30/15/7/0 days)</li>
+<li><code>/cron/weekly-backup</code> — database backup (Sundays)</li>
+<li><code>/cron/run-schedule</code> — vote auto-open/close, article auto-translation</li>
+</ul></li>
+<li>Each endpoint validates the <code>CRON_KEY</code> before executing.</li>
+<li>Returns <code>OK</code> with timestamp on success, <code>403</code> on invalid key.</li>
+<li>Alternative to the standard `* * * * * php artisan schedule:run` cron entry.</li>
+</ol>
+</body>
+</html>

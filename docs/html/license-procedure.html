@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>DivingClub-Manager — License Procedure</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">DivingClub-Manager — License Procedure</h1>
+</header>
+<h1 id="license-key-generation-procedure">License Key Generation Procedure</h1>
+<p>How to generate and install a license key for DivingClub-Manager instances exceeding the free tier (100 members).</p>
+<hr />
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>OpenSSL installed on your machine</li>
+<li>Access to the server’s Admin → Settings panel</li>
+<li>The RSA private key (kept offline, never on the server)</li>
+</ul>
+<h2 id="step-1-generate-the-rsa-key-pair-once">Step 1 — Generate the RSA Key Pair (Once)</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="co"># Generate private key (keep this SECRET — never commit or upload)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">openssl</span> genrsa -out license-private.pem 2048</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="co"># Extract public key</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="ex">openssl</span> rsa -in license-private.pem -pubout -out license-public.pem</span></code></pre></div>
+<p>Store <code>license-private.pem</code> in a secure location (encrypted USB, password manager vault). You only need it when generating new licenses.</p>
+<h2 id="step-2-install-the-public-key">Step 2 — Install the Public Key</h2>
+<p>Copy the contents of <code>license-public.pem</code> into <code>app/Services/LicenseService.php</code>, replacing the <code>PUBLIC_KEY</code> constant:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">private</span> <span class="kw">const</span> <span class="kw">PUBLIC_KEY</span> = <span class="kw">&lt;&lt;&lt;&#39;PEM&#39;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="st">-----BEGIN PUBLIC KEY-----</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="st">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...  ← your actual key</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="st">-----END PUBLIC KEY-----</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="kw">PEM;</span></span></code></pre></div>
+<p>Commit and deploy. This only needs to be done once.</p>
+<h2 id="step-3-generate-a-license-key">Step 3 — Generate a License Key</h2>
+<h3 id="for-a-small-club-20-members">For a small club (≤20 members)</h3>
+<p>No license needed — the free tier covers up to 100 members. Skip this entirely.</p>
+<h3 id="for-a-club-with-up-to-20-members-explicit-license">For a club with up to 20 members (explicit license)</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">php</span> scripts/generate-license.php license-private.pem clubdomain.eu 20 2027-12-31</span></code></pre></div>
+<h3 id="for-a-club-with-up-to-500-members">For a club with up to 500 members</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">php</span> scripts/generate-license.php license-private.pem clubdomain.eu 500 2027-12-31</span></code></pre></div>
+<h3 id="parameters">Parameters</h3>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 40%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Argument</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>license-private.pem</code></td>
+<td>Path to your private key file</td>
+<td><code>~/keys/license-private.pem</code></td>
+</tr>
+<tr class="even">
+<td><code>clubdomain.eu</code></td>
+<td>The club’s domain (must match <code>config('club.domain')</code>)</td>
+<td><code>clubcep.eu</code></td>
+</tr>
+<tr class="odd">
+<td><code>500</code></td>
+<td>Maximum member count allowed</td>
+<td><code>20</code>, <code>100</code>, <code>500</code>, <code>9999</code></td>
+</tr>
+<tr class="even">
+<td><code>2027-12-31</code></td>
+<td>Expiry date (optional, defaults to +13 months)</td>
+<td><code>2028-06-30</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="output">Output</h3>
+<p>The script prints a license key like:</p>
+<pre><code>License Key:
+eyJkb21haW4iOiJjbHViY2VwLmV1IiwibWF4X21lbWJlcnMiOjUwMCwiZXhwaXJlcyI6IjIwMjctMTItMzEiLCJpc3N1ZWRfYXQiOiIyMDI2LTAzLTIwIDEwOjAwOjAwIn0=.SIGNATURE_BASE64_HERE
+
+Payload: {&quot;domain&quot;:&quot;clubcep.eu&quot;,&quot;max_members&quot;:500,&quot;expires&quot;:&quot;2027-12-31&quot;,&quot;issued_at&quot;:&quot;2026-03-20 10:00:00&quot;}
+Valid for: clubcep.eu, up to 500 members, expires 2027-12-31</code></pre>
+<h2 id="step-4-install-the-license-key">Step 4 — Install the License Key</h2>
+<ol type="1">
+<li>Log in as Bureau Master</li>
+<li>Go to <strong>Administration → Settings → License</strong></li>
+<li>Paste the entire license key string (the <code>eyJ...</code> line) into the License Key field</li>
+<li>Click <strong>Save</strong></li>
+<li>The page should now show: ✅ License valid</li>
+</ol>
+<h2 id="verification">Verification</h2>
+<p>The license is verified at three independent checkpoints: - <strong>Middleware</strong> — blocks member registration when invalid - <strong>Boot provider</strong> — shares watermark status with all views - <strong>PDF output</strong> — stamps “UNLICENSED” on fiche de sécurité and exports if invalid</p>
+<p>To check status programmatically:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="ex">php</span> artisan tinker --execute <span class="st">&quot;\App\Services\LicenseService::status();&quot;</span></span></code></pre></div>
+<p>Returns:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="ot">[</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>    <span class="st">&#39;member_count&#39;</span> =&gt; <span class="dv">142</span><span class="ot">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>    <span class="st">&#39;free_tier_limit&#39;</span> =&gt; <span class="dv">100</span><span class="ot">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a>    <span class="st">&#39;needs_license&#39;</span> =&gt; <span class="kw">true</span><span class="ot">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>    <span class="st">&#39;is_valid&#39;</span> =&gt; <span class="kw">true</span><span class="ot">,</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>    <span class="st">&#39;integrity_ok&#39;</span> =&gt; <span class="kw">true</span><span class="ot">,</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="ot">]</span></span></code></pre></div>
+<h2 id="renewal">Renewal</h2>
+<p>Licenses default to 13 months. To renew, generate a new key with a future expiry date and paste it into Admin → Settings → License. The old key is replaced immediately.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>“Invalid license” after deploy</td>
+<td>Public key mismatch</td>
+<td>Ensure <code>PUBLIC_KEY</code> in LicenseService matches the key pair used to sign</td>
+</tr>
+<tr class="even">
+<td>“Invalid license” after code update</td>
+<td>Integrity hash mismatch</td>
+<td>Regenerate <code>INTEGRITY_HASHES</code> or set to <code>[]</code> during development</td>
+</tr>
+<tr class="odd">
+<td>License valid but watermark shows</td>
+<td>Cache stale</td>
+<td>Clear cache: <code>php artisan cache:clear</code></td>
+</tr>
+<tr class="even">
+<td>Domain mismatch</td>
+<td><code>config('club.domain')</code> differs from license payload</td>
+<td>Update <code>.env</code> or generate a new key with the correct domain</td>
+</tr>
+</tbody>
+</table>
+<h2 id="security-notes">Security Notes</h2>
+<ul>
+<li>The private key is <strong>never</strong> stored on the server or in the repository</li>
+<li>License payloads are signed with RSA-2048 + SHA-256 — cannot be forged without the private key</li>
+<li>The system fails closed: if verification fails for any reason, the installation is treated as unlicensed</li>
+<li>Tampering with <code>LicenseService.php</code>, <code>CheckLicense.php</code>, or <code>routes/web.php</code> triggers integrity alerts (when hashes are configured)</li>
+</ul>
+</body>
+</html>

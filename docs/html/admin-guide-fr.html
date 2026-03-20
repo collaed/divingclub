@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="ClubCEP.eu" />
+  <title>DivingClub-Manager — Guide Administrateur</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">DivingClub-Manager — Guide Administrateur</h1>
+<p class="author">ClubCEP.eu</p>
+<p class="date">Mars 2026</p>
+</header>
+<h1 id="guide-administrateur-divingclub-manager">Guide Administrateur — DivingClub-Manager</h1>
+<p>Guide complet pour les administrateurs (Bureau Master) du système de gestion de club de plongée.</p>
+<hr />
+<h2 id="vue-densemble">1. Vue d’ensemble</h2>
+<p>Bienvenue dans le système d’administration DivingClub — la plateforme de gestion pour votre club de plongée.</p>
+<h3 id="ce-que-le-système-gère">Ce que le système gère</h3>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Module</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>👥 Membres</td>
+<td>Profils, rôles, statuts, licences multi-fédérations, niveaux de certification, gestion tuteur/mineur</td>
+</tr>
+<tr class="even">
+<td>📅 Événements</td>
+<td>Calendrier, saisons récurrentes, inscriptions, listes d’attente, groupes WhatsApp, photos d’événements</td>
+</tr>
+<tr class="odd">
+<td>🫧 Palanquées</td>
+<td>Planificateur de groupes, 39 règles sur 5 fédérations, validation multi-niveaux</td>
+</tr>
+<tr class="even">
+<td>🏥 Médical</td>
+<td>Suivi des certificats par fédération, rappels automatiques, blocage d’inscription</td>
+</tr>
+<tr class="odd">
+<td>💰 Paiements</td>
+<td>Calcul des cotisations, rapprochement bancaire avec matching IBAN, QR codes SEPA</td>
+</tr>
+<tr class="even">
+<td>🤿 Équipement</td>
+<td>Inventaire, prêts, planification de maintenance</td>
+</tr>
+<tr class="odd">
+<td>📰 Contenu</td>
+<td>Articles typés, traduction auto, galeries d’images, commentaires, petites annonces, bibliothèque de documents</td>
+</tr>
+<tr class="even">
+<td>✉️ Email</td>
+<td>Templates, ciblage par groupe, bilingue, journal d’envoi</td>
+</tr>
+<tr class="odd">
+<td>🗳️ Votes</td>
+<td>Sondages simples et élections anonymes, multi-sélection, résultats publics</td>
+</tr>
+<tr class="even">
+<td>🤝 Partenariats</td>
+<td>API inter-clubs, échange de clés symétriques, inscriptions croisées</td>
+</tr>
+<tr class="odd">
+<td>📱 Réseaux sociaux</td>
+<td>Publication auto Facebook avec triple vérification RGPD</td>
+</tr>
+<tr class="even">
+<td>🔒 RGPD</td>
+<td>Gestion des consentements, consentement parental pour mineurs, export de données, effacement</td>
+</tr>
+<tr class="odd">
+<td>📋 Journal d’audit</td>
+<td>Historique complet des modifications, vue diff, export CSV, politique de rétention</td>
+</tr>
+<tr class="even">
+<td>📊 Tableau de bord</td>
+<td>Statistiques, liste de tâches bureau, exports CSV</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rôles">Rôles</h3>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 31%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Rôle</th>
+<th>Slug</th>
+<th>Accès</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Bureau Master</td>
+<td><code>bureau_master</code></td>
+<td>Admin complet — tous les paramètres, membres, finances, équipement, communications</td>
+</tr>
+<tr class="even">
+<td>Bureau</td>
+<td><code>bureau_member</code></td>
+<td>Accès bureau en lecture</td>
+</tr>
+<tr class="odd">
+<td>Instructeur</td>
+<td><code>instructor</code></td>
+<td>Gérer les événements qu’il encadre, voir les participants</td>
+</tr>
+<tr class="even">
+<td>Assistant</td>
+<td><code>assistant</code></td>
+<td>Assister aux événements</td>
+</tr>
+<tr class="odd">
+<td>Membre</td>
+<td><code>member</code></td>
+<td>Standard — profil, événements, documents</td>
+</tr>
+<tr class="even">
+<td>En attente</td>
+<td><code>pending</code></td>
+<td>En attente d’approbation après inscription</td>
+</tr>
+</tbody>
+</table>
+<h3 id="statuts-des-membres-slugs-français">Statuts des membres (slugs français)</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Statut</th>
+<th>Slug</th>
+<th>Multiplicateur</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Actif</td>
+<td><code>actif</code></td>
+<td>1.00</td>
+<td>Membre actif standard</td>
+</tr>
+<tr class="even">
+<td>Fonctionnaire</td>
+<td><code>fonctionnaire</code></td>
+<td>1.00</td>
+<td>Fonctionnaire</td>
+</tr>
+<tr class="odd">
+<td>Honoraire</td>
+<td><code>honoraire</code></td>
+<td>0.00</td>
+<td>Toujours gratuit</td>
+</tr>
+<tr class="even">
+<td>Junior</td>
+<td><code>junior</code></td>
+<td>0.50</td>
+<td>Moins de 18 ans</td>
+</tr>
+<tr class="odd">
+<td>Famille</td>
+<td><code>famille</code></td>
+<td>0.75</td>
+<td>Adhésion familiale</td>
+</tr>
+<tr class="even">
+<td>Membre de droit</td>
+<td><code>membre_de_droit</code></td>
+<td>0.00</td>
+<td>Membre de droit</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fédérations-supportées">Fédérations supportées</h3>
+<p>11 fédérations configurées avec 105 niveaux de certification : FFESSM, LIFRAS, FLASSA, NELOS, VDST, PADI, SSI, UCPA, BSAC, NASDS et CMAS.</p>
+<hr />
+<h2 id="premiers-pas-après-le-déploiement">2. Premiers pas après le déploiement</h2>
+<p>Après le déploiement de DivingClub, l’<strong>assistant d’installation</strong> apparaît automatiquement à la première visite. Il permet de choisir :</p>
+<ul>
+<li><strong>SQLite</strong> — zéro configuration, fichier unique, idéal pour les petits clubs et déploiements Wasmer/cloud (100 Mo gratuit)</li>
+<li><strong>MySQL / MariaDB</strong> — pour les déploiements multi-clubs plus importants</li>
+</ul>
+<p>L’assistant crée la base de données, exécute les migrations, insère les données de référence (fédérations, niveaux de certification, règles de plongée) et crée votre compte administrateur.</p>
+<h3 id="configuration-post-installation">2.1 Configuration post-installation</h3>
+<p>Éditez <code>.env</code> sur le serveur :</p>
+<pre><code>APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://votre-domaine.lu
+
+# Mail — utiliser un vrai SMTP en production
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.votre-fournisseur.com
+MAIL_PORT=587
+MAIL_USERNAME=noreply@divingclub.eu
+MAIL_PASSWORD=votre_mot_de_passe_mail
+MAIL_ENCRYPTION=tls
+
+# Spécifique au club
+CLUB_IBAN=LU00 0000 0000 0000 0000
+CLUB_ID=MONCLUB
+FEDERATION_SALT=changer_ceci_par_une_chaine_aleatoire</code></pre>
+<h3 id="configurer-les-clés-api">2.2 Configurer les clés API</h3>
+<p>Voir la section 14 (Clés API et OAuth) pour les instructions détaillées.</p>
+<h3 id="configurer-les-fédérations">2.3 Configurer les fédérations</h3>
+<p>Allez dans Paramètres → Fédérations. 11 fédérations sont pré-configurées avec 105 niveaux de certification. Ajoutez ou modifiez selon vos besoins.</p>
+<h3 id="configurer-les-règles-de-conformité-médicale">2.4 Configurer les règles de conformité médicale</h3>
+<p>Paramètres → Règles de conformité médicale. Six règles sont pré-insérées pour FFESSM et LIFRAS. Ajustez les périodes de validité et tranches d’âge selon votre fédération.</p>
+<h3 id="configurer-les-composantes-de-cotisation">2.5 Configurer les composantes de cotisation</h3>
+<p>Paiements → Composantes de cotisation. Créez une cotisation de base et des composantes optionnelles (assurance, double affiliation).</p>
+<p>Formule : <code>final = (base × multiplicateur_statut × (1 − réduction_âge)) + options</code></p>
+<ul>
+<li>Âge &lt; 18 → réduction 50%</li>
+<li>Âge ≥ 65 → réduction 25%</li>
+<li>Statut honoraire → toujours 0€</li>
+</ul>
+<h3 id="créer-la-première-saison">2.6 Créer la première saison</h3>
+<p>Saisons → Créer avec dates de début/fin, ajouter des schémas hebdomadaires, ajouter les vacances, puis générer les événements.</p>
+<h3 id="configurer-les-règles-de-maintenance-équipement">2.7 Configurer les règles de maintenance équipement</h3>
+<p>Paramètres → Règles de maintenance. Définir les intervalles par type d’équipement (ex : « Révision détendeur tous les 12 mois »).</p>
+<h3 id="personnaliser-le-thème">2.8 Personnaliser le thème</h3>
+<p>Paramètres → Thème et apparence. Choisir un preset (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic) ou définir des couleurs personnalisées. Uploader un logo.</p>
+<h3 id="configurer-les-tâches-planifiées-cron">2.9 Configurer les tâches planifiées (Cron)</h3>
+<p>Les tâches planifiées gèrent les rappels médicaux, l’ouverture/fermeture auto des votes, la traduction d’articles et les sauvegardes hebdomadaires.</p>
+<p><strong>Option A : Cron serveur (VPS / dédié)</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ex">*</span> * * * * cd /chemin/vers/projet <span class="kw">&amp;&amp;</span> <span class="ex">php</span> artisan schedule:run <span class="op">&gt;&gt;</span> /dev/null <span class="op">2&gt;&amp;1</span></span></code></pre></div>
+<p><strong>Option B : Hébergement mutualisé sans accès cron</strong></p>
+<p>Utilisez le service gratuit cron-job.org pour pinger votre site toutes les 15 minutes :</p>
+<ol type="1">
+<li>Définir une clé secrète dans <code>.env</code> : <code>CRON_KEY=votre-secret-aleatoire</code></li>
+<li>Créer un compte gratuit sur cron-job.org</li>
+<li>Ajouter un cron job : URL <code>{APP_URL}/cron/run?key=votre-secret</code>, toutes les 15 min, méthode GET</li>
+<li>Tester : visiter l’URL dans le navigateur — vous devriez voir <code>OK</code> suivi de la date/heure</li>
+</ol>
+<p>Alternatives : UptimeRobot (gratuit, toutes les 5 min) ou tout service capable de pinger une URL.</p>
+<h3 id="changer-le-mot-de-passe-par-défaut">2.10 Changer le mot de passe par défaut</h3>
+<p>Admin par défaut : <code>admin@divingclub.eu</code> / <code>password</code>. <strong>Changer immédiatement</strong> via la page de profil.</p>
+<blockquote>
+<p><strong>Sécurité :</strong> Assurez-vous que <code>APP_DEBUG=false</code> en production et changez tous les mots de passe par défaut.</p>
+</blockquote>
+<hr />
+<h2 id="gestion-des-membres">3. Gestion des membres</h2>
+<h3 id="liste-des-membres">3.1 Liste des membres</h3>
+<p>Administration → Membres affiche tous les utilisateurs enregistrés. La liste montre l’avatar, le nom, l’email, le rôle, le statut et le badge de conformité médicale.</p>
+<h3 id="modifier-un-membre">3.2 Modifier un membre</h3>
+<p>Cliquez sur un nom pour voir/modifier le profil complet. En tant que Bureau Master, vous pouvez modifier tous les onglets :</p>
+<ul>
+<li><strong>Info</strong> — nom, nationalité, coordonnées, contact d’urgence</li>
+<li><strong>Privé</strong> — adresse, date de naissance (visible uniquement par le Bureau)</li>
+<li><strong>Plongée</strong> — niveaux de certification (depuis la table de référence), nombre de plongées, inscriptions aux formations</li>
+<li><strong>Médical</strong> — upload/vérification des certificats médicaux, statut de conformité</li>
+<li><strong>Licences</strong> — numéros de licence fédérale et suivi des demandes</li>
+<li><strong>Documents</strong> — scans de pièce d’identité, assurance, autres uploads</li>
+<li><strong>Emails</strong> — gérer jusqu’à 5 adresses email par membre</li>
+<li><strong>Équipement</strong> — voir les prêts en cours</li>
+</ul>
+<h3 id="niveaux-de-certification">3.3 Niveaux de certification</h3>
+<p>Le système inclut 105 niveaux de certification sur 11 fédérations. Les membres peuvent ajouter plusieurs certifications et en marquer une comme « principale ». Le système apprend les préférences d’affichage via le compteur <code>display_priority</code>.</p>
+<h3 id="rôles-et-statuts">3.4 Rôles et statuts</h3>
+<p>Changer le rôle d’un membre via la liste des membres (menu déroulant). Changer le statut via son profil. Les multiplicateurs de cotisation sont liés aux statuts — voir Paramètres.</p>
+<h3 id="impersonation">3.5 Impersonation</h3>
+<p>Le Bureau Master peut se faire passer pour n’importe quel membre pour voir le système de son point de vue. Cliquer « Impersonner » dans la liste des membres. Un bandeau jaune s’affiche pendant l’impersonation avec un lien « Arrêter ». Toutes les actions d’impersonation sont journalisées.</p>
+<h3 id="auto-inscription">3.6 Auto-inscription</h3>
+<p>Les nouveaux utilisateurs s’inscrivent sur <code>/register</code> et obtiennent le rôle <code>pending</code>. Le Bureau Master doit changer leur rôle en <code>member</code> (ou autre) pour accorder l’accès.</p>
+<hr />
+<h2 id="conformité-médicale">4. Conformité médicale</h2>
+<h3 id="fonctionnement">4.1 Fonctionnement</h3>
+<p>La conformité médicale est évaluée selon les règles de chaque fédération. Chaque règle définit : fédération, tranche d’âge, type de certificat et validité en mois.</p>
+<h3 id="types-de-certificats">4.2 Types de certificats</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>gp</code></td>
+<td>Certificat de médecin généraliste</td>
+</tr>
+<tr class="even">
+<td><code>ent</code></td>
+<td>Certificat ORL</td>
+</tr>
+<tr class="odd">
+<td><code>cardio</code></td>
+<td>Certificat de cardiologue</td>
+</tr>
+<tr class="even">
+<td><code>ophthalmologist</code></td>
+<td>Certificat d’ophtalmologue</td>
+</tr>
+<tr class="odd">
+<td><code>other</code></td>
+<td>Autre certificat médical</td>
+</tr>
+</tbody>
+</table>
+<h3 id="évaluation-de-la-conformité">4.3 Évaluation de la conformité</h3>
+<p>Quand un membre uploade un certificat médical :</p>
+<ol type="1">
+<li>Le système trouve toutes les règles correspondant à la/les fédération(s) et l’âge du membre</li>
+<li>Utilise la période de validité <strong>la plus restrictive</strong></li>
+<li>Calcule la date d’expiration à partir de la date d’examen</li>
+<li>Définit le statut : conforme / expire bientôt (30 jours) / expiré</li>
+</ol>
+<h3 id="badges-de-conformité">4.4 Badges de conformité</h3>
+<ul>
+<li>✅ <strong>Conforme</strong> — certificat valide en dossier</li>
+<li>⚠️ <strong>Expire bientôt</strong> — expire dans les 30 jours</li>
+<li>❌ <strong>Non conforme</strong> — expiré ou pas de certificat</li>
+</ul>
+<p>Les badges apparaissent sur : l’en-tête du profil, l’onglet médical, la liste admin des membres, la liste des participants aux événements.</p>
+<h3 id="blocage-dinscription">4.5 Blocage d’inscription</h3>
+<p>Les membres avec un statut médical non conforme ne peuvent pas s’inscrire aux événements de piscine, plongée ou formation. Les événements sociaux sont exemptés.</p>
+<h3 id="rappels-automatiques">4.6 Rappels automatiques</h3>
+<p>Quotidiennement à 08h00, le système envoie des rappels par email à 30, 15, 7 et 0 jours avant l’expiration du certificat. Chaque rappel n’est envoyé qu’une fois (suivi via les colonnes <code>reminder_*_sent_at</code>).</p>
+<h3 id="vérification-des-certificats">4.7 Vérification des certificats</h3>
+<p>Le Bureau Master peut vérifier les certificats uploadés en cliquant « Vérifier » dans l’onglet médical. Cela marque le document comme vérifié dans le journal d’audit.</p>
+<h3 id="gestion-des-règles">4.8 Gestion des règles</h3>
+<p>Paramètres → Règles de conformité médicale. Règles pré-insérées :</p>
+<ul>
+<li>FFESSM : GP 12 mois (tous âges), ORL 12 mois (40+)</li>
+<li>LIFRAS : GP 12 mois (&lt;40), GP 6 mois (40+), Cardio 24 mois (50+)</li>
+</ul>
+<h3 id="export-médical-pour-la-fédération">4.9 Export médical pour la fédération</h3>
+<p>Administration → Membres → Export médical :</p>
+<ul>
+<li>Sélectionner la fédération (ex : FFESSM)</li>
+<li><strong>Liste CSV</strong> : fichier semicolonne avec nom, prénom, date de naissance, sexe, adresse, date d’examen</li>
+<li><strong>Certificats ZIP</strong> : archive de tous les certificats, nommés <code>NOM Prénom Age Type.pdf</code></li>
+</ul>
+<hr />
+<h2 id="paramètres">5. Paramètres</h2>
+<h3 id="fédérations">5.1 Fédérations</h3>
+<p>Ajouter/modifier/supprimer les fédérations de plongée. Pré-configurées : FFESSM, LIFRAS, FLASSA, NELOS, VDST, PADI, SSI, UCPA, BSAC, NASDS, CMAS. Chaque fédération a des niveaux de certification (insérés automatiquement).</p>
+<h3 id="statuts-des-membres-et-multiplicateurs">5.2 Statuts des membres et multiplicateurs</h3>
+<p>Chaque statut a un slug (utilisé dans le code) et un multiplicateur de cotisation appliqué au tarif de base.</p>
+<h3 id="règles-de-conformité-médicale">5.3 Règles de conformité médicale</h3>
+<p>Définir quels certificats médicaux sont requis par fédération, tranche d’âge et type. Le système utilise la règle la plus restrictive quand plusieurs s’appliquent.</p>
+<h3 id="règles-de-maintenance-équipement">5.4 Règles de maintenance équipement</h3>
+<p>Définir les calendriers de maintenance par type d’équipement. Les règles obligatoires affectent la disponibilité de l’équipement.</p>
+<h3 id="thème-et-apparence">5.5 Thème et apparence</h3>
+<p>Personnaliser l’apparence de toute l’application :</p>
+<ul>
+<li><strong>Presets</strong> — thèmes en un clic : Ocean (bleu marine par défaut), Coral (rouge), Lagoon (vert), Abyss (bleu profond), Tropical (cyan), Arctic (gris)</li>
+<li><strong>Couleurs personnalisées</strong> — primaire, secondaire, accent, dégradé d’en-tête, fond de pied de page</li>
+<li><strong>Fonds d’articles par type</strong> — couleur de fond distincte pour chaque type d’article (actualité, sécurité, formation, etc.)</li>
+<li><strong>Branding</strong> — emoji logo, texte, nom complet du club</li>
+<li><strong>Mise en page</strong> — largeur (normal/large/extra-large/plein), animation de bulles dans l’en-tête</li>
+<li><strong>Upload de logo</strong> — logo image personnalisé</li>
+</ul>
+<p>Les changements prennent effet immédiatement (cache de 5 minutes).</p>
+<h3 id="identité-du-club">5.6 Identité du club</h3>
+<p>Nom complet du club, code court, email, adresse, téléphone, pays, et emplacement du local/entrepôt avec coordonnées GPS. Apparaît sur les pages publiques, emails, QR codes et communications de paiement.</p>
+<h3 id="banque-iban-sepa">5.7 Banque (IBAN / SEPA)</h3>
+<p>Entrer l’IBAN et le BIC du club. Utilisé pour générer les QR codes EPC SEPA sur le calculateur de cotisation et les pages de paiement.</p>
+<h3 id="langues">5.8 Langues</h3>
+<p>Activer/désactiver les langues parmi les 11 disponibles. Configurable lors de l’installation et modifiable ensuite.</p>
+<hr />
+<h2 id="événements-et-saisons">6. Événements et saisons</h2>
+<h3 id="saisons">6.1 Saisons</h3>
+<p>Une saison représente une année de club (ex : septembre 2025 – juin 2026). Administration → Saisons.</p>
+<ol type="1">
+<li><strong>Créer</strong> une saison avec nom, année, dates de début/fin</li>
+<li><strong>Ajouter les vacances</strong> — dates sans événements (vacances de Noël, scolaires, etc.)</li>
+<li><strong>Ajouter des schémas hebdomadaires</strong> — événements récurrents (ex : « Piscine chaque mercredi 19h00–21h00 à Bonnevoie »)</li>
+<li><strong>Prévisualiser</strong> — voir toutes les dates qui seraient générées</li>
+<li><strong>Générer</strong> — crée les événements individuels à partir des schémas, en sautant les vacances</li>
+</ol>
+<p>Numérotation des jours : 0=Lundi, 1=Mardi, …, 6=Dimanche.</p>
+<h3 id="événements">6.2 Événements</h3>
+<p>Les événements apparaissent sur le Calendrier (vues mois/semaine/jour). Types avec couleurs par défaut :</p>
+<table>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Couleur</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>pool</td>
+<td>🔵 Bleu</td>
+<td>Entraînements piscine</td>
+</tr>
+<tr class="even">
+<td>dive</td>
+<td>🔵 Marine</td>
+<td>Plongées en milieu naturel</td>
+</tr>
+<tr class="odd">
+<td>training</td>
+<td>🟢 Vert</td>
+<td>Formations pratiques/théoriques</td>
+</tr>
+<tr class="even">
+<td>theory</td>
+<td>🟣 Violet</td>
+<td>Sessions en salle</td>
+</tr>
+<tr class="odd">
+<td>social</td>
+<td>🟡 Jaune</td>
+<td>Événements sociaux, fêtes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="inscriptions-et-liste-dattente">6.3 Inscriptions et liste d’attente</h3>
+<ul>
+<li>Définir <code>max_participants</code> pour activer les limites de capacité</li>
+<li>Activer <code>waiting_list</code> — quand c’est plein, les nouvelles inscriptions vont en liste d’attente</li>
+<li>Quand quelqu’un annule, la première personne en liste d’attente est promue automatiquement</li>
+<li>La conformité médicale est vérifiée à l’inscription pour les événements piscine/plongée/formation</li>
+</ul>
+<h3 id="groupes-whatsapp">6.4 Groupes WhatsApp</h3>
+<p>Chaque événement (et schéma de saison) peut avoir une URL de groupe WhatsApp. Le lien apparaît comme un bouton vert « Rejoindre le groupe WhatsApp » sur la page de l’événement. Quand défini sur un schéma de saison, tous les événements générés héritent du lien.</p>
+<h3 id="acomptes">6.5 Acomptes</h3>
+<p>Les événements peuvent avoir jusqu’à 3 échéances d’acompte avec dates et montants. Ceux-ci génèrent des enregistrements payment_expected pour chaque participant inscrit.</p>
+<h3 id="fiche-de-sécurité-ffessm">6.6 Fiche de sécurité FFESSM</h3>
+<p>Pour les sorties en milieu naturel, le système génère une fiche de sécurité FFESSM 2024-2025 en PDF :</p>
+<ul>
+<li>4 palanquées max (12-16 plongeurs)</li>
+<li>Colonnes : Pal, Mode, Prof, Rôle, Nom, Brevet, Féd, N° Licence, Aptitude, Méd, H.Imm, H.Sort, DTR, Obs</li>
+<li>Paramètres de plongée par palanquée : profondeur réelle, paliers 3/6/9m, arrêt sécu, GPS</li>
+<li>Bloc urgences : téléphone, VHF, hôpital + distance, caisson hyperbare + téléphone + distance</li>
+<li>Équipement de sécurité requis du site de plongée</li>
+</ul>
+<hr />
+<h2 id="paiements">7. Paiements</h2>
+<h3 id="calcul-des-cotisations">7.1 Calcul des cotisations</h3>
+<p>Formule : <code>final = (base × multiplicateur_statut × (1 − réduction_âge)) + composantes_optionnelles</code></p>
+<table>
+<thead>
+<tr class="header">
+<th>Facteur</th>
+<th>Valeur</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Âge &lt; 18</td>
+<td>Réduction 50%</td>
+</tr>
+<tr class="even">
+<td>Âge ≥ 65</td>
+<td>Réduction 25%</td>
+</tr>
+<tr class="odd">
+<td>Statut honoraire</td>
+<td>Toujours 0€</td>
+</tr>
+<tr class="even">
+<td>Multiplicateur statut</td>
+<td>Configuré par statut dans Paramètres</td>
+</tr>
+</tbody>
+</table>
+<h3 id="composantes-de-cotisation">7.2 Composantes de cotisation</h3>
+<p>Paiements → Composantes. Créer :</p>
+<ul>
+<li>Une composante <strong>de base</strong> (ex : « Cotisation de base 120€ »)</li>
+<li>Des composantes optionnelles : niveaux d’assurance, double affiliation, etc.</li>
+</ul>
+<p>Les composantes peuvent être liées à une saison spécifique ou indépendantes (s’appliquent à toutes).</p>
+<h3 id="génération-des-cotisations">7.3 Génération des cotisations</h3>
+<p>Depuis la page Paiements, sélectionner un membre et cliquer « Générer la cotisation ». Le système calcule le montant et crée un enregistrement <code>payment_expected</code> avec une communication structurée unique :</p>
+<pre><code>CLUB-2026-42-DUPONT MARIE+assurance_standard</code></pre>
+<p>Cette chaîne est utilisée pour le rapprochement bancaire.</p>
+<h3 id="rapprochement-bancaire">7.4 Rapprochement bancaire</h3>
+<ol type="1">
+<li>Paiements → Rapprochement</li>
+<li><strong>Importer</strong> — coller le texte du relevé bancaire (format : <code>date;montant;communication;contrepartie</code> par ligne)</li>
+<li><strong>Auto-matching</strong> — le système fait un matching flou des transactions contre les paiements attendus : communication (+80), montant (+20), nom de famille (+30), IBAN (+50). Score 0–100, seuil 60 pour auto-match</li>
+<li><strong>Vérifier</strong> — confirmer les correspondances correctes, ignorer les faux positifs</li>
+<li>Les correspondances confirmées mettent à jour le statut de paiement à « payé »</li>
+</ol>
+<h3 id="qr-codes-sepa">7.5 QR codes SEPA</h3>
+<p>Les membres peuvent générer un QR code SEPA EPC pour leur paiement. Le scanner dans une app bancaire pré-remplit le virement avec IBAN, montant et communication. Configurer <code>CLUB_IBAN</code> dans <code>.env</code>.</p>
+<hr />
+<h2 id="contenu-et-cms">8. Contenu et CMS</h2>
+<h3 id="types-darticles">8.1 Types d’articles</h3>
+<p>13 types d’articles disponibles, chacun avec une icône et une couleur de fond configurable dans Paramètres → Apparence → Fonds d’articles par type.</p>
+<h3 id="créer-un-article">8.2 Créer un article</h3>
+<p>Administration → Articles → Créer. Définir le titre, le type, le corps (texte riche), l’image à la une et les images de galerie. Basculer Publié et Public (visible sans connexion).</p>
+<h3 id="traduction-automatique">8.3 Traduction automatique</h3>
+<p>Cliquer « 🌐 Générer les traductions » sur n’importe quel article pour traduire automatiquement vers toutes les langues configurées. Le planificateur traduit aussi un article non traduit par heure automatiquement. Les traductions apparaissent comme onglets sur la page de l’article avec un indicateur 🤖.</p>
+<h3 id="commentaires">8.4 Commentaires</h3>
+<p>Les membres authentifiés peuvent commenter les articles. Les commentaires sont filetés (jusqu’à 3 niveaux). Les auteurs et le bureau peuvent supprimer les commentaires.</p>
+<h3 id="petites-annonces">8.5 Petites annonces</h3>
+<p>Les membres peuvent publier des annonces d’achat/vente via la page Petites annonces. Les annonces expirent après 30 jours et peuvent être prolongées.</p>
+<h3 id="bibliothèque-de-documents">8.6 Bibliothèque de documents</h3>
+<p>Administration → Bibliothèque de documents. Créer des dossiers, uploader des fichiers (PDF, images, documents). Marquer les fichiers comme Publics (visibles par tous les membres via Info → Documents) ou Privés (bureau uniquement).</p>
+<hr />
+<h2 id="email">9. Email</h2>
+<h3 id="templates">9.1 Templates</h3>
+<p>Administration → Email. Créer des templates réutilisables avec des variables :</p>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Remplacée par</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>{{first_name}}</code></td>
+<td>Prénom du membre</td>
+</tr>
+<tr class="even">
+<td><code>{{last_name}}</code></td>
+<td>Nom du membre</td>
+</tr>
+<tr class="odd">
+<td><code>{{name}}</code></td>
+<td>Nom complet</td>
+</tr>
+<tr class="even">
+<td><code>{{email}}</code></td>
+<td>Email principal</td>
+</tr>
+<tr class="odd">
+<td><code>{{club_name}}</code></td>
+<td>Nom du club depuis les paramètres</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ciblage-par-groupe">9.2 Ciblage par groupe</h3>
+<p>Sélectionner un groupe de destinataires lors de l’envoi :</p>
+<ul>
+<li><strong>Tous les membres</strong> — tout le monde dans le système</li>
+<li><strong>Membres actifs</strong> — statut = actif</li>
+<li><strong>Instructeurs</strong> — rôle = instructor</li>
+<li><strong>Bureau</strong> — rôles bureau_master + bureau_member</li>
+<li><strong>Certificats expirants</strong> — certificat médical expirant dans les 30 jours</li>
+<li><strong>Cotisations impayées</strong> — enregistrements payment_expected en attente</li>
+</ul>
+<h3 id="envoi">9.3 Envoi</h3>
+<ol type="1">
+<li>Sélectionner un template (ou écrire un sujet/corps personnalisé)</li>
+<li>Choisir le groupe cible</li>
+<li>Cliquer « Prévisualiser » pour voir l’email rendu avec des données d’exemple</li>
+<li>Cliquer « Envoyer » — les emails sont mis en file d’attente et envoyés (3 tentatives)</li>
+</ol>
+<h3 id="journal-denvoi">9.4 Journal d’envoi</h3>
+<p>Tous les emails envoyés sont journalisés avec : destinataire, sujet, statut (en file/envoyé/échoué), message d’erreur, horodatage.</p>
+<hr />
+<h2 id="votes-et-élections">10. Votes et élections</h2>
+<h3 id="deux-modes-de-vote">10.1 Deux modes de vote</h3>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 68%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Comportement</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Simple</strong></td>
+<td>Le votant peut changer son choix jusqu’à la clôture. Le token est stocké sur le bulletin (auditable).</td>
+</tr>
+<tr class="even">
+<td><strong>Élection</strong></td>
+<td>Anonyme et irréversible. Une fois voté, le bulletin est stocké avec <code>token_hash=NULL</code> — le lien entre votant et bulletin est définitivement rompu.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="options-de-vote">10.2 Options de vote</h3>
+<table>
+<colgroup>
+<col style="width: 53%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Option</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Sélection multiple</strong></td>
+<td>Les votants peuvent sélectionner plus d’une option (style approbation). Cases à cocher au lieu de boutons radio.</td>
+</tr>
+<tr class="even">
+<td><strong>Changement autorisé</strong></td>
+<td>Les votants peuvent re-soumettre jusqu’à la clôture. Activé par défaut en mode simple. Ignoré pour les élections (toujours irréversible).</td>
+</tr>
+<tr class="odd">
+<td><strong>Résultats publics</strong></td>
+<td>Résultats en direct (barres de progression avec pourcentages) visibles par les votants.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="créer-un-vote">10.3 Créer un vote</h3>
+<ol type="1">
+<li>Administration → Votes → Créer</li>
+<li>Définir titre, description, mode (simple/élection), dates d’ouverture/fermeture</li>
+<li>Basculer multi-sélection, modifiable et résultats publics selon les besoins</li>
+<li>Ajouter les options (minimum 2)</li>
+<li>Enregistrer</li>
+</ol>
+<p>Les votes peuvent aussi être attachés à des articles de proposition de sortie — le vote est alors intégré directement dans la page de l’article.</p>
+<h3 id="génération-de-tokens">10.4 Génération de tokens</h3>
+<p>Cliquer « Générer les tokens » sur la page de détail du vote. Cela crée un token unique de 128 caractères par membre éligible. Les tokens sont envoyés via le système d’email — chaque membre reçoit un lien comme :</p>
+<pre><code>https://votre-domaine.lu/vote/abc123...xyz</code></pre>
+<p>Aucune connexion n’est requise pour voter — le token est l’authentification.</p>
+<h3 id="ouverturefermeture-automatique">10.5 Ouverture/fermeture automatique</h3>
+<p>Le planificateur ouvre automatiquement les votes à leur heure <code>opens_at</code> et les ferme à <code>closes_at</code>. Vous pouvez aussi ouvrir/fermer/annuler manuellement depuis la page admin.</p>
+<hr />
+<h2 id="équipement">11. Équipement</h2>
+<h3 id="inventaire">11.1 Inventaire</h3>
+<p>Administration → Équipement. Suivre tout l’équipement du club avec :</p>
+<ul>
+<li>Nom, type (gilet, détendeur, bloc, combinaison, masque, palmes, ordinateur, autre)</li>
+<li>Numéro de série, date d’achat, état</li>
+<li>Statut : disponible, en prêt, maintenance requise, retiré</li>
+</ul>
+<h3 id="planification-de-maintenance">11.2 Planification de maintenance</h3>
+<p>Quand un équipement est créé, le système génère automatiquement les tâches de maintenance à partir des règles définies dans Paramètres. Quand une tâche est complétée, le système planifie automatiquement la suivante. Si une maintenance obligatoire est en retard, le statut passe à <code>maintenance_required</code> et l’équipement ne peut pas être prêté.</p>
+<h3 id="gestion-des-prêts">11.3 Gestion des prêts</h3>
+<ol type="1">
+<li>Aller sur la page de détail d’un équipement</li>
+<li>Cliquer « Prêter » et sélectionner un membre</li>
+<li>Le statut passe à <code>on_loan</code></li>
+<li>Au retour, cliquer « Retourner » — le statut revient à <code>available</code> (ou <code>maintenance_required</code> si en retard)</li>
+</ol>
+<hr />
+<h2 id="planificateur-de-palanquées">12. Planificateur de palanquées</h2>
+<h3 id="fonctionnement-1">12.1 Fonctionnement</h3>
+<p>Pour les événements de plongée, le planificateur aide à organiser les plongeurs en groupes sûrs basés sur les règles fédérales.</p>
+<ol type="1">
+<li>Ouvrir un événement de plongée → cliquer <strong>Palanquées</strong></li>
+<li>Créer des groupes et assigner les plongeurs inscrits</li>
+<li>Cliquer <strong>Valider</strong> pour vérifier tous les groupes contre les règles fédérales</li>
+</ol>
+<h3 id="moteur-de-règles">12.2 Moteur de règles</h3>
+<p>Le système inclut 39 règles sur 5 fédérations (LIFRAS, FFESSM, BSAC, PADI, CMAS). Les règles couvrent :</p>
+<ul>
+<li><strong>Taille du groupe</strong> — min/max plongeurs par groupe</li>
+<li><strong>Exigences de chef de palanquée</strong> — niveau minimum pour le chef</li>
+<li><strong>Limites de profondeur</strong> — profondeur max par niveau</li>
+<li><strong>Ratios d’encadrement</strong> — ex : max 4 débutants par instructeur</li>
+<li><strong>Règles multi-niveaux</strong> — quels niveaux peuvent plonger ensemble</li>
+</ul>
+<h3 id="résultat-de-validation">12.3 Résultat de validation</h3>
+<ul>
+<li>✅ <strong>Valide</strong> — la composition du groupe respecte toutes les règles</li>
+<li>❌ <strong>Violation</strong> — règle spécifique enfreinte, avec explication</li>
+<li>⚠️ <strong>Avertissement</strong> — certificat médical expirant dans les 30 jours</li>
+</ul>
+<hr />
+<h2 id="partenariats-inter-clubs">13. Partenariats inter-clubs</h2>
+<h3 id="configuration">13.1 Configuration</h3>
+<p>L’API de fédération permet à deux clubs utilisant DivingClub de partager des événements et d’accepter des inscriptions croisées.</p>
+<ol type="1">
+<li>Administration → Partenariats → Ajouter un partenaire</li>
+<li>Entrer le nom et l’URL de base du club partenaire</li>
+<li>Le système génère un <strong>Key ID</strong> et un <strong>Secret</strong> (clé symétrique)</li>
+<li>Envoyer ces identifiants à l’admin du club partenaire (via canal sécurisé)</li>
+<li>Le partenaire fait de même et vous envoie ses identifiants</li>
+<li>Modifier le partenariat, coller leur Key ID et Secret</li>
+<li>Les deux clubs ont maintenant un accès API bidirectionnel</li>
+</ol>
+<h3 id="événements-fédérés">13.2 Événements fédérés</h3>
+<p>Lors de la création d’un événement, cocher <strong>« Fédéré »</strong> et définir le nombre de places externes. Cet événement devient visible par les clubs partenaires via l’API.</p>
+<h3 id="inscriptions-externes">13.3 Inscriptions externes</h3>
+<p>Administration → Partenariats → Inscriptions externes pour voir les demandes d’inscription entrantes. Chaque demande inclut le nom, le niveau de certification et la validité médicale. Approuver ou rejeter chacune.</p>
+<h3 id="sécurité">13.4 Sécurité</h3>
+<p>Tous les appels API sont authentifiés avec des signatures HMAC-SHA256 utilisant le secret partagé. Les requêtes incluent un horodatage pour prévenir les attaques par rejeu.</p>
+<hr />
+<h2 id="clés-api-et-oauth">14. Clés API et OAuth</h2>
+<p>Toutes les clés API sont stockées dans le fichier <code>.env</code>. Après modification, exécuter <code>php artisan config:clear</code>.</p>
+<h3 id="oauth-connexion-sociale">14.1 OAuth / Connexion sociale</h3>
+<p>Le système supporte 5 fournisseurs OAuth. Chacun nécessite un Client ID et un Client Secret.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 21%" />
+<col style="width: 32%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Fournisseur</th>
+<th>Variables env</th>
+<th>URL de configuration</th>
+<th>URL de callback</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Google</td>
+<td><code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code></td>
+<td>console.cloud.google.com</td>
+<td><code>{APP_URL}/auth/google/callback</code></td>
+</tr>
+<tr class="even">
+<td>Facebook</td>
+<td><code>FACEBOOK_CLIENT_ID</code>, <code>FACEBOOK_CLIENT_SECRET</code></td>
+<td>developers.facebook.com</td>
+<td><code>{APP_URL}/auth/facebook/callback</code></td>
+</tr>
+<tr class="odd">
+<td>Microsoft</td>
+<td><code>MICROSOFT_CLIENT_ID</code>, <code>MICROSOFT_CLIENT_SECRET</code></td>
+<td>portal.azure.com</td>
+<td><code>{APP_URL}/auth/microsoft/callback</code></td>
+</tr>
+<tr class="even">
+<td>X (Twitter)</td>
+<td><code>X_CLIENT_ID</code>, <code>X_CLIENT_SECRET</code></td>
+<td>developer.x.com</td>
+<td><code>{APP_URL}/auth/x/callback</code></td>
+</tr>
+<tr class="odd">
+<td>Amazon</td>
+<td><code>AMAZON_CLIENT_ID</code>, <code>AMAZON_CLIENT_SECRET</code></td>
+<td>developer.amazon.com</td>
+<td><code>{APP_URL}/auth/amazon/callback</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Conseil :</strong> Google OAuth est le plus utilisé. Commencez par celui-là. Tous les fournisseurs sont gratuits à configurer.</p>
+</blockquote>
+<h3 id="google-maps">14.2 Google Maps</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td>Variable env</td>
+<td><code>GOOGLE_MAPS_KEY</code></td>
+</tr>
+<tr class="even">
+<td>Configuration</td>
+<td>Google Cloud Console → Maps Embed API</td>
+</tr>
+<tr class="odd">
+<td>Coût</td>
+<td>Gratuit : embeds illimités. L’API Maps Embed n’a pas de limites d’utilisation.</td>
+</tr>
+<tr class="even">
+<td>Utilisé pour</td>
+<td>Carte intégrée sur les pages de détail d’événement</td>
+</tr>
+</tbody>
+</table>
+<p>Sans clé, les lieux d’événement renvoient vers une recherche Google Maps au lieu d’intégrer la carte.</p>
+<h3 id="api-de-traduction-optionnel">14.3 API de traduction (optionnel)</h3>
+<p>Pour la traduction automatique du contenu vers les 11 langues supportées.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 16%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Service</th>
+<th>Coût</th>
+<th>Variables env</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>LibreTranslate</strong> (recommandé)</td>
+<td>🆓 Gratuit — auto-hébergé</td>
+<td><code>TRANSLATION_DRIVER=libretranslate</code>, <code>LIBRETRANSLATE_URL=http://localhost:5000</code></td>
+<td>Docker : <code>docker run -p 5000:5000 libretranslate/libretranslate</code></td>
+</tr>
+<tr class="even">
+<td><strong>Argos Translate</strong></td>
+<td>🆓 Gratuit — auto-hébergé</td>
+<td><code>TRANSLATION_DRIVER=argos</code>, <code>ARGOS_URL=http://localhost:5100</code></td>
+<td>Python, hors ligne. Bon pour la confidentialité.</td>
+</tr>
+<tr class="odd">
+<td>DeepL</td>
+<td>Gratuit : 500K car/mois</td>
+<td><code>TRANSLATION_DRIVER=deepl</code>, <code>DEEPL_API_KEY=votre_clé</code></td>
+<td>Meilleure qualité pour les langues européennes</td>
+</tr>
+<tr class="even">
+<td>Google Translate</td>
+<td>$20/million car</td>
+<td><code>TRANSLATION_DRIVER=google</code>, <code>GOOGLE_TRANSLATE_KEY=votre_clé</code></td>
+<td>Cloud Translation API</td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-ocr-optionnel">14.4 API OCR (optionnel)</h3>
+<p>Pour la lecture automatique des certificats médicaux et brevets de plongée depuis les scans uploadés.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 16%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Service</th>
+<th>Coût</th>
+<th>Variables env</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Tesseract OCR</strong> (recommandé)</td>
+<td>🆓 Gratuit — local</td>
+<td><code>OCR_DRIVER=tesseract</code></td>
+<td><code>sudo apt install tesseract-ocr tesseract-ocr-fra tesseract-ocr-deu</code>. Local, pas de clé API.</td>
+</tr>
+<tr class="even">
+<td><strong>PaddleOCR</strong></td>
+<td>🆓 Gratuit — auto-hébergé</td>
+<td><code>OCR_DRIVER=paddle</code>, <code>PADDLE_URL=http://localhost:8866</code></td>
+<td>Python, excellent support multilingue. Docker disponible.</td>
+</tr>
+<tr class="odd">
+<td>Google Vision</td>
+<td>Gratuit : 1K/mois</td>
+<td><code>OCR_DRIVER=google_vision</code>, <code>GOOGLE_VISION_KEY=votre_clé</code></td>
+<td>Meilleure précision pour le texte manuscrit</td>
+</tr>
+<tr class="even">
+<td>Azure Computer Vision</td>
+<td>Gratuit : 5K/mois</td>
+<td><code>OCR_DRIVER=azure</code>, <code>AZURE_VISION_KEY=votre_clé</code>, <code>AZURE_VISION_ENDPOINT=votre_endpoint</code></td>
+<td>Azure AI Vision</td>
+</tr>
+</tbody>
+</table>
+<h3 id="llm-assistant-ia-optionnel">14.5 LLM / Assistant IA (optionnel)</h3>
+<p>Pour l’analyse intelligente de documents, la catégorisation automatique et les requêtes en langage naturel.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 16%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Service</th>
+<th>Coût</th>
+<th>Variables env</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Ollama</strong> (recommandé)</td>
+<td>🆓 Gratuit — local</td>
+<td><code>LLM_DRIVER=ollama</code>, <code>OLLAMA_URL=http://localhost:11434</code>, <code>OLLAMA_MODEL=llama3.2</code></td>
+<td><code>curl -fsSL https://ollama.com/install.sh \| sh &amp;&amp; ollama pull llama3.2</code>. Aucune donnée ne quitte votre réseau.</td>
+</tr>
+<tr class="even">
+<td><strong>LM Studio</strong></td>
+<td>🆓 Gratuit — local</td>
+<td><code>LLM_DRIVER=openai</code>, <code>LLM_URL=http://localhost:1234/v1</code>, <code>LLM_API_KEY=lm-studio</code></td>
+<td>API compatible OpenAI. Modèles depuis Hugging Face.</td>
+</tr>
+<tr class="odd">
+<td>OpenAI</td>
+<td>Paiement par token</td>
+<td><code>LLM_DRIVER=openai</code>, <code>OPENAI_API_KEY=votre_clé</code></td>
+<td>platform.openai.com</td>
+</tr>
+<tr class="even">
+<td>Anthropic Claude</td>
+<td>Paiement par token</td>
+<td><code>LLM_DRIVER=anthropic</code>, <code>ANTHROPIC_API_KEY=votre_clé</code></td>
+<td>console.anthropic.com</td>
+</tr>
+</tbody>
+</table>
+<h3 id="smtp-email">14.6 SMTP / Email</h3>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 27%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Service</th>
+<th>Coût</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Brevo (ex-Sendinblue)</strong></td>
+<td>🆓 Gratuit : 300 emails/jour</td>
+<td>Bon pour les petits clubs</td>
+</tr>
+<tr class="even">
+<td><strong>Mailgun</strong></td>
+<td>Gratuit : 100 emails/jour (plan Flex)</td>
+<td>mailgun.com</td>
+</tr>
+<tr class="odd">
+<td>Amazon SES</td>
+<td>$0.10/1K emails</td>
+<td>Le moins cher à grande échelle</td>
+</tr>
+<tr class="even">
+<td>Postmark</td>
+<td>$15/mois pour 10K</td>
+<td>Meilleure délivrabilité</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Recommandation pour un petit club :</strong> Commencez avec Google OAuth (gratuit), Tesseract OCR (gratuit, local), LibreTranslate (gratuit, Docker), Ollama (gratuit, local) et Brevo SMTP (gratuit, 300/jour). Coût total : 0€.</p>
+</blockquote>
+<hr />
+<h2 id="publication-automatique-sur-les-réseaux-sociaux">15. Publication automatique sur les réseaux sociaux</h2>
+<h3 id="triple-vérification-rgpd">15.1 Triple vérification RGPD</h3>
+<p>Une photo n’est publiée que lorsque les <strong>trois</strong> conditions sont remplies :</p>
+<ol type="1">
+<li><strong>Consentement de l’auteur</strong> — l’uploadeur a coché la case de consentement RGPD lors de l’upload</li>
+<li><strong>Groupe fermé</strong> — l’admin a confirmé que le groupe Facebook est un groupe fermé/privé (Paramètres → Technique → Réseaux sociaux)</li>
+<li><strong>Publication auto activée</strong> — l’admin a activé la publication automatique dans les paramètres</li>
+</ol>
+<p>Si une condition échoue, la photo reste uniquement sur le site web.</p>
+<h3 id="configuration-1">15.2 Configuration</h3>
+<ol type="1">
+<li>Créer une Facebook App sur developers.facebook.com</li>
+<li>Obtenir un Page Token avec la permission <code>publish_to_groups</code></li>
+<li>Ajouter <code>FACEBOOK_PAGE_TOKEN=votre_token</code> dans <code>.env</code></li>
+<li>Paramètres → Technique → Publication auto réseaux sociaux</li>
+<li>Entrer l’ID du groupe Facebook, confirmer que c’est un groupe fermé, activer la publication auto</li>
+</ol>
+<h3 id="journal-de-publication">15.3 Journal de publication</h3>
+<p>Chaque tentative de publication est journalisée avec le statut (en attente/publié/échoué), l’ID du post externe et les messages d’erreur.</p>
+<hr />
+<h2 id="mineurs-et-consentement-parental">16. Mineurs et consentement parental</h2>
+<h3 id="liste-des-mineurs">16.1 Liste des mineurs</h3>
+<p>Administration → Mineurs et consentement. Cette page liste tous les membres de moins de 18 ans (basé sur la date de naissance).</p>
+<h3 id="lier-un-tuteur">16.2 Lier un tuteur</h3>
+<p>Chaque mineur a besoin d’au moins un tuteur lié. Développer la ligne du mineur et sélectionner un membre comme parent ou tuteur légal. Le tuteur doit aussi être un membre enregistré. Le tableau de bord affiche une alerte rouge pour tout mineur sans tuteur lié.</p>
+<h3 id="enregistrer-le-consentement">16.3 Enregistrer le consentement</h3>
+<p>Quatre types de consentement sont suivis par mineur :</p>
+<ul>
+<li><strong>Général</strong> — consentement global d’adhésion</li>
+<li><strong>Événements</strong> — participation aux activités du club</li>
+<li><strong>Photos</strong> — publication de photos sur le site/réseaux sociaux</li>
+<li><strong>Médical</strong> — gestion des certificats médicaux par le club</li>
+</ul>
+<p>Chaque consentement peut inclure un document uploadé (formulaire d’autorisation signé, PDF ou image). Les documents sont stockés en privé et accessibles uniquement par les membres du bureau.</p>
+<h3 id="révocation">16.4 Révocation</h3>
+<p>Cliquer Révoquer à côté de tout consentement actif. La révocation est horodatée et journalisée. Quand un mineur atteint 18 ans, il n’apparaît plus sur cette page et gère ses propres consentements via la page Confidentialité.</p>
+<hr />
+<h2 id="rgpd">17. RGPD</h2>
+<h3 id="gestion-des-consentements">17.1 Gestion des consentements</h3>
+<p>Les membres peuvent accorder ou révoquer le consentement pour :</p>
+<ul>
+<li><strong>Traitement des données</strong> — requis pour l’adhésion</li>
+<li><strong>Marketing</strong> — newsletter et emails promotionnels</li>
+<li><strong>Publication de photos</strong> — photos sur le site/réseaux sociaux</li>
+</ul>
+<p>Chaque changement de consentement est horodaté. Le système d’email respecte le consentement marketing lors du ciblage des groupes.</p>
+<h3 id="export-de-données">17.2 Export de données</h3>
+<p>Les membres peuvent télécharger un export JSON complet de toutes leurs données personnelles : profil, emails, licences, métadonnées des documents et historique des consentements.</p>
+<h3 id="droit-à-leffacement">17.3 Droit à l’effacement</h3>
+<p>Les membres peuvent demander l’effacement de leur compte. Cela :</p>
+<ul>
+<li>Supprime tous les documents uploadés et l’avatar du stockage</li>
+<li>Anonymise tous les champs personnels (nom → « ERASED », email → « erased-ID@erased.local »)</li>
+<li>Supprime toutes les adresses email et liens de comptes sociaux</li>
+<li>Journalise l’effacement dans le journal d’audit</li>
+<li>Déconnecte l’utilisateur</li>
+</ul>
+<p>L’enregistrement utilisateur est conservé (anonymisé) pour maintenir l’intégrité référentielle dans les journaux d’audit et l’historique des événements.</p>
+<h3 id="consentement-cookies">17.4 Consentement cookies</h3>
+<p>Les visiteurs non authentifiés voient une bannière de consentement cookies. L’acceptation définit un cookie d’un an. Aucun suivi n’a lieu avant le consentement.</p>
+<hr />
+<h2 id="journal-daudit">18. Journal d’audit</h2>
+<h3 id="navigation-et-filtrage">18.1 Navigation et filtrage</h3>
+<p>Administration → Journal d’audit. Chaque modification de données est automatiquement journalisée via le trait <code>Auditable</code>.</p>
+<ul>
+<li><strong>ID utilisateur</strong> — filtrer par qui a fait le changement</li>
+<li><strong>Action</strong> — created, updated, deleted, sso_linked, impersonate_start</li>
+<li><strong>Type de modèle</strong> — ex : « User », « Event », « Document »</li>
+<li><strong>Plage de dates</strong> — sélecteurs de date début/fin</li>
+</ul>
+<h3 id="vue-détaillée">18.2 Vue détaillée</h3>
+<p>Cliquer <strong>Voir</strong> sur une entrée pour voir le diff complet :</p>
+<ul>
+<li><strong>Updated</strong> — tableau avant/après côte à côte avec code couleur</li>
+<li><strong>Created</strong> — toutes les valeurs initiales</li>
+<li><strong>Deleted</strong> — toutes les valeurs au moment de la suppression</li>
+<li>Adresse IP, user agent et avertissements d’impersonation affichés</li>
+</ul>
+<h3 id="export-csv">18.3 Export CSV</h3>
+<p>Cliquer le bouton 📥 pour exporter la vue filtrée actuelle en CSV. Utile pour les réunions du bureau ou les audits de conformité.</p>
+<h3 id="politique-de-rétention">18.4 Politique de rétention</h3>
+<p>Définir la période de purge automatique (6–60 mois) dans l’en-tête du journal d’audit. Le système supprime automatiquement les entrées plus anciennes le 1er de chaque mois à 04h00. Purge manuelle aussi disponible.</p>
+<hr />
+<h2 id="sauvegardes-et-maintenance">19. Sauvegardes et maintenance</h2>
+<h3 id="sauvegardes-automatiques">19.1 Sauvegardes automatiques</h3>
+<p>Le système exécute une sauvegarde hebdomadaire chaque dimanche à 03h00 via le job <code>WeeklyBackup</code> :</p>
+<ul>
+<li>Dump MySQL compressé avec gzip</li>
+<li>Stocké dans <code>storage/app/backups/</code></li>
+<li>Les 4 dernières sauvegardes conservées, les plus anciennes auto-supprimées</li>
+</ul>
+<h3 id="sauvegarde-manuelle">19.2 Sauvegarde manuelle</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co"># Dump de la base de données</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="ex">mysqldump</span> -u divingclub -p divingclub <span class="kw">|</span> <span class="fu">gzip</span> <span class="op">&gt;</span> backup-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d<span class="va">)</span>.sql.gz</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a><span class="co"># Sauvegarde complète (inclut les uploads)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="fu">tar</span> czf divingclub-full-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d<span class="va">)</span>.tar.gz <span class="kw">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>    <span class="ex">--exclude</span>=node_modules --exclude=vendor <span class="kw">\</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>    <span class="ex">/chemin/vers/divingclub</span></span></code></pre></div>
+<h3 id="tâches-planifiées">19.3 Tâches planifiées</h3>
+<table>
+<colgroup>
+<col style="width: 61%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Fréquence</th>
+<th>Tâche</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Quotidien 08h00</td>
+<td>Rappels d’expiration des certificats médicaux (30/15/7/0 jours)</td>
+</tr>
+<tr class="even">
+<td>Horaire</td>
+<td>Traduction auto d’un article non traduit</td>
+</tr>
+<tr class="odd">
+<td>Chaque minute</td>
+<td>Ouverture/fermeture auto des votes</td>
+</tr>
+<tr class="even">
+<td>1er du mois 04h00</td>
+<td>Purge auto du journal d’audit (selon politique de rétention)</td>
+</tr>
+<tr class="odd">
+<td>Dimanche 03h00</td>
+<td>Sauvegarde hebdomadaire de la base de données</td>
+</tr>
+</tbody>
+</table>
+<h3 id="worker-de-file-dattente">19.4 Worker de file d’attente</h3>
+<p>Le driver de file d’attente est <code>database</code>. Démarrer le worker :</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="co"># Développement</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="ex">php</span> artisan queue:work</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="co"># Production (utiliser supervisor)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="fu">sudo</span> apt install supervisor</span></code></pre></div>
+<p>Configuration supervisor :</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="kw">[program:divingclub-worker]</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="dt">command</span><span class="ot">=</span><span class="st">php /chemin/vers/divingclub/artisan queue:work --sleep=</span><span class="dv">3</span><span class="st"> --tries=</span><span class="dv">3</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="dt">autostart</span><span class="ot">=</span><span class="kw">true</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="dt">autorestart</span><span class="ot">=</span><span class="kw">true</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a><span class="dt">user</span><span class="ot">=</span><span class="st">www-data</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a><span class="dt">numprocs</span><span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="dt">redirect_stderr</span><span class="ot">=</span><span class="kw">true</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a><span class="dt">stdout_logfile</span><span class="ot">=</span><span class="st">/var/log/divingclub-worker.log</span></span></code></pre></div>
+<h3 id="gestion-du-cache">19.5 Gestion du cache</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="ex">php</span> artisan config:clear    # Vider le cache de config</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="ex">php</span> artisan cache:clear     # Vider le cache applicatif</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="ex">php</span> artisan view:clear      # Vider les vues compilées</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="ex">php</span> artisan route:clear     # Vider le cache de routes</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a><span class="co"># Optimisation production</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a><span class="ex">php</span> artisan config:cache</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a><span class="ex">php</span> artisan route:cache</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a><span class="ex">php</span> artisan view:cache</span></code></pre></div>
+<hr />
+<h2 id="importexport-de-données-de-plongée">20. Import/Export de données de plongée</h2>
+<h3 id="uddf-universal-dive-data-format">20.1 UDDF (Universal Dive Data Format)</h3>
+<p>Les membres peuvent importer leurs plongées depuis leur ordinateur de plongée au format UDDF 3.2.1. Le système extrait : profondeur, durée, température, paliers de décompression, arrêt de sécurité.</p>
+<h3 id="dan-dl7">20.2 DAN DL7</h3>
+<p>Le bureau peut exporter toutes les plongées du club au format DAN DL7 (pipe-delimited) pour contribuer au programme de recherche DAN sur les accidents de décompression.</p>
+<p>Administration → Export DAN → télécharge un fichier <code>.dl7</code> uploadable sur dan.org/PDE.</p>
+<hr />
+<h2 id="licence">21. Licence</h2>
+<h3 id="palier-gratuit">21.1 Palier gratuit</h3>
+<p>Le système fonctionne gratuitement jusqu’à 100 membres. Au-delà, une clé de licence est nécessaire.</p>
+<h3 id="installation">21.2 Installation</h3>
+<ol type="1">
+<li>Obtenir une clé auprès du mainteneur du projet</li>
+<li>Administration → Paramètres → Licence</li>
+<li>Coller la clé → Enregistrer</li>
+<li>Vérification : signature RSA, domaine, nombre de membres, date d’expiration</li>
+</ol>
+<p>Voir <code>docs/LICENSE-PROCEDURE.md</code> pour la procédure complète de génération de clés.</p>
+<hr />
+<h2 id="dépannage">22. Dépannage</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Problème</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Pages affichent erreur 500</td>
+<td>1. Vérifier <code>storage/logs/laravel.log</code> 2. Vérifier <code>APP_KEY</code> : <code>php artisan key:generate</code> 3. Permissions : <code>sudo chown -R www-data:www-data storage bootstrap/cache &amp;&amp; sudo chmod -R 775 storage bootstrap/cache</code></td>
+</tr>
+<tr class="even">
+<td>CSS/JS ne charge pas</td>
+<td>1. <code>npm run build</code> 2. Vérifier que <code>public/build/manifest.json</code> existe 3. Nginx sert le répertoire <code>public/</code></td>
+</tr>
+<tr class="odd">
+<td>Emails non envoyés</td>
+<td>1. Vérifier <code>MAIL_MAILER</code> dans <code>.env</code> 2. Worker de file : <code>php artisan queue:work</code> 3. Jobs échoués : <code>php artisan queue:failed</code></td>
+</tr>
+<tr class="even">
+<td>Connexion OAuth échoue</td>
+<td>1. Vérifier Client ID et Secret dans <code>.env</code> 2. URL de callback exacte (https vs http) 3. App OAuth publiée/approuvée chez le fournisseur</td>
+</tr>
+<tr class="odd">
+<td>Conformité médicale incorrecte</td>
+<td>1. Vérifier les règles dans Paramètres 2. Vérifier fédération et date de naissance du membre 3. Re-uploader le certificat pour déclencher la réévaluation</td>
+</tr>
+<tr class="even">
+<td>Événements non générés</td>
+<td>1. Vérifier que la saison a des schémas 2. Vérifier que les vacances ne couvrent pas toutes les dates 3. Jours : 0=Lundi, 6=Dimanche</td>
+</tr>
+<tr class="odd">
+<td>Rapprochement bancaire ne matche pas</td>
+<td>1. Communication doit suivre le format <code>CLUB-ANNEE-ID-NOM</code> 2. Seuil auto-match : 60/100 3. Confirmation manuelle pour les cas limites</td>
+</tr>
+<tr class="even">
+<td>Changements de thème non visibles</td>
+<td>1. Cache de 5 min : <code>php artisan cache:clear</code> 2. Rafraîchir le navigateur : Ctrl+Shift+R</td>
+</tr>
+<tr class="odd">
+<td>Langue ne change pas</td>
+<td>1. Cliquer le menu déroulant de langue 2. Pour les authentifiés, la préférence est sauvée au profil 3. Pour les invités, stockée en session 4. Vérifier que <code>lang/{locale}/messages.php</code> existe</td>
+</tr>
+</tbody>
+</table>
+<h3 id="commandes-utiles">Commandes utiles</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="ex">php</span> artisan about                    # Santé de l<span class="st">&#39;application</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="st">php artisan route:list               # Lister toutes les routes</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="st">php artisan tinker --execute=&quot;echo App\Models\User::count().&#39;</span> users<span class="st">&#39;&quot;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="st">php artisan optimize:clear           # Tout vider</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="st">php artisan migrate:fresh --seed     # Réinitialiser la BDD (DESTRUCTIF)</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a><span class="st">php artisan schedule:list            # Vérifier le planificateur</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a><span class="st">php artisan queue:retry all          # Relancer les jobs échoués</span></span></code></pre></div>
+</body>
+</html>
