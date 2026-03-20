@@ -1,9 +1,11 @@
-name: divingclub
+kind: wasmer.io/App.v0
+name: clubcep
+app_id: da_nm3IetwUkO1G
 owner: eddycollart
 package: .
 locality:
   regions:
-  - be-mons1
+  - fr-pari1
 capabilities:
   database:
     engine: mysql
@@ -37,5 +39,4 @@ jobs:
     fetch:
       path: /
       timeout: 30s
-kind: wasmer.io/App.v0
 description: DivingClub-Manager — Diving club management system

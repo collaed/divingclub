@@ -1,5 +1,7 @@
 node_modules
 .git
+insp_pictures
+storage/app/public/event-photos
 storage/app/private/library
 storage/app/private/medical
 storage/app/private/scancards
