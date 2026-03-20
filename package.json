@@ -2,7 +2,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "test -f public/build/manifest.json && echo 'Assets already built' || vite build",
         "dev": "vite"
     },
     "devDependencies": {
