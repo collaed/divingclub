@@ -92,16 +92,16 @@ class HomepageLayoutController extends Controller
     {
         return match ($widget['type']) {
             'hero' => ['photos' => auth()->check()
-                ? EventPhoto::bestForMembers($widget['config']['count'] ?? 8)->get()
-                : EventPhoto::bestPublic($widget['config']['count'] ?? 8)->get()],
+                ? EventPhoto::randomForMembers($widget['config']['count'] ?? 8)->get()
+                : EventPhoto::randomPublic($widget['config']['count'] ?? 8)->get()],
             'articles' => ['articles' => Article::active()->where('is_public', true)
                 ->where('article_type', '!=', 'classified')->where('sort_order', '>=', 0)
                 ->with('author.detail')->orderByDesc('created_at')
                 ->limit($widget['config']['limit'] ?? 10)->get()],
             'quick_links' => ['links' => Link::where('is_public', true)->orderBy('sort_order')->get()],
             'photos' => ['photos' => auth()->check()
-                ? EventPhoto::bestForMembers($widget['config']['count'] ?? 8)->get()
-                : EventPhoto::bestPublic($widget['config']['count'] ?? 8)->get()],
+                ? EventPhoto::randomForMembers($widget['config']['count'] ?? 8)->get()
+                : EventPhoto::randomPublic($widget['config']['count'] ?? 8)->get()],
             'upcoming_events' => ['events' => auth()->check()
                 ? Event::where('event_date', '>=', now())
                     ->orderBy('event_date')->limit($widget['config']['limit'] ?? 5)->get()

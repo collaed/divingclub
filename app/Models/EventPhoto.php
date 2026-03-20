@@ -47,12 +47,31 @@ class EventPhoto extends Model
             ->limit($limit);
     }
 
+    /** Weighted-random public photos — favours high quality_score. */
+    public function scopeRandomPublic($q, int $limit = 10)
+    {
+        return $q->where('approved', true)
+            ->where('gdpr_consent', true)
+            ->where(fn ($q) => $q->where('has_faces', false)->orWhereNull('has_faces'))
+            ->orderByRaw('-(quality_score * quality_score) * LOG(RAND())')
+            ->limit($limit);
+    }
+
     /** Best approved photos for authenticated members (faces allowed). */
     public function scopeBestForMembers($q, int $limit = 10)
     {
         return $q->where('approved', true)
             ->where('gdpr_consent', true)
             ->orderByDesc('quality_score')
+            ->limit($limit);
+    }
+
+    /** Weighted-random photos for authenticated members (faces allowed). */
+    public function scopeRandomForMembers($q, int $limit = 10)
+    {
+        return $q->where('approved', true)
+            ->where('gdpr_consent', true)
+            ->orderByRaw('-(quality_score * quality_score) * LOG(RAND())')
             ->limit($limit);
     }
 
