@@ -23,6 +23,7 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **Voting** | Simple (changeable) and election (anonymous, irreversible) modes, multi-select, live results, token-based, embeddable in trip proposals |
 | **CMS** | 13 article types, image galleries, threaded comments, prev/next navigation, classifieds with 30-day auto-expiry |
 | **Article Translations** | Auto-translate articles to all 11 languages, stored for instant display, tabbed reader UI matching user's preferred language |
+| **Backup** | Admin UI: create/inspect/download/delete, DB + files archive with manifest, MySQL & SQLite support, weekly auto-backup with retention |
 | **Documents** | Bureau file management, folder organization, public/private visibility |
 | **Free Trial** | Public trial request page with honeypot CAPTCHA, admin management |
 | **GDPR** | Consent management, JSON data export, right-to-erasure with anonymization |
@@ -32,18 +33,18 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **Multi-Club** | Dynamic club identity (name, address, IBAN, warehouse GPS), no hardcoded values |
 | **License** | RSA-signed license system, free tier up to 100 members, 13-month default expiry |
 | **PWA** | Installable, offline page, service worker |
-| **Admin Guide** | 14-page in-app documentation |
+| **Admin Guide** | 21-page in-app documentation |
 
 ## Numbers
 
-- **55+ database tables**
-- **195 routes**
+- **63 database tables**
+- **258 routes**
 - **11 languages**
 - **105 certification levels** across 11 federations
 - **13 article types**
 - **10 instructor activity types**
 - **6 theme presets**
-- **16 passing tests** (28 assertions)
+- **18 passing tests** (30 assertions)
 
 ---
 
@@ -155,6 +156,7 @@ app/
 │   ├── FeeCalculationService
 │   ├── BankReconciliationService
 │   ├── MedicalComplianceService
+│   ├── BackupService        # DB + files backup, manifest, inspection
 │   ├── ThemeService
 │   ├── LicenseService      # RSA license verification
 │   └── ArticleTranslationService
@@ -178,7 +180,7 @@ scripts/
 |----------|------|
 | Daily 08:00 | Medical certificate expiry reminders |
 | Every minute | Vote auto-open/close |
-| Sunday 03:00 | Weekly database backup (last 4 retained) |
+| Sunday 03:00 | Weekly full backup — DB + files (last 4 retained) |
 
 ---
 
@@ -226,15 +228,18 @@ scripts/
 33. As an admin, I can impersonate any member to troubleshoot their experience
 34. As an admin, I can view dashboard statistics with charts and export data as CSV
 35. As an admin, I can manage the license key for clubs exceeding 100 members
-36. As an admin, I can follow the 14-page in-app admin guide for setup and operations
+36. As an admin, I can follow the 21-page in-app admin guide for setup and operations
+37. As an admin, I can create, inspect, download, and delete backups (DB + files) from the admin UI
+38. As an admin, I can view the bureau worklist on the dashboard showing pending actions (unverified certs, expiring medical, missing IBAN, minors without guardian, upcoming birthdays)
 
 ### System
-37. The system automatically sends medical certificate expiry reminders at 30/15/7/0 days
-38. The system blocks event registration for members with expired medical certificates
-39. The system auto-opens and auto-closes votes at scheduled times
-40. The system performs weekly database backups retaining the last 4
-41. The system verifies RSA-signed licenses and blocks registration when invalid (>100 members)
-42. The system stores article translations for instant display without re-translating
+39. The system automatically sends medical certificate expiry reminders at 30/15/7/0 days
+40. The system blocks event registration for members with expired medical certificates
+41. The system auto-opens and auto-closes votes at scheduled times
+42. The system performs weekly full backups (DB + files) retaining the last 4
+43. The system verifies RSA-signed licenses and blocks registration when invalid (>100 members)
+44. The system stores article translations for instant display without re-translating
+45. The system supports both MySQL and SQLite databases with automatic detection
 
 ---
 

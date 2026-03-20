@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>DivingClub-Manager Documentation</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">DivingClub-Manager Documentation</h1>
+</header>
+<h1 id="divingclub-manager">🤿 DivingClub-Manager</h1>
+<p>Open-source diving club management system. Built with Laravel 11, MySQL 8, Blade, and Bootstrap 5. Multi-language, multi-club, mobile-ready.</p>
+<p>Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but designed to work for any diving club worldwide.</p>
+<figure>
+<img src="public/images/club-logo.png" alt="" /><figcaption>Club Logo</figcaption>
+</figure>
+<hr />
+<h2 id="features-at-a-glance">Features at a Glance</h2>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 64%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Area</th>
+<th>Highlights</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Members</strong></td>
+<td>Profiles, 6 roles, 6 statuses, multi-federation licences, 105 certification levels across 11 federations, profile photos, emergency contacts</td>
+</tr>
+<tr class="even">
+<td><strong>Events</strong></td>
+<td>Calendar (month/week/day), recurring patterns, registration with waiting lists, auto-promotion, WhatsApp links, Google Maps, safety docs per dive site</td>
+</tr>
+<tr class="odd">
+<td><strong>Dive Planning</strong></td>
+<td>Trello-style group planner, 14 buddy rules, dive site database (13 sites), weather widgets, food options</td>
+</tr>
+<tr class="even">
+<td><strong>Instructor Calendar</strong></td>
+<td>Weekly availability grid, 10 color-coded activity types (pool, kids, apnea, quarry, theory…), instructor initials, AJAX toggle</td>
+</tr>
+<tr class="odd">
+<td><strong>Medical</strong></td>
+<td>Per-federation rules, age brackets, automated expiry reminders (30/15/7/0 days), event registration gate</td>
+</tr>
+<tr class="even">
+<td><strong>Payments</strong></td>
+<td>Fee calculator (base × status × age discount + optionals), bank statement reconciliation with fuzzy matching, SEPA QR codes</td>
+</tr>
+<tr class="odd">
+<td><strong>Equipment</strong></td>
+<td>Inventory tracking, loan management, maintenance scheduling with auto-next</td>
+</tr>
+<tr class="even">
+<td><strong>Email</strong></td>
+<td>Templates with variables, 6 target groups, queue with retry, full send log</td>
+</tr>
+<tr class="odd">
+<td><strong>Voting</strong></td>
+<td>Simple (changeable) and election (anonymous, irreversible) modes, multi-select, live results, token-based, embeddable in trip proposals</td>
+</tr>
+<tr class="even">
+<td><strong>CMS</strong></td>
+<td>13 article types, image galleries, threaded comments, prev/next navigation, classifieds with 30-day auto-expiry</td>
+</tr>
+<tr class="odd">
+<td><strong>Article Translations</strong></td>
+<td>Auto-translate articles to all 11 languages, stored for instant display, tabbed reader UI matching user’s preferred language</td>
+</tr>
+<tr class="even">
+<td><strong>Backup</strong></td>
+<td>Admin UI: create/inspect/download/delete, DB + files archive with manifest, MySQL &amp; SQLite support, weekly auto-backup with retention</td>
+</tr>
+<tr class="odd">
+<td><strong>Documents</strong></td>
+<td>Bureau file management, folder organization, public/private visibility</td>
+</tr>
+<tr class="even">
+<td><strong>Free Trial</strong></td>
+<td>Public trial request page with honeypot CAPTCHA, admin management</td>
+</tr>
+<tr class="odd">
+<td><strong>GDPR</strong></td>
+<td>Consent management, JSON data export, right-to-erasure with anonymization</td>
+</tr>
+<tr class="even">
+<td><strong>Auth</strong></td>
+<td>Registration, login with lockout, email verification, password reset, OAuth (5 providers), impersonation</td>
+</tr>
+<tr class="odd">
+<td><strong>i18n</strong></td>
+<td>11 locales: English, French, German, Luxembourgish, Portuguese, Italian, Dutch, Spanish, Polish, Hungarian, Romanian</td>
+</tr>
+<tr class="even">
+<td><strong>Theme</strong></td>
+<td>6 presets (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic), custom colors, logo upload</td>
+</tr>
+<tr class="odd">
+<td><strong>Multi-Club</strong></td>
+<td>Dynamic club identity (name, address, IBAN, warehouse GPS), no hardcoded values</td>
+</tr>
+<tr class="even">
+<td><strong>License</strong></td>
+<td>RSA-signed license system, free tier up to 100 members, 13-month default expiry</td>
+</tr>
+<tr class="odd">
+<td><strong>PWA</strong></td>
+<td>Installable, offline page, service worker</td>
+</tr>
+<tr class="even">
+<td><strong>Admin Guide</strong></td>
+<td>21-page in-app documentation</td>
+</tr>
+</tbody>
+</table>
+<h2 id="numbers">Numbers</h2>
+<ul>
+<li><strong>63 database tables</strong></li>
+<li><strong>258 routes</strong></li>
+<li><strong>11 languages</strong></li>
+<li><strong>105 certification levels</strong> across 11 federations</li>
+<li><strong>13 article types</strong></li>
+<li><strong>10 instructor activity types</strong></li>
+<li><strong>6 theme presets</strong></li>
+<li><strong>18 passing tests</strong> (30 assertions)</li>
+</ul>
+<hr />
+<h2 id="quick-start">Quick Start</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/collaed/divingclub.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="bu">cd</span> divingclub</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ex">composer</span> install</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="ex">npm</span> ci <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> run build</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="fu">cp</span> .env.example .env</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="ex">php</span> artisan key:generate</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a><span class="co"># Database</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a><span class="ex">php</span> artisan migrate</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a><span class="ex">php</span> artisan db:seed</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a><span class="ex">php</span> artisan db:seed --class=CertificationLevelSeeder</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a><span class="ex">php</span> artisan db:seed --class=SampleDataSeeder</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a><span class="co"># Storage &amp; serve</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a><span class="ex">php</span> artisan storage:link</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a><span class="ex">php</span> artisan serve --port=8080</span></code></pre></div>
+<h3 id="test-accounts">Test Accounts</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Email</th>
+<th>Password</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>admin@divingclub.eu</td>
+<td>password</td>
+<td>Bureau Master</td>
+</tr>
+<tr class="even">
+<td>diver@example.com</td>
+<td>password</td>
+<td>Member</td>
+</tr>
+</tbody>
+</table>
+<p>Plus 20 sample personas from <code>SampleDataSeeder</code>.</p>
+<hr />
+<h2 id="deployment">Deployment</h2>
+<h3 id="linux-ubuntu-22.04">Linux (Ubuntu 22.04+)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="fu">bash</span> deploy.sh</span></code></pre></div>
+<h3 id="windows-powershell">Windows (PowerShell)</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>.\deploy.<span class="fu">ps1</span> -Port 8080</span></code></pre></div>
+<h3 id="wasmer-edge-docker">Wasmer / Edge / Docker</h3>
+<p>The app is a standard Laravel 11 application. It should work on any PHP 8.3+ hosting that supports MySQL. For Wasmer Edge specifically:</p>
+<ul>
+<li>✅ PHP runtime supported via WCGI</li>
+<li>✅ Static assets served normally</li>
+<li>✅ MySQL — use an external managed database (PlanetScale, Railway, etc.)</li>
+<li>⚠️ Email — configure an external SMTP provider (Mailgun, Resend, etc.) or set <code>MAIL_MAILER=log</code> for testing</li>
+<li>⚠️ File uploads — use S3-compatible storage (<code>FILESYSTEM_DISK=s3</code>) since local storage may not persist</li>
+<li>⚠️ Queues — use <code>QUEUE_CONNECTION=sync</code> unless you have a worker process</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="co"># Build for Wasmer</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">wasmer</span> deploy --app-name=divingclub</span></code></pre></div>
+<hr />
+<h2 id="environment-variables">Environment Variables</h2>
+<h3 id="essential">Essential</h3>
+<pre class="env"><code>APP_URL=https://your-domain.lu
+DB_DATABASE=divingclub
+MAIL_MAILER=smtp
+QUEUE_CONNECTION=database</code></pre>
+<h3 id="club-identity-also-configurable-via-admin-settings">Club Identity (also configurable via Admin → Settings)</h3>
+<pre class="env"><code>CLUB_ID=MYCLUB
+CLUB_IBAN=LU00...
+FEDERATION_SALT=random_string</code></pre>
+<h3 id="oauth-all-free-to-set-up">OAuth (all free to set up)</h3>
+<pre class="env"><code>GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+FACEBOOK_CLIENT_ID=
+FACEBOOK_CLIENT_SECRET=
+MICROSOFT_CLIENT_ID=
+MICROSOFT_CLIENT_SECRET=
+GOOGLE_MAPS_KEY=</code></pre>
+<hr />
+<h2 id="architecture">Architecture</h2>
+<pre><code>app/
+├── Http/Controllers/
+│   ├── Admin/              # 10+ admin controllers
+│   ├── Auth/               # Login, Register, SocialAuth
+│   ├── HomeController      # Public pages, articles
+│   ├── EventController     # Events, registration
+│   ├── ProfileController   # Member profiles
+│   └── InstructorAvailabilityController
+├── Models/                 # 40+ Eloquent models
+├── Services/
+│   ├── FeeCalculationService
+│   ├── BankReconciliationService
+│   ├── MedicalComplianceService
+│   ├── BackupService        # DB + files backup, manifest, inspection
+│   ├── ThemeService
+│   ├── LicenseService      # RSA license verification
+│   └── ArticleTranslationService
+├── Jobs/                   # WeeklyBackup, SendMedicalReminders
+├── Middleware/              # CheckLicense, SetLocale
+database/
+├── migrations/             # 19 migration files
+├── seeders/                # Database, Sample, Certification, PinnedArticle
+resources/
+├── views/                  # 80+ Blade templates
+├── scss/                   # Bootstrap 5 custom theme
+├── js/                     # Bootstrap + Chart.js via Vite
+lang/                       # 11 locale directories
+scripts/
+└── generate-license.php    # License key generation tool</code></pre>
+<h2 id="scheduled-tasks">Scheduled Tasks</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Schedule</th>
+<th>Task</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Daily 08:00</td>
+<td>Medical certificate expiry reminders</td>
+</tr>
+<tr class="even">
+<td>Every minute</td>
+<td>Vote auto-open/close</td>
+</tr>
+<tr class="odd">
+<td>Sunday 03:00</td>
+<td>Weekly full backup — DB + files (last 4 retained)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="user-stories">User Stories</h2>
+<h3 id="public-visitors">Public Visitors</h3>
+<ol type="1">
+<li>As a visitor, I can browse the club’s public pages (schedule, values, history, contact) without logging in</li>
+<li>As a visitor, I can request a free trial dive session via the trial page</li>
+<li>As a visitor, I can calculate membership dues using the public calculator</li>
+<li>As a visitor, I can view the site in any of 11 languages with automatic browser detection</li>
+</ol>
+<h3 id="members">Members</h3>
+<ol start="5" type="1">
+<li>As a member, I can log in and manage my profile, emergency contacts, and certifications</li>
+<li>As a member, I can register for upcoming events and see my position on waiting lists</li>
+<li>As a member, I can view dive sites with maps, weather, and safety documents</li>
+<li>As a member, I can read articles in my preferred language via auto-translated tabs</li>
+<li>As a member, I can switch languages and have my preference saved for future visits</li>
+<li>As a member, I can post and manage classified ads (gear for sale, buddy requests) with 30-day auto-expiry</li>
+<li>As a member, I can comment on articles in threaded discussions</li>
+<li>As a member, I can participate in votes (simple or election) via secure tokens</li>
+<li>As a member, I can view the instructor availability calendar to see who’s teaching when</li>
+<li>As a member, I can export my personal data (GDPR) or request account erasure</li>
+<li>As a member, I can install the app as a PWA on my phone</li>
+<li>As a member, I can generate SEPA QR codes for quick payment</li>
+<li>As a member, I can browse the document library for club files and resources</li>
+<li>As a member, I can use the dive group planner to organize buddy pairs</li>
+</ol>
+<h3 id="instructors">Instructors</h3>
+<ol start="19" type="1">
+<li>As an instructor, I can mark my availability on the weekly calendar by activity type</li>
+<li>As an instructor, I can see other instructors’ availability at a glance (color-coded initials)</li>
+<li>As an instructor, I can manage event registrations and check medical compliance</li>
+</ol>
+<h3 id="bureau-admin">Bureau (Admin)</h3>
+<ol start="22" type="1">
+<li>As an admin, I can manage all members, roles, statuses, and certifications</li>
+<li>As an admin, I can create and manage events with recurring patterns</li>
+<li>As an admin, I can send targeted emails to member groups using templates</li>
+<li>As an admin, I can reconcile bank statements against expected payments with fuzzy matching</li>
+<li>As an admin, I can manage equipment inventory, loans, and maintenance schedules</li>
+<li>As an admin, I can create and manage votes (simple polls or formal elections)</li>
+<li>As an admin, I can publish articles in 13 types and trigger auto-translation to all languages</li>
+<li>As an admin, I can manage the document library with folder organization</li>
+<li>As an admin, I can customize the club’s visual theme from 6 presets or custom colors</li>
+<li>As an admin, I can configure club identity (name, address, IBAN, warehouse) without touching code</li>
+<li>As an admin, I can manage trial dive requests from the public</li>
+<li>As an admin, I can impersonate any member to troubleshoot their experience</li>
+<li>As an admin, I can view dashboard statistics with charts and export data as CSV</li>
+<li>As an admin, I can manage the license key for clubs exceeding 100 members</li>
+<li>As an admin, I can follow the 21-page in-app admin guide for setup and operations</li>
+<li>As an admin, I can create, inspect, download, and delete backups (DB + files) from the admin UI</li>
+<li>As an admin, I can view the bureau worklist on the dashboard showing pending actions (unverified certs, expiring medical, missing IBAN, minors without guardian, upcoming birthdays)</li>
+</ol>
+<h3 id="system">System</h3>
+<ol start="39" type="1">
+<li>The system automatically sends medical certificate expiry reminders at 30/15/7/0 days</li>
+<li>The system blocks event registration for members with expired medical certificates</li>
+<li>The system auto-opens and auto-closes votes at scheduled times</li>
+<li>The system performs weekly full backups (DB + files) retaining the last 4</li>
+<li>The system verifies RSA-signed licenses and blocks registration when invalid (&gt;100 members)</li>
+<li>The system stores article translations for instant display without re-translating</li>
+<li>The system supports both MySQL and SQLite databases with automatic detection</li>
+</ol>
+<hr />
+<h2 id="certification-levels">Certification Levels</h2>
+<p>105 levels across 11 federations: FFESSM, LIFRAS, FLASSA, NELOS, VDST, PADI, SSI, UCPA, BSAC, NASDS, CMAS.</p>
+<p>Cross-federation equivalence groups enable comparison (e.g., FFESSM N1 ≈ PADI OWD ≈ CMAS 1★ ≈ LIFRAS P1).</p>
+<h2 id="theme-presets">Theme Presets</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Preset</th>
+<th>Primary</th>
+<th>Style</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ocean</td>
+<td>#003366</td>
+<td>Default navy/blue</td>
+</tr>
+<tr class="even">
+<td>Coral</td>
+<td>#c0392b</td>
+<td>Red/warm</td>
+</tr>
+<tr class="odd">
+<td>Lagoon</td>
+<td>#00695c</td>
+<td>Teal/green</td>
+</tr>
+<tr class="even">
+<td>Abyss</td>
+<td>#1a237e</td>
+<td>Deep indigo</td>
+</tr>
+<tr class="odd">
+<td>Tropical</td>
+<td>#00838f</td>
+<td>Cyan/orange</td>
+</tr>
+<tr class="even">
+<td>Arctic</td>
+<td>#37474f</td>
+<td>Grey/cool</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="discoverability">Discoverability</h2>
+<p>Every DivingClub-Manager instance includes: - <code>&lt;meta name="generator" content="DivingClub-Manager/1.0"&gt;</code> in the HTML head - An HTML comment: <code>&lt;!-- Powered by DivingClub-Manager --&gt;</code> - A footer link back to the GitHub repository</p>
+<p>Search Google for <code>"DivingClub-Manager"</code> to find clubs running this stack.</p>
+<hr />
+<h2 id="contributing">Contributing</h2>
+<p>Pull requests welcome. The codebase follows Laravel conventions with minimal custom abstractions.</p>
+<h2 id="license">License</h2>
+<p>MIT — Free for any diving club to use, modify, and deploy.</p>
+</body>
+</html>

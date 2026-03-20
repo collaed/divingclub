@@ -176,6 +176,7 @@
                                         <li><hr class="dropdown-divider"></li>
                                         {{-- System --}}
                                         <li><a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">{{ __('Audit Log') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.backups.index') }}">💾 {{ __('Backups') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">⚙️ {{ __('Settings') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.guide.index') }}">📖 {{ __('Admin Guide') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.annual-report') }}">📊 {{ __('Annual Report') }}</a></li>

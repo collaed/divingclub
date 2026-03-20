@@ -19,6 +19,7 @@
         '🔒 GDPR' => 'Consent management, parental consent for minors, data export, erasure',
         '📋 Audit Log' => 'Full change history, diff view, CSV export, retention policy',
         '📊 Dashboard' => 'Statistics, bureau worklist, CSV exports',
+        '💾 Backups' => 'Admin UI: create/inspect/download/delete, DB + files archive, MySQL & SQLite, weekly auto-backup',
     ] as $label => $desc)
         <div class="col-md-6"><div class="border rounded p-2"><strong>{{ $label }}</strong><br><small class="text-muted">{{ $desc }}</small></div></div>
     @endforeach

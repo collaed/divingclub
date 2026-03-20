@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AnnualReportController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
@@ -298,6 +299,13 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
         Route::post('/audit-logs/purge', [AuditLogController::class, 'purge'])->name('audit-logs.purge');
         Route::post('/audit-logs/retention', [AuditLogController::class, 'updateRetention'])->name('audit-logs.retention');
+
+        // Backups
+        Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
+        Route::post('/backups', [BackupController::class, 'create'])->name('backups.create');
+        Route::get('/backups/{filename}', [BackupController::class, 'show'])->name('backups.show')->where('filename', '.*\.tar\.gz');
+        Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download')->where('filename', '.*\.tar\.gz');
+        Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy')->where('filename', '.*\.tar\.gz');
 
         // Trial requests
         Route::get('/trial-requests', [TrialRequestController::class, 'index'])->name('trial-requests.index');
