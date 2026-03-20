@@ -31,6 +31,9 @@
         .mode-training { color: #856404; }
         .mode-certification { color: #dc3545; }
 
+        /* Dive parameters sub-row (hand-fill: actual depth, deco, safety stop) */
+        .dive-params td { border-top: 1px dashed #999; }
+
         /* Emergency block */
         .emergency-block { margin-top: 8px; border: 2px solid #dc3545; padding: 6px; background: #fff8f8; }
         .emergency-block h2 { font-size: 11px; margin: 0 0 4px; color: #dc3545; }
@@ -99,17 +102,18 @@
             <tr>
                 <th style="width:4%">Pal</th>
                 <th style="width:7%">Mode</th>
-                <th style="width:5%">Prof</th>
+                <th style="width:5%">Prof.</th>
                 <th style="width:4%">Rôle</th>
-                <th style="width:20%">Nom Prénom</th>
-                <th style="width:9%">Brevet</th>
-                <th style="width:8%">Féd.</th>
-                <th style="width:10%">N° Licence</th>
-                <th style="width:8%">Aptitude</th>
-                <th style="width:5%">Cert. Méd.</th>
+                <th style="width:18%">Nom Prénom</th>
+                <th style="width:8%">Brevet</th>
+                <th style="width:7%">Féd.</th>
+                <th style="width:9%">N° Licence</th>
+                <th style="width:7%">Aptitude</th>
+                <th style="width:4%">Méd.</th>
                 <th style="width:6%">H. Imm.</th>
                 <th style="width:6%">H. Sort.</th>
-                <th style="width:8%">Obs.</th>
+                <th style="width:6%">DTR</th>
+                <th style="width:9%">Obs.</th>
             </tr>
         </thead>
         <tbody>
@@ -117,6 +121,7 @@
                 @php
                     $members = $group->members->sortByDesc('role');
                     $memberCount = $members->count();
+                    $spanRows = $memberCount + 1; // +1 for dive params row
                 @endphp
                 @foreach($members as $i => $m)
                     @php
@@ -126,8 +131,8 @@
                     @endphp
                     <tr>
                         @if($i === 0)
-                            <td rowspan="{{ $memberCount }}" class="pal-num">{{ $loop->parent->iteration }}</td>
-                            <td rowspan="{{ $memberCount }}" class="pal-mode mode-{{ $group->dive_mode }}">{{ ucfirst($group->dive_mode) }}</td>
+                            <td rowspan="{{ $spanRows }}" class="pal-num">{{ $loop->parent->iteration }}</td>
+                            <td rowspan="{{ $spanRows }}" class="pal-mode mode-{{ $group->dive_mode }}">{{ ucfirst($group->dive_mode) }}</td>
                             <td rowspan="{{ $memberCount }}" class="pal-depth">{{ $group->planned_depth ? $group->planned_depth . 'm' : '—' }}</td>
                         @endif
                         <td class="center">{{ $m->role === 'leader' ? 'GP' : '' }}</td>
@@ -142,23 +147,44 @@
                             @else ✗
                             @endif
                         </td>
-                        <td></td>{{-- H. Immersion — filled by hand --}}
-                        <td></td>{{-- H. Sortie — filled by hand --}}
-                        <td></td>{{-- Observations — filled by hand --}}
+                        <td></td>{{-- H. Immersion --}}
+                        <td></td>{{-- H. Sortie --}}
+                        <td></td>{{-- DTR (durée totale remontée) --}}
+                        <td></td>{{-- Observations --}}
                     </tr>
                 @endforeach
+                {{-- Dive parameters sub-row: actual depth, deco stops, safety stop --}}
+                <tr class="dive-params">
+                    <td colspan="12" style="font-size:8px; background:#f0f7ff;">
+                        <strong>Prof. réelle:</strong> ____m &nbsp;
+                        <strong>Paliers:</strong>
+                        3m: ____min &nbsp; 6m: ____min &nbsp; 9m: ____min &nbsp;
+                        <strong>Arrêt sécu. 3m/3min:</strong> ☐ &nbsp;
+                        <strong>GPS:</strong> ____/____
+                    </td>
+                </tr>
             @endforeach
 
             {{-- Empty rows to fill 4 palanquées if fewer groups exist --}}
             @for($p = $groups->count(); $p < 4; $p++)
-                @for($r = 0; $r < 3; $r++)
+                @for($r = 0; $r < 4; $r++)
                     <tr>
                         @if($r === 0)
-                            <td rowspan="3" class="pal-num" style="color:#ccc;">{{ $p + 1 }}</td>
-                            <td rowspan="3"></td>
-                            <td rowspan="3"></td>
+                            <td rowspan="4" class="pal-num" style="color:#ccc;">{{ $p + 1 }}</td>
+                            <td rowspan="4"></td>
+                            <td rowspan="3" class="pal-depth"></td>
                         @endif
-                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        @if($r < 3)
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        @else
+                            <td colspan="12" style="font-size:8px; background:#f0f7ff;">
+                                <strong>Prof. réelle:</strong> ____m &nbsp;
+                                <strong>Paliers:</strong>
+                                3m: ____min &nbsp; 6m: ____min &nbsp; 9m: ____min &nbsp;
+                                <strong>Arrêt sécu. 3m/3min:</strong> ☐ &nbsp;
+                                <strong>GPS:</strong> ____/____
+                            </td>
+                        @endif
                     </tr>
                 @endfor
             @endfor
