@@ -14,7 +14,7 @@ class VotePublicController extends Controller
         $voteToken = VoteToken::where('token', $token)->with(['vote.options', 'user'])->firstOrFail();
         $vote = $voteToken->vote;
 
-        if (!$vote->isOpen()) {
+        if (! $vote->isOpen()) {
             return view('vote.closed', compact('vote'));
         }
 
@@ -30,27 +30,43 @@ class VotePublicController extends Controller
         $voteToken = VoteToken::where('token', $token)->with('vote.options')->firstOrFail();
         $vote = $voteToken->vote;
 
-        if (!$vote->isOpen()) {
+        if (! $vote->isOpen()) {
             return back()->with('error', __('This vote is no longer open.'));
         }
 
         $tokenHash = hash('sha256', $token);
 
-        // Election mode: anonymous, irreversible
+        // Election mode: anonymous, irreversible, multi-position
         if ($vote->mode === 'election') {
             if ($voteToken->is_consumed) {
                 return back()->with('error', __('You have already voted. Election votes cannot be changed.'));
             }
-            $request->validate(['option_id' => 'required|exists:vote_options,id']);
-            DB::transaction(function () use ($vote, $voteToken, $request) {
-                VoteBallot::create(['vote_id' => $vote->id, 'vote_option_id' => $request->option_id, 'token_hash' => null]);
+
+            $maxSelections = $vote->num_positions ?? 1;
+
+            if ($maxSelections > 1) {
+                $request->validate([
+                    'option_ids' => 'required|array|min:1|max:'.$maxSelections,
+                    'option_ids.*' => 'exists:vote_options,id',
+                ]);
+                $selectedIds = $request->option_ids;
+            } else {
+                $request->validate(['option_id' => 'required|exists:vote_options,id']);
+                $selectedIds = [$request->option_id];
+            }
+
+            DB::transaction(function () use ($vote, $voteToken, $selectedIds) {
+                foreach ($selectedIds as $optId) {
+                    VoteBallot::create(['vote_id' => $vote->id, 'vote_option_id' => $optId, 'token_hash' => null]);
+                }
                 $voteToken->update(['is_consumed' => true, 'consumed_at' => now()]);
             });
+
             return view('vote.thankyou', compact('vote'));
         }
 
         // Simple/public mode: changeable, optionally multi-select
-        if (!$vote->allow_change) {
+        if (! $vote->allow_change) {
             $existing = VoteBallot::where('vote_id', $vote->id)->where('token_hash', $tokenHash)->exists();
             if ($existing) {
                 return back()->with('error', __('You have already voted and this vote does not allow changes.'));

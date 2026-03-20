@@ -147,6 +147,26 @@
                             </select>
                             <input type="number" name="planned_depth" class="form-control form-control-sm" placeholder="m" style="width:60px" min="1">
                         </div>
+                        <div class="d-flex gap-1 mb-1">
+                            <input type="number" name="planned_duration" class="form-control form-control-sm" placeholder="{{ __('min') }}" style="width:60px" min="1">
+                            <select name="gas_mix" class="form-select form-select-sm">
+                                @foreach(\App\Models\DiveGroup::GAS_MIXES as $k => $v)
+                                    <option value="{{ $k }}">{{ $v }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="d-flex gap-1 mb-1">
+                            <select name="line_number" class="form-select form-select-sm">
+                                <option value="">{{ __('Line…') }}</option>
+                                @for($i = 1; $i <= 4; $i++)
+                                    <option value="{{ $i }}">{{ __('Line') }} {{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="d-flex gap-1 mb-1">
+                            <input type="time" name="planned_entry_time" class="form-control form-control-sm" placeholder="{{ __('Entry') }}">
+                            <input type="time" name="planned_exit_time" class="form-control form-control-sm" placeholder="{{ __('Exit') }}">
+                        </div>
                         <select name="purpose" class="form-select form-select-sm mb-1">
                             <option value="">{{ __('Purpose…') }}</option>
                             @foreach($purposes as $k => $p)
@@ -170,6 +190,10 @@
                         <br>
                         <span class="badge bg-{{ match($group->dive_mode) { 'supervised' => 'primary', 'autonomous' => 'success', 'training' => 'warning text-dark', 'certification' => 'danger', default => 'secondary' } }}" style="font-size:0.7rem">{{ ucfirst($group->dive_mode) }}</span>
                         @if($group->planned_depth)<span class="badge bg-info" style="font-size:0.7rem">{{ $group->planned_depth }}m</span>@endif
+                        @if($group->planned_duration)<span class="badge bg-secondary" style="font-size:0.7rem">{{ $group->planned_duration }}′</span>@endif
+                        @if($group->gas_mix && $group->gas_mix !== 'air')<span class="badge bg-warning text-dark" style="font-size:0.7rem">{{ \App\Models\DiveGroup::GAS_MIXES[$group->gas_mix] ?? $group->gas_mix }}</span>@endif
+                        @if($group->line_number)<span class="badge bg-dark" style="font-size:0.7rem">L{{ $group->line_number }}</span>@endif
+                        @if($group->planned_entry_time)<span class="small text-muted">{{ \Carbon\Carbon::parse($group->planned_entry_time)->format('H:i') }}@if($group->planned_exit_time)–{{ \Carbon\Carbon::parse($group->planned_exit_time)->format('H:i') }}@endif</span>@endif
                         @if($purposeInfo)
                             <span class="dg-purpose" style="background:{{ $purposeInfo['color'] }}">{{ $purposeInfo['icon'] }} {{ $purposeInfo['label'] }}</span>
                         @endif

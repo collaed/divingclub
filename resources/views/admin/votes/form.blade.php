@@ -20,6 +20,8 @@
                     <div class="form-check form-check-inline"><input type="hidden" name="allow_change" value="0"><input type="checkbox" name="allow_change" value="1" class="form-check-input" checked><label class="form-check-label">{{ __('Allow vote change') }}</label></div>
                     <div class="form-check form-check-inline"><input type="hidden" name="is_public" value="0"><input type="checkbox" name="is_public" value="1" class="form-check-input"><label class="form-check-label">{{ __('Show results publicly') }}</label></div>
                 </div>
+                <div class="col-md-4"><label class="form-label">{{ __('Positions to fill') }}</label><input type="number" name="num_positions" class="form-control @error('num_positions') is-invalid @enderror" value="1" min="1" max="20"><small class="text-muted">{{ __('For elections: how many seats (e.g. 6 for bureau). Voters select up to this many candidates.') }}</small>@error('num_positions') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
+                <div class="col-md-4"><label class="form-label">{{ __('Min vote % to elect') }}</label><input type="number" name="min_vote_pct" class="form-control @error('min_vote_pct') is-invalid @enderror" value="50" min="0" max="100"><small class="text-muted">{{ __('If fewer candidates than positions, only those with ≥ this % are elected.') }}</small>@error('min_vote_pct') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
                 <div class="col-12">
                     <label class="form-label">{{ __('Options') }} * ({{ __('one per line, minimum 2') }})</label>
                     <div id="options">

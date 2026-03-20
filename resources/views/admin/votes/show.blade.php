@@ -7,18 +7,30 @@
     <div class="row mb-4">
         <div class="col-lg-6">
             <div class="card dc-card mb-3">
-                <div class="card-header">{{ __('Results') }}</div>
+                <div class="card-header">{{ __('Results') }}@if($vote->mode === 'election' && ($vote->num_positions ?? 1) > 1) <small class="text-muted">— {{ $vote->num_positions }} {{ __('positions') }}, {{ $vote->min_vote_pct ?? 50 }}% {{ __('threshold') }}</small>@endif</div>
                 <div class="card-body">
-                    @php $totalBallots = $results->sum('count'); @endphp
-                    @foreach($results as $r)
+                    @php
+                        $totalBallots = $results->sum('count');
+                        $totalTokensConsumed = $vote->tokens->where('is_consumed', true)->count();
+                        $minVotePct = $vote->min_vote_pct ?? 50;
+                    @endphp
+                    @foreach($results->sortByDesc('count') as $r)
+                        @php
+                            $pct = $totalBallots ? round($r['count'] / $totalBallots * 100) : 0;
+                            $voterPct = $totalTokensConsumed ? round($r['count'] / $totalTokensConsumed * 100) : 0;
+                            $elected = $vote->mode === 'election' && $vote->status === 'closed' && $voterPct >= $minVotePct;
+                        @endphp
                         <div class="mb-2">
-                            <div class="d-flex justify-content-between"><span>{{ $r['label'] }}</span><strong>{{ $r['count'] }}</strong></div>
+                            <div class="d-flex justify-content-between">
+                                <span>{{ $r['label'] }} @if($elected)<span class="badge bg-success">✓ {{ __('Elected') }}</span>@endif</span>
+                                <strong>{{ $r['count'] }} ({{ $voterPct }}%)</strong>
+                            </div>
                             <div class="progress" style="height:20px;">
-                                <div class="progress-bar" style="width:{{ $totalBallots ? round($r['count'] / $totalBallots * 100) : 0 }}%">{{ $totalBallots ? round($r['count'] / $totalBallots * 100) : 0 }}%</div>
+                                <div class="progress-bar {{ $elected ? 'bg-success' : '' }}" style="width:{{ $pct }}%">{{ $pct }}%</div>
                             </div>
                         </div>
                     @endforeach
-                    <p class="small text-muted mt-2">{{ __('Total ballots') }}: {{ $totalBallots }} · {{ __('Tokens') }}: {{ $vote->tokens->count() }} ({{ $vote->tokens->where('is_consumed', true)->count() }} {{ __('consumed') }})</p>
+                    <p class="small text-muted mt-2">{{ __('Total ballots') }}: {{ $totalBallots }} · {{ __('Tokens') }}: {{ $vote->tokens->count() }} ({{ $totalTokensConsumed }} {{ __('consumed') }})</p>
                 </div>
             </div>
         </div>

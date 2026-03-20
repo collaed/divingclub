@@ -157,6 +157,16 @@ class User extends Authenticatable
         return $dob && $dob->age < 18;
     }
 
+    /** Minors always banned; others check the explicit flag. */
+    public function hasPublicPhotosBanned(): bool
+    {
+        if ($this->isMinor()) {
+            return true;
+        }
+
+        return (bool) ($this->detail?->public_photos_banned ?? false);
+    }
+
     public function parentalConsents()
     {
         return $this->hasMany(ParentalConsent::class, 'minor_user_id');

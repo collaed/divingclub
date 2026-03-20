@@ -501,7 +501,7 @@
             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#socialSection">{{ __('Social Media Auto-Publish') }}</button></h2>
             <div id="socialSection" class="accordion-collapse collapse" data-bs-parent="#technicalAccordion">
                 <div class="accordion-body">
-                    <p class="text-muted small">{{ __('When enabled, event photos with GDPR consent will be auto-published to the configured Facebook group (if it is marked as closed).') }}</p>
+                    <p class="text-muted small">{{ __('When enabled, event photos with GDPR consent will be auto-published to configured social media platforms.') }}</p>
                     <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                         @csrf
                         <div class="row g-3 mb-3">
@@ -510,6 +510,17 @@
                                 <select name="social_auto_publish" class="form-select">
                                     <option value="0" {{ ($themeSettings['social_auto_publish'] ?? '0') === '0' ? 'selected' : '' }}>{{ __('Disabled') }}</option>
                                     <option value="1" {{ ($themeSettings['social_auto_publish'] ?? '0') === '1' ? 'selected' : '' }}>{{ __('Enabled') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h6 class="mt-3">Facebook <small class="text-muted">({{ __('private group') }})</small></h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Publish to Facebook') }}</label>
+                                <select name="fb_publish_enabled" class="form-select">
+                                    <option value="0" {{ ($themeSettings['fb_publish_enabled'] ?? '1') === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
+                                    <option value="1" {{ ($themeSettings['fb_publish_enabled'] ?? '1') === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -524,8 +535,25 @@
                                 <input type="text" name="fb_group_id" class="form-control" value="{{ $themeSettings['fb_group_id'] ?? '' }}" placeholder="123456789012345">
                             </div>
                         </div>
+
+                        <h6 class="mt-3">Instagram <small class="text-muted">({{ __('public — content rules may differ') }})</small></h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Publish to Instagram') }}</label>
+                                <select name="ig_publish_enabled" class="form-select">
+                                    <option value="0" {{ ($themeSettings['ig_publish_enabled'] ?? '0') === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
+                                    <option value="1" {{ ($themeSettings['ig_publish_enabled'] ?? '0') === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ __('Instagram Business Account ID') }}</label>
+                                <input type="text" name="ig_account_id" class="form-control" value="{{ $themeSettings['ig_account_id'] ?? '' }}" placeholder="17841400000000000">
+                            </div>
+                        </div>
+
                         <div class="alert alert-info small py-2">
-                            ℹ️ {{ __('Photos are only published when ALL conditions are met: uploader gave GDPR consent, admin confirmed FB group is closed, and auto-publish is enabled. Facebook Page Token must be set in .env as') }} <code>FACEBOOK_PAGE_TOKEN</code>
+                            ℹ️ {{ __('Facebook: requires') }} <code>FACEBOOK_PAGE_TOKEN</code> {{ __('in .env. Group must be confirmed closed.') }}<br>
+                            ℹ️ {{ __('Instagram: requires') }} <code>INSTAGRAM_ACCESS_TOKEN</code> {{ __('in .env. Uses Instagram Graph API (Business account). Since Instagram is public, photos with faces or from minors are automatically excluded.') }}
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Social Settings') }}</button>
                     </form>

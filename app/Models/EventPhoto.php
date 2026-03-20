@@ -37,12 +37,13 @@ class EventPhoto extends Model
         return $this->morphMany(SocialPublishLog::class, 'publishable');
     }
 
-    /** Best approved photos safe for public/anonymous display (no faces). */
+    /** Best approved photos safe for public/anonymous display (no faces, no banned uploaders). */
     public function scopeBestPublic($q, int $limit = 10)
     {
         return $q->where('approved', true)
             ->where('gdpr_consent', true)
             ->where(fn ($q) => $q->where('has_faces', false)->orWhereNull('has_faces'))
+            ->whereDoesntHave('uploader', fn ($q) => $q->whereHas('detail', fn ($d) => $d->where('public_photos_banned', true)))
             ->orderByDesc('quality_score')
             ->limit($limit);
     }
@@ -53,6 +54,7 @@ class EventPhoto extends Model
         return $q->where('approved', true)
             ->where('gdpr_consent', true)
             ->where(fn ($q) => $q->where('has_faces', false)->orWhereNull('has_faces'))
+            ->whereDoesntHave('uploader', fn ($q) => $q->whereHas('detail', fn ($d) => $d->where('public_photos_banned', true)))
             ->orderByRaw('-(quality_score * quality_score) * LOG(RAND())')
             ->limit($limit);
     }

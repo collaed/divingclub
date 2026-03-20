@@ -12,10 +12,23 @@
             <div class="card dc-card">
                 <div class="card-header">{{ __('Import Bank Statement') }}</div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.payments.import-statement') }}">
+                    <form method="POST" action="{{ route('admin.payments.import-statement') }}" enctype="multipart/form-data">
                         @csrf
-                        <p class="small text-muted">{{ __('Paste bank statement (one line per transaction: date;amount;communication;counterparty)') }}</p>
-                        <textarea name="statement" class="form-control mb-2" rows="5" placeholder="17/03/2026;153.50;CLUB-2026-3-DUPONT MARIE;Marie Dupont"></textarea>
+                        <ul class="nav nav-tabs mb-2" role="tablist">
+                            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#importPdf">{{ __('PDF Upload') }}</a></li>
+                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#importText">{{ __('Paste Text') }}</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="importPdf">
+                                <input type="file" name="statement_pdf" class="form-control form-control-sm mb-2" accept=".pdf">
+                                <input type="text" name="statement_ref" class="form-control form-control-sm mb-2" placeholder="{{ __('Statement number (optional)') }}">
+                                <p class="small text-muted">{{ __('Upload a bank statement PDF. Text-based PDFs are parsed directly; scanned PDFs go through OCR (requires Tesseract).') }}</p>
+                            </div>
+                            <div class="tab-pane" id="importText">
+                                <p class="small text-muted">{{ __('Paste bank statement (one line per transaction: date;amount;communication;counterparty)') }}</p>
+                                <textarea name="statement" class="form-control mb-2" rows="5" placeholder="17/03/2026;153.50;CLUB-2026-3-DUPONT MARIE;Marie Dupont"></textarea>
+                            </div>
+                        </div>
                         <button class="btn btn-primary btn-sm">{{ __('Import') }}</button>
                     </form>
                 </div>

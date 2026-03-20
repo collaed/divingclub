@@ -83,8 +83,25 @@ class PaymentController extends Controller
 
     public function importStatement(Request $request)
     {
-        $request->validate(['statement' => 'required|string']);
-        $txs = app(BankReconciliationService::class)->parseStatement($request->statement);
+        $request->validate([
+            'statement' => 'required_without:statement_pdf|nullable|string',
+            'statement_pdf' => 'required_without:statement|nullable|file|mimes:pdf|max:10240',
+            'statement_ref' => 'nullable|string|max:100',
+        ]);
+
+        $svc = app(BankReconciliationService::class);
+
+        if ($request->hasFile('statement_pdf')) {
+            $path = $request->file('statement_pdf')->store('bank-statements', 'local');
+            $result = $svc->parsePdfStatement(storage_path('app/'.$path), $request->statement_ref);
+
+            return back()->with('success', __(':count transactions imported from PDF (:pages pages).', [
+                'count' => count($result['transactions']),
+                'pages' => $result['page_count'],
+            ]));
+        }
+
+        $txs = $svc->parseStatement($request->statement);
 
         return back()->with('success', __(':count transactions imported.', ['count' => count($txs)]));
     }

@@ -6,7 +6,11 @@
                 <div class="card-body">
                     @if($vote->description) <p>{{ $vote->description }}</p> @endif
                     <p class="small text-muted">
-                        @if($vote->mode === 'election') {{ __('Your vote is anonymous and irreversible.') }}
+                        @if($vote->mode === 'election')
+                            {{ __('Your vote is anonymous and irreversible.') }}
+                            @if(($vote->num_positions ?? 1) > 1)
+                                {{ __('Select up to :n candidates.', ['n' => $vote->num_positions]) }}
+                            @endif
                         @elseif($vote->allow_change) {{ __('You can change your vote until it closes.') }}
                         @else {{ __('Your vote cannot be changed once submitted.') }}
                         @endif
@@ -21,7 +25,7 @@
                         @csrf
                         @foreach($vote->options as $opt)
                             <div class="form-check mb-2">
-                                @if($vote->allow_multiple)
+                                @if($vote->allow_multiple || ($vote->mode === 'election' && ($vote->num_positions ?? 1) > 1))
                                     <input type="checkbox" name="option_ids[]" value="{{ $opt->id }}" class="form-check-input" id="opt{{ $opt->id }}" {{ in_array($opt->id, $currentBallots) ? 'checked' : '' }}>
                                 @else
                                     <input type="radio" name="option_id" value="{{ $opt->id }}" class="form-check-input" id="opt{{ $opt->id }}" {{ in_array($opt->id, $currentBallots) ? 'checked' : '' }} required>

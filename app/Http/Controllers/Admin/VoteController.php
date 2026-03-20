@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Vote;
-use App\Models\VoteBallot;
 use App\Models\VoteOption;
 use App\Models\VoteToken;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class VoteController extends Controller
@@ -17,6 +15,7 @@ class VoteController extends Controller
     public function index()
     {
         $votes = Vote::withCount(['tokens', 'ballots'])->orderByDesc('created_at')->get();
+
         return view('admin.votes.index', compact('votes'));
     }
 
@@ -33,6 +32,8 @@ class VoteController extends Controller
             'mode' => 'required|in:simple,election',
             'opens_at' => 'nullable|date',
             'closes_at' => 'nullable|date|after_or_equal:opens_at',
+            'num_positions' => 'nullable|integer|min:1|max:20',
+            'min_vote_pct' => 'nullable|integer|min:0|max:100',
             'options' => 'required|array|min:2',
             'options.*' => 'required|string|max:255',
         ]);
@@ -44,6 +45,8 @@ class VoteController extends Controller
             'allow_multiple' => $request->boolean('allow_multiple'),
             'allow_change' => $request->boolean('allow_change'),
             'is_public' => $request->boolean('is_public'),
+            'num_positions' => $v['num_positions'] ?? 1,
+            'min_vote_pct' => $v['min_vote_pct'] ?? 50,
             'opens_at' => $v['opens_at'],
             'closes_at' => $v['closes_at'],
             'created_by' => auth()->id(),
@@ -59,7 +62,8 @@ class VoteController extends Controller
     public function show(Vote $vote)
     {
         $vote->load(['options.ballots', 'tokens']);
-        $results = $vote->options->map(fn($o) => ['label' => $o->label, 'count' => $o->ballots->count()]);
+        $results = $vote->options->map(fn ($o) => ['label' => $o->label, 'count' => $o->ballots->count()]);
+
         return view('admin.votes.show', compact('vote', 'results'));
     }
 
@@ -69,7 +73,7 @@ class VoteController extends Controller
         $created = 0;
 
         foreach ($users as $user) {
-            if (!$vote->tokens()->where('user_id', $user->id)->exists()) {
+            if (! $vote->tokens()->where('user_id', $user->id)->exists()) {
                 VoteToken::create([
                     'vote_id' => $vote->id,
                     'user_id' => $user->id,
@@ -85,18 +89,21 @@ class VoteController extends Controller
     public function open(Vote $vote)
     {
         $vote->update(['status' => 'open']);
+
         return back()->with('success', __('Vote opened.'));
     }
 
     public function close(Vote $vote)
     {
         $vote->update(['status' => 'closed']);
+
         return back()->with('success', __('Vote closed.'));
     }
 
     public function cancel(Vote $vote)
     {
         $vote->update(['status' => 'cancelled']);
+
         return back()->with('success', __('Vote cancelled.'));
     }
 }

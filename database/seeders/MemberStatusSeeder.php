@@ -10,12 +10,12 @@ class MemberStatusSeeder extends Seeder
     public function run(): void
     {
         $statuses = [
-            ['name' => 'Membre de droit', 'slug' => 'membre_de_droit', 'fee_multiplier' => 1.00, 'description' => 'Full rights member'],
-            ['name' => 'Actif',           'slug' => 'actif',           'fee_multiplier' => 1.00, 'description' => 'Active member'],
-            ['name' => 'Fonctionnaire',   'slug' => 'fonctionnaire',   'fee_multiplier' => 0.33, 'description' => 'Civil servant member'],
-            ['name' => 'Honoraire',       'slug' => 'honoraire',       'fee_multiplier' => 0.00, 'description' => 'Honorary member'],
-            ['name' => 'Junior',          'slug' => 'junior',          'fee_multiplier' => 0.50, 'description' => 'Junior member (under 18)'],
-            ['name' => 'Famille',         'slug' => 'famille',         'fee_multiplier' => 0.80, 'description' => 'Family member'],
+            ['name' => 'Membre de droit', 'slug' => 'membre_de_droit', 'description' => 'Full rights member'],
+            ['name' => 'Actif',           'slug' => 'actif',           'description' => 'Active member'],
+            ['name' => 'Fonctionnaire',   'slug' => 'fonctionnaire',   'description' => 'Civil servant member'],
+            ['name' => 'Honoraire',       'slug' => 'honoraire',       'description' => 'Honorary member'],
+            ['name' => 'Junior',          'slug' => 'junior',          'description' => 'Junior member (under 18)'],
+            ['name' => 'Famille',         'slug' => 'famille',         'description' => 'Family member'],
         ];
 
         foreach ($statuses as $status) {

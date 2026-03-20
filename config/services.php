@@ -23,6 +23,9 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
         'page_token' => env('FACEBOOK_PAGE_TOKEN'),
     ],
+    'instagram' => [
+        'access_token' => env('INSTAGRAM_ACCESS_TOKEN'),
+    ],
     'x' => [
         'client_id' => env('X_CLIENT_ID'),
         'client_secret' => env('X_CLIENT_SECRET'),

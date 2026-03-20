@@ -20,7 +20,10 @@ use App\Models\DiveGroup;
 use App\Models\DiveGroupMember;
 use App\Models\DiveGroupRule;
 use App\Models\Event;
+use App\Models\User;
 use App\Services\DiveGroupProposalService;
+use App\Services\Homogeneity\DiveContext;
+use App\Services\Homogeneity\HomogeneityAssessmentService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -62,6 +65,11 @@ class DiveGroupController extends Controller
             'name' => 'nullable|string|max:100',
             'dive_mode' => 'required|in:supervised,autonomous,training,certification',
             'planned_depth' => 'nullable|integer|min:1|max:300',
+            'planned_duration' => 'nullable|integer|min:1|max:300',
+            'gas_mix' => 'nullable|in:'.implode(',', array_keys(DiveGroup::GAS_MIXES)),
+            'line_number' => 'nullable|integer|min:1|max:4',
+            'planned_entry_time' => 'nullable|date_format:H:i',
+            'planned_exit_time' => 'nullable|date_format:H:i',
             'notes' => 'nullable|string|max:500',
             'purpose' => 'nullable|string|max:50',
         ]);
@@ -71,6 +79,11 @@ class DiveGroupController extends Controller
             'name' => $request->name ?: __('Group').' '.($event->diveGroups()->count() + 1),
             'dive_mode' => $request->dive_mode,
             'planned_depth' => $request->planned_depth,
+            'planned_duration' => $request->planned_duration,
+            'gas_mix' => $request->gas_mix ?? 'air',
+            'line_number' => $request->line_number,
+            'planned_entry_time' => $request->planned_entry_time,
+            'planned_exit_time' => $request->planned_exit_time,
             'purpose' => $request->purpose,
             'notes' => $request->notes,
             'created_by' => auth()->id(),
@@ -125,18 +138,67 @@ class DiveGroupController extends Controller
      */
     public function validate_groups(Event $event)
     {
-        $event->load(['diveGroups.members.user.certificationLevels']);
+        $event->load(['diveGroups.members.user.certificationLevels', 'diveGroups.members.user.detail', 'diveSite']);
         $rules = DiveGroupRule::active()->get();
         $violations = [];
+        $homogeneity = [];
+        $assessor = new HomogeneityAssessmentService;
 
         foreach ($event->diveGroups as $group) {
+            $groupKey = $group->name ?? 'Group '.$group->id;
+
             $groupViolations = $this->checkGroup($group, $rules);
             if ($groupViolations) {
-                $violations[$group->name ?? 'Group '.$group->id] = $groupViolations;
+                $violations[$groupKey] = $groupViolations;
             }
+
+            // Homogeneity assessment
+            $diverProfiles = $group->members->map(fn ($m) => $this->buildDiverProfile($m->user))->toArray();
+            $ctx = new DiveContext(
+                plannedDepth: $group->planned_depth ?? $event->diveSite?->max_depth ?? 20,
+                waterTempCelsius: $event->diveSite?->water_temp ?? 15.0,
+            );
+            $result = $assessor->assess($diverProfiles, $ctx);
+            $homogeneity[$groupKey] = [
+                'score' => $result->score,
+                'status' => $result->status->value,
+                'factors' => array_map(fn ($f) => [
+                    'type' => $f->type->value,
+                    'impact' => $f->scoreImpact,
+                    'label' => $f->label,
+                    'detail' => $f->detail,
+                ], $result->factors),
+                'recommendations' => $result->recommendations,
+            ];
         }
 
-        return response()->json(['valid' => empty($violations), 'violations' => $violations]);
+        return response()->json([
+            'valid' => empty($violations),
+            'violations' => $violations,
+            'homogeneity' => $homogeneity,
+        ]);
+    }
+
+    /** Build a diver profile array for the homogeneity service. */
+    private function buildDiverProfile(User $user): array
+    {
+        $detail = $user->detail;
+        $cert = $this->getHighestCert($user);
+
+        return [
+            'name' => $user->name,
+            'airConsumption' => $detail?->air_consumption ?? 0.5,
+            'easeLevel' => $detail?->ease_level ?? 0.5,
+            'primaryIntent' => 'exploration',
+            'isPhotographer' => (bool) ($detail?->is_photographer ?? false),
+            'certRank' => $cert?->rank ?? 0,
+            'totalDives' => $detail?->total_dives ?? 50,
+            'lastDiveWeeksAgo' => $detail?->last_dive_date
+                ? (int) now()->diffInWeeks($detail->last_dive_date)
+                : 12,
+            'age' => $detail?->date_of_birth?->age ?? 30,
+            'isFragile' => ($detail?->date_of_birth?->age ?? 30) >= 65 || ($detail?->date_of_birth?->age ?? 30) < 16,
+        ];
     }
 
     // ─── Auto-Proposal (Fiche de Sécurité) ───────────────────
