@@ -27,15 +27,23 @@
                         </div>
                     </form>
 
-                    @unless(config('app.staging_mode'))
+                    @php
+                        $providers = collect([
+                            'google' => '🔵 Google',
+                            'microsoft' => '🟦 Microsoft',
+                            'facebook' => '🔷 Facebook',
+                            'x' => '⬛ X',
+                        ])->filter(fn ($label, $key) => config("services.{$key}.client_id"));
+                    @endphp
+                    @if($providers->isNotEmpty())
                     <hr>
                     <p class="text-center text-muted small mb-3">{{ __('Or sign in with') }}</p>
                     <div class="d-grid gap-2">
-                        @foreach(['google' => '🔵 Google', 'microsoft' => '🟦 Microsoft', 'facebook' => '🔷 Facebook', 'x' => '⬛ X'] as $provider => $label)
+                        @foreach($providers as $provider => $label)
                             <a href="{{ route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
                         @endforeach
                     </div>
-                    @endunless
+                    @endif
                 </div>
             </div>
         </div>
