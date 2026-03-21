@@ -51,6 +51,9 @@
 <form method="POST" action="{{ route('profile.document.upload') }}" enctype="multipart/form-data" class="mt-3">
     @csrf
     <input type="hidden" name="category" value="medical">
+    @if($target->id !== auth()->id())
+        <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+    @endif
     <div class="row g-2 align-items-end">
         <div class="col-md-4">
             <label class="form-label">{{ __('Upload Medical Certificate') }}</label>

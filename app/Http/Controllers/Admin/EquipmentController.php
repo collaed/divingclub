@@ -17,10 +17,14 @@ class EquipmentController extends Controller
 
     public function index(Request $request)
     {
+        $sortable = ['name' => 'name', 'type' => 'type', 'status' => 'status'];
+        $sort = $sortable[$request->get('sort')] ?? 'name';
+        $dir = $request->get('dir', 'asc') === 'desc' ? 'desc' : 'asc';
+
         $equipment = Equipment::with(['currentLoan.user.detail'])
             ->when($request->type, fn ($q, $t) => $q->where('type', $t))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
-            ->orderBy('name')->paginate($this->perPage(30))->withQueryString();
+            ->orderBy($sort, $dir)->paginate($this->perPage(30))->withQueryString();
 
         return view('admin.equipment.index', compact('equipment'));
     }

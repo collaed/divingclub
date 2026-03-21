@@ -3,7 +3,7 @@
 
     <div class="row mb-4">
         <div class="col-md-4"><div class="card dc-card text-center p-3"><h5>{{ $summary['unmatched'] }}</h5><small class="text-muted">{{ __('Unmatched') }}</small></div></div>
-        <div class="col-md-4"><div class="card dc-card text-center p-3"><h5 class="text-warning">{{ $summary['suggested'] }}</h5><small class="text-muted">{{ __('Matched (pending confirm)') }}</small></div></div>
+        <div class="col-md-4"><div class="card dc-card text-center p-3"><h5 class="text-warning">{{ $summary['matched'] ?? $summary['suggested'] ?? 0 }}</h5><small class="text-muted">{{ __('Matched (pending confirm)') }}</small></div></div>
         <div class="col-md-4"><div class="card dc-card text-center p-3"><h5 class="text-success">{{ $summary['confirmed'] }}</h5><small class="text-muted">{{ __('Confirmed') }}</small></div></div>
     </div>
 

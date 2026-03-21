@@ -10,6 +10,7 @@ use App\Models\UserEmail;
 use App\Services\MedicalComplianceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -275,7 +276,7 @@ class ProfileController extends Controller
     public function uploadDocument(Request $request, ?User $user = null)
     {
         $viewer = auth()->user();
-        $target = $user ?? $viewer;
+        $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
 
         if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
@@ -306,6 +307,21 @@ class ProfileController extends Controller
         // Evaluate medical compliance rules
         if ($request->category === 'medical') {
             app(MedicalComplianceService::class)->evaluateCertificate($doc);
+        }
+
+        // Notify bureau when a medical cert is uploaded
+        if ($request->category === 'medical') {
+            $bureauUsers = User::whereHas('role', fn ($q) => $q->whereIn('slug', ['bureau_master', 'bureau_technical']))->get();
+            foreach ($bureauUsers as $admin) {
+                Mail::raw(
+                    __(':name uploaded a medical certificate (:type, :date).', [
+                        'name' => $target->detail?->first_name.' '.$target->detail?->last_name,
+                        'type' => $doc->cert_type ?? 'medical',
+                        'date' => $doc->date_established?->format('Y-m-d') ?? '—',
+                    ]),
+                    fn ($m) => $m->to($admin->primary_email)->subject(__('Medical certificate uploaded'))
+                );
+            }
         }
 
         return back()->with('success', __('Document uploaded.'));
