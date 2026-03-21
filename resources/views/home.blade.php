@@ -20,9 +20,12 @@
                                 <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
+                        @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero']))
+                            <button class="btn btn-sm btn-outline-secondary hp-config-btn" data-index="{{ $i }}" title="{{ __('Settings') }}">⚙</button>
+                        @endif
                         <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
                     </div>
-                    @include('home._' . $widget['type'], ['widget' => $widget])
+                    @include('home._' . $widget['type'], ['widget' => $widget, 'zone' => 'top'])
                 </div>
             @endif
         @endforeach
@@ -43,9 +46,12 @@
                                         <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
+                                @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero']))
+                                    <button class="btn btn-sm btn-outline-secondary hp-config-btn" data-index="{{ $i }}" title="{{ __('Settings') }}">⚙</button>
+                                @endif
                                 <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
                             </div>
-                            @include('home._' . $widget['type'], ['widget' => $widget])
+                            @include('home._' . $widget['type'], ['widget' => $widget, 'zone' => 'main'])
                         </div>
                     @endif
                 @endforeach
@@ -66,9 +72,12 @@
                                         <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
+                                @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero']))
+                                    <button class="btn btn-sm btn-outline-secondary hp-config-btn" data-index="{{ $i }}" title="{{ __('Settings') }}">⚙</button>
+                                @endif
                                 <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
                             </div>
-                            @include('home._' . $widget['type'], ['widget' => $widget])
+                            @include('home._' . $widget['type'], ['widget' => $widget, 'zone' => 'sidebar'])
                         </div>
                     @endif
                 @endforeach
@@ -171,6 +180,45 @@
             sel.addEventListener('change', () => {
                 const idx = parseInt(sel.dataset.index);
                 layout[idx].visibility = sel.value;
+            });
+        });
+
+        // Config buttons — show inline config panel
+        document.querySelectorAll('.hp-config-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const w = btn.closest('.hp-widget');
+                let panel = w.querySelector('.hp-config-panel');
+                if (panel) { panel.remove(); return; }
+
+                const idx = parseInt(btn.dataset.index);
+                const widget = layout[idx];
+                const cfg = widget.config || {};
+                const type = widget.type;
+
+                panel = document.createElement('div');
+                panel.className = 'hp-config-panel p-2 bg-light border-bottom small';
+
+                let html = '<div class="d-flex flex-wrap gap-2 align-items-center">';
+                if (type === 'articles' || type === 'upcoming_events') {
+                    html += `<label>{{ __('Items') }}: <input type="number" class="form-control form-control-sm d-inline-block" style="width:70px" data-cfg="limit" value="${cfg.limit || (type === 'articles' ? 10 : 5)}" min="1" max="50"></label>`;
+                }
+                if (type === 'photos' || type === 'hero') {
+                    html += `<label>{{ __('Photos') }}: <input type="number" class="form-control form-control-sm d-inline-block" style="width:70px" data-cfg="count" value="${cfg.count || 8}" min="1" max="30"></label>`;
+                }
+                html += '</div>';
+                panel.innerHTML = html;
+
+                // Insert after the bar
+                const bar = w.querySelector('.hp-widget-bar');
+                bar.after(panel);
+
+                // Listen for changes
+                panel.querySelectorAll('[data-cfg]').forEach(input => {
+                    input.addEventListener('change', () => {
+                        if (!layout[idx].config) layout[idx].config = {};
+                        layout[idx].config[input.dataset.cfg] = parseInt(input.value) || input.value;
+                    });
+                });
             });
         });
     }
