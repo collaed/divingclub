@@ -7,13 +7,14 @@ use App\Models\GuardianLink;
 use App\Models\ParentalConsent;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class GuardianController extends Controller
 {
     public function index()
     {
-        $minors = User::whereHas('detail', fn($q) => $q->whereNotNull('date_of_birth')
-            ->whereRaw('date_of_birth > DATE_SUB(NOW(), INTERVAL 18 YEAR)'))
+        $minors = User::whereHas('detail', fn ($q) => $q->whereNotNull('date_of_birth')
+            ->where('date_of_birth', '>', now()->subYears(18)))
             ->with(['detail', 'guardians', 'parentalConsents.grantedBy'])
             ->get();
 
@@ -39,6 +40,7 @@ class GuardianController extends Controller
     public function unlinkGuardian(GuardianLink $link)
     {
         $link->delete();
+
         return back()->with('success', __('Guardian unlinked.'));
     }
 
@@ -71,12 +73,14 @@ class GuardianController extends Controller
     public function revokeConsent(ParentalConsent $consent)
     {
         $consent->update(['granted' => false, 'revoked_at' => now()]);
+
         return back()->with('success', __('Consent revoked.'));
     }
 
     public function downloadConsent(ParentalConsent $consent)
     {
-        abort_unless($consent->document_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($consent->document_path), 404);
-        return \Illuminate\Support\Facades\Storage::disk('local')->download($consent->document_path);
+        abort_unless($consent->document_path && Storage::disk('local')->exists($consent->document_path), 404);
+
+        return Storage::disk('local')->download($consent->document_path);
     }
 }

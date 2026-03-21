@@ -55,7 +55,7 @@ class EventPhoto extends Model
             ->where('gdpr_consent', true)
             ->where(fn ($q) => $q->where('has_faces', false)->orWhereNull('has_faces'))
             ->whereDoesntHave('uploader', fn ($q) => $q->whereHas('detail', fn ($d) => $d->where('public_photos_banned', true)))
-            ->orderByRaw('-(quality_score * quality_score) * LOG(RAND())')
+            ->orderByRaw('-(quality_score * quality_score) * LOG('.($this->getConnection()->getDriverName() === 'pgsql' ? 'RANDOM' : 'RAND').'())')
             ->limit($limit);
     }
 
@@ -73,7 +73,7 @@ class EventPhoto extends Model
     {
         return $q->where('approved', true)
             ->where('gdpr_consent', true)
-            ->orderByRaw('-(quality_score * quality_score) * LOG(RAND())')
+            ->orderByRaw('-(quality_score * quality_score) * LOG('.($this->getConnection()->getDriverName() === 'pgsql' ? 'RANDOM' : 'RAND').'())')
             ->limit($limit);
     }
 

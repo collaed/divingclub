@@ -31,8 +31,14 @@ class DashboardController extends Controller
             'revenue' => PaymentExpected::where('status', 'paid')->where('season_year', $season)->sum('amount_paid'),
             'outstanding' => PaymentExpected::where('status', 'pending')->where('season_year', $season)->sum('amount_due'),
             'upcoming_birthdays' => MemberDetail::whereNotNull('date_of_birth')
-                ->whereRaw('DAYOFYEAR(date_of_birth) BETWEEN DAYOFYEAR(NOW()) AND DAYOFYEAR(NOW()) + 30')
-                ->with('user')->orderByRaw('DAYOFYEAR(date_of_birth)')->limit(10)->get(),
+                ->whereBetween(
+                    \DB::raw(config('database.default') === 'pgsql'
+                        ? 'EXTRACT(DOY FROM date_of_birth)'
+                        : 'DAYOFYEAR(date_of_birth)'),
+                    [\DB::raw(config('database.default') === 'pgsql' ? 'EXTRACT(DOY FROM NOW())' : 'DAYOFYEAR(NOW())'),
+                        \DB::raw(config('database.default') === 'pgsql' ? 'EXTRACT(DOY FROM NOW()) + 30' : 'DAYOFYEAR(NOW()) + 30')]
+                )
+                ->with('user')->limit(10)->get(),
             'next_events' => Event::where('event_date', '>=', now())->orderBy('event_date')->limit(5)->get(),
         ];
 
@@ -47,12 +53,18 @@ class DashboardController extends Controller
             'missing_iban' => User::whereHas('detail', fn ($q) => $q->whereNull('iban'))->whereHas('status', fn ($q) => $q->where('slug', 'actif'))->count(),
             'new_members_unconfirmed' => User::whereNull('status_id')->whereNotNull('email_verified_at')->count(),
             'birthdays_14d' => MemberDetail::whereNotNull('date_of_birth')
-                ->whereRaw('DAYOFYEAR(date_of_birth) BETWEEN DAYOFYEAR(NOW()) AND DAYOFYEAR(NOW()) + 14')
-                ->with('user')->orderByRaw('DAYOFYEAR(date_of_birth)')->get(),
+                ->whereBetween(
+                    \DB::raw(config('database.default') === 'pgsql'
+                        ? 'EXTRACT(DOY FROM date_of_birth)'
+                        : 'DAYOFYEAR(date_of_birth)'),
+                    [\DB::raw(config('database.default') === 'pgsql' ? 'EXTRACT(DOY FROM NOW())' : 'DAYOFYEAR(NOW())'),
+                        \DB::raw(config('database.default') === 'pgsql' ? 'EXTRACT(DOY FROM NOW()) + 14' : 'DAYOFYEAR(NOW()) + 14')]
+                )
+                ->with('user')->get(),
             'unmatched_transactions' => BankTransaction::where('status', 'unmatched')->count(),
             'refund_reviews' => PaymentExpected::where('refund_review_needed', true)->count(),
             'minors_no_guardian' => User::whereHas('detail', fn ($q) => $q->whereNotNull('date_of_birth')
-                ->whereRaw('date_of_birth > DATE_SUB(NOW(), INTERVAL 18 YEAR)'))
+                ->where('date_of_birth', '>', now()->subYears(18)))
                 ->whereDoesntHave('guardians')->count(),
         ];
 
