@@ -130,9 +130,13 @@ class ProfileController extends Controller
             'cep_email' => 'nullable|email|max:255',
         ];
 
+        // Members can change their own status; bureau_master can change anyone's
+        if ($viewer->id === $target->id || $viewer->isBureauMaster()) {
+            $rules['status_id'] = 'nullable|exists:member_statuses,id';
+        }
+
         // Only bureau_master can change these
         if ($viewer->isBureauMaster()) {
-            $rules['status_id'] = 'nullable|exists:member_statuses,id';
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
             $rules['adhesion_year'] = 'nullable|integer|min:1900|max:'.date('Y');
@@ -142,9 +146,9 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Block member from changing restricted fields
+        // Block member from changing bureau-only fields
         if (! $viewer->isBureauMaster()) {
-            if ($request->has('status_id') || $request->has('bureau_member') || $request->has('active_instructor')) {
+            if ($request->has('bureau_member') || $request->has('active_instructor')) {
                 abort(403);
             }
         }
@@ -154,12 +158,14 @@ class ProfileController extends Controller
                 'username' => $validated['username'] ?? null,
             ], fn ($v) => $v !== null));
 
+            // Status change — allowed for self or bureau_master
+            if (isset($validated['status_id'])) {
+                $target->update(['status_id' => $validated['status_id']]);
+            }
+
             $detailData = collect($validated)->except(['username', 'status_id', 'cotisation_years'])->toArray();
 
             if ($viewer->isBureauMaster()) {
-                if (isset($validated['status_id'])) {
-                    $target->update(['status_id' => $validated['status_id']]);
-                }
                 $detailData['bureau_member'] = $validated['bureau_member'] ?? false;
                 $detailData['active_instructor'] = $validated['active_instructor'] ?? false;
                 $detailData['adhesion_year'] = $validated['adhesion_year'] ?? null;

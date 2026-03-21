@@ -58,20 +58,25 @@
         @error('cep_email') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
+    @if($viewer->id === $target->id || $isBM)
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">{{ __('Membership Status') }}</label>
+            <select name="status_id" class="form-select @error('status_id') is-invalid @enderror">
+                @foreach($statuses as $s)
+                    <option value="{{ $s->id }}" {{ old('status_id', $target->status_id) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                @endforeach
+            </select>
+            <div class="form-text">{{ __('Your fee will be adjusted accordingly at next renewal.') }}</div>
+            @error('status_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+    </div>
+    @endif
+
     @if($isBM)
         <hr>
         <h6 class="text-muted">{{ __('Bureau Master Only') }}</h6>
         <div class="row">
-            <div class="col-md-4 mb-3">
-                <label class="form-label">{{ __('Status') }}</label>
-                <select name="status_id" class="form-select @error('status_id') is-invalid @enderror">
-                    <option value="">—</option>
-                    @foreach($statuses as $s)
-                        <option value="{{ $s->id }}" {{ old('status_id', $target->status_id) == $s->id ? 'selected' : '' }}>{{ $s->name }} (×{{ $s->fee_multiplier }})</option>
-                    @endforeach
-                </select>
-                @error('status_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
             <div class="col-md-4 mb-3">
                 <label class="form-label">{{ __('Adhesion Year') }}</label>
                 <input type="number" name="adhesion_year" class="form-control @error('adhesion_year') is-invalid @enderror" value="{{ old('adhesion_year', $d?->adhesion_year) }}">
