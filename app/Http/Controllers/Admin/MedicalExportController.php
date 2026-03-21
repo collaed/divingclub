@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\Federation;
-use App\Models\MedicalComplianceRule;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -35,7 +34,7 @@ class MedicalExportController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename=medical-' . $fedName . '-' . date('Y-m-d') . '.csv',
+            'Content-Disposition' => 'attachment; filename=medical-'.$fedName.'-'.date('Y-m-d').'.csv',
         ];
 
         $callback = function () use ($members) {
@@ -73,12 +72,14 @@ class MedicalExportController extends Controller
 
     /**
      * Download current medical certificates as a ZIP.
+     * Includes DB-tracked documents + legacy files from private/medical/.
      * Files named: LASTNAME Firstname member# type.ext
      */
     public function downloadCertificates(Request $request)
     {
         $federationId = $request->get('federation_id');
 
+        // DB-tracked documents
         $query = Document::where('category', 'medical')
             ->where('is_current', true)
             ->with('user.detail');
@@ -89,19 +90,52 @@ class MedicalExportController extends Controller
 
         $docs = $query->get();
 
-        if ($docs->isEmpty()) {
+        // Legacy files from private/medical/ (LASTNAME_Firstname.pdf)
+        $legacyFiles = [];
+        $legacyDir = storage_path('app/private/medical');
+        if (is_dir($legacyDir)) {
+            // If filtering by federation, get matching user names to filter legacy files
+            $matchNames = null;
+            if ($federationId) {
+                $matchNames = User::whereHas('licences', fn ($q) => $q->where('federation_id', $federationId))
+                    ->with('detail')
+                    ->get()
+                    ->map(fn ($u) => strtoupper(Str::ascii($u->detail?->last_name ?? '')))
+                    ->filter()
+                    ->toArray();
+            }
+
+            foreach (glob("{$legacyDir}/*") as $file) {
+                $basename = pathinfo($file, PATHINFO_FILENAME);
+                // Match LASTNAME_Firstname or LASTNAME Firstname
+                $lastName = strtoupper(explode('_', $basename)[0] ?? '');
+
+                if ($matchNames !== null && ! in_array($lastName, $matchNames)) {
+                    continue;
+                }
+
+                // Skip if we already have a DB document for this user
+                $alreadyInDb = $docs->contains(fn ($doc) => strtoupper(Str::ascii($doc->user?->detail?->last_name ?? '')) === $lastName);
+                if (! $alreadyInDb) {
+                    $legacyFiles[] = $file;
+                }
+            }
+        }
+
+        if ($docs->isEmpty() && empty($legacyFiles)) {
             return back()->with('error', __('No medical certificates to export.'));
         }
 
         $fedName = $federationId ? Federation::find($federationId)?->acronym : 'all';
-        $zipPath = storage_path('app/temp/medical-certs-' . $fedName . '-' . date('Y-m-d') . '.zip');
+        $zipPath = storage_path('app/temp/medical-certs-'.$fedName.'-'.date('Y-m-d').'.zip');
         @mkdir(dirname($zipPath), 0755, true);
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             return back()->with('error', 'Could not create ZIP file.');
         }
 
+        // Add DB-tracked documents
         foreach ($docs as $doc) {
             $disk = Storage::disk('local');
             if (! $disk->exists($doc->file_path)) {
@@ -119,10 +153,16 @@ class MedicalExportController extends Controller
             $zip->addFromString($filename, $disk->get($doc->file_path));
         }
 
+        // Add legacy files
+        foreach ($legacyFiles as $file) {
+            $zip->addFile($file, basename($file));
+        }
+
         $zip->close();
 
         if (! file_exists($zipPath) || filesize($zipPath) === 0) {
             @unlink($zipPath);
+
             return back()->with('error', __('No certificate files found on disk to export.'));
         }
 
