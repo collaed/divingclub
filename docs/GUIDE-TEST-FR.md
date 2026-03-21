@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **URL** | `https://divingclub.wasmer.app` |
+| **URL** | `http://laravel.clubcep.eu` (ou `http://204.168.168.60` si le DNS n'est pas encore actif) |
 | **Protection** | Le site demande un identifiant/mot de passe au premier accès |
 | **Utilisateur** | `cep` |
 | **Mot de passe** | `cep2026` |
@@ -23,6 +23,7 @@ cep2026!
 
 | Testeur | Email | Rôle |
 |---------|-------|------|
+| Eddy Collart | eddy.collart@gmail.com | Bureau Master |
 | Keran Chaussard | kchaussard@tti-network.com | Bureau Technique |
 | Nikolaos Dimisianos | nidimus@gmail.com | Membre |
 | Michel Brochard | michel.brochard@mac.com | Bureau Master |
@@ -31,17 +32,15 @@ cep2026!
 | Roger Kraemer | rogerk210@gmail.com | Membre |
 | Etienne Coupez | etienne.coupez@gmail.com | Bureau Master |
 
-Vous pouvez aussi tester la connexion via **Google**, **Microsoft** ou **Facebook** (boutons sur la page de login).
-
 ---
 
 ## Quoi tester ?
 
 Explorez le site librement et notez tout ce qui vous semble bizarre, cassé, moche, ou manquant. Voici quelques pistes selon votre rôle :
 
-### Tout le monde 🧑‍🤝‍🧑
+### Tout le monde 🧑🤝🧑
 
-- [ ] Se connecter (email + mot de passe, ou via Google/Microsoft/Facebook)
+- [ ] Se connecter (email + mot de passe)
 - [ ] Consulter et modifier votre profil (photo, contacts d'urgence, téléphone)
 - [ ] Parcourir le calendrier des événements
 - [ ] S'inscrire / se désinscrire d'un événement
@@ -96,14 +95,13 @@ Envoyez vos retours par email ou WhatsApp — un simple message avec vos notes s
 - 🔒 **Aucun email réel** n'est envoyé — tout est intercepté et visible dans Admin → Email
 - 🔒 **Données de test** — ce sont vos vraies données CEP mais dans un bac à sable isolé
 - 🔒 **Le site est protégé** par un mot de passe global (`cep` / `cep2026`) — il n'est pas public
-- 🌐 **OAuth** — Google, Microsoft et Facebook sont configurés pour le test
 - 📱 **Mobile** — testez aussi depuis votre téléphone, le site est conçu pour
 
 ---
 
 ## En cas de problème technique
 
-Si le site ne répond plus ou affiche une erreur grave, contactez l'administrateur. Ne vous inquiétez pas — c'est un environnement de test, rien ne peut casser en production.
+Si le site ne répond plus ou affiche une erreur grave, contactez Eddy. Ne vous inquiétez pas — c'est un environnement de test, rien ne peut casser en production.
 
 ---
 
