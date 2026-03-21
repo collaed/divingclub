@@ -1,6 +1,6 @@
 <x-layout :title="__('Document Library')">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">📁 {{ __('Document Library') }}</h4>
+        <h4 class="mb-0">@icon('📁') {{ __('Document Library') }}</h4>
     </div>
 
     <div class="row">
@@ -11,7 +11,7 @@
                 <div class="list-group list-group-flush">
                     @foreach($folders as $f)
                         <a href="{{ route('admin.library.index', ['folder' => $f]) }}" class="list-group-item list-group-item-action {{ $folder === $f ? 'active' : '' }}">
-                            📁 {{ $f === '/' ? __('Root') : basename($f) }}
+                            @icon('📁') {{ $f === '/' ? __('Root') : basename($f) }}
                         </a>
                     @endforeach
                 </div>
@@ -46,10 +46,10 @@
                             <div class="col-md-2">
                                 <label class="form-label">{{ __('Visible to') }}</label>
                                 <select name="visibility" class="form-select form-select-sm">
-                                    <option value="public">🌍 {{ __('Public') }}</option>
-                                    <option value="members" selected>👥 {{ __('Members') }}</option>
-                                    <option value="instructors">🎓 {{ __('Instructors') }}</option>
-                                    <option value="bureau">🔒 {{ __('Bureau') }}</option>
+                                    <option value="public">@icon('🌍') {{ __('Public') }}</option>
+                                    <option value="members" selected>@icon('👥') {{ __('Members') }}</option>
+                                    <option value="instructors">@icon('🎓') {{ __('Instructors') }}</option>
+                                    <option value="bureau">@icon('🔒') {{ __('Bureau') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -62,7 +62,7 @@
 
             {{-- Current folder --}}
             <div class="card dc-card">
-                <div class="card-header">📂 {{ $folder }}</div>
+                <div class="card-header">@icon('📂') {{ $folder }}</div>
                 @if($files->isEmpty())
                     <div class="card-body text-muted">{{ __('No files in this folder.') }}</div>
                 @else
@@ -77,11 +77,7 @@
                                             <img src="{{ route('admin.library.thumb', $f) }}" alt="" style="max-width:40px;max-height:40px;border-radius:3px" loading="lazy">
                                         @else
                                             @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
-                                            @if(in_array($ext, ['pdf'])) 📄
-                                            @elseif(in_array($ext, ['doc','docx'])) 📝
-                                            @elseif(in_array($ext, ['xls','xlsx'])) 📊
-                                            @else 📎
-                                            @endif
+                                            @if(in_array($ext, ['pdf'])) @icon('📄')                                             @elseif(in_array($ext, ['doc','docx'])) @icon('📝')                                             @elseif(in_array($ext, ['xls','xlsx'])) @icon('📊')                                             @else @icon('📎')                                             @endif
                                         @endif
                                     </td>
                                     <td>
@@ -95,7 +91,7 @@
                                             <input type="hidden" name="folder" value="{{ $f->folder }}">
                                             <select name="visibility" class="form-select form-select-sm py-0" style="font-size:0.75rem;width:auto" onchange="this.form.submit()">
                                                 @foreach(['public' => '🌍', 'members' => '👥', 'instructors' => '🎓', 'bureau' => '🔒'] as $v => $icon)
-                                                    <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>{{ $icon }} {{ ucfirst($v) }}</option>
+                                                    <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>{{ \App\Helpers\IconHelper::render($icon) }}{{ ucfirst($v) }}</option>
                                                 @endforeach
                                             </select>
                                         </form>

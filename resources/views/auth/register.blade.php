@@ -42,7 +42,7 @@
                     <hr>
                     <p class="text-center text-muted small mb-3">{{ __('Or register with') }}</p>
                     <div class="d-grid gap-2">
-                        @foreach(['google' => '🔵 Google', 'microsoft' => '🟦 Microsoft', 'facebook' => '🔷 Facebook', 'x' => '⬛ X', 'amazon' => '🟠 Amazon'] as $provider => $label)
+                        @foreach(['google' => '🔵  Google', 'microsoft' => '🟦  Microsoft', 'facebook' => '🔷  Facebook', 'x' => '⬛  X', 'amazon' => '🟠  Amazon'] as $provider => $label)
                             <a href="{{ route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
                         @endforeach
                     </div>

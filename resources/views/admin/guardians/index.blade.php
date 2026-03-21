@@ -29,7 +29,7 @@
                             @php $c = $consents[$type] ?? null; @endphp
                             <span class="badge bg-{{ $c && $c->granted ? 'success' : 'warning text-dark' }}">
                                 {{ ucfirst($type) }}
-                                @if($c && $c->granted) ✓ @else ✗ @endif
+                                @if($c && $c->granted) @icon('✓') @else @icon('✗') @endif
                             </span>
                         @endforeach
                     </td>

@@ -19,11 +19,11 @@
                                 $clubAddress = \App\Models\ThemeSetting::get('club_address');
                             @endphp
 
-                            <h5 class="mb-3">📋 {{ __('Club Details') }}</h5>
+                            <h5 class="mb-3">@icon('📋') {{ __('Club Details') }}</h5>
                             <p class="fw-bold mb-1">{{ $clubName }}</p>
                             @if($clubAddress)<p class="text-muted">{{ $clubAddress }}</p>@endif
-                            @if($clubEmail)<p>📧 <a href="mailto:{{ $clubEmail }}">{{ $clubEmail }}</a></p>@endif
-                            @if($clubPhone)<p>📞 <a href="tel:{{ $clubPhone }}">{{ $clubPhone }}</a></p>@endif
+                            @if($clubEmail)<p>@icon('📧') <a href="mailto:{{ $clubEmail }}">{{ $clubEmail }}</a></p>@endif
+                            @if($clubPhone)<p>@icon('📞') <a href="tel:{{ $clubPhone }}">{{ $clubPhone }}</a></p>@endif
 
                             {{-- Social Links --}}
                             @php
@@ -48,13 +48,13 @@
                             {{-- Training Locations --}}
                             @php $locations = json_decode(\App\Models\ThemeSetting::get('training_locations', '[]'), true) ?: []; @endphp
                             @if(count($locations))
-                                <h6 class="mt-4">📍 {{ __('Training Locations') }}</h6>
+                                <h6 class="mt-4">@icon('📍') {{ __('Training Locations') }}</h6>
                                 @foreach($locations as $loc)
                                     <div class="mb-2">
                                         <strong>{{ $loc['name'] }}</strong>
                                         @if(!empty($loc['address']))<br><span class="text-muted small">{{ $loc['address'] }}</span>@endif
                                         @if(!empty($loc['lat']) && !empty($loc['lon']))
-                                            <br><a href="https://www.google.com/maps/search/?api=1&query={{ $loc['lat'] }},{{ $loc['lon'] }}" target="_blank" class="small">🗺️ {{ __('View on Map') }}</a>
+                                            <br><a href="https://www.google.com/maps/search/?api=1&query={{ $loc['lat'] }},{{ $loc['lon'] }}" target="_blank" class="small">@icon('🗺️') {{ __('View on Map') }}</a>
                                         @endif
                                     </div>
                                 @endforeach
@@ -67,7 +67,7 @@
                 <div class="col-md-6">
                     <div class="card dc-card h-100">
                         <div class="card-body">
-                            <h5 class="mb-3">✉️ {{ __('Send us a Message') }}</h5>
+                            <h5 class="mb-3">@icon('✉️') {{ __('Send us a Message') }}</h5>
                             <form method="POST" action="{{ route('contact.send') }}">
                                 @csrf
                                 <div class="mb-3">

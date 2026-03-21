@@ -1,13 +1,13 @@
 <x-layout :title="__('Backups')">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">💾 {{ __('Backups') }}</h4>
+        <h4 class="mb-0">@icon('💾') {{ __('Backups') }}</h4>
         <form method="POST" action="{{ route('admin.backups.create') }}" class="d-flex gap-2 align-items-center">
             @csrf
             <div class="form-check">
                 <input type="checkbox" name="include_files" value="1" checked class="form-check-input" id="incFiles">
                 <label class="form-check-label small" for="incFiles">{{ __('Include files') }}</label>
             </div>
-            <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.innerHTML='⏳ {{ __('Creating…') }}';this.form.submit();">
+            <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.innerHTML='@icon('⏳') {{ __('Creating…') }}';this.form.submit();">
                 {{ __('Create Backup Now') }}
             </button>
         </form>
@@ -41,7 +41,7 @@
                             <tr>
                                 <td>
                                     <a href="{{ route('admin.backups.show', $b['filename']) }}">
-                                        📦 {{ $b['filename'] }}
+                                        @icon('📦') {{ $b['filename'] }}
                                     </a>
                                 </td>
                                 <td>{{ $b['created_at']->format('d/m/Y H:i') }}</td>
@@ -63,7 +63,7 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.backups.download', $b['filename']) }}" class="btn btn-sm btn-outline-primary">⬇ {{ __('Download') }}</a>
+                                    <a href="{{ route('admin.backups.download', $b['filename']) }}" class="btn btn-sm btn-outline-primary">@icon('⬇') {{ __('Download') }}</a>
                                     <form method="POST" action="{{ route('admin.backups.destroy', $b['filename']) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete this backup?') }}')">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger">🗑</button>

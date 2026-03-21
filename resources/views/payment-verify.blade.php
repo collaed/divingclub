@@ -5,11 +5,11 @@
             @if($valid)
                 <div class="card dc-card">
                     <div class="card-header bg-success text-white">
-                        ✅ {{ __('Verified Payment Request') }}
+                        @icon('✅') {{ __('Verified Payment Request') }}
                     </div>
                     <div class="card-body">
                         <p class="small text-muted mb-3">
-                            🔒 {{ __('This payment request was cryptographically signed by :club. The details below are authentic.', ['club' => \App\Models\ThemeSetting::get('club_full_name', config('app.name'))]) }}
+                            @icon('🔒') {{ __('This payment request was cryptographically signed by :club. The details below are authentic.', ['club' => \App\Models\ThemeSetting::get('club_full_name', config('app.name'))]) }}
                         </p>
 
                         <table class="table table-sm">
@@ -22,24 +22,24 @@
                         </table>
 
                         <div class="d-grid gap-2 mt-3">
-                            <button class="btn btn-primary" onclick="copyAll()">📋 {{ __('Copy payment details') }}</button>
+                            <button class="btn btn-primary" onclick="copyAll()">@icon('📋') {{ __('Copy payment details') }}</button>
                         </div>
 
                         <div class="alert alert-info small mt-3 mb-0 py-2">
-                            🏦 {{ __('Open your banking app and create a new transfer with the details above.') }}
+                            @icon('🏦') {{ __('Open your banking app and create a new transfer with the details above.') }}
                         </div>
                     </div>
                     <div class="card-footer small text-muted text-center">
-                        🔐 {{ __('Signed by') }} {{ \App\Models\ThemeSetting::get('club_full_name', config('app.name')) }} · {{ __('Domain verified via TLS certificate') }}
+                        @icon('🔐') {{ __('Signed by') }} {{ \App\Models\ThemeSetting::get('club_full_name', config('app.name')) }} · {{ __('Domain verified via TLS certificate') }}
                     </div>
                 </div>
             @else
                 <div class="card border-danger">
                     <div class="card-header bg-danger text-white">
-                        ❌ {{ __('Verification Failed') }}
+                        @icon('❌') {{ __('Verification Failed') }}
                     </div>
                     <div class="card-body text-center">
-                        <p class="fs-5 mb-2">⚠️</p>
+                        <p class="fs-5 mb-2">@icon('⚠')️</p>
                         <p>{{ $error }}</p>
                         <p class="small text-muted">{{ __('Do NOT proceed with this payment. Contact the club if you believe this is an error.') }}</p>
                         <a href="{{ route('dues.show') }}" class="btn btn-outline-primary">{{ __('Go to Membership Fees page') }}</a>
@@ -55,8 +55,8 @@
         const text = "IBAN: {{ $iban }}\nBIC: {{ $bic }}\nBeneficiary: {{ $beneficiary }}\nAmount: {{ number_format($amount, 2) }}€\nCommunication: {{ $communication }}";
         navigator.clipboard.writeText(text).then(() => {
             const btn = event.target;
-            btn.textContent = '✅ {{ __("Copied!") }}';
-            setTimeout(() => btn.textContent = '📋 {{ __("Copy payment details") }}', 2000);
+            btn.textContent = '@icon('✅') {{ __("Copied!") }}';
+            setTimeout(() => btn.textContent = '@icon('📋') {{ __("Copy payment details") }}', 2000);
         });
     }
     </script>

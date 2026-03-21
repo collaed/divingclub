@@ -7,7 +7,7 @@
     @if($ms['cert'])
         {{ __('Certificate dated') }}: {{ $ms['cert']->date_established?->format('d/m/Y') ?? '—' }}
         @if($ms['cert']->expiry_date) · {{ __('Expires') }}: {{ $ms['cert']->expiry_date->format('d/m/Y') }} @endif
-        @if($ms['cert']->is_verified) · <span class="text-success">✓ {{ __('Verified') }}</span> @endif
+        @if($ms['cert']->is_verified) · <span class="text-success">@icon('✓') {{ __('Verified') }}</span> @endif
     @else
         {{ __('Please upload your medical certificate.') }}
     @endif

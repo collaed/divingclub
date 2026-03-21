@@ -22,7 +22,7 @@
 </ul>
 
 <h5>CSV Export</h5>
-<p>Click the 📥 button to export the current filtered view as CSV. Useful for bureau meetings or compliance audits.</p>
+<p>Click the @icon('📥') button to export the current filtered view as CSV. Useful for bureau meetings or compliance audits.</p>
 
 <h5>Retention Policy</h5>
 <p>Set the auto-purge period (6–60 months) in the audit log header. The system automatically deletes entries older than this threshold on the 1st of each month at 04:00.</p>

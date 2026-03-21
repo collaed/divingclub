@@ -38,17 +38,17 @@
     <div class="row">
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Phone (Private)') }}</label>
-            <input type="text" name="phone_private" class="form-control @error('phone_private') is-invalid @enderror" value="{{ old('phone_private', $d?->phone_private) }}">
+            <input type="tel" name="phone_private" class="form-control @error('phone_private') is-invalid @enderror" value="{{ old('phone_private', $d?->phone_private) }}" placeholder="+352 621 123 456">
             @error('phone_private') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Phone (Office)') }}</label>
-            <input type="text" name="phone_office" class="form-control @error('phone_office') is-invalid @enderror" value="{{ old('phone_office', $d?->phone_office) }}">
+            <input type="tel" name="phone_office" class="form-control @error('phone_office') is-invalid @enderror" value="{{ old('phone_office', $d?->phone_office) }}" placeholder="+352 26 123 456">
             @error('phone_office') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Phone (Mobile)') }}</label>
-            <input type="text" name="phone_mobile" class="form-control @error('phone_mobile') is-invalid @enderror" value="{{ old('phone_mobile', $d?->phone_mobile) }}">
+            <input type="tel" name="phone_mobile" class="form-control @error('phone_mobile') is-invalid @enderror" value="{{ old('phone_mobile', $d?->phone_mobile) }}" placeholder="+352 621 123 456">
             @error('phone_mobile') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>

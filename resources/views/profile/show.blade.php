@@ -1,6 +1,6 @@
 <x-layout :title="__('Profile') . ' — ' . $target->name">
     @if($viewer->isBureauMaster() && $viewer->id !== $target->id)
-        <div class="alert alert-warning py-2 mb-3">⚠️ {{ __('Editing as Bureau Master') }}: {{ $target->name }}</div>
+        <div class="alert alert-warning py-2 mb-3">@icon('⚠️') {{ __('Editing as Bureau Master') }}: {{ $target->name }}</div>
     @endif
 
     {{-- Profile header with photo (like old Joomla site) --}}
@@ -120,7 +120,7 @@
                 <form method="POST" action="{{ route('password.request.send') }}" class="d-inline">
                     @csrf
                     <input type="hidden" name="email" value="{{ $target->primary_email }}">
-                    <button class="btn btn-sm btn-outline-info">🔑 {{ __('Send Password Reset Link') }}</button>
+                    <button class="btn btn-sm btn-outline-info">@icon('🔑') {{ __('Send Password Reset Link') }}</button>
                 </form>
             @endif
         </div>

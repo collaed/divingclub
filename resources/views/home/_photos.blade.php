@@ -1,7 +1,7 @@
 @php $zone = $zone ?? $widget['zone'] ?? 'sidebar'; @endphp
 @if(($widget['data']['photos'] ?? collect())->count())
 <div class="card dc-card mb-4">
-    <div class="card-header">📸 {{ __('Recent Photos') }}</div>
+    <div class="card-header">@icon('📸') {{ __('Recent Photos') }}</div>
     <div class="card-body p-0">
         @if($zone === 'main')
             {{-- Wide zone: responsive grid --}}

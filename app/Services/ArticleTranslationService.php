@@ -92,7 +92,7 @@ class ArticleTranslationService
             $response = Http::get('https://translate.googleapis.com/translate_a/single', [
                 'client' => 'gtx',
                 'sl' => $from,
-                'tl' => $to,
+                'tl' => $to === 'pt' ? 'pt-PT' : $to,
                 'dt' => 't',
                 'q' => $escaped,
             ]);

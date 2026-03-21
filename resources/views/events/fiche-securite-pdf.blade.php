@@ -82,7 +82,7 @@
             </td>
             <td style="width:45%; text-align:right;" class="site-info">
                 @if($site)
-                    <strong>📍 {{ $site->name }}</strong><br>
+                    <strong>@icon('📍') {{ $site->name }}</strong><br>
                     @if($site->region) {{ $site->region }}, @endif{{ $site->country }}<br>
                     @if($site->water_type) Type: {{ ucfirst($site->water_type) }} @endif
                     @if($site->max_depth) · Prof. max site: {{ $site->max_depth }}m @endif<br>
@@ -142,10 +142,7 @@
                         <td class="center">{{ $licence?->licence_number ?? '—' }}</td>
                         <td class="center">{{ $cert?->code ?? '—' }}</td>
                         <td class="center">
-                            @if($medStatus['status'] === 'compliant') ✓
-                            @elseif($medStatus['status'] === 'expiring') ⚠
-                            @else ✗
-                            @endif
+                            @if($medStatus['status'] === 'compliant') @icon('✓')                             @elseif($medStatus['status'] === 'expiring') @icon('⚠')                             @else @icon('✗')                             @endif
                         </td>
                         <td></td>{{-- H. Immersion --}}
                         <td></td>{{-- H. Sortie --}}
@@ -159,7 +156,7 @@
                         <strong>Prof. réelle:</strong> ____m &nbsp;
                         <strong>Paliers:</strong>
                         3m: ____min &nbsp; 6m: ____min &nbsp; 9m: ____min &nbsp;
-                        <strong>Arrêt sécu. 3m/3min:</strong> ☐ &nbsp;
+                        <strong>Arrêt sécu. 3m/3min:</strong> @icon('☐') &nbsp;
                         <strong>GPS:</strong> ____/____
                     </td>
                 </tr>
@@ -181,7 +178,7 @@
                                 <strong>Prof. réelle:</strong> ____m &nbsp;
                                 <strong>Paliers:</strong>
                                 3m: ____min &nbsp; 6m: ____min &nbsp; 9m: ____min &nbsp;
-                                <strong>Arrêt sécu. 3m/3min:</strong> ☐ &nbsp;
+                                <strong>Arrêt sécu. 3m/3min:</strong> @icon('☐') &nbsp;
                                 <strong>GPS:</strong> ____/____
                             </td>
                         @endif
@@ -198,30 +195,30 @@
     @endphp
     @if($unassigned->count())
         <div class="unassigned">
-            <strong>⚠️ Plongeurs non affectés ({{ $unassigned->count() }}):</strong>
+            <strong>@icon('⚠️') Plongeurs non affectés ({{ $unassigned->count() }}):</strong>
             {{ $unassigned->map(fn($r) => $r->user->detail?->first_name . ' ' . $r->user->detail?->last_name)->join(', ') }}
         </div>
     @endif
 
     {{-- ═══════════ EMERGENCY INFO ═══════════ --}}
     <div class="emergency-block">
-        <h2>🚨 INFORMATIONS D'URGENCE</h2>
+        <h2>@icon('🚨') INFORMATIONS D'URGENCE</h2>
         <table>
             <tr>
-                <td class="label">📞 Secours / SAMU:</td>
+                <td class="label">@icon('📞') Secours / SAMU:</td>
                 <td>{{ $site?->emergency_phone ?? '112' }}</td>
-                <td class="label">📻 VHF:</td>
+                <td class="label">@icon('📻') VHF:</td>
                 <td>{{ $site?->vhf_channel ?? 'N/A' }}</td>
             </tr>
             <tr>
-                <td class="label">🏥 Hôpital le plus proche:</td>
+                <td class="label">@icon('🏥') Hôpital le plus proche:</td>
                 <td colspan="3">{{ $site?->nearest_hospital ?? '—' }}@if($site?->hospital_distance_km) (≈{{ $site->hospital_distance_km }}km)@endif</td>
             </tr>
             <tr>
-                <td class="label">🫁 Caisson hyperbare:</td>
+                <td class="label">@icon('🫁') Caisson hyperbare:</td>
                 <td colspan="3">
                     {{ $site?->nearest_hyperbaric_chamber ?? '—' }}
-                    @if($site?->hyperbaric_phone) · ☎ {{ $site->hyperbaric_phone }}@endif
+                    @if($site?->hyperbaric_phone) · @icon('☎') {{ $site->hyperbaric_phone }}@endif
                     @if($site?->hyperbaric_distance_km) (≈{{ $site->hyperbaric_distance_km }}km)@endif
                 </td>
             </tr>
@@ -231,7 +228,7 @@
     {{-- ═══════════ REQUIRED SAFETY EQUIPMENT ═══════════ --}}
     @if($site?->required_safety_equipment)
         <div class="equip-block">
-            <h2>🧰 MATÉRIEL DE SÉCURITÉ OBLIGATOIRE</h2>
+            <h2>@icon('🧰') MATÉRIEL DE SÉCURITÉ OBLIGATOIRE</h2>
             {{ $site->required_safety_equipment }}
         </div>
     @endif
@@ -248,7 +245,7 @@
     {{-- ═══════════ FOOTER ═══════════ --}}
     <div class="footer">
         {{ $clubName }} — Fiche de sécurité générée automatiquement. Vérifiez les aptitudes et certificats médicaux avant immersion.
-        @if($site?->safety_notes) · ⚠ {{ $site->safety_notes }}@endif
+        @if($site?->safety_notes) · @icon('⚠') {{ $site->safety_notes }}@endif
     </div>
 </body>
 </html>

@@ -29,10 +29,10 @@
 
                     @php
                         $providers = collect([
-                            'google' => '🔵 Google',
-                            'microsoft' => '🟦 Microsoft',
-                            'facebook' => '🔷 Facebook',
-                            'x' => '⬛ X',
+                            'google' => '🔵  Google',
+                            'microsoft' => '🟦  Microsoft',
+                            'facebook' => '🔷  Facebook',
+                            'x' => '⬛  X',
                         ])->filter(fn ($label, $key) => config("services.{$key}.client_id"));
                     @endphp
                     @if($providers->isNotEmpty())

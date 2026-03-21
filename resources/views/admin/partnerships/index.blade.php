@@ -1,7 +1,7 @@
 <x-layout :title="__('Partnerships')">
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>🤝 Club Partnerships</h2>
+        <h2>@icon('🤝') Club Partnerships</h2>
         <div>
             <a href="{{ route('admin.partnerships.registrations') }}" class="btn btn-outline-primary btn-sm">External Registrations</a>
             <a href="{{ route('admin.partnerships.create') }}" class="btn btn-primary btn-sm">+ Add Partner</a>

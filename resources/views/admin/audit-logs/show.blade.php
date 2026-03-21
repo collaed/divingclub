@@ -19,7 +19,7 @@
                 <div class="col-md-6"><strong>{{ __('User Agent') }}</strong><br><small class="text-muted">{{ \Illuminate\Support\Str::limit($log->user_agent, 120) ?? '—' }}</small></div>
             </div>
             @if($log->impersonated_user_id)
-                <div class="alert alert-warning mt-3 py-2 small">⚠️ {{ __('Action performed while impersonating user') }} #{{ $log->impersonated_user_id }}</div>
+                <div class="alert alert-warning mt-3 py-2 small">@icon('⚠️') {{ __('Action performed while impersonating user') }} #{{ $log->impersonated_user_id }}</div>
             @endif
         </div>
     </div>

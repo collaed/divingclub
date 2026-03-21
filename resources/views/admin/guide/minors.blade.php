@@ -18,7 +18,7 @@
 <p>Each consent can include an uploaded document (signed authorization form, PDF or image). Documents are stored privately and accessible only to bureau members.</p>
 
 <h5>Revoking Consent</h5>
-<p>Click Revoke next to any active consent. The revocation is timestamped and audit-logged. The consent badge changes from green ✓ to yellow ✗.</p>
+<p>Click Revoke next to any active consent. The revocation is timestamped and audit-logged. The consent badge changes from green @icon('✓') to yellow ✗.</p>
 
 <h5>Age Calculation</h5>
 <p>The system uses the member's <code>date_of_birth</code> field. When a minor turns 18, they no longer appear on this page and manage their own consents via the Privacy page.</p>

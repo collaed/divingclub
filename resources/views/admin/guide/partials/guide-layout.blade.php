@@ -3,7 +3,7 @@
 <div class="row">
     <div class="col-lg-3 mb-4">
         <div class="card dc-card">
-            <div class="card-header"><a href="{{ route('admin.guide.index') }}" class="text-decoration-none">📖 Admin Guide</a></div>
+            <div class="card-header"><a href="{{ route('admin.guide.index') }}" class="text-decoration-none">@icon('📖') Admin Guide</a></div>
             <div class="list-group list-group-flush">
                 @foreach($sections as $slug => $sTitle)
                     <a href="{{ route('admin.guide.show', $slug) }}" class="list-group-item list-group-item-action {{ $current === $slug ? 'active' : '' }}">{{ $sTitle }}</a>

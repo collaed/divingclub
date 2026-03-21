@@ -3,7 +3,7 @@
         <div class="col-lg-8">
             <div class="card dc-card mb-4">
                 <div class="card-body">
-                    <h2>🐠 {{ __('Free Trial Dive') }}</h2>
+                    <h2>@icon('🐠') {{ __('Free Trial Dive') }}</h2>
                     <p class="lead">{{ __('Curious about scuba diving? Try it for free in our pool!') }}</p>
 
                     <h4>{{ __('What to expect') }}</h4>
@@ -24,7 +24,7 @@
                     </ol>
 
                     <div class="alert alert-warning">
-                        <strong>⚠️ {{ __('Important health information') }}</strong>
+                        <strong>@icon('⚠️') {{ __('Important health information') }}</strong>
                         <p class="mb-1 small">{{ __('Diving is not recommended if you have any of the following conditions:') }}</p>
                         <ul class="small mb-0">
                             <li>{{ __('Respiratory conditions (asthma, COPD)') }}</li>
@@ -37,13 +37,13 @@
                     </div>
 
                     <h4>{{ __('After the trial') }}</h4>
-                    <p>{{ __('Enjoyed it? You can join the club and start your first certification (P1★ / 1 Star Diver). See our') }} <a href="{{ url('/article/first-certification') }}">{{ __('First Certification Guide') }}</a> {{ __('for details.') }}</p>
+                    <p>{{ __('Enjoyed it? You can join the club and start your first certification (P1@icon('★') / 1 Star Diver). See our') }} <a href="{{ url('/article/first-certification') }}">{{ __('First Certification Guide') }}</a> {{ __('for details.') }}</p>
                 </div>
             </div>
 
             {{-- Request form --}}
             <div class="card dc-card">
-                <div class="card-header">📝 {{ __('Request an Appointment') }}</div>
+                <div class="card-header">@icon('📝') {{ __('Request an Appointment') }}</div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('trial.store') }}">
                         @csrf

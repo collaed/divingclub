@@ -1,10 +1,10 @@
 {{-- Document browser with role-based visibility, upload & folder management | ClubCEP.eu --}}
 <x-layout :title="__('Documents')">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">📁 {{ __('Documents') }}</h4>
+        <h4 class="mb-0">@icon('📁') {{ __('Documents') }}</h4>
         @if($canManage)
             <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#uploadPanel">
-                ⬆ {{ __('Upload') }}
+                @icon('⬆') {{ __('Upload') }}
             </button>
         @endif
     </div>
@@ -29,10 +29,10 @@
                             <div class="col-md-3">
                                 <label class="form-label small">{{ __('Visible to') }}</label>
                                 <select name="visibility" class="form-select form-select-sm">
-                                    <option value="public">🌍 {{ __('Everyone (public)') }}</option>
-                                    <option value="members" selected>👥 {{ __('Members') }}</option>
-                                    <option value="instructors">🎓 {{ __('Instructors & Bureau') }}</option>
-                                    <option value="bureau">🔒 {{ __('Bureau only') }}</option>
+                                    <option value="public">@icon('🌍') {{ __('Everyone (public)') }}</option>
+                                    <option value="members" selected>@icon('👥') {{ __('Members') }}</option>
+                                    <option value="instructors">@icon('🎓') {{ __('Instructors & Bureau') }}</option>
+                                    <option value="bureau">@icon('🔒') {{ __('Bureau only') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -56,7 +56,7 @@
                         <a href="{{ route('documents.index', ['folder' => $f]) }}"
                            class="list-group-item list-group-item-action py-1 {{ $folder === $f ? 'active' : '' }}"
                            style="padding-left:{{ 12 + $depth * 16 }}px; font-size:0.85rem">
-                            📁 {{ $f === '/' ? __('Root') : basename($f) }}
+                            @icon('📁') {{ $f === '/' ? __('Root') : basename($f) }}
                         </a>
                     @endforeach
                 </div>
@@ -68,7 +68,7 @@
                     @csrf
                     <input type="hidden" name="parent" value="{{ $folder }}">
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text">📁+</span>
+                        <span class="input-group-text">@icon('📁')+</span>
                         <input type="text" name="name" class="form-control" placeholder="{{ __('New folder') }}" required pattern="[a-zA-Z0-9_\- ]+">
                         <button class="btn btn-outline-primary">{{ __('Create') }}</button>
                     </div>
@@ -83,7 +83,7 @@
             <div id="dropZone" class="card dc-card" style="transition:background .2s">
                 {{-- Drag-drop overlay --}}
                 <div id="dropOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="display:none!important;background:rgba(0,102,204,.15);border:3px dashed #0066cc;border-radius:.375rem;z-index:10;pointer-events:none">
-                    <span class="fs-4 text-primary fw-bold">📂 {{ __('Drop files here') }}</span>
+                    <span class="fs-4 text-primary fw-bold">@icon('📂') {{ __('Drop files here') }}</span>
                 </div>
             @else
             <div class="card dc-card">
@@ -91,7 +91,7 @@
                 <div class="card-header py-2 d-flex justify-content-between">
                     <span>
                         {{-- Breadcrumb navigation --}}
-                        <a href="{{ route('documents.index', ['folder' => '/']) }}" class="text-decoration-none">📂 {{ __('Root') }}</a>
+                        <a href="{{ route('documents.index', ['folder' => '/']) }}" class="text-decoration-none">@icon('📂') {{ __('Root') }}</a>
                         @if($folder !== '/')
                             @php
                                 $parts = array_filter(explode('/', $folder));
@@ -145,13 +145,7 @@
                                             <img src="{{ route('documents.thumb', $f) }}" alt="" style="max-width:36px;max-height:36px;border-radius:3px" loading="lazy">
                                         @else
                                             @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
-                                            @if(in_array($ext, ['pdf'])) 📄
-                                            @elseif(in_array($ext, ['doc','docx'])) 📝
-                                            @elseif(in_array($ext, ['xls','xlsx'])) 📊
-                                            @elseif(in_array($ext, ['ppt','pptx'])) 📊
-                                            @elseif(in_array($ext, ['zip','rar','7z'])) 📦
-                                            @else 📎
-                                            @endif
+                                            @if(in_array($ext, ['pdf'])) @icon('📄')                                             @elseif(in_array($ext, ['doc','docx'])) @icon('📝')                                             @elseif(in_array($ext, ['xls','xlsx'])) @icon('📊')                                             @elseif(in_array($ext, ['ppt','pptx'])) @icon('📊')                                             @elseif(in_array($ext, ['zip','rar','7z'])) @icon('📦')                                             @else @icon('📎')                                             @endif
                                         @endif
                                     </td>
                                     <td>
@@ -167,13 +161,13 @@
                                                 <input type="hidden" name="folder" value="{{ $f->folder }}">
                                                 <select name="visibility" class="form-select form-select-sm py-0" style="font-size:0.75rem;width:auto;display:inline" onchange="this.form.submit()">
                                                     @foreach(['public' => '🌍', 'members' => '👥', 'instructors' => '🎓', 'bureau' => '🔒'] as $v => $icon)
-                                                        <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>{{ $icon }} {{ ucfirst($v) }}</option>
+                                                        <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>{{ \App\Helpers\IconHelper::render($icon) }}{{ ucfirst($v) }}</option>
                                                     @endforeach
                                                 </select>
                                             </form>
                                         @else
                                             @php $icons = ['public' => '🌍', 'members' => '👥', 'instructors' => '🎓', 'bureau' => '🔒']; @endphp
-                                            <span class="small">{{ $icons[$f->visibility] ?? '' }} {{ ucfirst($f->visibility) }}</span>
+                                            <span class="small">{{ \App\Helpers\IconHelper::render($icons[$f->visibility] ?? '') }}{{ ucfirst($f->visibility) }}</span>
                                         @endif
                                     </td>
                                     <td class="text-nowrap small">
@@ -202,10 +196,10 @@
 
             {{-- Visibility legend --}}
             <div class="small text-muted mt-2">
-                🌍 {{ __('Public — visible to everyone') }} ·
-                👥 {{ __('Members — logged-in members') }} ·
-                🎓 {{ __('Instructors — instructors & bureau') }} ·
-                🔒 {{ __('Bureau — bureau only') }}
+                @icon('🌍') {{ __('Public — visible to everyone') }} ·
+                @icon('👥') {{ __('Members — logged-in members') }} ·
+                @icon('🎓') {{ __('Instructors — instructors & bureau') }} ·
+                @icon('🔒') {{ __('Bureau — bureau only') }}
             </div>
         </div>
     </div>
@@ -231,11 +225,11 @@
             for(let i=0;i<files.length;i++) fd.append('files[]', files[i]);
             const btn = document.createElement('div');
             btn.className='alert alert-info py-2 mt-2';
-            btn.textContent='⏳ {{ __("Uploading") }} '+files.length+' {{ __("file(s)…") }}';
+            btn.textContent='@icon('⏳') {{ __("Uploading") }} '+files.length+' {{ __("file(s)…") }}';
             zone.after(btn);
             fetch('{{ route("documents.upload") }}', {method:'POST', body:fd})
-                .then(r => { if(r.ok||r.redirected) location.reload(); else btn.textContent='❌ {{ __("Upload failed") }}'; })
-                .catch(() => btn.textContent='❌ {{ __("Upload failed") }}');
+                .then(r => { if(r.ok||r.redirected) location.reload(); else btn.textContent='@icon('❌') {{ __("Upload failed") }}'; })
+                .catch(() => btn.textContent='@icon('❌') {{ __("Upload failed") }}');
         });
     })();
     </script>

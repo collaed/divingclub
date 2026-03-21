@@ -1,6 +1,6 @@
 <x-layout title="Staging Mail">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">📧 {{ $mail->subject }}</h4>
+        <h4 class="mb-0">@icon('📧') {{ $mail->subject }}</h4>
         <a href="{{ route('staging.mail.index') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
     </div>
 

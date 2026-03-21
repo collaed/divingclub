@@ -8,7 +8,7 @@
             @foreach($components as $c)
                 <tr>
                     <td>{{ $c->name }}</td><td><code>{{ $c->slug }}</code></td><td>€{{ number_format($c->amount, 2) }}</td>
-                    <td>@if($c->is_base) ✓ @endif</td><td>@if($c->is_optional) ✓ @endif</td>
+                    <td>@if($c->is_base) @icon('✓') @endif</td><td>@if($c->is_optional) @icon('✓') @endif</td>
                     <td><form method="POST" action="{{ route('admin.payments.component.destroy', $c) }}" class="d-inline">@csrf @method('DELETE') <button class="btn btn-sm btn-outline-danger">✕</button></form></td>
                 </tr>
             @endforeach

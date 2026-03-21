@@ -18,7 +18,7 @@
 <p>Administration → Articles → Create. Set title, type, body (rich text), featured image, and gallery images. Toggle Published and Public (visible without login).</p>
 
 <h5>Auto-Translation</h5>
-<p>Click "🌐 Generate translations" on any article to auto-translate to all configured languages. The scheduler also translates one untranslated article per hour automatically. Translations show as tabs on the article page with a 🤖 indicator.</p>
+<p>Click "@icon('🌐') Generate translations" on any article to auto-translate to all configured languages. The scheduler also translates one untranslated article per hour automatically. Translations show as tabs on the article page with a @icon('🤖') indicator.</p>
 
 <h5>Comments</h5>
 <p>Authenticated members can comment on articles. Comments are threaded (up to 3 levels). Authors and bureau can delete comments.</p>

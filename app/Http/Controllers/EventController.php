@@ -33,6 +33,8 @@ use App\Services\MedicalComplianceService;
 use App\Services\PushNotificationService;
 use App\Services\SocialPublishService;
 use Carbon\Carbon;
+use HTMLPurifier;
+use HTMLPurifier_Config;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -99,6 +101,7 @@ class EventController extends Controller
     {
         $this->authorizeBureau();
         $data = $this->validateEvent($request);
+        $data['description'] = $this->purifyHtml($data['description'] ?? '');
         $data['created_by'] = auth()->id();
         $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
         $data['participant_email'] = null; // will be set after creation
@@ -133,6 +136,7 @@ class EventController extends Controller
     {
         $this->authorizeEventEdit($event);
         $data = $this->validateEvent($request);
+        $data['description'] = $this->purifyHtml($data['description'] ?? '');
         $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
         $event->update($data);
 
@@ -388,6 +392,19 @@ class EventController extends Controller
     private function authorizeBureau(): void
     {
         abort_unless(auth()->user()->isBureau(), 403);
+    }
+
+    private function purifyHtml(?string $html): string
+    {
+        if (! $html) {
+            return '';
+        }
+        $config = HTMLPurifier_Config::createDefault();
+        $config->set('HTML.Allowed', 'h2,h3,h4,p,br,strong,b,em,i,u,s,a[href|target|class],ul,ol,li,blockquote,img[src|alt|style|class],span[style],table[class],thead,tbody,tr,th,td,div[class]');
+        $config->set('HTML.TargetBlank', true);
+        $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true]);
+
+        return (new HTMLPurifier($config))->purify($html);
     }
 
     /** Bureau can always edit; instructors can edit their own events until permissions expire. */

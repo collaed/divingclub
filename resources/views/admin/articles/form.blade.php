@@ -26,8 +26,7 @@
 
         <div class="mb-3">
             <label class="form-label">{{ __('Body') }}</label>
-            <div id="editor">{!! old('body', $article->body) !!}</div>
-            <input type="hidden" name="body" id="bodyInput">
+            <textarea name="body" class="tinymce">{{ old('body', $article->body) }}</textarea>
             @error('body') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
         </div>
 
@@ -103,15 +102,9 @@
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary mb-3" onclick="document.getElementById('galleryInputs').appendChild(document.querySelector('.gallery-row').cloneNode(true))">+ {{ __('Add image') }}</button>
 
-        <button type="submit" class="btn btn-primary" onclick="document.getElementById('bodyInput').value=document.getElementById('editor').querySelector('.ql-editor').innerHTML">{{ __('Save') }}</button>
+        <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
         <a href="{{ route('admin.articles.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
     </form>
 
-    <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
-    <style>#editor { min-height: 250px; background: #fff; }</style>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
-    <script>new Quill('#editor', { theme: 'snow', modules: { toolbar: [
-        [{ header: [2, 3, false] }], ['bold', 'italic', 'underline', 'strike'],
-        [{ list: 'ordered' }, { list: 'bullet' }], ['link', 'image', 'blockquote'], ['clean']
-    ]}});</script>
+    <x-rich-editor />
 </x-layout>

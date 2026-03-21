@@ -1,7 +1,7 @@
 <x-layout :title="__('Confirm Data Erasure')">
     <div class="row justify-content-center"><div class="col-lg-6">
         <div class="card dc-card border-danger">
-            <div class="card-header bg-danger text-white">⚠️ {{ __('Confirm Data Erasure') }}</div>
+            <div class="card-header bg-danger text-white">@icon('⚠️') {{ __('Confirm Data Erasure') }}</div>
             <div class="card-body">
                 <p>{{ __('This will permanently:') }}</p>
                 <ul>

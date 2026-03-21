@@ -1,6 +1,6 @@
 {{-- Photo gallery — all approved event photos with Ken Burns slideshows | ClubCEP.eu --}}
 <x-layout :title="__('Photo Gallery')">
-    <h4 class="mb-4">📸 {{ __('Photo Gallery') }}</h4>
+    <h4 class="mb-4">@icon('📸') {{ __('Photo Gallery') }}</h4>
 
     @forelse($photos as $eventTitle => $eventPhotos)
         <div class="card dc-card mb-4">
@@ -15,7 +15,7 @@
     @empty
         <div class="card dc-card">
             <div class="card-body text-center py-5 text-muted">
-                📷 {{ __('No photos yet. Photos will appear here after events.') }}
+                @icon('📷') {{ __('No photos yet. Photos will appear here after events.') }}
             </div>
         </div>
     @endforelse

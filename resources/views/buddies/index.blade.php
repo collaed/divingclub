@@ -1,7 +1,7 @@
 <x-layout :title="__('Looking for Buddies')">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h4>🤝 {{ __('Looking for Buddies') }}</h4>
+            <h4>@icon('🤝') {{ __('Looking for Buddies') }}</h4>
             <p class="text-muted small mb-0">{{ __('Find dive partners, guides, or a Directeur de Plongée for your next dive.') }}</p>
         </div>
     </div>
@@ -49,7 +49,7 @@
                             <div class="mt-2 border-top pt-2">
                                 @foreach($req->responses as $resp)
                                     <div class="small mb-1">
-                                        ✋ <strong>{{ $resp->user->detail?->first_name }} {{ $resp->user->detail?->last_name }}</strong>
+                                        @icon('✋') <strong>{{ $resp->user->detail?->first_name }} {{ $resp->user->detail?->last_name }}</strong>
                                         @php $rc = $resp->user->certificationLevels->where('category', '!=', 'specialty')->sortByDesc('rank')->first(); @endphp
                                         @if($rc)<span class="badge bg-info" style="font-size:0.65rem">{{ $rc->code }}</span>@endif
                                         @if($resp->message)— {{ $resp->message }}@endif
@@ -63,10 +63,10 @@
                             <form method="POST" action="{{ route('buddies.respond', $req) }}" class="mt-2 d-flex gap-2">
                                 @csrf
                                 <input type="text" name="message" class="form-control form-control-sm" placeholder="{{ __('Optional message…') }}">
-                                <button class="btn btn-sm btn-primary text-nowrap">✋ {{ __("I'm in!") }}</button>
+                                <button class="btn btn-sm btn-primary text-nowrap">@icon('✋') {{ __("I'm in!") }}</button>
                             </form>
                         @elseif($myResponse)
-                            <div class="small text-success mt-1">✅ {{ __('You responded to this request.') }}</div>
+                            <div class="small text-success mt-1">@icon('✅') {{ __('You responded to this request.') }}</div>
                         @endif
                     </div>
                 </div>
@@ -78,7 +78,7 @@
         <div class="col-lg-4">
             {{-- Post new request --}}
             <div class="card dc-card mb-3">
-                <div class="card-header">📝 {{ __('Post a Request') }}</div>
+                <div class="card-header">@icon('📝') {{ __('Post a Request') }}</div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('buddies.store') }}">
                         @csrf
@@ -127,7 +127,7 @@
             {{-- Info box --}}
             <div class="card dc-card">
                 <div class="card-body small">
-                    <strong>ℹ️ {{ __('Reminder') }}</strong>
+                    <strong>ℹ@icon('️') {{ __('Reminder') }}</strong>
                     <ul class="mb-0 mt-1">
                         <li>{{ __('FFESSM: A Directeur de Plongée (N4+) is required on site unless all divers are N3+.') }}</li>
                         <li>{{ __('Levels 1 & 2 need a Guide de Palanquée (N4/P4) or instructor to dive.') }}</li>

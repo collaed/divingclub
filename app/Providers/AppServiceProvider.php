@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\DivingClubUserProvider;
 use App\Services\LicenseService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -44,5 +45,10 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.staging_mode') && $to = config('mail.always_to')) {
             Mail::alwaysTo($to);
         }
+
+        // @icon('🤿') — outputs emoji only when icons are enabled for current user
+        Blade::directive('icon', function (string $expression) {
+            return "<?php echo \App\Helpers\IconHelper::render({$expression}); ?>";
+        });
     }
 }

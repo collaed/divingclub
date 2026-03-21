@@ -27,7 +27,7 @@
         </div>
         <div class="col-md-3 text-end">
             <div class="dropdown d-inline">
-                <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown">🏥 {{ __('Medical Export') }}</button>
+                <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown">@icon('🏥') {{ __('Medical Export') }}</button>
                 <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width:260px">
                     <li class="mb-2">
                         <select id="medFedSelect" class="form-select form-select-sm">
@@ -37,8 +37,8 @@
                             @endforeach
                         </select>
                     </li>
-                    <li><a class="dropdown-item" href="#" onclick="location.href='{{ route('admin.medical-export') }}?federation_id='+document.getElementById('medFedSelect').value">📋 {{ __('Member List (CSV)') }}</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="location.href='{{ route('admin.medical-certificates') }}?federation_id='+document.getElementById('medFedSelect').value">📦 {{ __('Certificates (ZIP)') }}</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="location.href='{{ route('admin.medical-export') }}?federation_id='+document.getElementById('medFedSelect').value">@icon('📋') {{ __('Member List (CSV)') }}</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="location.href='{{ route('admin.medical-certificates') }}?federation_id='+document.getElementById('medFedSelect').value">@icon('📦') {{ __('Certificates (ZIP)') }}</a></li>
                 </ul>
             </div>
         </div>

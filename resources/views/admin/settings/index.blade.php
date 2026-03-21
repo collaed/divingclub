@@ -3,12 +3,12 @@
 
     {{-- Tab navigation --}}
     <ul class="nav nav-tabs mb-4" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-club" type="button">🏢 {{ __('Club & Finance') }}</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rules" type="button">📋 {{ __('Rules & Compliance') }}</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-appearance" type="button">🎨 {{ __('Appearance') }}</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-technical" type="button">⚙️ {{ __('Technical') }}</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-languages" type="button">🌍 {{ __('Languages') }}</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-license" type="button">🔑 {{ __('License') }}</button></li>
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-club" type="button">@icon('🏢') {{ __('Club & Finance') }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rules" type="button">@icon('📋') {{ __('Rules & Compliance') }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-appearance" type="button">@icon('🎨') {{ __('Appearance') }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-technical" type="button">@icon('⚙️') {{ __('Technical') }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-languages" type="button">@icon('🌍') {{ __('Languages') }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-license" type="button">@icon('🔑') {{ __('License') }}</button></li>
     </ul>
 
     <div class="tab-content">
@@ -161,7 +161,7 @@
                             </div>
                         </div>
                         <hr>
-                        <h6>🏠 {{ __('Warehouse / Club House') }}</h6>
+                        <h6>@icon('🏠') {{ __('Warehouse / Club House') }}</h6>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">{{ __('Warehouse Address') }}</label>
@@ -181,7 +181,7 @@
 
                     {{-- Training Locations --}}
                     <hr>
-                    <h6>📍 {{ __('Training Locations') }}</h6>
+                    <h6>@icon('📍') {{ __('Training Locations') }}</h6>
                     <p class="text-muted small">{{ __('Add your pool, quarry, or meeting locations. These appear on the contact page with map links.') }}</p>
                     @php $locations = json_decode($themeSettings['training_locations'] ?? '[]', true) ?: []; @endphp
                     <div id="training-locations">
@@ -204,7 +204,7 @@
 
                     {{-- Social Profile Links --}}
                     <hr>
-                    <h6>🔗 {{ __('Social Media Profiles') }}</h6>
+                    <h6>@icon('🔗') {{ __('Social Media Profiles') }}</h6>
                     <p class="text-muted small">{{ __('Public profile URLs shown on the contact page. Leave blank to hide.') }}</p>
                     <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                         @csrf
@@ -233,7 +233,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-5">
                                 <label class="form-label">{{ __('Club IBAN') }}</label>
-                                <input type="text" name="club_iban" class="form-control" value="{{ $themeSettings['club_iban'] ?? '' }}" placeholder="LU00 0000 0000 0000 0000">
+                                <input type="text" name="club_iban" data-mask="iban" class="form-control" value="{{ $themeSettings['club_iban'] ?? '' }}" placeholder="LU00 0000 0000 0000 0000">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">{{ __('BIC / SWIFT') }}</label>
@@ -384,6 +384,17 @@
             <div id="themeSection" class="accordion-collapse collapse show" data-bs-parent="#appearanceAccordion">
                 <div class="accordion-body">
                     {{-- Presets --}}
+                    {{-- Icon toggle (default for guests) --}}
+                    <h6>{{ __('Menu Icons') }}</h6>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}" class="mb-4">
+                        @csrf
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="ui_show_icons" value="0">
+                            <input class="form-check-input" type="checkbox" name="ui_show_icons" value="1" id="uiShowIcons" {{ ($themeSettings['ui_show_icons'] ?? '1') === '1' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <label class="form-check-label" for="uiShowIcons">{{ __('Show emoji icons in menus and headings (default for guests; members can override in their profile)') }}</label>
+                        </div>
+                    </form>
+
                     {{-- UI Style presets --}}
                     <h6>{{ __('UI Style') }}</h6>
                     <div class="d-flex flex-wrap gap-2 mb-3">
@@ -431,7 +442,7 @@
 
                         <h6>{{ __('Branding') }}</h6>
                         <div class="row g-2 mb-3">
-                            <div class="col-md-1"><label class="form-label small">{{ __('Emoji') }}</label><input type="text" name="logo_emoji" class="form-control form-control-sm" value="{{ $themeSettings['logo_emoji'] ?? '🤿' }}"></div>
+                            <div class="col-md-1"><label class="form-label small">{{ __('Emoji') }}</label><input type="text" name="logo_emoji" class="form-control form-control-sm" value="{{ $themeSettings['logo_emoji'] ?? '@icon('🤿')' }}"></div>
                             <div class="col-md-2"><label class="form-label small">{{ __('Accent Text') }}</label><input type="text" name="logo_accent_text" class="form-control form-control-sm" value="{{ $themeSettings['logo_accent_text'] ?? 'Diving' }}"></div>
                             <div class="col-md-2"><label class="form-label small">{{ __('Plain Text') }}</label><input type="text" name="logo_plain_text" class="form-control form-control-sm" value="{{ $themeSettings['logo_plain_text'] ?? 'Club' }}"></div>
                             <div class="col-md-4"><label class="form-label small">{{ __('Club Full Name') }}</label><input type="text" name="club_full_name" class="form-control form-control-sm" value="{{ $themeSettings['club_full_name'] ?? '' }}"></div>
@@ -592,8 +603,8 @@
                         </div>
 
                         <div class="alert alert-info small py-2">
-                            ℹ️ {{ __('Facebook: requires') }} <code>FACEBOOK_PAGE_TOKEN</code> {{ __('in .env. Group must be confirmed closed.') }}<br>
-                            ℹ️ {{ __('Instagram: requires') }} <code>INSTAGRAM_ACCESS_TOKEN</code> {{ __('in .env. Uses Instagram Graph API (Business account). Since Instagram is public, photos with faces or from minors are automatically excluded.') }}
+                            ℹ@icon('️') {{ __('Facebook: requires') }} <code>FACEBOOK_PAGE_TOKEN</code> {{ __('in .env. Group must be confirmed closed.') }}<br>
+                            ℹ@icon('️') {{ __('Instagram: requires') }} <code>INSTAGRAM_ACCESS_TOKEN</code> {{ __('in .env. Uses Instagram Graph API (Business account). Since Instagram is public, photos with faces or from minors are automatically excluded.') }}
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Social Settings') }}</button>
                     </form>
@@ -608,7 +619,7 @@
     <div class="tab-pane fade" id="tab-languages">
         <div class="card dc-card">
             <div class="card-body">
-                <h6>🌍 {{ __('Enabled Languages') }}</h6>
+                <h6>@icon('🌍') {{ __('Enabled Languages') }}</h6>
                 <p class="text-muted small">{{ __('Uncheck languages you don\'t need. The language selector and translations will only show enabled languages.') }}</p>
                 <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                     @csrf
@@ -637,22 +648,22 @@
         @php $lic = \App\Services\LicenseService::status(); @endphp
         <div class="card dc-card mb-3">
             <div class="card-body">
-                <h6>📊 {{ __('Installation Status') }}</h6>
+                <h6>@icon('📊') {{ __('Installation Status') }}</h6>
                 <p>{{ __('Active members') }}: <strong>{{ $lic['member_count'] }}</strong> / {{ $lic['free_tier_limit'] }} {{ __('free tier') }}</p>
                 @if($lic['is_valid'])
-                    <span class="badge bg-success fs-6">✅ {{ $lic['needs_license'] ? __('Licensed') : __('Free Tier') }}</span>
+                    <span class="badge bg-success fs-6">@icon('✅') {{ $lic['needs_license'] ? __('Licensed') : __('Free Tier') }}</span>
                 @else
-                    <span class="badge bg-danger fs-6">🔒 {{ __('License Required') }}</span>
+                    <span class="badge bg-danger fs-6">@icon('🔒') {{ __('License Required') }}</span>
                     <p class="text-danger mt-2">{{ __('New member registration is blocked. Enter a valid license key below.') }}</p>
                 @endif
                 @if(!($lic['integrity_ok'] ?? true))
-                    <div class="alert alert-danger mt-2 mb-0 py-1 small">⚠️ {{ __('Integrity check failed — license service may have been tampered with.') }}</div>
+                    <div class="alert alert-danger mt-2 mb-0 py-1 small">@icon('⚠️') {{ __('Integrity check failed — license service may have been tampered with.') }}</div>
                 @endif
             </div>
         </div>
         <div class="card dc-card">
             <div class="card-body">
-                <h6>🔑 {{ __('License Key') }}</h6>
+                <h6>@icon('🔑') {{ __('License Key') }}</h6>
                 <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                     @csrf
                     <div class="mb-3">

@@ -1,6 +1,6 @@
 <x-layout :title="__('Admin Guide')">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">📖 {{ __('Administration Guide') }}</h4>
+        <h4 class="mb-0">@icon('📖') {{ __('Administration Guide') }}</h4>
         <a href="{{ route('admin.dashboard.index') }}" class="btn btn-sm btn-outline-primary">← {{ __('Dashboard') }}</a>
     </div>
 
@@ -11,26 +11,26 @@
                     <div class="card-body text-center">
                         <div class="fs-2 mb-2">
                             @switch($slug)
-                                @case('overview') 🏠 @break
-                                @case('first-steps') 🚀 @break
-                                @case('members') 👥 @break
-                                @case('minors') 👨‍👧 @break
-                                @case('seasons-events') 📅 @break
-                                @case('dive-groups') 🫧 @break
-                                @case('medical') 🏥 @break
-                                @case('payments') 💰 @break
-                                @case('equipment') 🤿 @break
-                                @case('content') 📰 @break
-                                @case('email') ✉️ @break
-                                @case('voting') 🗳️ @break
-                                @case('partnerships') 🤝 @break
-                                @case('social-media') 📱 @break
-                                @case('gdpr') 🔒 @break
-                                @case('audit-log') 📋 @break
-                                @case('settings') ⚙️ @break
-                                @case('api-keys') 🔑 @break
-                                @case('backup') 💾 @break
-                                @case('troubleshooting') 🔧 @break
+                                @case('overview') @icon('🏠') @break
+                                @case('first-steps') @icon('🚀') @break
+                                @case('members') @icon('👥') @break
+                                @case('minors') @icon('👨‍👧') @break
+                                @case('seasons-events') @icon('📅') @break
+                                @case('dive-groups') @icon('🫧') @break
+                                @case('medical') @icon('🏥') @break
+                                @case('payments') @icon('💰') @break
+                                @case('equipment') @icon('🤿') @break
+                                @case('content') @icon('📰') @break
+                                @case('email') @icon('✉️') @break
+                                @case('voting') @icon('🗳️') @break
+                                @case('partnerships') @icon('🤝') @break
+                                @case('social-media') @icon('📱') @break
+                                @case('gdpr') @icon('🔒') @break
+                                @case('audit-log') @icon('📋') @break
+                                @case('settings') @icon('⚙️') @break
+                                @case('api-keys') @icon('🔑') @break
+                                @case('backup') @icon('💾') @break
+                                @case('troubleshooting') @icon('🔧') @break
                             @endswitch
                         </div>
                         <h6 class="card-title text-dark">{{ $title }}</h6>

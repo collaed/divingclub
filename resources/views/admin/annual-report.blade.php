@@ -1,11 +1,11 @@
 <x-layout :title="__('Annual Report') . ' ' . $year">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">📊 {{ __('Annual Report') }} — {{ $year }}</h4>
+        <h4 class="mb-0">@icon('📊') {{ __('Annual Report') }} — {{ $year }}</h4>
         <form method="GET" class="d-flex gap-2">
             <select name="year" class="form-select form-select-sm" style="width:100px" onchange="this.form.submit()">
                 @foreach($years as $y)<option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>@endforeach
             </select>
-            <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.print()">🖨️ {{ __('Print') }}</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.print()">@icon('🖨️') {{ __('Print') }}</button>
         </form>
     </div>
 

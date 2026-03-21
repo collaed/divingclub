@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFederationRequest;
+use App\Http\Requests\StoreMaintenanceRuleRequest;
+use App\Http\Requests\StoreMedicalRuleRequest;
+use App\Http\Requests\StoreMembershipFeeRequest;
 use App\Models\EquipmentMaintenanceRule;
 use App\Models\Federation;
 use App\Models\MedicalComplianceRule;
@@ -30,18 +34,16 @@ class SettingsController extends Controller
     }
 
     // --- Federations ---
-    public function storeFederation(Request $request)
+    public function storeFederation(StoreFederationRequest $request)
     {
-        $v = $request->validate(['acronym' => 'required|string|max:20|unique:federations', 'full_name' => 'required|string|max:255']);
-        Federation::create($v);
+        Federation::create($request->validated());
 
         return back()->with('success', __('Federation added.'));
     }
 
-    public function updateFederation(Request $request, Federation $federation)
+    public function updateFederation(StoreFederationRequest $request, Federation $federation)
     {
-        $v = $request->validate(['acronym' => 'required|string|max:20|unique:federations,acronym,'.$federation->id, 'full_name' => 'required|string|max:255']);
-        $federation->update($v);
+        $federation->update($request->validated());
 
         return back()->with('success', __('Federation updated.'));
     }
@@ -71,30 +73,16 @@ class SettingsController extends Controller
     }
 
     // --- Medical Compliance Rules ---
-    public function storeMedicalRule(Request $request)
+    public function storeMedicalRule(StoreMedicalRuleRequest $request)
     {
-        $v = $request->validate([
-            'federation_id' => 'required|exists:federations,id',
-            'age_bracket_low' => 'required|integer|min:0',
-            'age_bracket_high' => 'required|integer|min:0|gte:age_bracket_low',
-            'cert_type' => 'required|string|in:gp,ent,cardio,ophthalmologist,other',
-            'validity_months' => 'required|integer|min:1',
-        ]);
-        MedicalComplianceRule::create($v);
+        MedicalComplianceRule::create($request->validated());
 
         return back()->with('success', __('Medical rule added.'));
     }
 
-    public function updateMedicalRule(Request $request, MedicalComplianceRule $rule)
+    public function updateMedicalRule(StoreMedicalRuleRequest $request, MedicalComplianceRule $rule)
     {
-        $v = $request->validate([
-            'federation_id' => 'required|exists:federations,id',
-            'age_bracket_low' => 'required|integer|min:0',
-            'age_bracket_high' => 'required|integer|min:0|gte:age_bracket_low',
-            'cert_type' => 'required|string|in:gp,ent,cardio,ophthalmologist,other',
-            'validity_months' => 'required|integer|min:1',
-        ]);
-        $rule->update($v);
+        $rule->update($request->validated());
 
         return back()->with('success', __('Medical rule updated.'));
     }
@@ -107,30 +95,18 @@ class SettingsController extends Controller
     }
 
     // --- Equipment Maintenance Rules ---
-    public function storeMaintenanceRule(Request $request)
+    public function storeMaintenanceRule(StoreMaintenanceRuleRequest $request)
     {
-        $v = $request->validate([
-            'equipment_type' => 'required|string|max:100',
-            'maintenance_name' => 'required|string|max:255',
-            'interval_months' => 'required|integer|min:1',
-            'is_mandatory' => 'boolean',
-            'regulation_reference' => 'nullable|string|max:255',
-        ]);
+        $v = $request->validated();
         $v['is_mandatory'] = $request->boolean('is_mandatory');
         EquipmentMaintenanceRule::create($v);
 
         return back()->with('success', __('Maintenance rule added.'));
     }
 
-    public function updateMaintenanceRule(Request $request, EquipmentMaintenanceRule $rule)
+    public function updateMaintenanceRule(StoreMaintenanceRuleRequest $request, EquipmentMaintenanceRule $rule)
     {
-        $v = $request->validate([
-            'equipment_type' => 'required|string|max:100',
-            'maintenance_name' => 'required|string|max:255',
-            'interval_months' => 'required|integer|min:1',
-            'is_mandatory' => 'boolean',
-            'regulation_reference' => 'nullable|string|max:255',
-        ]);
+        $v = $request->validated();
         $v['is_mandatory'] = $request->boolean('is_mandatory');
         $rule->update($v);
 
@@ -144,16 +120,10 @@ class SettingsController extends Controller
         return back()->with('success', __('Maintenance rule deleted.'));
     }
 
-    // --- Membership Fees (absolute amounts per status per year) ---
-    public function storeMembershipFee(Request $request)
+    // --- Membership Fees ---
+    public function storeMembershipFee(StoreMembershipFeeRequest $request)
     {
-        $v = $request->validate([
-            'season_year' => 'required|string|max:10',
-            'status_id' => 'required|exists:member_statuses,id',
-            'amount' => 'required|numeric|min:0',
-            'label' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-        ]);
+        $v = $request->validated();
         MembershipFee::updateOrCreate(
             ['season_year' => $v['season_year'], 'status_id' => $v['status_id']],
             $v
@@ -171,7 +141,7 @@ class SettingsController extends Controller
 
     public function updateTheme(Request $request)
     {
-        $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x'];
+        $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'ui_show_icons', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x'];
 
         // Handle enabled_locales checkbox array separately
         if ($request->has('enabled_locales')) {

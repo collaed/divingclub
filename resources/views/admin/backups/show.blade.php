@@ -1,8 +1,8 @@
 <x-layout :title="__('Backup') . ' — ' . $filename">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">📦 {{ $filename }}</h4>
+        <h4 class="mb-0">@icon('📦') {{ $filename }}</h4>
         <div>
-            <a href="{{ route('admin.backups.download', $filename) }}" class="btn btn-primary">⬇ {{ __('Download') }}</a>
+            <a href="{{ route('admin.backups.download', $filename) }}" class="btn btn-primary">@icon('⬇') {{ __('Download') }}</a>
             <a href="{{ route('admin.backups.index') }}" class="btn btn-outline-secondary">{{ __('Back') }}</a>
         </div>
     </div>
@@ -22,9 +22,9 @@
                             <tr><th class="text-muted">{{ __('Tables') }}</th><td>{{ count($manifest['tables']) }}</td></tr>
                             <tr><th class="text-muted">{{ __('Files included') }}</th><td>
                                 @if($manifest['includes_files'])
-                                    ✅ {{ $manifest['storage_files'] }} {{ __('files') }} ({{ $manifest['storage_size_human'] }})
+                                    @icon('✅') {{ $manifest['storage_files'] }} {{ __('files') }} ({{ $manifest['storage_size_human'] }})
                                 @else
-                                    ❌ {{ __('DB only') }}
+                                    @icon('❌') {{ __('DB only') }}
                                 @endif
                             </td></tr>
                             <tr><th class="text-muted">{{ __('App version') }}</th><td>{{ $manifest['version'] ?? '—' }}</td></tr>
@@ -72,7 +72,7 @@
                     @foreach($files as $folder => $items)
                         <div class="col-md-4">
                             <div class="border rounded p-2">
-                                <strong>📁 {{ $folder }}/</strong>
+                                <strong>@icon('📁') {{ $folder }}/</strong>
                                 <span class="badge bg-secondary float-end">{{ count($items) }}</span>
                                 <ul class="list-unstyled small mt-1 mb-0" style="max-height:200px; overflow-y:auto;">
                                     @foreach(array_slice($items, 0, 20) as $f)

@@ -22,7 +22,7 @@
                         @endphp
                         <div class="mb-2">
                             <div class="d-flex justify-content-between">
-                                <span>{{ $r['label'] }} @if($elected)<span class="badge bg-success">✓ {{ __('Elected') }}</span>@endif</span>
+                                <span>{{ $r['label'] }} @if($elected)<span class="badge bg-success">@icon('✓') {{ __('Elected') }}</span>@endif</span>
                                 <strong>{{ $r['count'] }} ({{ $voterPct }}%)</strong>
                             </div>
                             <div class="progress" style="height:20px;">

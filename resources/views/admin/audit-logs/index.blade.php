@@ -36,7 +36,7 @@
                 {{-- Retention policy --}}
                 <form method="POST" action="{{ route('admin.audit-logs.retention') }}" class="d-flex gap-1 align-items-center">
                     @csrf
-                    <small class="text-nowrap">📋 {{ __('Auto-purge after') }}</small>
+                    <small class="text-nowrap">@icon('📋') {{ __('Auto-purge after') }}</small>
                     <select name="audit_retention_months" class="form-select form-select-sm" style="width:90px">
                         @foreach([6, 12, 18, 24, 36, 48, 60] as $m)
                             <option value="{{ $m }}" {{ $retentionMonths == $m ? 'selected' : '' }}>{{ $m }} {{ __('mo') }}</option>
@@ -51,7 +51,7 @@
                     <select name="years" class="form-select form-select-sm" style="width:80px">
                         @for($i = 1; $i <= 5; $i++)<option value="{{ $i }}">{{ $i }} {{ __('yr') }}</option>@endfor
                     </select>
-                    <button class="btn btn-sm btn-outline-danger text-nowrap">🗑️ {{ __('Purge') }}</button>
+                    <button class="btn btn-sm btn-outline-danger text-nowrap">@icon('🗑️') {{ __('Purge') }}</button>
                 </form>
             </div>
         </div>

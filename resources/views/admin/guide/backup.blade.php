@@ -4,10 +4,10 @@
 <p>The backup system creates compressed archives containing the full database and all uploaded files (avatars, medical certificates, documents, article images, event photos).</p>
 
 <h5>Admin Interface</h5>
-<p>Go to <strong>Admin → 💾 Backups</strong> (<code>/admin/backups</code>) to:</p>
+<p>Go to <strong>Admin → @icon('💾') Backups</strong> (<code>/admin/backups</code>) to:</p>
 <ul>
     <li><strong>Create a backup</strong> — choose DB-only or DB + files. The archive includes a <code>manifest.json</code> with table row counts, file inventory, and system info.</li>
-    <li><strong>Inspect a backup</strong> — click any backup to see its manifest: table-by-table row counts, storage files grouped by folder (public and 🔒 private), PHP/Laravel versions.</li>
+    <li><strong>Inspect a backup</strong> — click any backup to see its manifest: table-by-table row counts, storage files grouped by folder (public and @icon('🔒') private), PHP/Laravel versions.</li>
     <li><strong>Download</strong> — download any <code>.tar.gz</code> archive directly.</li>
     <li><strong>Delete</strong> — remove old backups manually.</li>
 </ul>

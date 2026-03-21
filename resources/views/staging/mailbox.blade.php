@@ -1,6 +1,6 @@
 <x-layout title="Staging Mailbox">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">📬 Staging Mailbox</h4>
+        <h4 class="mb-0">@icon('📬') Staging Mailbox</h4>
         <div>
             <span class="badge bg-warning text-dark me-2">STAGING MODE</span>
             @if($mails->total() > 0)

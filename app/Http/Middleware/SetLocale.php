@@ -12,6 +12,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Helpers\IconHelper;
 use App\Models\ThemeSetting;
 use Closure;
 use Illuminate\Http\Request;
@@ -47,6 +48,8 @@ class SetLocale
 
     public function handle(Request $request, Closure $next)
     {
+        IconHelper::flush();
+
         $supported = static::enabledLocales();
 
         // 1. Authenticated user preference

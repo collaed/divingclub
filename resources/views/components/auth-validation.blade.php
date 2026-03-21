@@ -19,10 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const rules = document.createElement('div');
         rules.className = 'small mt-1';
         rules.id = 'pw-rules';
-        rules.innerHTML = '<span data-rule="len" class="text-muted">✗ {{ __("Min. 8 characters") }}</span><br>'
-            + '<span data-rule="upper" class="text-muted">✗ {{ __("One uppercase letter") }}</span><br>'
-            + '<span data-rule="lower" class="text-muted">✗ {{ __("One lowercase letter") }}</span><br>'
-            + '<span data-rule="num" class="text-muted">✗ {{ __("One number") }}</span>';
+        rules.innerHTML = '<span data-rule="len" class="text-muted">@icon('✗') {{ __("Min. 8 characters") }}</span><br>'
+            + '<span data-rule="upper" class="text-muted">@icon('✗') {{ __("One uppercase letter") }}</span><br>'
+            + '<span data-rule="lower" class="text-muted">@icon('✗') {{ __("One lowercase letter") }}</span><br>'
+            + '<span data-rule="num" class="text-muted">@icon('✗') {{ __("One number") }}</span>';
         pw.after(rules);
 
         pw.addEventListener('input', function() {

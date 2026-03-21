@@ -11,7 +11,7 @@
         @forelse($regs as $r)
         <tr>
             <td>{{ $r->external_member_name }}<br><small class="text-muted">{{ $r->external_member_email }}</small>
-                @if($r->external_member_phone)<br><small>📞 {{ $r->external_member_phone }}</small>@endif
+                @if($r->external_member_phone)<br><small>@icon('📞') {{ $r->external_member_phone }}</small>@endif
             </td>
             <td>{{ $r->partnership->name ?? '?' }}</td>
             <td>{{ $r->event->title ?? '?' }}<br><small>{{ $r->event->event_date ?? '' }}</small></td>

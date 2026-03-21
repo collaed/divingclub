@@ -46,7 +46,7 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             <label class="form-label">{{ __('IBAN') }} <small class="text-muted">({{ __('for faster payment reconciliation') }})</small></label>
-            <input type="text" name="iban" class="form-control @error('iban') is-invalid @enderror" value="{{ old('iban', $d?->iban) }}" placeholder="LU00 0000 0000 0000 0000">
+            <input type="text" name="iban" data-mask="iban" class="form-control @error('iban') is-invalid @enderror" value="{{ old('iban', $d?->iban) }}" placeholder="LU00 0000 0000 0000 0000">
             @error('iban') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
@@ -60,7 +60,7 @@
         </div>
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Phone') }}</label>
-            <input type="text" name="emergency_contact_phone" class="form-control @error('emergency_contact_phone') is-invalid @enderror" value="{{ old('emergency_contact_phone', $d?->emergency_contact_phone) }}">
+            <input type="tel" name="emergency_contact_phone" class="form-control @error('emergency_contact_phone') is-invalid @enderror" value="{{ old('emergency_contact_phone', $d?->emergency_contact_phone) }}" placeholder="+352 621 123 456">
             @error('emergency_contact_phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-4 mb-3">

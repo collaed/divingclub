@@ -64,11 +64,11 @@
                         <textarea name="facilities" class="form-control" rows="2">{{ old('facilities', $site->facilities) }}</textarea>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">🍽️ {{ __('Food & Drink Nearby') }}</label>
+                        <label class="form-label">@icon('🍽️') {{ __('Food & Drink Nearby') }}</label>
                         <textarea name="food_options" class="form-control" rows="2" placeholder="{{ __('Restaurants, cafés, snack bars near the site…') }}">{{ old('food_options', $site->food_options) }}</textarea>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">🏥 {{ __('Nearest Hospital') }}</label>
+                        <label class="form-label">@icon('🏥') {{ __('Nearest Hospital') }}</label>
                         <textarea name="nearest_hospital" class="form-control" rows="2">{{ old('nearest_hospital', $site->nearest_hospital) }}</textarea>
                     </div>
                     <div class="col-md-6">
@@ -103,12 +103,12 @@
                         <label class="form-label">{{ __('Site Plan') }} (PDF/image)</label>
                         <input type="file" name="site_plan" class="form-control" accept="image/*,.pdf">
                         @if($site->site_plan_path)
-                            <a href="{{ asset('storage/' . $site->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">📄 {{ __('View current plan') }}</a>
+                            <a href="{{ asset('storage/' . $site->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">@icon('📄') {{ __('View current plan') }}</a>
                         @endif
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">📋 {{ __('Safety Docs Folder') }}</label>
+                        <label class="form-label">@icon('📋') {{ __('Safety Docs Folder') }}</label>
                         <input type="text" name="safety_docs_folder" class="form-control" value="{{ old('safety_docs_folder', $site->safety_docs_folder) }}" placeholder="{{ __('e.g. safety/vodelée — folder in Document Library') }}">
                         <small class="text-muted">{{ __('Folder path in the Document Library containing safety documents for this site.') }}</small>
                     </div>

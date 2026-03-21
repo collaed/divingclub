@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\IconHelper;
+use App\Http\Requests\UpdateProfileLanguageRequest;
 use App\Models\Document;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
@@ -267,7 +269,7 @@ class ProfileController extends Controller
         return back()->with('success', __('Diving info updated.'))->withInput(['tab' => 'diving']);
     }
 
-    public function updateLanguage(Request $request, ?User $user = null)
+    public function updateLanguage(UpdateProfileLanguageRequest $request, ?User $user = null)
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
@@ -276,11 +278,14 @@ class ProfileController extends Controller
             abort(403);
         }
 
-        $validated = $request->validate([
-            'preferred_language' => 'required|in:en,fr,de,it,es,pt,nl,pl,ro,cs,el,lb',
-        ]);
+        $validated = $request->validated();
+
+        // Convert empty string to null (use club default)
+        $validated['show_icons'] = $validated['show_icons'] === '' || $validated['show_icons'] === null
+            ? null : (int) $validated['show_icons'];
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
+        IconHelper::flush();
 
         return back()->with('success', __('Language preference updated.'))->withInput(['tab' => 'language']);
     }

@@ -38,7 +38,7 @@
     {{-- Cancellation info --}}
     @if(isset($showCancel) && $isCancelled)
         <div class="text-danger" style="font-size:0.7rem">
-            ✗ {{ $reg->cancelled_at?->format('d/m/y H:i') }}
+            @icon('✗') {{ $reg->cancelled_at?->format('d/m/y H:i') }}
             @if($reg->cancelledByUser)
                 {{ __('by') }} {{ $reg->cancelledByUser->name }}
             @endif

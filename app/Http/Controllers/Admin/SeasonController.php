@@ -16,12 +16,14 @@ class SeasonController extends Controller
     public function index()
     {
         $seasons = Season::withCount('events')->orderByDesc('year')->get();
+
         return view('admin.seasons.index', compact('seasons'));
     }
 
     public function create()
     {
         $previousSeasons = Season::orderByDesc('year')->get();
+
         return view('admin.seasons.form', ['season' => new Season, 'previousSeasons' => $previousSeasons]);
     }
 
@@ -62,6 +64,7 @@ class SeasonController extends Controller
     public function show(Season $season)
     {
         $season->load(['holidays', 'patterns']);
+
         return view('admin.seasons.show', compact('season'));
     }
 
@@ -71,6 +74,7 @@ class SeasonController extends Controller
             Season::where('is_active', true)->update(['is_active' => false]);
             $season->update(['is_active' => true]);
         });
+
         return back()->with('success', __('Season activated.'));
     }
 
@@ -84,13 +88,30 @@ class SeasonController extends Controller
             'is_adhoc' => 'boolean',
         ]);
         $v['is_adhoc'] = $request->boolean('is_adhoc');
-        $season->holidays()->create($v);
+        $holiday = $season->holidays()->create($v);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id' => $holiday->id,
+                'name' => $holiday->name,
+                'start_date' => $holiday->start_date->format('d/m'),
+                'end_date' => $holiday->end_date->format('d/m/Y'),
+                'is_adhoc' => $holiday->is_adhoc,
+                'delete_url' => route('admin.seasons.holiday.destroy', $holiday),
+            ]);
+        }
+
         return back()->with('success', __('Holiday added.'));
     }
 
     public function destroyHoliday(SeasonHoliday $holiday)
     {
         $holiday->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
         return back()->with('success', __('Holiday removed.'));
     }
 
@@ -107,13 +128,25 @@ class SeasonController extends Controller
             'max_participants' => 'nullable|integer|min:1',
             'color_hex' => 'nullable|string|max:7',
         ]);
-        $season->patterns()->create($v);
+        $pattern = $season->patterns()->create($v);
+
+        if ($request->wantsJson()) {
+            return response()->json(array_merge($pattern->toArray(), [
+                'delete_url' => route('admin.seasons.pattern.destroy', $pattern),
+            ]));
+        }
+
         return back()->with('success', __('Pattern added.'));
     }
 
     public function destroyPattern(SeasonPattern $pattern)
     {
         $pattern->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
         return back()->with('success', __('Pattern removed.'));
     }
 
@@ -122,6 +155,7 @@ class SeasonController extends Controller
     {
         $season->load(['patterns', 'holidays']);
         $preview = $this->buildSchedule($season);
+
         return view('admin.seasons.preview', compact('season', 'preview'));
     }
 
@@ -134,7 +168,9 @@ class SeasonController extends Controller
 
         DB::transaction(function () use ($schedule, $season, &$created) {
             foreach ($schedule as $entry) {
-                if ($entry['skip']) continue;
+                if ($entry['skip']) {
+                    continue;
+                }
                 Event::create([
                     'title' => $entry['pattern']->title,
                     'color_hex' => $entry['pattern']->color_hex,
@@ -179,7 +215,7 @@ class SeasonController extends Controller
                 foreach ($holidays as $h) {
                     if ($current->between($h->start_date, $h->end_date)) {
                         $skip = true;
-                        $skipReason = $h->name . ($h->is_adhoc ? ' (ad-hoc)' : '');
+                        $skipReason = $h->name.($h->is_adhoc ? ' (ad-hoc)' : '');
                         break;
                     }
                 }
@@ -195,7 +231,8 @@ class SeasonController extends Controller
             }
         }
 
-        usort($schedule, fn($a, $b) => $a['date']->timestamp - $b['date']->timestamp);
+        usort($schedule, fn ($a, $b) => $a['date']->timestamp - $b['date']->timestamp);
+
         return $schedule;
     }
 }

@@ -1,5 +1,5 @@
 <x-layout :title="__('Trial Dive Requests')">
-    <h4>🐠 {{ __('Trial Dive Requests') }}</h4>
+    <h4>@icon('🐠') {{ __('Trial Dive Requests') }}</h4>
 
     <div class="card dc-card">
         <div class="table-responsive">

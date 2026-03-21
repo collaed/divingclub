@@ -27,7 +27,7 @@
                             <div>
                                 <strong>{{ __('FFESSM InfoLicencié') }}</strong><br>
                                 <a href="https://infolicencie.ffessm.fr/Home/InfoLicence?number={{ $ffessmNumber }}&key={{ $lic->federation_key }}" target="_blank" class="small">
-                                    🔗 {{ __('View licence on FFESSM') }}
+                                    @icon('🔗') {{ __('View licence on FFESSM') }}
                                 </a>
                                 <br><small class="text-muted">{{ __('Scan QR code to verify licence') }}</small>
                             </div>
@@ -35,7 +35,7 @@
                     </div>
                 @else
                     <div class="mt-2">
-                        <small class="text-muted">ℹ️ {{ __('FFESSM verification key not set.') }}
+                        <small class="text-muted">ℹ@icon('️') {{ __('FFESSM verification key not set.') }}
                             @if($canEdit)
                                 {{ __('Scan your FFESSM card QR code below to set it.') }}
                             @endif
@@ -53,7 +53,7 @@
                             <button type="button" class="btn btn-outline-secondary" onclick="startQrScan({{ $lic->id }})" title="{{ __('Scan QR') }}">📷</button>
                             <button type="submit" class="btn btn-outline-primary">{{ __('Save') }}</button>
                         </div>
-                        <small class="text-muted">{{ __('6-char key from the FFESSM card QR code, or use 📷 to scan it') }}</small>
+                        <small class="text-muted">{{ __('6-char key from the FFESSM card QR code, or use @icon('📷') to scan it') }}</small>
                     </form>
                     {{-- Camera viewfinder (hidden until scan button pressed) --}}
                     <div id="qr-scanner-{{ $lic->id }}" class="mt-2" style="display:none; max-width:400px;">

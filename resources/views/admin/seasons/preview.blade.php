@@ -23,9 +23,9 @@
                     <td>{{ $entry['pattern']->start_time }}{{ $entry['pattern']->end_time ? '—'.$entry['pattern']->end_time : '' }}</td>
                     <td>
                         @if($entry['skip'])
-                            <span class="text-danger">⛔ {{ $entry['skip_reason'] }}</span>
+                            <span class="text-danger">@icon('⛔') {{ $entry['skip_reason'] }}</span>
                         @else
-                            <span class="text-success">✓ {{ __('Will create') }}</span>
+                            <span class="text-success">@icon('✓') {{ __('Will create') }}</span>
                         @endif
                     </td>
                 </tr>

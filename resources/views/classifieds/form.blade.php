@@ -4,7 +4,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="alert alert-info small">
-                🏷️ {{ __('Classifieds are visible to all club members and automatically expire after 30 days. You can extend or renew them from the classifieds page.') }}
+                @icon('🏷️') {{ __('Classifieds are visible to all club members and automatically expire after 30 days. You can extend or renew them from the classifieds page.') }}
             </div>
 
             <form method="POST" action="{{ $article->exists ? route('classifieds.update', $article) : route('classifieds.store') }}" enctype="multipart/form-data">
@@ -19,8 +19,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">{{ __('Description') }} *</label>
-                    <div id="editor">{!! old('body', $article->body) !!}</div>
-                    <input type="hidden" name="body" id="bodyInput">
+                    <textarea name="body" class="tinymce" rows="6">{{ old('body', $article->body) }}</textarea>
                     @error('body') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
 
@@ -30,18 +29,13 @@
                     @error('featured_image') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
-                <button type="submit" class="btn btn-primary" onclick="document.getElementById('bodyInput').value=document.getElementById('editor').querySelector('.ql-editor').innerHTML">
+                <button type="submit" class="btn btn-primary">
                     {{ $article->exists ? __('Save') : __('Post Classified') }}
                 </button>
                 <a href="{{ route('classifieds.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
             </form>
 
-            <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
-            <style>#editor { min-height: 150px; background: #fff; }</style>
-            <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
-            <script>new Quill('#editor', { theme: 'snow', modules: { toolbar: [
-                ['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link', 'image'], ['clean']
-            ]}});</script>
+            <x-rich-editor />
         </div>
     </div>
 </x-layout>

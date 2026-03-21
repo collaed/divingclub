@@ -1,6 +1,6 @@
 <x-layout :title="__('Classifieds')">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">🏷️ {{ __('Classifieds') }}</h4>
+        <h4 class="mb-0">@icon('🏷️') {{ __('Classifieds') }}</h4>
         <a href="{{ route('classifieds.create') }}" class="btn btn-primary">{{ __('Post a Classified') }}</a>
     </div>
 

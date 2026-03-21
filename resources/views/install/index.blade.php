@@ -17,7 +17,7 @@
     <div class="install-card">
         <div class="card shadow-lg">
             <div class="card-header bg-primary text-white text-center py-3">
-                <h3 class="mb-0">🤿 DivingClub Manager — Setup</h3>
+                <h3 class="mb-0">@icon('🤿') DivingClub Manager — Setup</h3>
                 <small>First-time installation wizard</small>
             </div>
             <div class="card-body p-4">
@@ -100,7 +100,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg w-100">
-                        🚀 Install DivingClub Manager
+                        @icon('🚀') Install DivingClub Manager
                     </button>
                 </form>
             </div>

@@ -3,7 +3,7 @@
 
     @if($isAdmin)
         <div class="d-flex justify-content-end mb-2">
-            <button id="editToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleEditMode()">⚙️ {{ __('Edit Layout') }}</button>
+            <button id="editToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleEditMode()">@icon('⚙️') {{ __('Edit Layout') }}</button>
         </div>
     @endif
 
@@ -16,7 +16,7 @@
                         <span class="hp-drag-handle" title="Drag">⠿</span>
                         <span class="badge bg-secondary">{{ $widgetTypes[$widget['type']]['icon'] ?? '' }} {{ $widgetTypes[$widget['type']]['label'] ?? $widget['type'] }}</span>
                         <select class="form-select form-select-sm hp-visibility" style="width:auto;font-size:.75rem" data-index="{{ $i }}">
-                            @foreach(['public' => '🌍 Public', 'members' => '👥 Members', 'instructors' => '🎓 Instructors', 'bureau' => '🔒 Bureau'] as $v => $label)
+                            @foreach(['public' => '🌍  Public', 'members' => '👥  Members', 'instructors' => '🎓  Instructors', 'bureau' => '🔒  Bureau'] as $v => $label)
                                 <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
@@ -42,7 +42,7 @@
                                 <span class="hp-drag-handle" title="Drag">⠿</span>
                                 <span class="badge bg-secondary">{{ $widgetTypes[$widget['type']]['icon'] ?? '' }} {{ $widgetTypes[$widget['type']]['label'] ?? $widget['type'] }}</span>
                                 <select class="form-select form-select-sm hp-visibility" style="width:auto;font-size:.75rem" data-index="{{ $i }}">
-                                    @foreach(['public' => '🌍 Public', 'members' => '👥 Members', 'instructors' => '🎓 Instructors', 'bureau' => '🔒 Bureau'] as $v => $label)
+                                    @foreach(['public' => '🌍  Public', 'members' => '👥  Members', 'instructors' => '🎓  Instructors', 'bureau' => '🔒  Bureau'] as $v => $label)
                                         <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
@@ -68,7 +68,7 @@
                                 <span class="hp-drag-handle" title="Drag">⠿</span>
                                 <span class="badge bg-secondary">{{ $widgetTypes[$widget['type']]['icon'] ?? '' }} {{ $widgetTypes[$widget['type']]['label'] ?? $widget['type'] }}</span>
                                 <select class="form-select form-select-sm hp-visibility" style="width:auto;font-size:.75rem" data-index="{{ $i }}">
-                                    @foreach(['public' => '🌍 Public', 'members' => '👥 Members', 'instructors' => '🎓 Instructors', 'bureau' => '🔒 Bureau'] as $v => $label)
+                                    @foreach(['public' => '🌍  Public', 'members' => '👥  Members', 'instructors' => '🎓  Instructors', 'bureau' => '🔒  Bureau'] as $v => $label)
                                         <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
@@ -89,7 +89,7 @@
     {{-- Disabled widgets panel (shown in edit mode) --}}
     <div id="disabledPanel" class="d-none mt-3">
         <div class="card border-dashed">
-            <div class="card-header py-2 bg-light">📦 {{ __('Available Widgets (click to add)') }}</div>
+            <div class="card-header py-2 bg-light">@icon('📦') {{ __('Available Widgets (click to add)') }}</div>
             <div class="card-body d-flex flex-wrap gap-2" id="disabledList"></div>
         </div>
     </div>
@@ -113,7 +113,7 @@
     function toggleEditMode() {
         editMode = !editMode;
         document.body.classList.toggle('hp-editing', editMode);
-        document.getElementById('editToggle').innerHTML = editMode ? '💾 {{ __("Save & Close") }}' : '⚙️ {{ __("Edit Layout") }}';
+        document.getElementById('editToggle').innerHTML = editMode ? '@icon('💾') {{ __("Save & Close") }}' : '@icon('⚙️') {{ __("Edit Layout") }}';
         document.getElementById('disabledPanel').classList.toggle('d-none', !editMode);
 
         // Show/hide widget bars

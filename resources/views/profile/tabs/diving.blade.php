@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @if($d?->active_instructor || $target->hasAnyRole(['instructor', 'assistant']))
 <hr>
-<h6>🎓 {{ __('Instructor Profile') }}</h6>
+<h6>@icon('🎓') {{ __('Instructor Profile') }}</h6>
 <p class="text-muted small">{{ __('This information is visible to all members and helps newcomers connect with you.') }}</p>
 <form method="POST" action="{{ route('profile.update.diving') }}">
     @csrf

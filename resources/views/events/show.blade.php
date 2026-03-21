@@ -23,7 +23,7 @@
                         @if($event->location)
                             <tr><th>{{ __('Location') }}</th><td>
                                 {{ $event->location }}
-                                <a href="{{ $event->mapsUrl() }}" target="_blank" class="ms-2 small">📍 {{ __('Map') }}</a>
+                                <a href="{{ $event->mapsUrl() }}" target="_blank" class="ms-2 small">@icon('📍') {{ __('Map') }}</a>
                             </td></tr>
                         @endif
                         @if($event->instructor)<tr><th>{{ __('Instructor') }}</th><td>{{ $event->instructor->name }}</td></tr>@endif
@@ -34,13 +34,13 @@
 
                     @if($event->description)
                         <hr>
-                        <div>{!! nl2br(e($event->description)) !!}</div>
+                        <div class="article-body">{!! $event->description !!}</div>
                     @endif
 
                     {{-- Dive Site info --}}
                     @if($event->diveSite)
                         <hr>
-                        <h5>🤿 {{ __('Dive Site') }}: {{ $event->diveSite->name }}</h5>
+                        <h5>@icon('🤿') {{ __('Dive Site') }}: {{ $event->diveSite->name }}</h5>
                         <div class="row">
                             @if($event->diveSite->image_path)
                                 <div class="col-md-4 mb-2">
@@ -59,19 +59,19 @@
                                 @if($event->diveSite->safety_notes)<p class="small mb-1 text-danger"><strong>{{ __('Safety') }}:</strong> {{ $event->diveSite->safety_notes }}</p>@endif
                                 @if($event->diveSite->access_notes)<p class="small mb-1"><strong>{{ __('Access') }}:</strong> {{ $event->diveSite->access_notes }}</p>@endif
                                 @if($event->diveSite->facilities)<p class="small mb-1"><strong>{{ __('Facilities') }}:</strong> {{ $event->diveSite->facilities }}</p>@endif
-                                @if($event->diveSite->food_options)<p class="small mb-1"><strong>🍽️ {{ __('Food & Drink') }}:</strong> {{ $event->diveSite->food_options }}</p>@endif
-                                @if($event->diveSite->nearest_hospital)<p class="small mb-0 text-danger"><strong>🏥 {{ __('Nearest Hospital') }}:</strong> {{ $event->diveSite->nearest_hospital }}</p>@endif
+                                @if($event->diveSite->food_options)<p class="small mb-1"><strong>@icon('🍽️') {{ __('Food & Drink') }}:</strong> {{ $event->diveSite->food_options }}</p>@endif
+                                @if($event->diveSite->nearest_hospital)<p class="small mb-0 text-danger"><strong>@icon('🏥') {{ __('Nearest Hospital') }}:</strong> {{ $event->diveSite->nearest_hospital }}</p>@endif
                                 <div class="mt-1 d-flex gap-2 flex-wrap">
-                                    @if($event->diveSite->website_url)<a href="{{ $event->diveSite->website_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">🌐 {{ __('Website') }}</a>@endif
-                                    @if($event->diveSite->booking_url)<a href="{{ $event->diveSite->booking_url }}" target="_blank" class="btn btn-sm btn-outline-primary">📅 {{ __('Book') }}</a>@endif
-                                    @if($event->diveSite->site_plan_path)<a href="{{ asset('storage/' . $event->diveSite->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-info">📄 {{ __('Site Plan') }}</a>@endif
+                                    @if($event->diveSite->website_url)<a href="{{ $event->diveSite->website_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">@icon('🌐') {{ __('Website') }}</a>@endif
+                                    @if($event->diveSite->booking_url)<a href="{{ $event->diveSite->booking_url }}" target="_blank" class="btn btn-sm btn-outline-primary">@icon('📅') {{ __('Book') }}</a>@endif
+                                    @if($event->diveSite->site_plan_path)<a href="{{ asset('storage/' . $event->diveSite->site_plan_path) }}" target="_blank" class="btn btn-sm btn-outline-info">@icon('📄') {{ __('Site Plan') }}</a>@endif
                                 </div>
                                 {{-- Safety documents --}}
                                 @if($event->diveSite->safety_docs_folder)
                                     @php $safetyDocs = \App\Models\LibraryFile::where('folder', $event->diveSite->safety_docs_folder)->where('is_public', true)->get(); @endphp
                                     @if($safetyDocs->count())
                                         <div class="mt-2">
-                                            <strong class="small">📋 {{ __('Safety Documents') }}:</strong>
+                                            <strong class="small">@icon('📋') {{ __('Safety Documents') }}:</strong>
                                             @foreach($safetyDocs as $doc)
                                                 <a href="{{ route('documents.download', $doc) }}" class="btn btn-sm btn-outline-danger ms-1">{{ $doc->original_name }}</a>
                                             @endforeach
@@ -87,13 +87,13 @@
                                             <img src="{{ asset('storage/' . $event->diveSite->map_image_path) }}" class="img-fluid rounded border" alt="{{ __('Map') }}">
                                         @endif
                                         <div class="text-center mt-1">
-                                            <span class="btn btn-sm btn-outline-primary">📍 {{ __('View on Map') }}</span>
+                                            <span class="btn btn-sm btn-outline-primary">@icon('📍') {{ __('View on Map') }}</span>
                                         </div>
                                     </a>
                                     {{-- Weather widget --}}
                                     <div class="card mt-2" id="weather-widget">
                                         <div class="card-body py-2 text-center small">
-                                            <strong>🌤️ {{ __('Weather Forecast') }}</strong>
+                                            <strong>@icon('🌤️') {{ __('Weather Forecast') }}</strong>
                                             <div id="weather-data" class="mt-1 text-muted">{{ __('Loading…') }}</div>
                                         </div>
                                     </div>
@@ -102,13 +102,13 @@
                                 fetch('https://api.open-meteo.com/v1/forecast?latitude={{ $event->diveSite->latitude }}&longitude={{ $event->diveSite->longitude }}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode&timezone={{ urlencode(config('app.timezone', 'UTC')) }}&forecast_days=7')
                                     .then(r => r.json()).then(d => {
                                         if (!d.daily) return;
-                                        const icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'};
+                                        const icons = {0:'@icon('☀')️',1:'@icon('🌤')️',2:'@icon('⛅')',3:'@icon('☁')️',45:'@icon('🌫')️',48:'@icon('🌫')️',51:'@icon('🌦')️',53:'@icon('🌧')️',55:'@icon('🌧')️',61:'@icon('🌧')️',63:'@icon('🌧')️',65:'@icon('🌧')️',71:'@icon('🌨')️',73:'@icon('🌨')️',75:'@icon('🌨')️',80:'@icon('🌦')️',81:'@icon('🌧')️',82:'@icon('🌧')️',95:'@icon('⛈')️',96:'@icon('⛈')️',99:'@icon('⛈')️'};
                                         let html = '<table class="table table-sm mb-0" style="font-size:0.75rem"><tbody>';
                                         for (let i = 0; i < Math.min(5, d.daily.time.length); i++) {
                                             const dt = new Date(d.daily.time[i]);
                                             const day = dt.toLocaleDateString('{{ app()->getLocale() }}', {weekday:'short',day:'numeric'});
                                             const wc = d.daily.weathercode[i];
-                                            html += '<tr><td>' + day + '</td><td>' + (icons[wc]||'🌡️') + '</td><td>' + d.daily.temperature_2m_min[i] + '—' + d.daily.temperature_2m_max[i] + '°C</td><td>💨' + d.daily.windspeed_10m_max[i] + 'km/h</td></tr>';
+                                            html += '<tr><td>' + day + '</td><td>' + (icons[wc]||'@icon('🌡')️') + '</td><td>' + d.daily.temperature_2m_min[i] + '—' + d.daily.temperature_2m_max[i] + '°C</td><td>@icon('💨')' + d.daily.windspeed_10m_max[i] + 'km/h</td></tr>';
                                         }
                                         html += '</tbody></table>';
                                         document.getElementById('weather-data').innerHTML = html;
@@ -171,7 +171,7 @@
                             @php $myMed = app(\App\Services\MedicalComplianceService::class)->getStatus(auth()->user()); @endphp
                             @if(in_array($event->event_type, ['pool','dive','training']) && $myMed['status'] !== 'compliant')
                                 <div class="alert alert-warning small py-2 mb-2">
-                                    ⚠️ {{ __('A valid medical certificate is required for this event.') }}
+                                    @icon('⚠️') {{ __('A valid medical certificate is required for this event.') }}
                                     <a href="{{ route('profile.show', ['tab' => 'medical']) }}">{{ __('Upload now') }}</a>
                                 </div>
                             @endif
@@ -274,7 +274,7 @@
                 @php $eventPayments = \App\Models\PaymentExpected::where('event_id', $event->id)->with('user.detail')->get(); @endphp
                 @if($eventPayments->count())
                     <div class="card dc-card mb-4">
-                        <div class="card-header">💳 {{ __('Payment Status') }}</div>
+                        <div class="card-header">@icon('💳') {{ __('Payment Status') }}</div>
                         <div class="list-group list-group-flush">
                             @foreach($eventPayments as $pay)
                                 <div class="list-group-item d-flex justify-content-between small">
@@ -297,7 +297,7 @@
                 @if($userPayment)
                     <div class="card dc-card mb-4 {{ $userPayment->status === 'paid' ? 'border-success' : 'border-warning' }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <span>💳 {{ __('Your Payment') }}</span>
+                            <span>@icon('💳') {{ __('Your Payment') }}</span>
                             <span class="badge bg-{{ $userPayment->status === 'paid' ? 'success' : 'warning text-dark' }}">{{ ucfirst($userPayment->status) }}</span>
                         </div>
                         <div class="card-body">
@@ -334,7 +334,7 @@
             @if(in_array($event->event_type, ['dive', 'training']))
                 <div class="card dc-card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>🤿 {{ __('Dive Groups') }}</span>
+                        <span>@icon('🤿') {{ __('Dive Groups') }}</span>
                         <span class="badge bg-secondary">{{ $event->diveGroups->count() }}</span>
                     </div>
                     <div class="card-body">
@@ -370,7 +370,7 @@
                 <div class="card dc-card mb-4">
                     <div class="card-body small">
                         <a href="{{ $event->whatsapp_group_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-success">
-                            💬 {{ __('Join WhatsApp Group') }}
+                            @icon('💬') {{ __('Join WhatsApp Group') }}
                         </a>
                     </div>
                 </div>
@@ -380,7 +380,7 @@
             @if($emailHistory->count())
                 <div class="card dc-card mb-4">
                     <div class="card-header d-flex justify-content-between">
-                        <span>📧 {{ __('Communications') }}</span>
+                        <span>@icon('📧') {{ __('Communications') }}</span>
                         <span class="badge bg-secondary">{{ $emailHistory->count() }}</span>
                     </div>
                     <div class="card-body p-0" style="max-height:400px; overflow-y:auto">
@@ -410,9 +410,9 @@
     @if($photos->count() || (auth()->check() && $event->registrations()->where('user_id', auth()->id())->where('status', 'confirmed')->exists()))
         <div class="card dc-card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span>📸 {{ __('Event Photos') }} @if($photos->count())<span class="badge bg-secondary">{{ $photos->count() }}</span>@endif</span>
+                <span>@icon('📸') {{ __('Event Photos') }} @if($photos->count())<span class="badge bg-secondary">{{ $photos->count() }}</span>@endif</span>
                 @if($photos->count() > 1)
-                    <button class="btn btn-sm btn-outline-primary" onclick="startSlideshow()">▶ {{ __('Slideshow') }}</button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="startSlideshow()">@icon('▶') {{ __('Slideshow') }}</button>
                 @endif
             </div>
             <div class="card-body">
@@ -472,7 +472,7 @@
                             </form>
                         @else
                             <div class="alert alert-info small mt-3 mb-0 py-2">
-                                📷 {{ __('To upload photos, please grant') }} <a href="{{ route('gdpr.consents') }}">{{ __('photo publication consent') }}</a>.
+                                @icon('📷') {{ __('To upload photos, please grant') }} <a href="{{ route('gdpr.consents') }}">{{ __('photo publication consent') }}</a>.
                             </div>
                         @endif
                     @endif

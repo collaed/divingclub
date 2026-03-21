@@ -1,5 +1,5 @@
 <div class="card dc-card mb-4">
-    <div class="card-header">📅 {{ __('Upcoming Events') }}</div>
+    <div class="card-header">@icon('📅') {{ __('Upcoming Events') }}</div>
     <div class="list-group list-group-flush">
         @forelse($widget['data']['events'] ?? [] as $event)
             <a href="{{ route('events.show', $event) }}" class="list-group-item list-group-item-action py-2">

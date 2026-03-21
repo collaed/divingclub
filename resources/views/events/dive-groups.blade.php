@@ -12,10 +12,10 @@
         // Color coding by certification rank
         function rankColor($rank) {
             if (!$rank) return '#f8d7da'; // red-ish — no cert
-            if ($rank <= 20) return '#d4edda'; // green — beginner (1★/OWD)
-            if ($rank <= 45) return '#cce5ff'; // blue — intermediate (2★/AOWD)
-            if ($rank <= 69) return '#d1ecf1'; // cyan — advanced (3★)
-            if ($rank <= 99) return '#fff3cd'; // yellow — guide de palanquée (4★)
+            if ($rank <= 20) return '#d4edda'; // green — beginner (1@icon('★')/OWD)
+            if ($rank <= 45) return '#cce5ff'; // blue — intermediate (2@icon('★')/AOWD)
+            if ($rank <= 69) return '#d1ecf1'; // cyan — advanced (3@icon('★'))
+            if ($rank <= 99) return '#fff3cd'; // yellow — guide de palanquée (4@icon('★'))
             return '#e2d5f1'; // purple — instructor
         }
         function rankBadge($rank) {
@@ -60,8 +60,8 @@
     {{-- Stale groups warning: registrations changed since groups were last edited --}}
     @if($groupsStale && $event->diveGroups->count())
         <div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3">
-            <span>⚠️ {{ __('Registrations have changed since groups were last edited. Some participants may be unassigned or cancelled.') }}</span>
-            <button class="btn btn-warning btn-sm" onclick="proposeGroups()">🔄 {{ __('Reprocess') }}</button>
+            <span>@icon('⚠️') {{ __('Registrations have changed since groups were last edited. Some participants may be unassigned or cancelled.') }}</span>
+            <button class="btn btn-warning btn-sm" onclick="proposeGroups()">@icon('🔄') {{ __('Reprocess') }}</button>
         </div>
     @endif
 
@@ -69,15 +69,15 @@
     @if($canManage)
     <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
         @if($event->diveGroups->count())
-            <button class="btn btn-success btn-sm" onclick="validateGroups()">✅ {{ __('Validate All Groups') }}</button>
-            <button class="btn btn-info btn-sm" onclick="suggestSwaps()">🔀 {{ __('Suggest Swaps') }}</button>
-            <a href="{{ route('events.dive-groups.print', $event) }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨️ {{ __('Print Fiche PDF') }}</a>
+            <button class="btn btn-success btn-sm" onclick="validateGroups()">@icon('✅') {{ __('Validate All Groups') }}</button>
+            <button class="btn btn-info btn-sm" onclick="suggestSwaps()">@icon('🔀') {{ __('Suggest Swaps') }}</button>
+            <a href="{{ route('events.dive-groups.print', $event) }}" class="btn btn-outline-secondary btn-sm" target="_blank">@icon('🖨️') {{ __('Print Fiche PDF') }}</a>
         @endif
         <div class="input-group input-group-sm" style="width:auto">
             <span class="input-group-text">{{ __('Max depth') }}</span>
             <input type="number" id="proposeDepth" class="form-control" value="{{ $event->diveSite?->max_depth ?? 20 }}" min="1" max="60" style="width:60px">
             <span class="input-group-text">m</span>
-            <button class="btn btn-primary" onclick="proposeGroups()">🤖 {{ __('Auto-propose (Fiche de Sécurité)') }}</button>
+            <button class="btn btn-primary" onclick="proposeGroups()">@icon('🤖') {{ __('Auto-propose (Fiche de Sécurité)') }}</button>
         </div>
         <div id="validationResult" class="flex-grow-1"></div>
     </div>
@@ -86,9 +86,9 @@
     <div id="proposalPreview" class="d-none mb-3">
         <div class="card border-primary">
             <div class="card-header bg-primary text-white d-flex justify-content-between">
-                <span>📋 {{ __('Proposed Fiche de Sécurité') }}</span>
+                <span>@icon('📋') {{ __('Proposed Fiche de Sécurité') }}</span>
                 <div>
-                    <button class="btn btn-sm btn-light" onclick="applyProposal()">✅ {{ __('Apply') }}</button>
+                    <button class="btn btn-sm btn-light" onclick="applyProposal()">@icon('✅') {{ __('Apply') }}</button>
                     <button class="btn btn-sm btn-outline-light" onclick="document.getElementById('proposalPreview').classList.add('d-none')">✕</button>
                 </div>
             </div>
@@ -105,7 +105,7 @@
         <div class="dg-unassigned">
             <div class="card dc-card">
                 <div class="card-header py-2 d-flex justify-content-between">
-                    <strong>📋 {{ __('Unassigned') }}</strong>
+                    <strong>@icon('📋') {{ __('Unassigned') }}</strong>
                     <span class="badge bg-secondary">{{ $unassigned->count() }}</span>
                 </div>
                 <div class="dg-column-body" id="unassigned" data-group="0">
@@ -216,7 +216,7 @@
                         <div class="dg-card" style="background:{{ rankColor($rank) }}" draggable="{{ $canManage ? 'true' : 'false' }}" data-user-id="{{ $m->user_id }}" data-member-id="{{ $m->id }}">
                             @if($canManage)<span class="drag-handle" title="{{ __('Drag') }}">⠿</span>@endif
                             <div style="flex:1;min-width:0">
-                                @if($m->role === 'leader')👑 @endif
+                                @if($m->role === 'leader')@icon('👑') @endif
                                 <strong>{{ $m->user->detail?->first_name }} {{ $m->user->detail?->last_name }}</strong>
                                 <br>
                                 @if($cert)
@@ -264,10 +264,10 @@
         <div class="card-body py-2 d-flex flex-wrap gap-3" style="font-size:0.8rem">
             <strong>{{ __('Level colors') }}:</strong>
             <span style="background:#f8d7da;padding:2px 8px;border-radius:4px">{{ __('No cert') }}</span>
-            <span style="background:#d4edda;padding:2px 8px;border-radius:4px">1★ / OWD</span>
-            <span style="background:#cce5ff;padding:2px 8px;border-radius:4px">2★ / AOWD</span>
-            <span style="background:#d1ecf1;padding:2px 8px;border-radius:4px">3★ / DM</span>
-            <span style="background:#fff3cd;padding:2px 8px;border-radius:4px">4★ / GP</span>
+            <span style="background:#d4edda;padding:2px 8px;border-radius:4px">1@icon('★') / OWD</span>
+            <span style="background:#cce5ff;padding:2px 8px;border-radius:4px">2@icon('★') / AOWD</span>
+            <span style="background:#d1ecf1;padding:2px 8px;border-radius:4px">3@icon('★') / DM</span>
+            <span style="background:#fff3cd;padding:2px 8px;border-radius:4px">4@icon('★') / GP</span>
             <span style="background:#e2d5f1;padding:2px 8px;border-radius:4px">{{ __('Instructor') }}</span>
         </div>
     </div>
@@ -348,7 +348,7 @@
                 }
                 let html = '<div class="alert alert-info py-1 mb-0 small"><strong>{{ __("Swap suggestions:") }}</strong><ul class="mb-0">';
                 data.suggestions.forEach(s => {
-                    html += `<li>🔀 <strong>${s.member_a}</strong> (${s.from_group}) ↔ <strong>${s.member_b}</strong> (${s.to_group}) — +${s.gain} pts (→ ${s.new_score_a}/${s.new_score_b})</li>`;
+                    html += `<li>@icon('🔀') <strong>${s.member_a}</strong> (${s.from_group}) ↔ <strong>${s.member_b}</strong> (${s.to_group}) — +${s.gain} pts (→ ${s.new_score_a}/${s.new_score_b})</li>`;
                 });
                 html += '</ul></div>';
                 result.innerHTML = html;
@@ -363,7 +363,7 @@
             .then(r => r.json())
             .then(data => {
                 if (data.valid) {
-                    result.innerHTML = '<span class="badge bg-success">✅ {{ __("All groups comply with rules.") }}</span>';
+                    result.innerHTML = '<span class="badge bg-success">@icon('✅') {{ __("All groups comply with rules.") }}</span>';
                 } else {
                     let html = '<div class="alert alert-danger py-1 px-2 mb-0 small">';
                     for (const [group, issues] of Object.entries(data.violations)) {
@@ -390,7 +390,7 @@
     function proposalCard(p, isLeader) {
         return '<div class="dg-card" draggable="true" data-user-id="' + p.user_id + '" data-rank="' + p.rank + '" data-cert="' + p.cert_code + '" data-name="' + p.name + '" style="background:' + rankColorJS(p.rank) + '">' +
             '<span class="drag-handle">⠿</span>' +
-            '<div style="flex:1;min-width:0">' + (isLeader ? '👑 ' : '') +
+            '<div style="flex:1;min-width:0">' + (isLeader ? '@icon('👑') ' : '') +
             '<strong>' + p.name + '</strong><br>' +
             '<span class="badge bg-info" style="font-size:0.7rem">' + p.cert_code + '</span>' +
             (isLeader ? ' <span class="text-muted" style="font-size:0.65rem">{{ __("Leader") }}</span>' : '') +
@@ -449,7 +449,7 @@
                 const name = card.dataset.name;
                 const cert = card.dataset.cert;
                 const isLeader = (i === 0);
-                div.innerHTML = (isLeader ? '👑 ' : '') +
+                div.innerHTML = (isLeader ? '@icon('👑') ' : '') +
                     '<strong>' + name + '</strong><br>' +
                     '<span class="badge bg-info" style="font-size:0.7rem">' + cert + '</span>' +
                     (isLeader ? ' <span class="text-muted" style="font-size:0.65rem">{{ __("Leader") }}</span>' : '');
@@ -480,7 +480,7 @@
                 let html = '';
 
                 // Unassigned column (droppable too — park people here)
-                html += '<div class="dg-column"><div class="dg-column-header">📋 {{ __("Unassigned") }}</div>' +
+                html += '<div class="dg-column"><div class="dg-column-header">@icon('📋') {{ __("Unassigned") }}</div>' +
                     '<div class="dg-column-body" data-proposal-group="unassigned">';
                 (data.unassigned || []).forEach(p => { html += proposalCard(p, false); });
                 html += '</div></div>';

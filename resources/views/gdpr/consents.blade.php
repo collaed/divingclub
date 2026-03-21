@@ -35,7 +35,7 @@
             <div class="card dc-card mb-4">
                 <div class="card-header">{{ __('Your Data') }}</div>
                 <div class="card-body">
-                    <a href="{{ route('gdpr.export') }}" class="btn btn-outline-primary mb-3 w-100">📥 {{ __('Download My Data (JSON)') }}</a>
+                    <a href="{{ route('gdpr.export') }}" class="btn btn-outline-primary mb-3 w-100">@icon('📥') {{ __('Download My Data (JSON)') }}</a>
                     <hr>
                     <h6 class="text-danger">{{ __('Right to Erasure') }}</h6>
                     <p class="small text-muted">{{ __('Request deletion of all your personal data. This action is irreversible.') }}</p>

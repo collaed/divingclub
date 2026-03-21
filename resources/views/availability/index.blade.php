@@ -5,7 +5,7 @@
     @endphp
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">📅 {{ __('Instructor Planning') }}</h4>
+        <h4 class="mb-0">@icon('📅') {{ __('Instructor Planning') }}</h4>
         <div class="d-flex gap-2">
             <a href="{{ route('availability.index', ['month' => $start->copy()->subMonth()->format('Y-m')]) }}" class="btn btn-sm btn-outline-secondary">←</a>
             <span class="btn btn-sm btn-primary disabled">{{ $start->translatedFormat('F Y') }}</span>
@@ -18,12 +18,12 @@
         @foreach($actColors as $key => $c)
             <span class="badge px-2 py-1" style="background:{{ $c['color'] }};color:{{ $c['text'] }}">{{ $c['icon'] }} {{ __($c['label']) }}</span>
         @endforeach
-        <span class="badge px-2 py-1 bg-danger text-white">⚠️ {{ __('No instructor') }}</span>
+        <span class="badge px-2 py-1 bg-danger text-white">@icon('⚠️') {{ __('No instructor') }}</span>
     </div>
 
     @if($isInstructor)
         <div class="alert alert-info small py-2 mb-3">
-            💡 {{ __('Click a day cell, pick an activity type, and your initial will appear. Click your initial to remove.') }}
+            @icon('💡') {{ __('Click a day cell, pick an activity type, and your initial will appear. Click your initial to remove.') }}
         </div>
     @endif
 

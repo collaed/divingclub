@@ -30,7 +30,7 @@
     @php $worklistCount = collect($worklist)->reject(fn($v) => $v instanceof \Illuminate\Support\Collection || $v instanceof \Illuminate\Database\Eloquent\Collection)->sum() + ($worklist['birthdays_14d']->count()); @endphp
     @if($worklistCount > 0)
     <div class="card dc-card mb-4 border-warning">
-        <div class="card-header bg-warning bg-opacity-10">📋 {{ __('Bureau Worklist') }}</div>
+        <div class="card-header bg-warning bg-opacity-10">@icon('📋') {{ __('Bureau Worklist') }}</div>
         <div class="list-group list-group-flush">
             @if($worklist['unverified_certs'] > 0)
                 <a href="{{ route('admin.members.index') }}?filter=unverified_cert" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Medical certificates to verify') }} <span class="badge bg-danger">{{ $worklist['unverified_certs'] }}</span></a>
@@ -60,11 +60,11 @@
                 <a href="{{ route('admin.payments.reconciliation') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Unmatched bank transactions') }} <span class="badge bg-warning text-dark">{{ $worklist['unmatched_transactions'] }}</span></a>
             @endif
             @if($worklist['minors_no_guardian'] > 0)
-                <a href="{{ route('admin.guardians.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">👨‍👧 {{ __('Minors without guardian') }} <span class="badge bg-danger">{{ $worklist['minors_no_guardian'] }}</span></a>
+                <a href="{{ route('admin.guardians.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('👨‍👧') {{ __('Minors without guardian') }} <span class="badge bg-danger">{{ $worklist['minors_no_guardian'] }}</span></a>
             @endif
             @if($worklist['birthdays_14d']->count() > 0)
                 <div class="list-group-item">
-                    🎂 {{ __('Birthdays next 2 weeks') }}
+                    @icon('🎂') {{ __('Birthdays next 2 weeks') }}
                     <ul class="mb-0 mt-1 small">
                         @foreach($worklist['birthdays_14d'] as $bd)
                             <li>{{ $bd->first_name }} {{ $bd->last_name }} — {{ $bd->date_of_birth->format('d/m') }}</li>
@@ -99,7 +99,7 @@
         {{-- Upcoming birthdays --}}
         <div class="col-md-4">
             <div class="card dc-card">
-                <div class="card-header">🎂 {{ __('Upcoming Birthdays') }}</div>
+                <div class="card-header">@icon('🎂') {{ __('Upcoming Birthdays') }}</div>
                 <div class="list-group list-group-flush">
                     @forelse($stats['upcoming_birthdays'] as $bd)
                         <div class="list-group-item d-flex justify-content-between align-items-center py-2">
@@ -116,7 +116,7 @@
         {{-- Next events --}}
         <div class="col-md-4">
             <div class="card dc-card">
-                <div class="card-header">📅 {{ __('Next Events') }}</div>
+                <div class="card-header">@icon('📅') {{ __('Next Events') }}</div>
                 <div class="list-group list-group-flush">
                     @forelse($stats['next_events'] as $ev)
                         <a href="{{ route('events.show', $ev) }}" class="list-group-item list-group-item-action py-2">
@@ -135,13 +135,13 @@
         {{-- Quick actions --}}
         <div class="col-md-4">
             <div class="card dc-card">
-                <div class="card-header">⚡ {{ __('Quick Actions') }}</div>
+                <div class="card-header">@icon('⚡') {{ __('Quick Actions') }}</div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ route('admin.email.index') }}" class="btn btn-sm btn-outline-primary">✉️ {{ __('Send Email') }}</a>
-                        <a href="{{ route('admin.payments.reconciliation') }}" class="btn btn-sm btn-outline-primary">🏦 {{ __('Bank Reconciliation') }}</a>
-                        <a href="{{ route('admin.equipment.create') }}" class="btn btn-sm btn-outline-primary">🤿 {{ __('Add Equipment') }}</a>
-                        <a href="{{ route('admin.guide.index') }}" class="btn btn-sm btn-outline-secondary">📖 {{ __('Admin Guide') }}</a>
+                        <a href="{{ route('admin.email.index') }}" class="btn btn-sm btn-outline-primary">@icon('✉️') {{ __('Send Email') }}</a>
+                        <a href="{{ route('admin.payments.reconciliation') }}" class="btn btn-sm btn-outline-primary">@icon('🏦') {{ __('Bank Reconciliation') }}</a>
+                        <a href="{{ route('admin.equipment.create') }}" class="btn btn-sm btn-outline-primary">@icon('🤿') {{ __('Add Equipment') }}</a>
+                        <a href="{{ route('admin.guide.index') }}" class="btn btn-sm btn-outline-secondary">@icon('📖') {{ __('Admin Guide') }}</a>
                     </div>
                 </div>
             </div>

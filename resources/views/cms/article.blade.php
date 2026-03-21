@@ -44,12 +44,12 @@
                 @if($hasTranslations)
                     <ul class="nav nav-tabs nav-tabs-sm mb-3" role="tablist" style="font-size:.85rem">
                         <li class="nav-item">
-                            <button class="nav-link fw-bold {{ !in_array($currentLocale, $translatedLocales ?? []) ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-original">🇫🇷 Original</button>
+                            <button class="nav-link fw-bold {{ !in_array($currentLocale, $translatedLocales ?? []) ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-original">@icon('🇫🇷') Original</button>
                         </li>
                         @foreach($article->translations as $tr)
                             <li class="nav-item">
                                 <button class="nav-link {{ $tr->locale === $currentLocale ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-{{ $tr->locale }}">
-                                    {{ strtoupper($tr->locale) }}@if($tr->stale) ⚠️@endif
+                                    {{ strtoupper($tr->locale) }}@if($tr->stale) @icon('⚠')️@endif
                                 </button>
                             </li>
                         @endforeach
@@ -61,9 +61,9 @@
                         @foreach($article->translations as $tr)
                             <div class="tab-pane {{ $tr->locale === $currentLocale ? 'show active' : '' }}" id="tab-{{ $tr->locale }}">
                                 @if($tr->stale)
-                                    <div class="alert alert-warning py-1 small">⚠️ {{ __('This translation may be outdated — the original article was modified.') }}</div>
+                                    <div class="alert alert-warning py-1 small">@icon('⚠️') {{ __('This translation may be outdated — the original article was modified.') }}</div>
                                 @endif
-                                @if($tr->auto_translated) <small class="text-muted fst-italic mb-2 d-block">🤖 {{ __('Auto-translated') }}</small> @endif
+                                @if($tr->auto_translated) <small class="text-muted fst-italic mb-2 d-block">@icon('🤖') {{ __('Auto-translated') }}</small> @endif
                                 <div class="article-body">{!! (new \App\Models\Article(['body' => $tr->body]))->renderedBody() !!}</div>
                             </div>
                         @endforeach
@@ -76,7 +76,7 @@
                 @if(auth()->user()?->isBureauMaster())
                     <form method="POST" action="{{ route('admin.articles.translate', $article) }}" class="mt-2">
                         @csrf
-                        <button class="btn btn-sm btn-outline-secondary">🌐 {{ __('Generate translations') }}</button>
+                        <button class="btn btn-sm btn-outline-secondary">@icon('🌐') {{ __('Generate translations') }}</button>
                     </form>
                 @endif
 
@@ -113,7 +113,7 @@
                 {{-- Live member statistics charts --}}
                 @if(isset($memberStats))
                     <div class="alert alert-info py-2 mt-4">
-                        📊 {{ __('Live data from :count active members', ['count' => $memberStats['total']]) }}
+                        @icon('📊') {{ __('Live data from :count active members', ['count' => $memberStats['total']]) }}
                     </div>
                     <div class="row g-4">
                         <div class="col-md-6">
@@ -161,7 +161,7 @@
                     const base = {responsive:true, maintainAspectRatio:false};
 
                     // Gender — doughnut
-                    const genderLabels = Object.keys(stats.gender).map(g => g === 'M' ? '♂ {{ __("Male") }}' : '♀ {{ __("Female") }}');
+                    const genderLabels = Object.keys(stats.gender).map(g => g === 'M' ? '@icon('♂') {{ __("Male") }}' : '@icon('♀') {{ __("Female") }}');
                     new Chart(document.getElementById('chartGender'), {type:'doughnut', data:{labels:genderLabels, datasets:[{data:Object.values(stats.gender), backgroundColor:['#0066cc','#ff6699']}]}, options:{...base, plugins:{legend:{position:'bottom'}}}});
 
                     // Age — vertical bar
@@ -211,7 +211,7 @@
                 @php $token = $article->vote->tokens()->where('user_id', auth()->id())->first(); @endphp
                 @if($token)
                     <div class="card dc-card mt-4 border-primary">
-                        <div class="card-header bg-primary text-white">🗳️ {{ $article->vote->title }}</div>
+                        <div class="card-header bg-primary text-white">@icon('🗳️') {{ $article->vote->title }}</div>
                         <div class="card-body">
                             <p>{{ $article->vote->description }}</p>
                             <a href="{{ route('vote.show', $token->token) }}" class="btn btn-primary">{{ __('Cast your vote') }}</a>

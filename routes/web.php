@@ -79,7 +79,7 @@ Route::post('/install', [InstallController::class, 'run'])->name('install.run');
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/article/{slug}', [HomeController::class, 'showArticle'])->name('article.show');
 Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
-Route::post('/trial', [TrialController::class, 'store'])->name('trial.store');
+Route::post('/trial', [TrialController::class, 'store'])->middleware('throttle:3,1')->name('trial.store');
 Route::get('/dues', [DuesCalculatorController::class, 'show'])->name('dues.show');
 Route::post('/dues', [DuesCalculatorController::class, 'calculate'])->name('dues.calculate');
 Route::get('/cotisation', fn () => redirect()->route('dues.show'))->name('cotisation');
@@ -93,7 +93,7 @@ Route::post('/contact', [ContactController::class, 'send'])->middleware('throttl
 // Guest auth
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->middleware(CheckLicense::class)->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->middleware(CheckLicense::class);
+    Route::post('/register', [RegisterController::class, 'store'])->middleware([CheckLicense::class, 'throttle:5,1']);
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1');
 
@@ -122,7 +122,7 @@ Route::middleware('guest')->group(function () {
         return $status === Password::PASSWORD_RESET
             ? redirect()->route('login')->with('success', __('Password reset!'))
             : back()->withErrors(['email' => __($status)]);
-    })->name('password.update');
+    })->middleware('throttle:3,1')->name('password.update');
 });
 
 // OAuth
@@ -452,35 +452,40 @@ Route::prefix('staging-mail')->group(function () {
     Route::delete('/', [StagingMailController::class, 'clear'])->name('staging.mail.clear');
 });
 
-Route::get('/cron/run', function (Request $request) {
-    abort_unless($request->query('key') === config('app.cron_key'), 403);
+// Cron helper — accepts key via query string or X-Cron-Key header
+$cronAuth = function (Request $request) {
+    $key = $request->header('X-Cron-Key') ?? $request->query('key');
+    abort_unless($key && $key === config('app.cron_key'), 403);
+};
+
+Route::get('/cron/run', function (Request $request) use ($cronAuth) {
+    $cronAuth($request);
     Artisan::call('schedule:run');
 
     return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
-})->name('cron.run');
+})->middleware('throttle:10,1')->name('cron.run');
 
-// Wasmer Edge cron endpoints (also usable on any stateless host)
-Route::get('/cron/run-schedule', function (Request $request) {
-    abort_unless($request->query('key') === config('app.cron_key'), 403);
+Route::get('/cron/run-schedule', function (Request $request) use ($cronAuth) {
+    $cronAuth($request);
     Artisan::call('schedule:run');
 
     return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
-})->name('cron.run-schedule');
+})->middleware('throttle:10,1')->name('cron.run-schedule');
 
-Route::get('/cron/medical-reminders', function (Request $request) {
-    abort_unless($request->query('key') === config('app.cron_key'), 403);
+Route::get('/cron/medical-reminders', function (Request $request) use ($cronAuth) {
+    $cronAuth($request);
     dispatch_sync(new SendMedicalReminders);
 
     return response('OK', 200, ['Content-Type' => 'text/plain']);
-})->name('cron.medical-reminders');
+})->middleware('throttle:10,1')->name('cron.medical-reminders');
 
-Route::get('/cron/weekly-backup', function (Request $request) {
-    abort_unless($request->query('key') === config('app.cron_key'), 403);
+Route::get('/cron/weekly-backup', function (Request $request) use ($cronAuth) {
+    $cronAuth($request);
     dispatch_sync(new WeeklyBackup);
 
     return response('OK', 200, ['Content-Type' => 'text/plain']);
-})->name('cron.weekly-backup');
+})->middleware('throttle:10,1')->name('cron.weekly-backup');
 
 // Public voting (token-based, no login required)
 Route::get('/vote/{token}', [VotePublicController::class, 'show'])->name('vote.show');
-Route::post('/vote/{token}', [VotePublicController::class, 'cast'])->name('vote.cast');
+Route::post('/vote/{token}', [VotePublicController::class, 'cast'])->middleware('throttle:10,1')->name('vote.cast');

@@ -28,20 +28,20 @@
         <div class="row">
             <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('Date') }} *</label>
-                <input type="date" name="event_date" class="form-control @error('event_date') is-invalid @enderror" value="{{ old('event_date', $event->event_date?->format('Y-m-d')) }}" required>
+                <input type="text" name="event_date" data-picker="date" class="form-control @error('event_date') is-invalid @enderror" value="{{ old('event_date', $event->event_date?->format('Y-m-d')) }}" required>
                 @error('event_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-2 mb-3">
                 <label class="form-label">{{ __('Start Time') }}</label>
-                <input type="time" name="event_time" class="form-control" value="{{ old('event_time', $event->event_time ? substr($event->event_time, 0, 5) : '') }}">
+                <input type="text" name="event_time" data-picker="time" class="form-control" value="{{ old('event_time', $event->event_time ? substr($event->event_time, 0, 5) : '') }}">
             </div>
             <div class="col-md-2 mb-3">
                 <label class="form-label">{{ __('End Time') }}</label>
-                <input type="time" name="end_time" class="form-control" value="{{ old('end_time', $event->end_time ? substr($event->end_time, 0, 5) : '') }}">
+                <input type="text" name="end_time" data-picker="time" class="form-control" value="{{ old('end_time', $event->end_time ? substr($event->end_time, 0, 5) : '') }}">
             </div>
             <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('End Date') }}</label>
-                <input type="date" name="end_date" class="form-control" value="{{ old('end_date', $event->end_date?->format('Y-m-d')) }}">
+                <input type="text" name="end_date" data-picker="date" class="form-control" value="{{ old('end_date', $event->end_date?->format('Y-m-d')) }}">
             </div>
             <div class="col-md-2 mb-3">
                 <label class="form-label">{{ __('Season') }}</label>
@@ -69,7 +69,7 @@
 
         <div class="mb-3">
             <label class="form-label">{{ __('Description') }}</label>
-            <textarea name="description" class="form-control" rows="4">{{ old('description', $event->description) }}</textarea>
+            <textarea name="description" class="tinymce">{{ old('description', $event->description) }}</textarea>
         </div>
 
         <div class="row">
@@ -104,7 +104,7 @@
             </div>
             <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('Permissions Expire') }}</label>
-                <input type="date" name="permissions_expire_date" class="form-control" value="{{ old('permissions_expire_date', $event->permissions_expire_date?->format('Y-m-d')) }}">
+                <input type="text" name="permissions_expire_date" data-picker="date" class="form-control" value="{{ old('permissions_expire_date', $event->permissions_expire_date?->format('Y-m-d')) }}">
             </div>
         </div>
 
@@ -134,7 +134,7 @@
             @foreach([1,2,3] as $i)
                 <div class="col-md-2 mb-3">
                     <label class="form-label small">{{ __('Deposit :n Date', ['n' => $i]) }}</label>
-                    <input type="date" name="deposit_{{ $i }}_date" class="form-control form-control-sm" value="{{ old('deposit_'.$i.'_date', $event->{'deposit_'.$i.'_date'}?->format('Y-m-d')) }}">
+                    <input type="text" name="deposit_{{ $i }}_date" data-picker="date" class="form-control form-control-sm" value="{{ old('deposit_'.$i.'_date', $event->{'deposit_'.$i.'_date'}?->format('Y-m-d')) }}">
                 </div>
                 <div class="col-md-2 mb-3">
                     <label class="form-label small">{{ __('Amount €') }}</label>
@@ -174,4 +174,5 @@
         document.getElementById('eventColor').value = typeColors[this.value] || '#6c757d';
     });
     </script>
+    <x-rich-editor />
 </x-layout>
