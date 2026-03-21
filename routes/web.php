@@ -92,7 +92,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->middleware(CheckLicense::class)->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->middleware(CheckLicense::class);
     Route::get('/login', [LoginController::class, 'create'])->name('login');
-    Route::post('/login', [LoginController::class, 'store']);
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1');
 
     // Password reset
     Route::get('/forgot-password', fn () => view('auth.forgot-password'))->name('password.request');
