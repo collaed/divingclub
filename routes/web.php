@@ -42,6 +42,7 @@ use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InstructorAvailabilityController;
 use App\Http\Controllers\MembersDirectoryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\StagingMailController;
 use App\Http\Controllers\TrialController;
@@ -132,6 +133,9 @@ Route::post('/auth/social/dismiss-link', [SocialAuthController::class, 'dismissL
 
 // Email verification
 Route::middleware('auth')->group(function () {
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+
     Route::get('/email/verify', fn () => view('auth.verify-email'))->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();

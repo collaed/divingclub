@@ -303,6 +303,15 @@
         if(b) b.textContent = t === 'dark' ? '☀️' : '🌙';
     }
     </script>
+    @auth
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.initPushNotifications) {
+                window.initPushNotifications('{{ config("webpush.public_key") }}', '{{ csrf_token() }}');
+            }
+        });
+    </script>
+    @endauth
     @stack('scripts')
 </body>
 </html>

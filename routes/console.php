@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\ThemeSetting;
 use App\Models\Vote;
 use App\Services\ArticleTranslationService;
+use App\Services\PushNotificationService;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::job(new SendMedicalReminders)->dailyAt('08:00');
@@ -24,7 +25,15 @@ Schedule::call(function () {
 
 // Auto-open/close votes
 Schedule::call(function () {
-    Vote::where('status', 'draft')->where('opens_at', '<=', now())->update(['status' => 'open']);
+    $opened = Vote::where('status', 'draft')->where('opens_at', '<=', now())->get();
+    foreach ($opened as $vote) {
+        $vote->update(['status' => 'open']);
+        app(PushNotificationService::class)->sendToAll(
+            __('Vote Open'),
+            $vote->title,
+            route('vote.show', ['token' => 'check']) // members use their token
+        );
+    }
     Vote::where('status', 'open')->where('closes_at', '<=', now())->update(['status' => 'closed']);
 })->everyMinute();
 

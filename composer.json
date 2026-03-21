@@ -11,7 +11,8 @@
         "endroid/qr-code": "^5.0",
         "ezyang/htmlpurifier": "^4.19",
         "laravel/framework": "^11.31",
-        "laravel/tinker": "^2.9"
+        "laravel/tinker": "^2.9",
+        "minishlink/web-push": "^10.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.1",

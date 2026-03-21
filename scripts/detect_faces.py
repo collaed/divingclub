@@ -11,9 +11,10 @@ Usage: python3 detect_faces.py /path/to/image.jpg
 
 import sys
 import json
+import os
 import cv2
 
-CASCADE_DIR = "/home/collaed/laravel/divingclub/storage/app/ml"
+CASCADE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "storage", "app", "ml")
 
 def detect_faces(image_path):
     img = cv2.imread(image_path)

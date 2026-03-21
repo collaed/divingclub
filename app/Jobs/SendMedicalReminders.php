@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Document;
+use App\Services\PushNotificationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -31,8 +32,18 @@ class SendMedicalReminders implements ShouldQueue
                 ->get();
 
             foreach ($certs as $cert) {
-                // TODO: Send actual email in Phase 6
                 Log::info("Medical reminder ({$days}d): {$cert->user->name} — cert expires {$cert->expiry_date->format('d/m/Y')}");
+
+                // Push notification to the member
+                app(PushNotificationService::class)->sendToUser(
+                    $cert->user,
+                    __('Medical Certificate Expiring'),
+                    $days > 0
+                        ? __('Your medical certificate expires in :days days.', ['days' => $days])
+                        : __('Your medical certificate has expired.'),
+                    '/profile#medical'
+                );
+
                 $cert->update([$sentColumn => $today]);
             }
         }

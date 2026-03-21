@@ -7,11 +7,11 @@ use App\Models\MemberDetail;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserEmail;
+use App\Services\PushNotificationService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterController extends Controller
@@ -64,6 +64,13 @@ class RegisterController extends Controller
 
         event(new Registered($user));
         Auth::login($user);
+
+        // Notify bureau of new registration
+        app(PushNotificationService::class)->sendToBureau(
+            __('New Member'),
+            $validated['first_name'].' '.$validated['last_name'],
+            '/admin/members'
+        );
 
         return redirect()->route('verification.notice');
     }

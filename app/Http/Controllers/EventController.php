@@ -30,6 +30,7 @@ use App\Models\User;
 use App\Services\FaceDetectionService;
 use App\Services\ImageQualityService;
 use App\Services\MedicalComplianceService;
+use App\Services\PushNotificationService;
 use App\Services\SocialPublishService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -104,6 +105,15 @@ class EventController extends Controller
 
         $event = Event::create($data);
         $event->update(['participant_email' => 'event-'.$event->id.'@'.config('club.domain')]);
+
+        // Push notification for non-routine events
+        if (! in_array($event->event_type, ['pool', 'theory'])) {
+            app(PushNotificationService::class)->sendToAll(
+                __('New Event'),
+                $event->title.' — '.$event->event_date?->format('d/m/Y'),
+                route('events.show', $event)
+            );
+        }
 
         return redirect()->route('events.show', $event)->with('success', __('Event created.'));
     }
