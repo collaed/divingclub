@@ -15,8 +15,10 @@ class StagingMailServiceProvider extends ServiceProvider
             return;
         }
 
-        // Force mail to log driver so nothing actually sends
-        config(['mail.default' => 'log']);
+        // Force mail to log driver unless Mailpit is catching it via Postfix relay
+        if (! config('app.staging_use_smtp')) {
+            config(['mail.default' => 'log']);
+        }
 
         // Capture every outgoing email into email_log
         Event::listen(MessageSending::class, function (MessageSending $event) {

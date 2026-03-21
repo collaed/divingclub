@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ThumbnailController;
 use App\Http\Controllers\Admin\TrialRequestController;
 use App\Http\Controllers\Admin\VoteController;
+use App\Http\Controllers\Auth\EuLoginController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SocialAuthController;
@@ -130,6 +131,10 @@ Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('auth.social.callback');
 Route::post('/auth/social/confirm-link', [SocialAuthController::class, 'confirmLink'])->middleware('auth')->name('auth.social.confirm-link');
 Route::post('/auth/social/dismiss-link', [SocialAuthController::class, 'dismissLink'])->middleware('auth')->name('auth.social.dismiss-link');
+
+// EU Login (CAS)
+Route::get('/auth/eulogin/redirect', [EuLoginController::class, 'redirect'])->name('auth.eulogin.redirect');
+Route::get('/auth/eulogin/callback', [EuLoginController::class, 'callback'])->name('auth.eulogin.callback');
 
 // Email verification
 Route::middleware('auth')->group(function () {
