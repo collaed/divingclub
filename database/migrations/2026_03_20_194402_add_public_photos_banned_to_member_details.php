@@ -14,9 +14,10 @@ return new class extends Migration
         });
 
         // Set default for existing minors
-        DB::statement(
-            'UPDATE member_details SET public_photos_banned = 1 WHERE date_of_birth IS NOT NULL AND date_of_birth > DATE_SUB(NOW(), INTERVAL 18 YEAR)'
-        );
+        DB::table('member_details')
+            ->whereNotNull('date_of_birth')
+            ->where('date_of_birth', '>', now()->subYears(18))
+            ->update(['public_photos_banned' => true]);
     }
 
     public function down(): void
