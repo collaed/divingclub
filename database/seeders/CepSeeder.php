@@ -401,12 +401,11 @@ class CepSeeder extends Seeder
     private function guessLanguage(string $country): string
     {
         return match (strtolower(trim($country))) {
-            'france', 'belgique', 'belgium' => 'fr',
-            'luxembourg' => 'fr',
+            'france', 'belgique', 'belgium', 'luxembourg' => 'fr',
             'portugal' => 'pt',
             'allemagne', 'germany', 'austria', 'autriche' => 'de',
             'italie', 'italy' => 'it',
-            'espagne', 'spain' => 'es',
+            'espagne', 'spain', 'mexico', 'uruguay' => 'es',
             'pologne', 'poland' => 'pl',
             'hongrie', 'hungary' => 'hu',
             'roumanie', 'romania' => 'ro',
