@@ -54,6 +54,7 @@ class ProcessInboundMail extends Command
         }
 
         EmailLog::create([
+            'event_id' => $this->extractEventId($to),
             'to_email' => $to,
             'from_email' => $from,
             'subject' => $subject,
@@ -64,5 +65,12 @@ class ProcessInboundMail extends Command
         $this->info("Forwarded to {$count} recipients.");
 
         return self::SUCCESS;
+    }
+
+    private function extractEventId(string $address): ?int
+    {
+        $local = strtolower(explode('@', $address)[0]);
+
+        return preg_match('/^event-(\d+)$/', $local, $m) ? (int) $m[1] : null;
     }
 }

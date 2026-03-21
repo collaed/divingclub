@@ -22,8 +22,16 @@ class StagingMailServiceProvider extends ServiceProvider
         Event::listen(MessageSending::class, function (MessageSending $event) {
             $message = $event->message;
             $to = collect($message->getTo())->map(fn ($a) => $a->getAddress())->implode(', ');
+            $eventId = null;
+            foreach ($message->getTo() as $addr) {
+                if (preg_match('/^event-(\d+)@/i', $addr->getAddress(), $m)) {
+                    $eventId = (int) $m[1];
+                    break;
+                }
+            }
 
             EmailLog::create([
+                'event_id' => $eventId,
                 'to_email' => $to,
                 'subject' => $message->getSubject() ?? '(no subject)',
                 'body' => $message->getHtmlBody() ?? $message->getTextBody() ?? '',

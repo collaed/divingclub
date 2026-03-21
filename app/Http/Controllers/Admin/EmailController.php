@@ -107,6 +107,7 @@ class EmailController extends Controller
             }
 
             EmailLog::create([
+                'event_id' => $request->event_id,
                 'user_id' => $user->id,
                 'to_email' => $user->primary_email,
                 'subject' => $rendered['subject'],
