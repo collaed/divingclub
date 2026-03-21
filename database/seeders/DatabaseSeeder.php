@@ -15,7 +15,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\MemberDetail;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -27,6 +31,30 @@ class DatabaseSeeder extends Seeder
             FederationSeeder::class,        // FFESSM, LIFRAS, FLASSA (base set)
             CertificationLevelSeeder::class, // All federation cert levels + extended federations
             DiveGroupRuleSeeder::class,     // FFESSM palanquée composition rules
+        ]);
+
+        $this->seedAdminUser();
+    }
+
+    private function seedAdminUser(): void
+    {
+        if (User::where('primary_email', 'admin@divingclub.eu')->exists()) {
+            return;
+        }
+
+        $admin = User::create([
+            'username' => 'admin',
+            'primary_email' => 'admin@divingclub.eu',
+            'password' => Hash::make('password'),
+            'role_id' => Role::where('slug', 'bureau_master')->value('id'),
+            'status_id' => \App\Models\MemberStatus::where('slug', 'actif')->value('id'),
+            'email_verified_at' => now(),
+        ]);
+
+        MemberDetail::create([
+            'user_id' => $admin->id,
+            'first_name' => 'Admin',
+            'last_name' => 'User',
         ]);
     }
 }

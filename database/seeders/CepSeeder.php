@@ -167,7 +167,7 @@ class CepSeeder extends Seeder
                     'is_public' => $data['is_public'],
                     'is_published' => $data['is_published'] ?? true,
                     'sort_order' => $data['sort_order'] ?? 0,
-                    'author_id' => 1,
+                    'author_id' => User::where('primary_email', 'admin@divingclub.eu')->value('id') ?? 1,
                 ]
             );
 
