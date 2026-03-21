@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Models\EmailLog;
 use Illuminate\Http\Request;
 

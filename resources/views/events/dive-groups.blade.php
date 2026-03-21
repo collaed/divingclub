@@ -70,6 +70,7 @@
     <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
         @if($event->diveGroups->count())
             <button class="btn btn-success btn-sm" onclick="validateGroups()">✅ {{ __('Validate All Groups') }}</button>
+            <button class="btn btn-info btn-sm" onclick="suggestSwaps()">🔀 {{ __('Suggest Swaps') }}</button>
             <a href="{{ route('events.dive-groups.print', $event) }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨️ {{ __('Print Fiche PDF') }}</a>
         @endif
         <div class="input-group input-group-sm" style="width:auto">
@@ -334,6 +335,26 @@
             }
         });
     });
+
+    function suggestSwaps() {
+        const result = document.getElementById('validationResult');
+        result.innerHTML = '<span class="text-muted small">{{ __("Analyzing…") }}</span>';
+        fetch('{{ route("events.dive-groups.suggest-swaps", $event) }}')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.suggestions.length) {
+                    result.innerHTML = '<div class="alert alert-success py-1 mb-0 small">{{ __("No beneficial swaps found — groups are already well balanced!") }}</div>';
+                    return;
+                }
+                let html = '<div class="alert alert-info py-1 mb-0 small"><strong>{{ __("Swap suggestions:") }}</strong><ul class="mb-0">';
+                data.suggestions.forEach(s => {
+                    html += `<li>🔀 <strong>${s.member_a}</strong> (${s.from_group}) ↔ <strong>${s.member_b}</strong> (${s.to_group}) — +${s.gain} pts (→ ${s.new_score_a}/${s.new_score_b})</li>`;
+                });
+                html += '</ul></div>';
+                result.innerHTML = html;
+            })
+            .catch(() => { result.innerHTML = '<span class="text-danger small">{{ __("Error") }}</span>'; });
+    }
 
     function validateGroups() {
         const result = document.getElementById('validationResult');

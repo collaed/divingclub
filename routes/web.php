@@ -29,6 +29,7 @@ use App\Http\Controllers\BuddyController;
 use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\ClassifiedController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\DiveGroupController;
 use App\Http\Controllers\DocumentBrowserController;
@@ -80,12 +81,13 @@ Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
 Route::post('/trial', [TrialController::class, 'store'])->name('trial.store');
 Route::get('/dues', [DuesCalculatorController::class, 'show'])->name('dues.show');
 Route::post('/dues', [DuesCalculatorController::class, 'calculate'])->name('dues.calculate');
-Route::get('/cotisation', fn () => view('cotisation', ['cfg' => config('cotisation')]))->name('cotisation');
+Route::get('/cotisation', fn () => redirect()->route('dues.show'))->name('cotisation');
 Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr.sepa.public');
 Route::get('/qr/payment', [QrCodeController::class, 'signedPaymentQr'])->name('qr.payment.signed');
 Route::get('/pay/verify', [QrCodeController::class, 'verifyPayment'])->name('payment.verify');
 Route::get('/calendar.ics', [CalendarFeedController::class, 'ical'])->name('calendar.ics');
 Route::get('/contact', fn () => view('contact'))->name('contact');
+Route::post('/contact', [ContactController::class, 'send'])->middleware('throttle:5,1')->name('contact.send');
 
 // Guest auth
 Route::middleware('guest')->group(function () {
@@ -262,6 +264,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validate_groups'])->name('events.dive-groups.validate');
     Route::get('/events/{event}/dive-groups/propose', [DiveGroupController::class, 'propose'])->name('events.dive-groups.propose');
     Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
+    Route::get('/events/{event}/dive-groups/suggest-swaps', [DiveGroupController::class, 'suggestSwaps'])->name('events.dive-groups.suggest-swaps');
     Route::get('/events/{event}/dive-groups/print', [DiveGroupController::class, 'printFiche'])->name('events.dive-groups.print');
 
     // Stop impersonation (must be outside bureau_master group — user is impersonated)

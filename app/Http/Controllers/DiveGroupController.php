@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Services\DiveGroupProposalService;
 use App\Services\Homogeneity\DiveContext;
 use App\Services\Homogeneity\HomogeneityAssessmentService;
+use App\Services\SwapSuggestionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -187,12 +188,12 @@ class DiveGroupController extends Controller
 
         return [
             'name' => $user->name,
-            'airConsumption' => $detail?->air_consumption ?? 0.5,
-            'easeLevel' => $detail?->ease_level ?? 0.5,
-            'primaryIntent' => 'exploration',
+            'airConsumption' => (float) ($detail?->air_consumption ?? 0.5),
+            'easeLevel' => (float) ($detail?->ease_level ?? 0.5),
+            'primaryIntent' => $detail?->primary_intent ?? 'exploration',
             'isPhotographer' => (bool) ($detail?->is_photographer ?? false),
             'certRank' => $cert?->rank ?? 0,
-            'totalDives' => $detail?->total_dives ?? 50,
+            'totalDives' => (int) ($detail?->total_dives ?? $detail?->dive_count ?? 50),
             'lastDiveWeeksAgo' => $detail?->last_dive_date
                 ? (int) now()->diffInWeeks($detail->last_dive_date)
                 : 12,
@@ -269,6 +270,17 @@ class DiveGroupController extends Controller
     }
 
     // ─── Rule Checking Engine ──────────────────────────────────
+
+    /**
+     * Suggest member swaps between groups to improve homogeneity scores.
+     */
+    public function suggestSwaps(Event $event)
+    {
+        abort_unless($this->canManage($event), 403);
+
+        return response()->json(app(SwapSuggestionService::class)->suggest($event));
+    }
+
     // Validates leader qualification, depth limits, and group size against
     // active DiveGroupRules. Federation-specific rules take priority over global.
 

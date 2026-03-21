@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Models\Article;
 use HTMLPurifier;
 use HTMLPurifier_Config;

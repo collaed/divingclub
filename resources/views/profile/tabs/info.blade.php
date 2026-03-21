@@ -54,8 +54,8 @@
     </div>
     <div class="mb-3">
         <label class="form-label">{{ __('Club Email') }}</label>
-        <input type="email" name="cep_email" class="form-control @error('cep_email') is-invalid @enderror" value="{{ old('cep_email', $d?->cep_email) }}">
-        @error('cep_email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <input type="email" name="club_email" class="form-control @error('club_email') is-invalid @enderror" value="{{ old('club_email', $d?->club_email) }}">
+        @error('club_email') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
     @if($viewer->id === $target->id || $isBM)

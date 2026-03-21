@@ -178,6 +178,46 @@
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Club Identity') }}</button>
                     </form>
+
+                    {{-- Training Locations --}}
+                    <hr>
+                    <h6>📍 {{ __('Training Locations') }}</h6>
+                    <p class="text-muted small">{{ __('Add your pool, quarry, or meeting locations. These appear on the contact page with map links.') }}</p>
+                    @php $locations = json_decode($themeSettings['training_locations'] ?? '[]', true) ?: []; @endphp
+                    <div id="training-locations">
+                        @foreach($locations as $i => $loc)
+                            <div class="row g-2 mb-2 location-row">
+                                <div class="col-md-4"><input type="text" name="loc_name[]" class="form-control form-control-sm" value="{{ $loc['name'] ?? '' }}" placeholder="{{ __('Name (e.g. City Pool)') }}"></div>
+                                <div class="col-md-4"><input type="text" name="loc_address[]" class="form-control form-control-sm" value="{{ $loc['address'] ?? '' }}" placeholder="{{ __('Address') }}"></div>
+                                <div class="col-md-1"><input type="text" name="loc_lat[]" class="form-control form-control-sm" value="{{ $loc['lat'] ?? '' }}" placeholder="{{ __('Lat') }}"></div>
+                                <div class="col-md-1"><input type="text" name="loc_lon[]" class="form-control form-control-sm" value="{{ $loc['lon'] ?? '' }}" placeholder="{{ __('Lon') }}"></div>
+                                <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.location-row').remove()">✕</button></div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mb-3" onclick="document.getElementById('training-locations').insertAdjacentHTML('beforeend', '<div class=\'row g-2 mb-2 location-row\'><div class=\'col-md-4\'><input type=\'text\' name=\'loc_name[]\' class=\'form-control form-control-sm\' placeholder=\'{{ __("Name") }}\'></div><div class=\'col-md-4\'><input type=\'text\' name=\'loc_address[]\' class=\'form-control form-control-sm\' placeholder=\'{{ __("Address") }}\'></div><div class=\'col-md-1\'><input type=\'text\' name=\'loc_lat[]\' class=\'form-control form-control-sm\' placeholder=\'Lat\'></div><div class=\'col-md-1\'><input type=\'text\' name=\'loc_lon[]\' class=\'form-control form-control-sm\' placeholder=\'Lon\'></div><div class=\'col-md-2\'><button type=\'button\' class=\'btn btn-sm btn-outline-danger\' onclick=\'this.closest(&quot;.location-row&quot;).remove()\'>✕</button></div></div>')">+ {{ __('Add Location') }}</button>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                        @csrf
+                        <input type="hidden" name="training_locations" id="training_locations_json">
+                        <button type="submit" class="btn btn-sm btn-primary" onclick="let locs=[];document.querySelectorAll('.location-row').forEach(r=>{let n=r.querySelector('[name=\'loc_name[]\']').value;if(n)locs.push({name:n,address:r.querySelector('[name=\'loc_address[]\']').value,lat:r.querySelector('[name=\'loc_lat[]\']').value,lon:r.querySelector('[name=\'loc_lon[]\']').value})});document.getElementById('training_locations_json').value=JSON.stringify(locs)">{{ __('Save Locations') }}</button>
+                    </form>
+
+                    {{-- Social Profile Links --}}
+                    <hr>
+                    <h6>🔗 {{ __('Social Media Profiles') }}</h6>
+                    <p class="text-muted small">{{ __('Public profile URLs shown on the contact page. Leave blank to hide.') }}</p>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                        @csrf
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label">Facebook</label><input type="url" name="social_facebook" class="form-control form-control-sm" value="{{ $themeSettings['social_facebook'] ?? '' }}" placeholder="https://facebook.com/yourclub"></div>
+                            <div class="col-md-6"><label class="form-label">Instagram</label><input type="url" name="social_instagram" class="form-control form-control-sm" value="{{ $themeSettings['social_instagram'] ?? '' }}" placeholder="https://instagram.com/yourclub"></div>
+                            <div class="col-md-6"><label class="form-label">YouTube</label><input type="url" name="social_youtube" class="form-control form-control-sm" value="{{ $themeSettings['social_youtube'] ?? '' }}" placeholder="https://youtube.com/@yourclub"></div>
+                            <div class="col-md-6"><label class="form-label">TikTok</label><input type="url" name="social_tiktok" class="form-control form-control-sm" value="{{ $themeSettings['social_tiktok'] ?? '' }}" placeholder="https://tiktok.com/@yourclub"></div>
+                            <div class="col-md-6"><label class="form-label">X / Twitter</label><input type="url" name="social_x" class="form-control form-control-sm" value="{{ $themeSettings['social_x'] ?? '' }}" placeholder="https://x.com/yourclub"></div>
+                            <div class="col-md-6"><label class="form-label">WhatsApp</label><input type="url" name="social_whatsapp" class="form-control form-control-sm" value="{{ $themeSettings['social_whatsapp'] ?? '' }}" placeholder="https://chat.whatsapp.com/invite-link"></div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Social Links') }}</button>
+                    </form>
                 </div>
             </div>
         </div>

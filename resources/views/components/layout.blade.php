@@ -92,7 +92,7 @@
                             <li><a class="dropdown-item" href="{{ url('/article/member-figures') }}">📊 {{ __('Our Members') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/contact-info') }}">📬 {{ __('Contact & Social') }}</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ route('cotisation') }}">💶 {{ __('Cotisation & Fees') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('dues.show') }}">💶 {{ __('Membership Fees') }}</a></li>
                         </ul>
                     </li>
 
@@ -123,7 +123,7 @@
 
                         {{-- Resources --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') || request()->routeIs('classifieds.*') || request()->routeIs('cotisation') || request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') || request()->routeIs('classifieds.*') || request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ url('/article/schedule') }}">🗓️ {{ __('Training Schedule') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ url('/article/first-certification') }}">🎓 {{ __('First Certification') }}</a></li>

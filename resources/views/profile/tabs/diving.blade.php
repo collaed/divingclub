@@ -15,6 +15,56 @@
                 @error('dive_count') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="mb-3">
+                <label class="form-label">{{ __('Total Logged Dives') }}</label>
+                <input type="number" name="total_dives" class="form-control @error('total_dives') is-invalid @enderror" value="{{ old('total_dives', $d?->total_dives ?? 0) }}" min="0">
+                @error('total_dives') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Last Dive Date') }}</label>
+                <input type="date" name="last_dive_date" class="form-control @error('last_dive_date') is-invalid @enderror" value="{{ old('last_dive_date', $d?->last_dive_date?->format('Y-m-d')) }}">
+                @error('last_dive_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Air Consumption') }}</label>
+                    <select name="air_consumption" class="form-select @error('air_consumption') is-invalid @enderror">
+                        <option value="0.25" {{ old('air_consumption', $d?->air_consumption ?? 0.5) == 0.25 ? 'selected' : '' }}>{{ __('Low') }}</option>
+                        <option value="0.5" {{ old('air_consumption', $d?->air_consumption ?? 0.5) == 0.5 ? 'selected' : '' }}>{{ __('Average') }}</option>
+                        <option value="0.75" {{ old('air_consumption', $d?->air_consumption ?? 0.5) == 0.75 ? 'selected' : '' }}>{{ __('High') }}</option>
+                        <option value="1.0" {{ old('air_consumption', $d?->air_consumption ?? 0.5) == 1.0 ? 'selected' : '' }}>{{ __('Very High') }}</option>
+                    </select>
+                    @error('air_consumption') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Comfort Level') }}</label>
+                    <select name="ease_level" class="form-select @error('ease_level') is-invalid @enderror">
+                        <option value="0.25" {{ old('ease_level', $d?->ease_level ?? 0.5) == 0.25 ? 'selected' : '' }}>{{ __('Beginner') }}</option>
+                        <option value="0.5" {{ old('ease_level', $d?->ease_level ?? 0.5) == 0.5 ? 'selected' : '' }}>{{ __('Comfortable') }}</option>
+                        <option value="0.75" {{ old('ease_level', $d?->ease_level ?? 0.5) == 0.75 ? 'selected' : '' }}>{{ __('Experienced') }}</option>
+                        <option value="1.0" {{ old('ease_level', $d?->ease_level ?? 0.5) == 1.0 ? 'selected' : '' }}>{{ __('Expert') }}</option>
+                    </select>
+                    @error('ease_level') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ __('Primary Dive Interest') }}</label>
+                    <select name="primary_intent" class="form-select @error('primary_intent') is-invalid @enderror">
+                        @foreach(['exploration' => __('Exploration'), 'photography' => __('Photography'), 'training' => __('Training'), 'deep' => __('Deep Diving'), 'wreck' => __('Wreck'), 'night' => __('Night Dive'), 'drift' => __('Drift Dive')] as $val => $label)
+                            <option value="{{ $val }}" {{ old('primary_intent', $d?->primary_intent ?? 'exploration') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('primary_intent') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+                <div class="col-md-6 mb-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input type="hidden" name="is_photographer" value="0">
+                        <input type="checkbox" name="is_photographer" value="1" class="form-check-input" id="isPhotographer" {{ old('is_photographer', $d?->is_photographer) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="isPhotographer">{{ __('I do underwater photography') }}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
                 <label class="form-label">{{ __('Legacy Certification Level') }}</label>
                 <input type="text" name="certification_level" class="form-control @error('certification_level') is-invalid @enderror" value="{{ old('certification_level', $d?->certification_level) }}" placeholder="{{ __('e.g. N2 (from old system)') }}">
                 @error('certification_level') <div class="invalid-feedback">{{ $message }}</div> @enderror

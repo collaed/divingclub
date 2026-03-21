@@ -127,7 +127,7 @@ class ProfileController extends Controller
             'phone_office' => 'nullable|string|max:50',
             'phone_mobile' => 'nullable|string|max:50',
             'sex' => 'required|in:M,F,X',
-            'cep_email' => 'nullable|email|max:255',
+            'club_email' => 'nullable|email|max:255',
         ];
 
         // Members can change their own status; bureau_master can change anyone's
@@ -246,6 +246,12 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'dive_count' => 'nullable|integer|min:0',
+            'total_dives' => 'nullable|integer|min:0',
+            'last_dive_date' => 'nullable|date',
+            'air_consumption' => 'nullable|numeric|min:0|max:1',
+            'ease_level' => 'nullable|numeric|min:0|max:1',
+            'primary_intent' => 'nullable|string|in:exploration,photography,training,deep,wreck,night,drift',
+            'is_photographer' => 'nullable|boolean',
             'certification_level' => 'nullable|string|max:50',
             'other_certifications' => 'nullable|string',
             'training_enrollments' => 'nullable|string',

@@ -42,7 +42,7 @@
                         <p class="fs-5 mb-2">⚠️</p>
                         <p>{{ $error }}</p>
                         <p class="small text-muted">{{ __('Do NOT proceed with this payment. Contact the club if you believe this is an error.') }}</p>
-                        <a href="{{ route('cotisation') }}" class="btn btn-outline-primary">{{ __('Go to Cotisation page') }}</a>
+                        <a href="{{ route('dues.show') }}" class="btn btn-outline-primary">{{ __('Go to Membership Fees page') }}</a>
                     </div>
                 </div>
             @endif
