@@ -35,19 +35,17 @@
                             'x' => '⬛  X',
                         ])->filter(fn ($label, $key) => config("services.{$key}.client_id"));
                     @endphp
-                    @if($providers->isNotEmpty())
+                    @php $hasEuLogin = !filter_var(parse_url(config('app.url'), PHP_URL_HOST), FILTER_VALIDATE_IP); @endphp
+                    @if($providers->isNotEmpty() || $hasEuLogin)
                     <hr>
                     <p class="text-center text-muted small mb-3">{{ __('Or sign in with') }}</p>
                     <div class="d-grid gap-2">
                         @foreach($providers as $provider => $label)
                             <a href="{{ route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
                         @endforeach
-                        <a href="{{ route('auth.eulogin.redirect') }}" class="btn btn-outline-secondary btn-sm">🇪🇺  EU Login</a>
-                    </div>
-                    @else
-                    <hr>
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('auth.eulogin.redirect') }}" class="btn btn-outline-secondary btn-sm">🇪🇺  EU Login</a>
+                        @if($hasEuLogin)
+                            <a href="{{ route('auth.eulogin.redirect') }}" class="btn btn-outline-secondary btn-sm">🇪🇺  EU Login</a>
+                        @endif
                     </div>
                     @endif
                 </div>

@@ -3,7 +3,7 @@
 ## Social Login Providers
 
 - [ ] **Yahoo OAuth** — Add Yahoo as social login provider (covers 11 members: yahoo.com, yahoo.fr, yahoo.co.uk)
-- [ ] **EU Login (CAS)** — Integrate EU Login (ecas.ec.europa.eu) for EU institution staff (covers 8 members: ec.europa.eu, curia.europa.eu, eib.org, eif.org). EU Login supports CAS protocol natively — no OAuth client registration needed in simple CAS mode. Use `apereo/phpcas` or `subfission/cas` package. Also supports SAML and OAuth2 but CAS is simplest. Endpoint: `https://ecas.ec.europa.eu/cas/`
+- [ ] **EU Login (CAS)** — Integrate EU Login (ecas.ec.europa.eu) for EU institution staff (covers 8 members: ec.europa.eu, curia.europa.eu, eib.org, eif.org). EU Login supports CAS protocol natively — no OAuth client registration needed in simple CAS mode. Use `apereo/phpcas` or `subfission/cas` package. Also supports SAML and OAuth2 but CAS is simplest. Endpoint: `https://ecas.ec.europa.eu/cas/`. **Code is ready** (`EuLoginController`, routes, button) — blocked on DNS: EU Login rejects bare IP service URLs, needs a proper domain in APP_URL.
 
 ## Infrastructure
 

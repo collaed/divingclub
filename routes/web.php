@@ -126,15 +126,15 @@ Route::middleware('guest')->group(function () {
     })->middleware('throttle:3,1')->name('password.update');
 });
 
+// EU Login (CAS) — must be before the {provider} wildcard
+Route::get('/auth/eulogin/redirect', [EuLoginController::class, 'redirect'])->name('auth.eulogin.redirect');
+Route::get('/auth/eulogin/callback', [EuLoginController::class, 'callback'])->name('auth.eulogin.callback');
+
 // OAuth
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('auth.social.redirect');
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('auth.social.callback');
 Route::post('/auth/social/confirm-link', [SocialAuthController::class, 'confirmLink'])->middleware('auth')->name('auth.social.confirm-link');
 Route::post('/auth/social/dismiss-link', [SocialAuthController::class, 'dismissLink'])->middleware('auth')->name('auth.social.dismiss-link');
-
-// EU Login (CAS)
-Route::get('/auth/eulogin/redirect', [EuLoginController::class, 'redirect'])->name('auth.eulogin.redirect');
-Route::get('/auth/eulogin/callback', [EuLoginController::class, 'callback'])->name('auth.eulogin.callback');
 
 // Email verification
 Route::middleware('auth')->group(function () {
