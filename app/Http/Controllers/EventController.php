@@ -99,7 +99,7 @@ class EventController extends Controller
         $this->authorizeBureau();
         $data = $this->validateEvent($request);
         $data['created_by'] = auth()->id();
-        $data['assistant_ids'] = $request->assistant_ids ? array_map('intval', explode(',', $request->assistant_ids)) : [];
+        $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
         $data['participant_email'] = null; // will be set after creation
 
         $event = Event::create($data);
@@ -123,7 +123,7 @@ class EventController extends Controller
     {
         $this->authorizeEventEdit($event);
         $data = $this->validateEvent($request);
-        $data['assistant_ids'] = $request->assistant_ids ? array_map('intval', explode(',', $request->assistant_ids)) : [];
+        $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
         $event->update($data);
 
         return redirect()->route('events.show', $event)->with('success', __('Event updated.'));

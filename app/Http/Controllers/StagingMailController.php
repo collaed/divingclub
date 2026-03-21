@@ -7,13 +7,15 @@ use Illuminate\Http\Request;
 
 class StagingMailController extends Controller
 {
+    use PaginatesFromRequest;
+
     public function index(Request $request)
     {
         abort_unless(config('app.staging_mode'), 404);
 
         $mails = EmailLog::where('status', 'staging_captured')
             ->orderByDesc('created_at')
-            ->paginate(25);
+            ->paginate($this->perPage(25));
 
         return view('staging.mailbox', compact('mails'));
     }

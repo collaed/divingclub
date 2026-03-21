@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\MemberStatus;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class MemberController extends Controller
 {
+    use PaginatesFromRequest;
+
     public function index(Request $request)
     {
         $query = User::with(['detail', 'role', 'status']);
@@ -19,8 +22,8 @@ class MemberController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('primary_email', 'like', "%$s%")
-                  ->orWhere('username', 'like', "%$s%")
-                  ->orWhereHas('detail', fn($q2) => $q2->where('first_name', 'like', "%$s%")->orWhere('last_name', 'like', "%$s%"));
+                    ->orWhere('username', 'like', "%$s%")
+                    ->orWhereHas('detail', fn ($q2) => $q2->where('first_name', 'like', "%$s%")->orWhere('last_name', 'like', "%$s%"));
             });
         }
         if ($request->filled('status_id')) {
@@ -30,7 +33,11 @@ class MemberController extends Controller
             $query->where('role_id', $request->role_id);
         }
 
-        $members = $query->orderBy('id')->paginate(25)->withQueryString();
+        $sortable = ['id' => 'users.id', 'email' => 'primary_email', 'name' => 'primary_email'];
+        $sort = $sortable[$request->get('sort')] ?? 'users.id';
+        $dir = $request->get('dir', 'asc') === 'desc' ? 'desc' : 'asc';
+
+        $members = $query->orderBy($sort, $dir)->paginate($this->perPage(25))->withQueryString();
         $statuses = MemberStatus::orderBy('name')->get();
         $roles = Role::orderBy('name')->get();
 

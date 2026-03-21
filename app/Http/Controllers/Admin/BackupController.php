@@ -39,6 +39,7 @@ class BackupController extends Controller
 
     public function show(string $filename): View
     {
+        $filename = basename($filename);
         $path = storage_path("app/backups/{$filename}");
         abort_unless(file_exists($path), 404);
 
@@ -53,6 +54,7 @@ class BackupController extends Controller
 
     public function download(string $filename): BinaryFileResponse
     {
+        $filename = basename($filename);
         $path = storage_path("app/backups/{$filename}");
         abort_unless(file_exists($path), 404);
 
@@ -61,7 +63,7 @@ class BackupController extends Controller
 
     public function destroy(string $filename): RedirectResponse
     {
-        $this->backup->delete($filename);
+        $this->backup->delete(basename($filename));
 
         return back()->with('success', __('Backup deleted.'));
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\ThemeSetting;
@@ -9,6 +10,8 @@ use Illuminate\Http\Request;
 
 class AuditLogController extends Controller
 {
+    use PaginatesFromRequest;
+
     public function index(Request $request)
     {
         $query = AuditLog::with('user')->orderByDesc('created_at');
@@ -17,7 +20,7 @@ class AuditLogController extends Controller
             $query->where('user_id', $request->user_id);
         }
         if ($request->filled('model_type')) {
-            $query->where('model_type', 'like', '%' . $request->model_type . '%');
+            $query->where('model_type', 'like', '%'.$request->model_type.'%');
         }
         if ($request->filled('action')) {
             $query->where('action', $request->action);
@@ -26,10 +29,10 @@ class AuditLogController extends Controller
             $query->where('created_at', '>=', $request->from);
         }
         if ($request->filled('to')) {
-            $query->where('created_at', '<=', $request->to . ' 23:59:59');
+            $query->where('created_at', '<=', $request->to.' 23:59:59');
         }
 
-        $logs = $query->paginate(50)->withQueryString();
+        $logs = $query->paginate($this->perPage(50))->withQueryString();
         $oldestLog = AuditLog::min('created_at');
         $retentionMonths = (int) ThemeSetting::get('audit_retention_months', 24);
 
@@ -39,6 +42,7 @@ class AuditLogController extends Controller
     public function show(AuditLog $auditLog)
     {
         $auditLog->load('user');
+
         return view('admin.audit-logs.show', ['log' => $auditLog]);
     }
 
@@ -55,6 +59,7 @@ class AuditLogController extends Controller
     {
         $months = $request->validate(['audit_retention_months' => 'required|integer|min:1|max:120'])['audit_retention_months'];
         ThemeSetting::set('audit_retention_months', $months);
+
         return back()->with('success', __('Retention policy updated to :months months.', ['months' => $months]));
     }
 
@@ -62,11 +67,17 @@ class AuditLogController extends Controller
     {
         $query = AuditLog::with('user')->orderByDesc('created_at');
 
-        if ($request->filled('from')) $query->where('created_at', '>=', $request->from);
-        if ($request->filled('to')) $query->where('created_at', '<=', $request->to . ' 23:59:59');
-        if ($request->filled('action')) $query->where('action', $request->action);
+        if ($request->filled('from')) {
+            $query->where('created_at', '>=', $request->from);
+        }
+        if ($request->filled('to')) {
+            $query->where('created_at', '<=', $request->to.' 23:59:59');
+        }
+        if ($request->filled('action')) {
+            $query->where('action', $request->action);
+        }
 
-        $filename = 'audit_log_' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'audit_log_'.now()->format('Y-m-d_His').'.csv';
         $headers = ['Content-Type' => 'text/csv', 'Content-Disposition' => "attachment; filename=\"$filename\""];
 
         return response()->stream(function () use ($query) {

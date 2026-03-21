@@ -49,8 +49,9 @@
             <thead>
                 <tr>
                     <th></th>
-                    <th>{{ __('Name') }}</th>
-                    <th>{{ __('Email') }}</th>
+                    <th><x-sortable-th column="id" label="#" /></th>
+                    <th><x-sortable-th column="name" :label="__('Name')" /></th>
+                    <th><x-sortable-th column="email" :label="__('Email')" /></th>
                     <th>{{ __('Role') }}</th>
                     <th>{{ __('Status') }}</th>
                     <th>{{ __('Medical') }}</th>
@@ -94,5 +95,8 @@
         </table>
     </div>
 
-    {{ $members->links() }}
+    <div class="d-flex justify-content-between align-items-center">
+        <x-per-page :current="request('per_page', 25)" />
+        <div>{{ $members->links() }}</div>
+    </div>
 </x-layout>

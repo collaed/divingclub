@@ -101,7 +101,7 @@ Route::middleware('guest')->group(function () {
         Password::sendResetLink(['email' => $request->email]);
 
         return back()->with('success', __('Reset link sent if the email exists.'));
-    })->name('password.email');
+    })->middleware('throttle:5,1')->name('password.email');
     Route::get('/reset-password/{token}', fn ($token) => view('auth.reset-password', ['token' => $token]))->name('password.reset');
     Route::post('/reset-password', function (Request $request) {
         $request->validate([

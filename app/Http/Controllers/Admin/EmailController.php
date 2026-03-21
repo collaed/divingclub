@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\EmailLog;
 use App\Models\EmailTemplate;
@@ -13,10 +14,12 @@ use Illuminate\Support\Facades\Mail;
 
 class EmailController extends Controller
 {
+    use PaginatesFromRequest;
+
     public function index()
     {
         $templates = EmailTemplate::orderBy('name')->get();
-        $log = EmailLog::orderByDesc('created_at')->paginate(30);
+        $log = EmailLog::orderByDesc('created_at')->paginate($this->perPage(30));
 
         return view('admin.email.index', compact('templates', 'log'));
     }

@@ -49,7 +49,7 @@
                     @endif
                     <div class="card-body">
                         <h6 class="card-title">{{ $ad->title }}</h6>
-                        <p class="card-text small">{!! Str::limit(strip_tags($ad->body), 200) !!}</p>
+                        <p class="card-text small">{{ Str::limit(strip_tags($ad->body), 200) }}</p>
                         <a href="{{ route('article.show', $ad->slug) }}" class="btn btn-sm btn-outline-primary">{{ __('Read more') }}</a>
                     </div>
                     <div class="card-footer text-muted small d-flex justify-content-between">

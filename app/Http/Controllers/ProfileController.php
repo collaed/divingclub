@@ -282,7 +282,7 @@ class ProfileController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'file' => 'required|file|mimetypes:application/pdf,image/jpeg,image/png|max:10240',
             'category' => 'required|string|in:certification,medical,insurance,other',
             'date_established' => 'nullable|date',
             'cert_type' => 'nullable|string|max:30',

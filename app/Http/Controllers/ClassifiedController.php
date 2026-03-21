@@ -10,11 +10,14 @@ use Illuminate\Support\Str;
 
 class ClassifiedController extends Controller
 {
+    use PaginatesFromRequest;
+
     private function purify(string $html): string
     {
         $config = HTMLPurifier_Config::createDefault();
         $config->set('HTML.Allowed', 'p,br,strong,b,em,i,u,a[href|target],ul,ol,li,img[src|alt|style]');
         $config->set('HTML.TargetBlank', true);
+
         return (new HTMLPurifier($config))->purify($html);
     }
 
@@ -23,10 +26,11 @@ class ClassifiedController extends Controller
         $classifieds = Article::where('article_type', 'classified')
             ->active()->where('is_published', true)
             ->with('author.detail')
-            ->orderByDesc('created_at')->paginate(20);
+            ->orderByDesc('created_at')->paginate($this->perPage(20));
         $mine = Article::where('article_type', 'classified')
             ->where('author_id', auth()->id())
             ->orderByDesc('created_at')->get();
+
         return view('classifieds.index', compact('classifieds', 'mine'));
     }
 
@@ -43,7 +47,7 @@ class ClassifiedController extends Controller
             'featured_image' => 'nullable|image|max:5120',
         ]);
 
-        $v['slug'] = Str::slug($v['title']) . '-' . Str::random(5);
+        $v['slug'] = Str::slug($v['title']).'-'.Str::random(5);
         $v['article_type'] = 'classified';
         $v['author_id'] = auth()->id();
         $v['is_published'] = true;
@@ -63,6 +67,7 @@ class ClassifiedController extends Controller
     public function edit(Article $article)
     {
         abort_unless($article->article_type === 'classified' && $article->author_id === auth()->id(), 403);
+
         return view('classifieds.form', compact('article'));
     }
 
@@ -91,6 +96,7 @@ class ClassifiedController extends Controller
     {
         abort_unless($article->article_type === 'classified' && $article->author_id === auth()->id(), 403);
         $article->update(['expires_at' => now()->addDays(30)]);
+
         return back()->with('success', __('Extended for 30 more days.'));
     }
 
@@ -101,6 +107,7 @@ class ClassifiedController extends Controller
             403
         );
         $article->delete();
+
         return redirect()->route('classifieds.index')->with('success', __('Classified deleted.'));
     }
 }

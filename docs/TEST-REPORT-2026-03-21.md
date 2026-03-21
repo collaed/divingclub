@@ -178,3 +178,36 @@ Tests the application as an end-user over HTTP with basic auth.
 - **Email delivery** — `MAIL_MAILER=log` (intentional for staging); no real SMTP tested
 - **MX records** — Not configured yet for inbound `@clubcep.eu` mail
 - **Performance/load testing** — Not in scope for this run
+
+---
+
+## 4. OWASP ZAP Baseline Scan
+
+Automated vulnerability scan using OWASP ZAP (Docker, stable) against `http://127.0.0.1` on Hetzner with basic auth.
+
+**Result: 0 FAIL, 16 WARN, 51 PASS**
+
+### Warnings & Actions Taken
+
+| # | ZAP Alert | Severity | Status | Action |
+|---|-----------|----------|--------|--------|
+| 1 | Content Security Policy Header Not Set [10038] | Medium | ✅ Fixed | Added CSP header in Caddy |
+| 2 | Permissions Policy Header Not Set [10063] | Medium | ✅ Fixed | Added `Permissions-Policy` in Caddy |
+| 3 | Cross-Origin-Embedder-Policy Missing [90004] | Medium | ℹ️ Accepted | COEP breaks Google Maps/CDN embeds; not applicable |
+| 4 | Cookie No HttpOnly Flag [10010] | Low | ℹ️ Accepted | Locale cookie only; session cookie IS HttpOnly |
+| 5 | Sub Resource Integrity Missing [90003] | Medium | ℹ️ Accepted | CDN scripts (Chart.js) on `/article/member-figures` only |
+| 6 | Cross-Domain JavaScript Source [10017] | Low | ℹ️ Accepted | CDN includes (jsdelivr) are intentional |
+| 7 | User Controllable HTML Attribute [10031] | Info | ℹ️ Accepted | Dues calculator form inputs — no XSS vector |
+| 8 | Big Redirect Detected [10044] | Low | ℹ️ Accepted | Admin member profile redirects — normal behavior |
+| 9 | Non-Storable Content [10049] | Info | ℹ️ Accepted | Dynamic pages shouldn't be cached |
+| 10 | Timestamp Disclosure [10096] | Info | ℹ️ Accepted | CSRF token timestamps — standard Laravel |
+| 11 | Authentication Credentials Captured [10105] | Info | ℹ️ Expected | Basic auth over HTTP — will be HTTPS after DNS |
+| 12 | Suspicious Comments [10027] | Info | ℹ️ Accepted | HTML comments in Blade templates |
+| 13 | Modern Web Application [10109] | Info | ℹ️ Informational | ZAP detected JS framework usage |
+| 14 | Authentication Request Identified [10111] | Info | ℹ️ Informational | Login form detected |
+| 15 | Session Management Response [10112] | Info | ℹ️ Informational | Session cookies detected |
+| 16 | Application Error Disclosure [90022] | Medium | 🟡 To fix | `/auth/microsoft/redirect` returns 500 (no credentials) — should return 404 |
+
+### Full HTML report
+
+See `docs/zap-report.html` for the detailed ZAP report with all evidence.

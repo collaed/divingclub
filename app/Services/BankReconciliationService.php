@@ -85,35 +85,33 @@ class BankReconciliationService
         @unlink($imgDir);
         @mkdir($imgDir);
 
-        // Convert PDF pages to images
-        exec("pdftoppm -png -r 300 {$escaped} {$imgDir}/page 2>/dev/null", $output, $code);
+        try {
+            // Convert PDF pages to images
+            exec("pdftoppm -png -r 300 {$escaped} {$imgDir}/page 2>/dev/null", $output, $code);
 
-        if ($code !== 0) {
+            if ($code !== 0) {
+                return '';
+            }
+
+            $pages = glob("{$imgDir}/page-*.png");
+            sort($pages);
+            $fullText = '';
+
+            foreach ($pages as $page) {
+                $escapedPage = escapeshellarg($page);
+                $ocrResult = '';
+                exec("tesseract {$escapedPage} stdout -l fra+deu+eng 2>/dev/null", $ocrLines, $ocrCode);
+                if ($ocrCode === 0) {
+                    $fullText .= implode("\n", $ocrLines)."\f";
+                }
+                $ocrLines = [];
+            }
+
+            return $fullText;
+        } finally {
             @array_map('unlink', glob("{$imgDir}/*"));
             @rmdir($imgDir);
-
-            return '';
         }
-
-        $pages = glob("{$imgDir}/page-*.png");
-        sort($pages);
-        $fullText = '';
-
-        foreach ($pages as $page) {
-            $escapedPage = escapeshellarg($page);
-            $ocrResult = '';
-            exec("tesseract {$escapedPage} stdout -l fra+deu+eng 2>/dev/null", $ocrLines, $ocrCode);
-            if ($ocrCode === 0) {
-                $fullText .= implode("\n", $ocrLines)."\f";
-            }
-            $ocrLines = [];
-        }
-
-        // Cleanup
-        array_map('unlink', glob("{$imgDir}/*"));
-        @rmdir($imgDir);
-
-        return $fullText;
     }
 
     /**

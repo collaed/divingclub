@@ -17,6 +17,9 @@ class InstallController extends Controller
     {
         // If already installed, redirect home
         try {
+            if (file_exists(storage_path('installed.lock'))) {
+                return redirect('/');
+            }
             if (Schema::hasTable('users') && User::count() > 0) {
                 return redirect('/');
             }
@@ -129,6 +132,8 @@ class InstallController extends Controller
         }
 
         Artisan::call('key:generate', ['--force' => true]);
+
+        file_put_contents(storage_path('installed.lock'), now()->toIso8601String());
 
         return redirect('/')->with('success', 'Installation complete! Log in with your admin credentials.');
     }

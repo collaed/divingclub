@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\BankTransaction;
 use App\Models\MembershipFeeComponent;
@@ -13,11 +14,13 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+    use PaginatesFromRequest;
+
     public function index(Request $request)
     {
         $payments = PaymentExpected::with('user.detail')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
-            ->orderByDesc('created_at')->paginate(30)->withQueryString();
+            ->orderByDesc('created_at')->paginate($this->perPage(30))->withQueryString();
         $components = MembershipFeeComponent::orderBy('sort_order')->get();
 
         return view('admin.payments.index', compact('payments', 'components'));

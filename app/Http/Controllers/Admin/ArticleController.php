@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\ArticleImage;
@@ -14,6 +15,8 @@ use Illuminate\Support\Str;
 
 class ArticleController extends Controller
 {
+    use PaginatesFromRequest;
+
     private function purify(string $html): string
     {
         $config = HTMLPurifier_Config::createDefault();
@@ -27,7 +30,7 @@ class ArticleController extends Controller
     public function index(Request $request)
     {
         $articles = Article::when($request->type, fn ($q, $t) => $q->where('article_type', $t))
-            ->orderByDesc('updated_at')->paginate(20);
+            ->orderByDesc('updated_at')->paginate($this->perPage(20));
 
         return view('admin.articles.index', compact('articles'));
     }
@@ -114,7 +117,7 @@ class ArticleController extends Controller
         // Mark existing translations as stale (will be re-translated lazily on next access)
         $article->translations()->where('auto_translated', true)->update(['stale' => true]);
 
-        return redirect()->route('admin.articles.index')->with('success', __('Article updated.'));
+        return redirect()->route('admin.articles.edit', $article)->with('success', __('Article updated.'));
     }
 
     public function destroy(Article $article)

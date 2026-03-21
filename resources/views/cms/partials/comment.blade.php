@@ -15,7 +15,7 @@
                 </form>
             @endif
         </div>
-        <div class="small mt-1">{!! $comment->body !!}</div>
+        <div class="small mt-1">{{ $comment->body }}</div>
         @if($depth < 3)
             <button class="btn btn-link btn-sm p-0 mt-1 reply-toggle" data-target="reply-{{ $comment->id }}">{{ __('Reply') }}</button>
             <form method="POST" action="{{ route('comments.store', $comment->article_id) }}" class="mt-2 d-none" id="reply-{{ $comment->id }}">

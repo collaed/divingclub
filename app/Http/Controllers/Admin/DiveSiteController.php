@@ -12,6 +12,7 @@ class DiveSiteController extends Controller
     public function index()
     {
         $sites = DiveSite::orderBy('name')->get();
+
         return view('admin.dive-sites.index', compact('sites'));
     }
 
@@ -23,10 +24,17 @@ class DiveSiteController extends Controller
     public function store(Request $request)
     {
         $data = $this->validate($request);
-        if ($request->hasFile('image')) $data['image_path'] = $request->file('image')->store('dive-sites', 'public');
-        if ($request->hasFile('map_image')) $data['map_image_path'] = $request->file('map_image')->store('dive-sites', 'public');
-        if ($request->hasFile('site_plan')) $data['site_plan_path'] = $request->file('site_plan')->store('dive-sites', 'public');
+        if ($request->hasFile('image')) {
+            $data['image_path'] = $request->file('image')->store('dive-sites', 'public');
+        }
+        if ($request->hasFile('map_image')) {
+            $data['map_image_path'] = $request->file('map_image')->store('dive-sites', 'public');
+        }
+        if ($request->hasFile('site_plan')) {
+            $data['site_plan_path'] = $request->file('site_plan')->store('dive-sites', 'public');
+        }
         DiveSite::create($data);
+
         return redirect()->route('admin.dive-sites.index')->with('success', __('Dive site created.'));
     }
 
@@ -40,18 +48,24 @@ class DiveSiteController extends Controller
         $data = $this->validate($request);
         foreach (['image' => 'image_path', 'map_image' => 'map_image_path', 'site_plan' => 'site_plan_path'] as $field => $col) {
             if ($request->hasFile($field)) {
-                if ($diveSite->$col) Storage::disk('public')->delete($diveSite->$col);
+                if ($diveSite->$col) {
+                    Storage::disk('public')->delete($diveSite->$col);
+                }
                 $data[$col] = $request->file($field)->store('dive-sites', 'public');
             }
         }
         $diveSite->update($data);
-        return redirect()->route('admin.dive-sites.index')->with('success', __('Dive site updated.'));
+
+        return redirect()->route('admin.dive-sites.edit', $diveSite)->with('success', __('Dive site updated.'));
     }
 
     public function destroy(DiveSite $diveSite)
     {
-        if ($diveSite->image_path) Storage::disk('public')->delete($diveSite->image_path);
+        if ($diveSite->image_path) {
+            Storage::disk('public')->delete($diveSite->image_path);
+        }
         $diveSite->delete();
+
         return back()->with('success', __('Dive site deleted.'));
     }
 
@@ -64,7 +78,7 @@ class DiveSiteController extends Controller
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'max_depth' => 'nullable|integer|min:1|max:300',
-            'water_type' => 'nullable|in:' . implode(',', DiveSite::WATER_TYPES),
+            'water_type' => 'nullable|in:'.implode(',', DiveSite::WATER_TYPES),
             'conditions' => 'nullable|string',
             'marine_life' => 'nullable|string',
             'safety_notes' => 'nullable|string',

@@ -45,12 +45,15 @@
             </div>
             <div class="col-md-2 mb-3">
                 <label class="form-label">{{ __('Season') }}</label>
-                <select name="season_id" class="form-select">
-                    <option value="">—</option>
-                    @foreach($seasons as $s)
-                        <option value="{{ $s->id }}" {{ old('season_id', $event->season_id) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
-                    @endforeach
-                </select>
+                <div class="input-group">
+                    <select name="season_id" class="form-select">
+                        <option value="">—</option>
+                        @foreach($seasons as $s)
+                            <option value="{{ $s->id }}" {{ old('season_id', $event->season_id) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                        @endforeach
+                    </select>
+                    <a href="{{ route('admin.seasons.create') }}" class="btn btn-outline-secondary btn-sm" target="_blank" title="{{ __('New season') }}">+</a>
+                </div>
             </div>
         </div>
 
@@ -89,8 +92,15 @@
                 </select>
             </div>
             <div class="col-md-3 mb-3">
-                <label class="form-label">{{ __('Assistant IDs') }}</label>
-                <input type="text" name="assistant_ids" class="form-control" value="{{ old('assistant_ids', $event->assistant_ids ? implode(',', $event->assistant_ids) : '') }}" placeholder="1,2,3">
+                <label class="form-label">{{ __('Assistants') }}</label>
+                <select name="assistant_ids[]" class="form-select" multiple size="4">
+                    @foreach(\App\Models\User::whereHas('role', fn($q) => $q->whereIn('slug', ['instructor','bureau_master','bureau_technical']))->with('detail')->orderBy('primary_email')->get() as $u)
+                        <option value="{{ $u->id }}" {{ in_array($u->id, old('assistant_ids', $event->assistant_ids ?? [])) ? 'selected' : '' }}>
+                            {{ $u->detail?->first_name }} {{ $u->detail?->last_name }}
+                        </option>
+                    @endforeach
+                </select>
+                <small class="text-muted">{{ __('Ctrl+click to select multiple') }}</small>
             </div>
             <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('Permissions Expire') }}</label>

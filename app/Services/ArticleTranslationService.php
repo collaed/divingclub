@@ -80,6 +80,14 @@ class ArticleTranslationService
             return $key;
         }, $text);
 
+        // Escape <img>, <video>, <iframe>, <source> tags — not translatable
+        $escaped = preg_replace_callback('/<(img|video|iframe|source|hr|br)\b[^>]*\/?>/i', function ($m) use (&$placeholders) {
+            $key = '⟦TK'.count($placeholders).'⟧';
+            $placeholders[$key] = $m[0];
+
+            return $key;
+        }, $escaped);
+
         try {
             $response = Http::get('https://translate.googleapis.com/translate_a/single', [
                 'client' => 'gtx',

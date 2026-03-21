@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Equipment;
 use App\Models\EquipmentLoan;
@@ -12,12 +13,15 @@ use Illuminate\Http\Request;
 
 class EquipmentController extends Controller
 {
+    use PaginatesFromRequest;
+
     public function index(Request $request)
     {
         $equipment = Equipment::with(['currentLoan.user.detail'])
-            ->when($request->type, fn($q, $t) => $q->where('type', $t))
-            ->when($request->status, fn($q, $s) => $q->where('status', $s))
-            ->orderBy('name')->paginate(30)->withQueryString();
+            ->when($request->type, fn ($q, $t) => $q->where('type', $t))
+            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
+            ->orderBy('name')->paginate($this->perPage(30))->withQueryString();
+
         return view('admin.equipment.index', compact('equipment'));
     }
 
@@ -55,8 +59,9 @@ class EquipmentController extends Controller
 
     public function show(Equipment $equipment)
     {
-        $equipment->load(['maintenanceTasks' => fn($q) => $q->orderBy('due_date'), 'loans' => fn($q) => $q->with('user.detail')->orderByDesc('loaned_at')]);
-        $members = User::with('detail')->whereHas('detail')->get()->sortBy(fn($u) => $u->detail?->last_name);
+        $equipment->load(['maintenanceTasks' => fn ($q) => $q->orderBy('due_date'), 'loans' => fn ($q) => $q->with('user.detail')->orderByDesc('loaned_at')]);
+        $members = User::with('detail')->whereHas('detail')->get()->sortBy(fn ($u) => $u->detail?->last_name);
+
         return view('admin.equipment.show', compact('equipment', 'members'));
     }
 
@@ -71,12 +76,13 @@ class EquipmentController extends Controller
             'notes' => 'nullable|string',
         ]);
         $equipment->update($v);
+
         return back()->with('success', __('Equipment updated.'));
     }
 
     public function loan(Request $request, Equipment $equipment)
     {
-        if (!$equipment->isAvailable()) {
+        if (! $equipment->isAvailable()) {
             return back()->with('error', __('Equipment is not available for loan.'));
         }
 
@@ -121,7 +127,7 @@ class EquipmentController extends Controller
         }
 
         // Update equipment status if no more overdue
-        if (!$maintenance->equipment->hasOverdueMaintenance() && $maintenance->equipment->status === 'maintenance_required') {
+        if (! $maintenance->equipment->hasOverdueMaintenance() && $maintenance->equipment->status === 'maintenance_required') {
             $maintenance->equipment->update(['status' => $maintenance->equipment->currentLoan ? 'on_loan' : 'available']);
         }
 

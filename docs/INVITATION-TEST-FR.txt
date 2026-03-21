@@ -1,0 +1,103 @@
+Objet : 🤿 Invitation à tester la nouvelle plateforme du CEP
+
+Bonjour à tous,
+
+Nous avons le plaisir de vous inviter à tester la nouvelle plateforme de gestion du Club Européen de Plongée, actuellement en phase de staging.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 ACCÈS À LA PLATEFORME
+
+   URL : http://204.168.168.60
+   
+   Étape 1 — Accès au site (identifiant de staging) :
+      Utilisateur : cep
+      Mot de passe : cep2026
+   
+   Étape 2 — Connexion à votre compte :
+      Mot de passe : cep2026!
+      (identique pour tous les comptes de test)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👥 TESTEURS INVITÉS
+
+   1.  Michel BROCHARD      — michel.brochard@mac.com
+   2.  Keran CHAUSSARD       — kchaussard@tti-network.com
+   3.  Eddy COLLART          — eddy.collart@gmail.com
+   4.  Mafalda COLLART       — m.collart@eib.org
+   5.  Pietro GIANCOLA       — pietrogiancola@hotmail.com
+   6.  Lilian GODFRIN        — lilian.godfrin@gmail.com
+   7.  Etienne COUPEZ        — etienne.coupez@gmail.com
+   8.  ______________________— à compléter
+   9.  ______________________— à compléter
+   10. ______________________— à compléter
+
+Connectez-vous avec votre adresse email ci-dessus et le mot de passe cep2026!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 QUE TESTER ?
+
+   ✅ Connexion et profil
+      • Se connecter avec son email + mot de passe
+      • Consulter et modifier son profil
+      • Vérifier ses certifications et informations médicales
+
+   ✅ Événements
+      • Parcourir le calendrier des événements
+      • S'inscrire / se désinscrire d'un événement
+      • Consulter les détails et les photos
+
+   ✅ Membres
+      • Consulter la liste des membres
+      • Vérifier les informations affichées
+
+   ✅ Sites de plongée
+      • Consulter les fiches des sites
+      • Vérifier les cartes et documents de sécurité
+
+   ✅ Équipement
+      • Parcourir l'inventaire du matériel
+
+   ✅ Articles & CMS
+      • Lire les articles publiés
+      • Tester les commentaires
+
+   ✅ Langues
+      • Changer de langue (FR, EN, DE, LU, PT…)
+      • Vérifier que les traductions s'affichent correctement
+
+   ✅ Administration (bureau uniquement)
+      • Tableau de bord admin
+      • Gestion des membres
+      • Paramètres du club
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 COMMENT SIGNALER UN PROBLÈME ?
+
+   Envoyez un email à eddy.collart@gmail.com avec :
+   • La page concernée (URL ou nom)
+   • Ce que vous avez fait
+   • Ce qui s'est passé (capture d'écran bienvenue)
+   • Ce que vous attendiez
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ INFORMATIONS IMPORTANTES
+
+   • Ceci est un environnement de TEST — les données sont réelles
+     mais aucun email ne sera réellement envoyé.
+   • Les connexions Google/X ne fonctionnent pas encore
+     (en attente de la configuration DNS).
+   • L'URL passera en HTTPS prochainement.
+   • Vos retours sont précieux pour améliorer la plateforme
+     avant le lancement officiel !
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Merci d'avance pour votre aide et vos retours ! 🙏
+
+Eddy
+Bureau du CEP

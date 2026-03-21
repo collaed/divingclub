@@ -96,9 +96,11 @@
                         </ul>
                     </li>
 
+                    @if(!auth()->check() || !auth()->user()->detail?->certification_level)
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('trial.*') ? 'active fw-bold' : '' }}" href="{{ route('trial.show') }}">🐠 {{ __('Try Diving') }}</a>
                     </li>
+                    @endif
 
                     @auth
                         {{-- Calendar --}}
