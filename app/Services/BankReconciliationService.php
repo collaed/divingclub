@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BankTransaction;
+use App\Models\ExternalRegistration;
 use App\Models\PaymentExpected;
 
 class BankReconciliationService
@@ -185,12 +186,23 @@ class BankReconciliationService
 
         // Name in communication
         $name = $pe->user?->detail?->last_name;
+        if (! $name && $pe->event_id) {
+            $name = ExternalRegistration::where('event_id', $pe->event_id)
+                ->value('external_member_name');
+        }
         if ($name && stripos($tx->communication, $name) !== false) {
             $score += 30;
         }
 
         // IBAN match: counterparty IBAN matches member's stored IBAN
         $iban = $pe->user?->detail?->iban;
+        if (! $iban && $pe->event_id) {
+            // Check external registrations for this event
+            $iban = ExternalRegistration::where('event_id', $pe->event_id)
+                ->whereNotNull('external_member_iban')
+                ->pluck('external_member_iban')
+                ->first(fn ($i) => $tx->counterparty && $this->normalizeIban($i) === $this->normalizeIban($tx->counterparty));
+        }
         if ($iban && $tx->counterparty && $this->normalizeIban($iban) === $this->normalizeIban($tx->counterparty)) {
             $score += 50;
         }

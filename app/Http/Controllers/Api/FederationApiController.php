@@ -20,12 +20,12 @@ class FederationApiController extends Controller
         $keyId = $request->header('X-Club-Key-Id');
         $secret = $request->header('X-Club-Secret');
 
-        if (!$keyId || !$secret) {
+        if (! $keyId || ! $secret) {
             return null;
         }
 
         $partner = ClubPartnership::where('api_key_id', $keyId)->where('is_active', true)->first();
-        if (!$partner || !Hash::check($secret, $partner->api_secret_hash)) {
+        if (! $partner || ! Hash::check($secret, $partner->api_secret_hash)) {
             return null;
         }
 
@@ -38,7 +38,7 @@ class FederationApiController extends Controller
     public function events(Request $request): JsonResponse
     {
         $partner = $this->authenticate($request);
-        if (!$partner) {
+        if (! $partner) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -47,7 +47,7 @@ class FederationApiController extends Controller
             ->where('status', 'published')
             ->orderBy('event_date')
             ->get()
-            ->map(fn(Event $e) => [
+            ->map(fn (Event $e) => [
                 'id' => $e->id,
                 'title' => $e->title,
                 'event_date' => $e->event_date,
@@ -73,7 +73,7 @@ class FederationApiController extends Controller
     public function register(Request $request): JsonResponse
     {
         $partner = $this->authenticate($request);
-        if (!$partner) {
+        if (! $partner) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -81,6 +81,7 @@ class FederationApiController extends Controller
             'event_id' => 'required|integer',
             'member_name' => 'required|string|max:200',
             'member_email' => 'nullable|email',
+            'member_iban' => 'nullable|string|max:34',
             'cert_level' => 'nullable|string|max:100',
             'medical_valid_until' => 'nullable|date',
             'external_ref' => 'nullable|string|max:100',
@@ -88,7 +89,7 @@ class FederationApiController extends Controller
         ]);
 
         $event = Event::where('id', $data['event_id'])->where('is_federated', true)->first();
-        if (!$event) {
+        if (! $event) {
             return response()->json(['error' => 'Event not found or not federated'], 404);
         }
 
@@ -103,6 +104,7 @@ class FederationApiController extends Controller
             'partnership_id' => $partner->id,
             'external_member_name' => $data['member_name'],
             'external_member_email' => $data['member_email'] ?? null,
+            'external_member_iban' => $data['member_iban'] ?? null,
             'external_member_phone' => $data['member_phone'] ?? null,
             'external_member_federation' => $data['member_federation'] ?? null,
             'external_member_licence_no' => $data['member_licence_no'] ?? null,
@@ -127,12 +129,12 @@ class FederationApiController extends Controller
     public function cancel(Request $request, int $id): JsonResponse
     {
         $partner = $this->authenticate($request);
-        if (!$partner) {
+        if (! $partner) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         $reg = ExternalRegistration::where('id', $id)->where('partnership_id', $partner->id)->first();
-        if (!$reg) {
+        if (! $reg) {
             return response()->json(['error' => 'Registration not found'], 404);
         }
 
