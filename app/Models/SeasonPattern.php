@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SeasonPattern extends Model
 {
-    protected $fillable = ['season_id', 'day_of_week', 'start_time', 'end_time', 'event_type', 'title', 'location', 'max_participants', 'color_hex'];
+    protected $fillable = ['season_id', 'day_of_week', 'start_time', 'end_time', 'event_type', 'title', 'location', 'max_participants', 'registration_opens_days_before', 'color_hex'];
 
     public function season()
     {

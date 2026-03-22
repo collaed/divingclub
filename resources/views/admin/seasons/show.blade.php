@@ -26,6 +26,7 @@
                                 <strong>{{ $p->dayName() }}</strong> {{ $p->start_time }}{{ $p->end_time ? '—'.$p->end_time : '' }}
                                 — {{ $p->title }}
                                 @if($p->location) <small class="text-muted">({{ $p->location }})</small> @endif
+                                @if($p->registration_opens_days_before) <span class="badge bg-info">{{ __('Opens :d days before', ['d' => $p->registration_opens_days_before]) }}</span> @endif
                             </div>
                             <button class="btn btn-sm btn-outline-danger btn-del-pattern" data-url="{{ route('admin.seasons.pattern.destroy', $p) }}">✕</button>
                         </div>
@@ -55,8 +56,9 @@
                         <div class="row g-2 mt-1">
                             <div class="col-md-5"><input type="text" name="location" class="form-control form-control-sm" placeholder="{{ __('Location') }}"></div>
                             <div class="col-md-2"><input type="number" name="max_participants" class="form-control form-control-sm" placeholder="{{ __('Max') }}" min="1"></div>
+                            <div class="col-md-2"><input type="number" name="registration_opens_days_before" class="form-control form-control-sm" placeholder="{{ __('Opens X days before') }}" min="1"></div>
                             <div class="col-md-2"><input type="color" name="color_hex" class="form-control form-control-sm form-control-color" value="#0077be"></div>
-                            <div class="col-md-3"><button type="submit" class="btn btn-sm btn-primary w-100">{{ __('Add Pattern') }}</button></div>
+                            <div class="col-md-1"><button type="submit" class="btn btn-sm btn-primary w-100">{{ __('Add') }}</button></div>
                         </div>
                     </form>
                 </div>
@@ -117,7 +119,7 @@
             const div = document.createElement('div');
             div.className = 'd-flex justify-content-between align-items-center border-bottom py-2';
             div.dataset.id = p.id;
-            div.innerHTML = `<div><span class="badge" style="background:${p.color_hex||'#6c757d'}">${p.event_type}</span> <strong>${days[p.day_of_week]}</strong> ${p.start_time}${p.end_time?'—'+p.end_time:''} — ${p.title} ${p.location?'<small class="text-muted">('+p.location+')</small>':''}</div><button class="btn btn-sm btn-outline-danger btn-del-pattern" data-url="${p.delete_url}">✕</button>`;
+            div.innerHTML = `<div><span class="badge" style="background:${p.color_hex||'#6c757d'}">${p.event_type}</span> <strong>${days[p.day_of_week]}</strong> ${p.start_time}${p.end_time?'—'+p.end_time:''} — ${p.title} ${p.location?'<small class="text-muted">('+p.location+')</small>':''} ${p.registration_opens_days_before?'<span class="badge bg-info">Opens '+p.registration_opens_days_before+' days before</span>':''}</div><button class="btn btn-sm btn-outline-danger btn-del-pattern" data-url="${p.delete_url}">✕</button>`;
             document.getElementById('patternList').appendChild(div);
             this.reset();
         }

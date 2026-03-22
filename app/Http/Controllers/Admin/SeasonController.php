@@ -126,6 +126,7 @@ class SeasonController extends Controller
             'title' => 'required|string|max:255',
             'location' => 'nullable|string|max:500',
             'max_participants' => 'nullable|integer|min:1',
+            'registration_opens_days_before' => 'nullable|integer|min:1',
             'color_hex' => 'nullable|string|max:7',
         ]);
         $pattern = $season->patterns()->create($v);
@@ -171,20 +172,24 @@ class SeasonController extends Controller
                 if ($entry['skip']) {
                     continue;
                 }
+                $pattern = $entry['pattern'];
                 Event::create([
-                    'title' => $entry['pattern']->title,
-                    'color_hex' => $entry['pattern']->color_hex,
-                    'event_type' => $entry['pattern']->event_type,
+                    'title' => $pattern->title,
+                    'color_hex' => $pattern->color_hex,
+                    'event_type' => $pattern->event_type,
                     'event_date' => $entry['date'],
-                    'event_time' => $entry['pattern']->start_time,
-                    'end_time' => $entry['pattern']->end_time,
-                    'location' => $entry['pattern']->location,
-                    'max_participants' => $entry['pattern']->max_participants,
+                    'event_time' => $pattern->start_time,
+                    'end_time' => $pattern->end_time,
+                    'location' => $pattern->location,
+                    'max_participants' => $pattern->max_participants,
                     'waiting_list_enabled' => true,
+                    'inscription_open_at' => $pattern->registration_opens_days_before
+                        ? $entry['date']->copy()->subDays($pattern->registration_opens_days_before)->startOfDay()
+                        : null,
                     'status' => 'scheduled',
                     'season_id' => $season->id,
                     'created_by' => auth()->id(),
-                    'whatsapp_group_url' => $entry['pattern']->whatsapp_group_url,
+                    'whatsapp_group_url' => $pattern->whatsapp_group_url,
                 ]);
                 $created++;
             }
