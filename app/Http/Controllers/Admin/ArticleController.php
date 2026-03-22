@@ -2,30 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\HtmlSanitizer;
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\ArticleImage;
 use App\Models\Vote;
 use App\Services\ArticleTranslationService;
-use HTMLPurifier;
-use HTMLPurifier_Config;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ArticleController extends Controller
 {
     use PaginatesFromRequest;
-
-    private function purify(string $html): string
-    {
-        $config = HTMLPurifier_Config::createDefault();
-        $config->set('HTML.Allowed', 'h2,h3,p,br,strong,b,em,i,u,s,a[href|target],ul,ol,li,blockquote,img[src|alt|style],span[style]');
-        $config->set('HTML.TargetBlank', true);
-        $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true]);
-
-        return (new HTMLPurifier($config))->purify($html);
-    }
 
     public function index(Request $request)
     {
@@ -61,7 +50,7 @@ class ArticleController extends Controller
         $validated['author_id'] = auth()->id();
         $validated['is_published'] = $request->boolean('is_published');
         $validated['is_public'] = $request->boolean('is_public');
-        $validated['body'] = $this->purify($validated['body']);
+        $validated['body'] = HtmlSanitizer::clean($validated['body']);
 
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')->store('articles', 'public');
@@ -100,7 +89,7 @@ class ArticleController extends Controller
         $validated['slug'] = Str::slug($validated['title']).'-'.Str::random(5);
         $validated['is_published'] = $request->boolean('is_published');
         $validated['is_public'] = $request->boolean('is_public');
-        $validated['body'] = $this->purify($validated['body']);
+        $validated['body'] = HtmlSanitizer::clean($validated['body']);
 
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')->store('articles', 'public');
