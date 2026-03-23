@@ -1,5 +1,5 @@
 # CEP Diving Club (Laravel) - Codebase Snapshot
-Generated on: Mon Mar 23 04:58:29 PM CET 2026
+Generated on: Mon Mar 23 05:09:04 PM CET 2026
 ---
 
 ## Directory: app/Models
@@ -14,11 +14,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class DiveGroupMember extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['dive_group_id', 'user_id', 'role'];
 
-    public function group() { return $this->belongsTo(DiveGroup::class, 'dive_group_id'); }
-    public function diveGroup() { return $this->group(); }
-    public function user() { return $this->belongsTo(User::class); }
+    public function group()
+    {
+        return $this->belongsTo(DiveGroup::class, 'dive_group_id');
+    }
+
+    public function diveGroup()
+    {
+        return $this->group();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
 
 ```
@@ -88,7 +99,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EquipmentLoan extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['equipment_id', 'user_id', 'loaned_at', 'expected_return_date', 'returned_at', 'loaned_by', 'returned_by', 'reminder_sent_at'];
 
     protected function casts(): array
     {
@@ -124,7 +135,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LibraryFile extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['filename', 'original_name', 'path', 'mime_type', 'size', 'folder', 'visibility', 'description', 'uploaded_by'];
 
     // Visibility levels ordered from most to least restrictive
     const VISIBILITY_OPTIONS = ['public', 'members', 'instructors', 'bureau'];
@@ -220,12 +231,14 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
 {
     use Auditable;
+    use SoftDeletes;
 
-    protected $guarded = ['id'];
+    protected $fillable = ['title', 'color_hex', 'event_type', 'event_date', 'event_time', 'end_time', 'end_date', 'location', 'description', 'responsible_id', 'max_participants', 'waiting_list_enabled', 'inscription_open_at', 'inscriptions_closed', 'levels_display', 'confirmation_required', 'estimated_cost', 'deposit_1_date', 'deposit_1_amount', 'deposit_2_date', 'deposit_2_amount', 'deposit_3_date', 'deposit_3_amount', 'instructor_id', 'assistant_ids', 'created_by', 'permissions_expire_date', 'status', 'is_federated', 'external_slots', 'season_id', 'participant_email', 'whatsapp_group_url', 'dive_site_id'];
 
     protected function casts(): array
     {
@@ -312,26 +325,39 @@ class Event extends Model
 
     public function isRegistrationOpen(): bool
     {
-        if ($this->inscriptions_closed) return false;
-        if ($this->status !== 'scheduled') return false;
-        if ($this->inscription_open_at && $this->inscription_open_at->isFuture()) return false;
+        if ($this->inscriptions_closed) {
+            return false;
+        }
+        if ($this->status !== 'scheduled') {
+            return false;
+        }
+        if ($this->inscription_open_at && $this->inscription_open_at->isFuture()) {
+            return false;
+        }
+
         return true;
     }
 
     public function mapsUrl(): string
     {
-        if (!$this->location) return '';
+        if (! $this->location) {
+            return '';
+        }
         $key = config('club.google_maps_key');
         if ($key) {
-            return 'https://www.google.com/maps/embed/v1/search?key=' . $key . '&q=' . urlencode($this->location);
+            return 'https://www.google.com/maps/embed/v1/search?key='.$key.'&q='.urlencode($this->location);
         }
-        return 'https://www.google.com/maps/search/' . urlencode($this->location);
+
+        return 'https://www.google.com/maps/search/'.urlencode($this->location);
     }
 
     public function typeColor(): string
     {
-        if ($this->color_hex) return $this->color_hex;
-        return match($this->event_type) {
+        if ($this->color_hex) {
+            return $this->color_hex;
+        }
+
+        return match ($this->event_type) {
             'pool' => '#0077be',
             'dive' => '#003366',
             'training' => '#28a745',
@@ -354,10 +380,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class InstructorAvailability extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['user_id', 'date', 'slot', 'activity_type', 'note'];
+
     protected $casts = ['date' => 'date'];
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
 
 ```
@@ -372,19 +402,32 @@ use Illuminate\Database\Eloquent\Model;
 
 class CertificationLevel extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['federation_id', 'code', 'name', 'category', 'rank', 'equivalence_group'];
 
-    public function federation() { return $this->belongsTo(Federation::class); }
-    public function users() { return $this->belongsToMany(User::class, 'user_certification_levels')->withPivot('obtained_date', 'is_primary', 'display_priority')->withTimestamps(); }
+    public function federation()
+    {
+        return $this->belongsTo(Federation::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_certification_levels')->withPivot('obtained_date', 'is_primary', 'display_priority')->withTimestamps();
+    }
 
     // Get equivalent certs across federations
     public function equivalents()
     {
-        if (!$this->equivalence_group) return collect();
+        if (! $this->equivalence_group) {
+            return collect();
+        }
+
         return static::where('equivalence_group', $this->equivalence_group)->where('id', '!=', $this->id)->with('federation')->get();
     }
 
-    public function label(): string { return $this->code . ' (' . $this->federation?->acronym . ')'; }
+    public function label(): string
+    {
+        return $this->code.' ('.$this->federation?->acronym.')';
+    }
 }
 
 ```
@@ -392,15 +435,29 @@ class CertificationLevel extends Model
 ### File: app/Models/VoteToken.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class VoteToken extends Model
 {
-    protected $guarded = ['id'];
-    protected function casts(): array { return ['is_consumed' => 'boolean', 'consumed_at' => 'datetime']; }
-    public function vote() { return $this->belongsTo(Vote::class); }
-    public function user() { return $this->belongsTo(User::class); }
+    protected $fillable = ['vote_id', 'user_id', 'token', 'is_consumed', 'consumed_at'];
+
+    protected function casts(): array
+    {
+        return ['is_consumed' => 'boolean', 'consumed_at' => 'datetime'];
+    }
+
+    public function vote()
+    {
+        return $this->belongsTo(Vote::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
 
 ```
@@ -429,12 +486,14 @@ class PushSubscription extends Model
 ### File: app/Models/EmailTemplate.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class EmailTemplate extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['name', 'slug', 'subject', 'body', 'locale'];
 }
 
 ```
@@ -472,9 +531,12 @@ class UserEmail extends Model
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Article extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'title', 'slug', 'body', 'article_type', 'featured_image',
         'is_published', 'is_public', 'author_id', 'vote_id', 'expires_at', 'sort_order',
@@ -490,19 +552,19 @@ class Article extends Model
     }
 
     public const TYPES = [
-        'news'         => ['icon' => '📰', 'color' => '#0d6efd', 'label' => 'News'],
-        'history'      => ['icon' => '🏛️', 'color' => '#6f42c1', 'label' => 'Club History'],
-        'safety'       => ['icon' => '🛟', 'color' => '#dc3545', 'label' => 'Safety'],
-        'training'     => ['icon' => '🎓', 'color' => '#198754', 'label' => 'Training'],
-        'regulation'   => ['icon' => '📋', 'color' => '#6c757d', 'label' => 'Regulation'],
-        'trip_report'  => ['icon' => '🌊', 'color' => '#0dcaf0', 'label' => 'Trip Report'],
-        'trip_proposal'=> ['icon' => '🗺️', 'color' => '#fd7e14', 'label' => 'Trip Proposal'],
-        'environment'  => ['icon' => '🌿', 'color' => '#20c997', 'label' => 'Environment'],
-        'gear'         => ['icon' => '🤿', 'color' => '#0077be', 'label' => 'Gear'],
-        'classified'   => ['icon' => '🏷️', 'color' => '#ffc107', 'label' => 'Classified'],
-        'faq'          => ['icon' => '❓', 'color' => '#adb5bd', 'label' => 'FAQ'],
-        'newsletter'   => ['icon' => '📬', 'color' => '#e83e8c', 'label' => 'Newsletter'],
-        'video'        => ['icon' => '🎬', 'color' => '#e74c3c', 'label' => 'Video'],
+        'news' => ['icon' => '📰', 'color' => '#0d6efd', 'label' => 'News'],
+        'history' => ['icon' => '🏛️', 'color' => '#6f42c1', 'label' => 'Club History'],
+        'safety' => ['icon' => '🛟', 'color' => '#dc3545', 'label' => 'Safety'],
+        'training' => ['icon' => '🎓', 'color' => '#198754', 'label' => 'Training'],
+        'regulation' => ['icon' => '📋', 'color' => '#6c757d', 'label' => 'Regulation'],
+        'trip_report' => ['icon' => '🌊', 'color' => '#0dcaf0', 'label' => 'Trip Report'],
+        'trip_proposal' => ['icon' => '🗺️', 'color' => '#fd7e14', 'label' => 'Trip Proposal'],
+        'environment' => ['icon' => '🌿', 'color' => '#20c997', 'label' => 'Environment'],
+        'gear' => ['icon' => '🤿', 'color' => '#0077be', 'label' => 'Gear'],
+        'classified' => ['icon' => '🏷️', 'color' => '#ffc107', 'label' => 'Classified'],
+        'faq' => ['icon' => '❓', 'color' => '#adb5bd', 'label' => 'FAQ'],
+        'newsletter' => ['icon' => '📬', 'color' => '#e83e8c', 'label' => 'Newsletter'],
+        'video' => ['icon' => '🎬', 'color' => '#e74c3c', 'label' => 'Video'],
     ];
 
     public const MEMBER_TYPES = ['classified'];
@@ -535,13 +597,19 @@ class Article extends Model
             '<div class="ratio ratio-16x9 mb-3"><iframe src="https://player.vimeo.com/video/$1" allowfullscreen loading="lazy"></iframe></div>',
             $body
         );
+
         return $body;
     }
 
     public function canBeEditedBy($user): bool
     {
-        if ($user->isBureauMaster()) return true;
-        if (in_array($this->article_type, self::MEMBER_TYPES) && $this->author_id === $user->id) return true;
+        if ($user->isBureauMaster()) {
+            return true;
+        }
+        if (in_array($this->article_type, self::MEMBER_TYPES) && $this->author_id === $user->id) {
+            return true;
+        }
+
         return false;
     }
 
@@ -577,11 +645,12 @@ class Article extends Model
     {
         $locale = $locale ?? app()->getLocale();
         $t = $this->translations->firstWhere('locale', $locale);
+
         return [
             'title' => $t?->title ?? $this->title,
-            'body'  => $t?->body ?? $this->body,
+            'body' => $t?->body ?? $this->body,
             'locale' => $t ? $locale : null,
-            'auto'  => $t?->auto_translated ?? false,
+            'auto' => $t?->auto_translated ?? false,
         ];
     }
 
@@ -635,7 +704,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DiveGroup extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['event_id', 'name', 'dive_mode', 'purpose', 'planned_depth', 'planned_duration', 'gas_mix', 'line_number', 'planned_entry_time', 'planned_exit_time', 'notes', 'created_by'];
 
     public function event()
     {
@@ -866,10 +935,13 @@ class SeasonHoliday extends Model
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vote extends Model
 {
-    protected $guarded = ['id'];
+    use SoftDeletes;
+
+    protected $fillable = ['title', 'description', 'mode', 'allow_multiple', 'allow_change', 'num_positions', 'min_vote_pct', 'is_public', 'status', 'opens_at', 'closes_at', 'created_by'];
 
     protected function casts(): array
     {
@@ -882,16 +954,31 @@ class Vote extends Model
         ];
     }
 
-    public function options() { return $this->hasMany(VoteOption::class); }
-    public function tokens() { return $this->hasMany(VoteToken::class); }
-    public function ballots() { return $this->hasMany(VoteBallot::class); }
-    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function options()
+    {
+        return $this->hasMany(VoteOption::class);
+    }
+
+    public function tokens()
+    {
+        return $this->hasMany(VoteToken::class);
+    }
+
+    public function ballots()
+    {
+        return $this->hasMany(VoteBallot::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     public function isOpen(): bool
     {
         return $this->status === 'open'
-            && (!$this->opens_at || $this->opens_at->isPast())
-            && (!$this->closes_at || $this->closes_at->isFuture());
+            && (! $this->opens_at || $this->opens_at->isPast())
+            && (! $this->closes_at || $this->closes_at->isFuture());
     }
 }
 
@@ -900,16 +987,31 @@ class Vote extends Model
 ### File: app/Models/EquipmentMaintenance.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class EquipmentMaintenance extends Model
 {
     protected $table = 'equipment_maintenance';
-    protected $guarded = ['id'];
-    protected function casts(): array { return ['due_date' => 'date', 'completed_at' => 'date', 'is_mandatory' => 'boolean']; }
-    public function equipment() { return $this->belongsTo(Equipment::class); }
-    public function completedByUser() { return $this->belongsTo(User::class, 'completed_by'); }
+
+    protected $fillable = ['equipment_id', 'maintenance_name', 'due_date', 'completed_at', 'completed_by', 'notes', 'is_mandatory'];
+
+    protected function casts(): array
+    {
+        return ['due_date' => 'date', 'completed_at' => 'date', 'is_mandatory' => 'boolean'];
+    }
+
+    public function equipment()
+    {
+        return $this->belongsTo(Equipment::class);
+    }
+
+    public function completedByUser()
+    {
+        return $this->belongsTo(User::class, 'completed_by');
+    }
 }
 
 ```
@@ -953,7 +1055,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventPhoto extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['event_id', 'uploaded_by', 'path', 'thumbnail_path', 'caption', 'quality_score', 'has_faces', 'approved', 'gdpr_consent'];
 
     protected function casts(): array
     {
@@ -1036,12 +1138,16 @@ class EventPhoto extends Model
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Document extends Model
 {
-    use \App\Traits\Auditable;
-    protected $guarded = ['id'];
+    use Auditable;
+    use SoftDeletes;
+
+    protected $fillable = ['user_id', 'category', 'cert_type', 'file_path', 'original_filename', 'mime_type', 'size_bytes', 'date_established', 'expiry_date', 'is_verified', 'verified_by', 'verified_at', 'superseded_by', 'is_current', 'is_compliant', 'compliance_notes', 'reminder_30_sent_at', 'reminder_15_sent_at', 'reminder_7_sent_at', 'reminder_0_sent_at'];
 
     protected function casts(): array
     {
@@ -1055,9 +1161,20 @@ class Document extends Model
         ];
     }
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function verifier() { return $this->belongsTo(User::class, 'verified_by'); }
-    public function supersededBy() { return $this->belongsTo(Document::class, 'superseded_by'); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function supersededBy()
+    {
+        return $this->belongsTo(Document::class, 'superseded_by');
+    }
 
     public function isExpired(): bool
     {
@@ -1075,14 +1192,24 @@ class Document extends Model
 ### File: app/Models/MembershipFeeComponent.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class MembershipFeeComponent extends Model
 {
-    protected $guarded = ['id'];
-    protected function casts(): array { return ['is_base' => 'boolean', 'is_optional' => 'boolean']; }
-    public function season() { return $this->belongsTo(Season::class); }
+    protected $fillable = ['season_id', 'name', 'slug', 'amount', 'is_base', 'is_optional', 'description', 'sort_order'];
+
+    protected function casts(): array
+    {
+        return ['is_base' => 'boolean', 'is_optional' => 'boolean'];
+    }
+
+    public function season()
+    {
+        return $this->belongsTo(Season::class);
+    }
 }
 
 ```
@@ -1097,10 +1224,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class BuddyResponse extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['buddy_request_id', 'user_id', 'message', 'status'];
 
-    public function buddyRequest() { return $this->belongsTo(BuddyRequest::class); }
-    public function user() { return $this->belongsTo(User::class); }
+    public function buddyRequest()
+    {
+        return $this->belongsTo(BuddyRequest::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
 
 ```
@@ -1115,7 +1249,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExternalRegistration extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['event_id', 'partnership_id', 'external_member_name', 'external_member_email', 'external_member_phone', 'external_member_federation', 'external_member_licence_no', 'external_member_emergency_contact', 'external_member_iban', 'external_cert_level', 'external_medical_valid_until', 'status', 'notes', 'external_ref'];
 
     protected $casts = [
         'external_medical_valid_until' => 'date',
@@ -1144,14 +1278,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class SocialPublishLog extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['platform', 'publishable_type', 'publishable_id', 'external_post_id', 'status', 'error_message', 'published_at'];
 
     protected function casts(): array
     {
         return ['published_at' => 'datetime'];
     }
 
-    public function publishable() { return $this->morphTo(); }
+    public function publishable()
+    {
+        return $this->morphTo();
+    }
 }
 
 ```
@@ -1162,20 +1299,29 @@ class SocialPublishLog extends Model
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class ParentalConsent extends Model
 {
-    use \App\Traits\Auditable;
-    protected $guarded = ['id'];
+    use Auditable;
+
+    protected $fillable = ['minor_user_id', 'granted_by', 'consent_type', 'granted', 'document_path', 'granted_at', 'revoked_at'];
 
     protected function casts(): array
     {
         return ['granted' => 'boolean', 'granted_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 
-    public function minor() { return $this->belongsTo(User::class, 'minor_user_id'); }
-    public function grantedBy() { return $this->belongsTo(User::class, 'granted_by'); }
+    public function minor()
+    {
+        return $this->belongsTo(User::class, 'minor_user_id');
+    }
+
+    public function grantedBy()
+    {
+        return $this->belongsTo(User::class, 'granted_by');
+    }
 }
 
 ```
@@ -1216,7 +1362,7 @@ use Illuminate\Support\Str;
 
 class ClubPartnership extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['name', 'base_url', 'api_key_id', 'is_active', 'last_sync_at'];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -1226,7 +1372,7 @@ class ClubPartnership extends Model
     public static function generateKeyPair(): array
     {
         return [
-            'key_id' => 'dc_' . Str::random(32),
+            'key_id' => 'dc_'.Str::random(32),
             'secret' => Str::random(64),
         ];
     }
@@ -1250,32 +1396,45 @@ use Illuminate\Support\Str;
 
 class DiveGroupRule extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['name', 'scope', 'diver_condition', 'dive_mode', 'min_leader_rank', 'leader_category', 'max_depth', 'max_group_size', 'description', 'is_active'];
 
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];
     }
 
-    public function scopeActive($q) { return $q->where('is_active', true); }
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true);
+    }
 
     public function matchesDiver(?int $diverRank): bool
     {
-        if ($this->diver_condition === 'no_cert') return $diverRank === null || $diverRank === 0;
-        if ($this->diver_condition === 'any') return true;
+        if ($this->diver_condition === 'no_cert') {
+            return $diverRank === null || $diverRank === 0;
+        }
+        if ($this->diver_condition === 'any') {
+            return true;
+        }
         if (Str::startsWith($this->diver_condition, 'max_rank:')) {
             return ($diverRank ?? 0) <= (int) Str::after($this->diver_condition, 'max_rank:');
         }
         if (Str::startsWith($this->diver_condition, 'min_rank:')) {
             return ($diverRank ?? 0) >= (int) Str::after($this->diver_condition, 'min_rank:');
         }
+
         return false;
     }
 
     public function leaderSatisfied(?int $leaderRank, ?string $leaderCategory): bool
     {
-        if (!$leaderRank) return false;
-        if ($this->leader_category === 'instructor' && $leaderCategory !== 'instructor') return false;
+        if (! $leaderRank) {
+            return false;
+        }
+        if ($this->leader_category === 'instructor' && $leaderCategory !== 'instructor') {
+            return false;
+        }
+
         return $leaderRank >= $this->min_leader_rank;
     }
 
@@ -1315,15 +1474,24 @@ class MemberStatus extends Model
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class GuardianLink extends Model
 {
-    use \App\Traits\Auditable;
-    protected $guarded = ['id'];
+    use Auditable;
 
-    public function guardian() { return $this->belongsTo(User::class, 'guardian_user_id'); }
-    public function minor() { return $this->belongsTo(User::class, 'minor_user_id'); }
+    protected $fillable = ['guardian_user_id', 'minor_user_id', 'relationship'];
+
+    public function guardian()
+    {
+        return $this->belongsTo(User::class, 'guardian_user_id');
+    }
+
+    public function minor()
+    {
+        return $this->belongsTo(User::class, 'minor_user_id');
+    }
 }
 
 ```
@@ -1373,7 +1541,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ArticleTranslation extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['article_id', 'locale', 'title', 'body', 'auto_translated', 'stale'];
 
     public function article()
     {
@@ -1393,18 +1561,32 @@ use Illuminate\Database\Eloquent\Model;
 
 class BuddyRequest extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['user_id', 'dive_site_id', 'location_text', 'dive_date', 'dive_time', 'need_type', 'description', 'max_depth', 'desired_cert_level', 'max_buddies', 'is_active'];
 
     protected function casts(): array
     {
         return ['dive_date' => 'date', 'is_active' => 'boolean'];
     }
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function diveSite() { return $this->belongsTo(DiveSite::class); }
-    public function responses() { return $this->hasMany(BuddyResponse::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-    public function scopeActive($q) { return $q->where('is_active', true)->where('dive_date', '>=', today()); }
+    public function diveSite()
+    {
+        return $this->belongsTo(DiveSite::class);
+    }
+
+    public function responses()
+    {
+        return $this->hasMany(BuddyResponse::class);
+    }
+
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true)->where('dive_date', '>=', today());
+    }
 
     public function locationLabel(): string
     {
@@ -1423,14 +1605,24 @@ class BuddyRequest extends Model
 ### File: app/Models/GdprConsent.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class GdprConsent extends Model
 {
-    protected $guarded = ['id'];
-    protected function casts(): array { return ['granted' => 'boolean', 'granted_at' => 'datetime', 'revoked_at' => 'datetime']; }
-    public function user() { return $this->belongsTo(User::class); }
+    protected $fillable = ['user_id', 'consent_type', 'granted', 'granted_at', 'revoked_at'];
+
+    protected function casts(): array
+    {
+        return ['granted' => 'boolean', 'granted_at' => 'datetime', 'revoked_at' => 'datetime'];
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
 
 ```
@@ -1486,7 +1678,7 @@ class EmailLog extends Model
 {
     protected $table = 'email_log';
 
-    protected $guarded = ['id'];
+    protected $fillable = ['event_id', 'user_id', 'to_email', 'alias', 'from_name', 'from_email', 'subject', 'body', 'template_slug', 'status', 'direction', 'authorized', 'attempts', 'error'];
 
     public function event()
     {
@@ -1504,16 +1696,31 @@ class EmailLog extends Model
 ### File: app/Models/PaymentExpected.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class PaymentExpected extends Model
 {
     protected $table = 'payment_expected';
-    protected $guarded = ['id'];
-    protected function casts(): array { return ['components' => 'array', 'paid_at' => 'date', 'reconciled_at' => 'datetime']; }
-    public function user() { return $this->belongsTo(User::class); }
-    public function event() { return $this->belongsTo(Event::class); }
+
+    protected $fillable = ['user_id', 'type', 'event_id', 'season_year', 'amount_due', 'communication', 'components', 'status', 'refund_review_needed', 'amount_paid', 'paid_at', 'reconciled_by', 'reconciled_at', 'bank_statement_ref', 'bank_statement_date'];
+
+    protected function casts(): array
+    {
+        return ['components' => 'array', 'paid_at' => 'date', 'reconciled_at' => 'datetime'];
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
 }
 
 ```
@@ -1521,14 +1728,24 @@ class PaymentExpected extends Model
 ### File: app/Models/VoteOption.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class VoteOption extends Model
 {
-    protected $guarded = ['id'];
-    public function vote() { return $this->belongsTo(Vote::class); }
-    public function ballots() { return $this->hasMany(VoteBallot::class); }
+    protected $fillable = ['vote_id', 'label', 'sort_order'];
+
+    public function vote()
+    {
+        return $this->belongsTo(Vote::class);
+    }
+
+    public function ballots()
+    {
+        return $this->hasMany(VoteBallot::class);
+    }
 }
 
 ```
@@ -1541,12 +1758,14 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MemberDetail extends Model
 {
     use Auditable;
+    use SoftDeletes;
 
-    protected $guarded = ['id'];
+    protected $fillable = ['user_id', 'avatar_path', 'first_name', 'last_name', 'birth_name', 'nationality', 'phone_private', 'phone_office', 'phone_mobile', 'sex', 'adhesion_year', 'bureau_member', 'active_instructor', 'instructor_bio', 'instructor_specialties', 'instructor_motivation', 'show_on_public_site', 'public_photos_banned', 'club_email', 'date_of_birth', 'place_of_birth', 'address_line1', 'address_line2', 'city', 'postal_code', 'country', 'iban', 'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship', 'brevet_date', 'dive_count', 'air_consumption', 'ease_level', 'primary_intent', 'is_photographer', 'total_dives', 'last_dive_date', 'certification_level', 'other_certifications', 'training_enrollments', 'preferred_language', 'show_icons', 'cotisation_years', 'bcd_size', 'bcd_notes'];
 
     protected function casts(): array
     {
@@ -1584,7 +1803,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ThemeSetting extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['key', 'value'];
 
     public static function get(string $key, mixed $default = null): mixed
     {
@@ -1614,23 +1833,30 @@ use Illuminate\Database\Eloquent\Model;
 
 class DiveSite extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['name', 'country', 'region', 'latitude', 'longitude', 'max_depth', 'water_type', 'conditions', 'marine_life', 'safety_notes', 'access_notes', 'facilities', 'food_options', 'nearest_hospital', 'emergency_phone', 'vhf_channel', 'required_safety_equipment', 'nearest_hyperbaric_chamber', 'hyperbaric_phone', 'hospital_distance_km', 'hyperbaric_distance_km', 'website_url', 'entry_fee', 'booking_url', 'image_path', 'map_image_path', 'site_plan_path', 'safety_docs_folder', 'is_active'];
 
     protected function casts(): array
     {
         return ['is_active' => 'boolean', 'latitude' => 'decimal:7', 'longitude' => 'decimal:7'];
     }
 
-    public function events() { return $this->hasMany(Event::class); }
+    public function events()
+    {
+        return $this->hasMany(Event::class);
+    }
 
-    public function scopeActive($q) { return $q->where('is_active', true); }
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true);
+    }
 
     public function mapsUrl(): string
     {
         if ($this->latitude && $this->longitude) {
-            return 'https://www.google.com/maps/search/?api=1&query=' . $this->latitude . ',' . $this->longitude;
+            return 'https://www.google.com/maps/search/?api=1&query='.$this->latitude.','.$this->longitude;
         }
-        return 'https://www.google.com/maps/search/' . urlencode($this->name . ' ' . ($this->region ?? '') . ' ' . ($this->country ?? ''));
+
+        return 'https://www.google.com/maps/search/'.urlencode($this->name.' '.($this->region ?? '').' '.($this->country ?? ''));
     }
 
     public const WATER_TYPES = ['sea', 'lake', 'quarry', 'river', 'pool', 'cenote'];
@@ -1645,12 +1871,15 @@ class DiveSite extends Model
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Equipment extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'equipment';
 
-    protected $guarded = ['id'];
+    protected $fillable = ['club_id', 'name', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'notes'];
 
     protected function casts(): array
     {
@@ -1707,12 +1936,14 @@ use App\Traits\Auditable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use Auditable, HasFactory, Notifiable;
+    use SoftDeletes;
 
     protected $fillable = [
         'username', 'primary_email', 'password', 'role_id', 'status_id', 'email_verified_at', 'preferred_locale',
@@ -1934,16 +2165,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrialRequest extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['first_name', 'last_name', 'email', 'phone', 'preferred_date', 'message', 'status', 'confirmed_by', 'confirmed_date', 'admin_notes'];
 
     protected function casts(): array
     {
         return ['preferred_date' => 'date', 'confirmed_date' => 'date'];
     }
 
-    public function confirmedBy() { return $this->belongsTo(User::class, 'confirmed_by'); }
+    public function confirmedBy()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
 
-    public function scopePending($q) { return $q->where('status', 'pending'); }
+    public function scopePending($q)
+    {
+        return $q->where('status', 'pending');
+    }
 }
 
 ```
@@ -1951,14 +2188,24 @@ class TrialRequest extends Model
 ### File: app/Models/VoteBallot.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class VoteBallot extends Model
 {
-    protected $guarded = ['id'];
-    public function vote() { return $this->belongsTo(Vote::class); }
-    public function option() { return $this->belongsTo(VoteOption::class, 'vote_option_id'); }
+    protected $fillable = ['vote_id', 'vote_option_id', 'token_hash'];
+
+    public function vote()
+    {
+        return $this->belongsTo(Vote::class);
+    }
+
+    public function option()
+    {
+        return $this->belongsTo(VoteOption::class, 'vote_option_id');
+    }
 }
 
 ```
@@ -1993,9 +2240,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class MembershipFee extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['season_year', 'status_id', 'amount', 'label', 'notes'];
 
-    public function status() { return $this->belongsTo(MemberStatus::class, 'status_id'); }
+    public function status()
+    {
+        return $this->belongsTo(MemberStatus::class, 'status_id');
+    }
 }
 
 ```
@@ -2003,15 +2253,29 @@ class MembershipFee extends Model
 ### File: app/Models/BankTransaction.php
 ```php
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class BankTransaction extends Model
 {
-    protected $guarded = ['id'];
-    protected function casts(): array { return ['transaction_date' => 'date']; }
-    public function matchedPayment() { return $this->belongsTo(PaymentExpected::class, 'matched_payment_id'); }
-    public function confirmedByUser() { return $this->belongsTo(User::class, 'confirmed_by'); }
+    protected $fillable = ['transaction_date', 'amount', 'communication', 'counterparty', 'matched_payment_id', 'match_score', 'status', 'statement_ref', 'confirmed_by'];
+
+    protected function casts(): array
+    {
+        return ['transaction_date' => 'date'];
+    }
+
+    public function matchedPayment()
+    {
+        return $this->belongsTo(PaymentExpected::class, 'matched_payment_id');
+    }
+
+    public function confirmedByUser()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
 }
 
 ```
@@ -11163,6 +11427,43 @@ return new class extends Migration
 
 ```
 
+### File: database/migrations/2026_03_23_160652_add_soft_deletes_to_critical_tables.php
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    private array $tables = [
+        'users',
+        'member_details',
+        'events',
+        'articles',
+        'documents',
+        'equipment',
+        'votes',
+    ];
+
+    public function up(): void
+    {
+        foreach ($this->tables as $table) {
+            Schema::table($table, fn (Blueprint $t) => $t->softDeletes());
+        }
+    }
+
+    public function down(): void
+    {
+        foreach ($this->tables as $table) {
+            Schema::table($table, fn (Blueprint $t) => $t->dropSoftDeletes());
+        }
+    }
+};
+
+```
+
 ### File: database/migrations/2026_03_21_161351_rename_cep_email_to_club_email_on_member_details.php
 ```php
 <?php
@@ -11944,13 +12245,10 @@ use App\Http\Controllers\StagingMailController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\VotePublicController;
 use App\Http\Middleware\CheckLicense;
-use App\Jobs\SendMedicalReminders;
-use App\Jobs\WeeklyBackup;
 use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
@@ -12349,7 +12647,6 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 // Offline page for PWA
 Route::get('/offline', fn () => view('offline'))->name('offline');
 
-// Web-based cron trigger for shared hosting (use with cron-job.org)
 // Staging mail viewer (only active when STAGING_MODE=true)
 Route::prefix('staging-mail')->group(function () {
     Route::get('/', [StagingMailController::class, 'index'])->name('staging.mail.index');
@@ -12357,40 +12654,6 @@ Route::prefix('staging-mail')->group(function () {
     Route::get('/{mail}/raw', [StagingMailController::class, 'raw'])->name('staging.mail.raw');
     Route::delete('/', [StagingMailController::class, 'clear'])->name('staging.mail.clear');
 });
-
-// Cron helper — accepts key via query string or X-Cron-Key header
-$cronAuth = function (Request $request) {
-    $key = $request->header('X-Cron-Key') ?? $request->query('key');
-    abort_unless($key && $key === config('app.cron_key'), 403);
-};
-
-Route::get('/cron/run', function (Request $request) use ($cronAuth) {
-    $cronAuth($request);
-    Artisan::call('schedule:run');
-
-    return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
-})->middleware('throttle:10,1')->name('cron.run');
-
-Route::get('/cron/run-schedule', function (Request $request) use ($cronAuth) {
-    $cronAuth($request);
-    Artisan::call('schedule:run');
-
-    return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
-})->middleware('throttle:10,1')->name('cron.run-schedule');
-
-Route::get('/cron/medical-reminders', function (Request $request) use ($cronAuth) {
-    $cronAuth($request);
-    dispatch_sync(new SendMedicalReminders);
-
-    return response('OK', 200, ['Content-Type' => 'text/plain']);
-})->middleware('throttle:10,1')->name('cron.medical-reminders');
-
-Route::get('/cron/weekly-backup', function (Request $request) use ($cronAuth) {
-    $cronAuth($request);
-    dispatch_sync(new WeeklyBackup);
-
-    return response('OK', 200, ['Content-Type' => 'text/plain']);
-})->middleware('throttle:10,1')->name('cron.weekly-backup');
 
 // Public voting (token-based, no login required)
 Route::get('/vote/{token}', [VotePublicController::class, 'show'])->name('vote.show');

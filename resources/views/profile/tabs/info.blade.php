@@ -36,26 +36,16 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4 mb-3">
-            <label class="form-label">{{ __('Phone (Private)') }}</label>
-            <input type="tel" name="phone_private" class="form-control @error('phone_private') is-invalid @enderror" value="{{ old('phone_private', $d?->phone_private) }}" placeholder="+352 621 123 456">
-            @error('phone_private') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="col-md-4 mb-3">
-            <label class="form-label">{{ __('Phone (Office)') }}</label>
-            <input type="tel" name="phone_office" class="form-control @error('phone_office') is-invalid @enderror" value="{{ old('phone_office', $d?->phone_office) }}" placeholder="+352 26 123 456">
-            @error('phone_office') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-md-6 mb-3">
             <label class="form-label">{{ __('Phone (Mobile)') }}</label>
             <input type="tel" name="phone_mobile" class="form-control @error('phone_mobile') is-invalid @enderror" value="{{ old('phone_mobile', $d?->phone_mobile) }}" placeholder="+352 621 123 456">
             @error('phone_mobile') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">{{ __('Club Email') }}</label>
-        <input type="email" name="club_email" class="form-control @error('club_email') is-invalid @enderror" value="{{ old('club_email', $d?->club_email) }}">
-        @error('club_email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="col-md-6 mb-3">
+            <label class="form-label">{{ __('Club Email') }}</label>
+            <input type="email" name="club_email" class="form-control @error('club_email') is-invalid @enderror" value="{{ old('club_email', $d?->club_email) }}">
+            @error('club_email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
     </div>
 
     @if($viewer->id === $target->id || $isBM)

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Auth\DivingClubUserProvider;
 use App\Services\LicenseService;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Mail;
@@ -31,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         // Map 'email' → 'primary_email' for password reset and credential lookups
         Auth::provider('divingclub', fn ($app, $config) => new DivingClubUserProvider($app['hash'], $config['model'])
         );
