@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\BankTransaction;
 use App\Models\Document;
 use App\Models\Equipment;
+use App\Models\EquipmentLoan;
+use App\Models\EquipmentMaintenance;
 use App\Models\Event;
 use App\Models\ExternalRegistration;
 use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
+use App\Models\ThemeSetting;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -63,6 +66,8 @@ class DashboardController extends Controller
                 ->with('user')->get(),
             'unmatched_transactions' => BankTransaction::where('status', 'unmatched')->count(),
             'refund_reviews' => PaymentExpected::where('refund_review_needed', true)->count(),
+            'overdue_maintenance' => EquipmentMaintenance::where('is_mandatory', true)->whereNull('completed_at')->where('due_date', '<', now())->count(),
+            'overdue_loans' => EquipmentLoan::whereNull('returned_at')->where(fn ($q) => $q->where('expected_return_date', '<', now())->orWhere('loaned_at', '<', now()->subDays((int) ThemeSetting::get('equipment_loan_max_days', 30))))->count(),
             'minors_no_guardian' => User::whereHas('detail', fn ($q) => $q->whereNotNull('date_of_birth')
                 ->where('date_of_birth', '>', now()->subYears(18)))
                 ->whereDoesntHave('guardians')->count(),

@@ -71,6 +71,43 @@ class PaymentController extends Controller
         return back()->with('success', __('Payment expected created: €:amount', ['amount' => number_format($pe->amount_due, 2)]));
     }
 
+    public function generateBulkFees(Request $request)
+    {
+        $season = $request->get('season', date('Y'));
+        $svc = app(FeeCalculationService::class);
+
+        $users = User::whereHas('status', fn ($q) => $q->where('slug', 'actif'))
+            ->whereDoesntHave('paymentsExpected', fn ($q) => $q->where('type', 'membership')->where('season_year', $season))
+            ->get();
+
+        $count = 0;
+        foreach ($users as $user) {
+            $svc->createPaymentExpected($user, $season);
+            $count++;
+        }
+
+        return back()->with('success', __(':count membership fees generated for season :season.', ['count' => $count, 'season' => $season]));
+    }
+
+    public function adjustComponents(Request $request, PaymentExpected $payment)
+    {
+        $request->validate([
+            'components' => 'required|array',
+            'components.*.label' => 'required|string',
+            'components.*.amount' => 'required|numeric|min:0',
+        ]);
+
+        $components = $request->components;
+        $total = collect($components)->sum('amount');
+
+        $payment->update([
+            'components' => $components,
+            'amount_due' => round($total, 2),
+        ]);
+
+        return back()->with('success', __('Components adjusted. New total: €:amount', ['amount' => number_format($total, 2)]));
+    }
+
     // Bank reconciliation
     public function reconciliation()
     {

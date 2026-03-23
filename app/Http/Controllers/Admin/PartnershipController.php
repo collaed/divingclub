@@ -5,22 +5,26 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ClubPartnership;
 use App\Models\ExternalRegistration;
+use App\Models\ThemeSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class PartnershipController extends Controller
 {
     public function index()
     {
         $partners = ClubPartnership::withCount('externalRegistrations')->orderBy('name')->get();
+
         return view('admin.partnerships.index', compact('partners'));
     }
 
     public function create()
     {
         $keys = ClubPartnership::generateKeyPair();
+
         return view('admin.partnerships.create', compact('keys'));
     }
 
@@ -50,6 +54,7 @@ class PartnershipController extends Controller
     public function destroy(ClubPartnership $partnership)
     {
         $partnership->delete();
+
         return back()->with('success', 'Partnership removed.');
     }
 
@@ -58,7 +63,7 @@ class PartnershipController extends Controller
      */
     public function remoteEvents(ClubPartnership $partnership)
     {
-        if (!$partnership->their_api_key_id || !$partnership->their_api_secret) {
+        if (! $partnership->their_api_key_id || ! $partnership->their_api_secret) {
             return back()->with('error', 'Outbound API credentials not configured for this partner.');
         }
 
@@ -66,11 +71,11 @@ class PartnershipController extends Controller
             $response = Http::withHeaders([
                 'X-Club-Key-Id' => $partnership->their_api_key_id,
                 'X-Club-Secret' => Crypt::decryptString($partnership->their_api_secret),
-            ])->timeout(10)->get($partnership->base_url . '/api/federation/events');
+            ])->timeout(10)->get($partnership->base_url.'/api/federation/events');
 
             $events = $response->successful() ? $response->json('events', []) : [];
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to connect: ' . $e->getMessage());
+            return back()->with('error', 'Failed to connect: '.$e->getMessage());
         }
 
         return view('admin.partnerships.remote-events', compact('partnership', 'events'));
@@ -91,12 +96,47 @@ class PartnershipController extends Controller
     public function approveRegistration(ExternalRegistration $registration)
     {
         $registration->update(['status' => 'approved']);
-        return back()->with('success', $registration->external_member_name . ' approved.');
+        $this->notifyExternalMember($registration, 'approved');
+
+        return back()->with('success', $registration->external_member_name.' approved.');
     }
 
     public function rejectRegistration(ExternalRegistration $registration)
     {
         $registration->update(['status' => 'rejected']);
-        return back()->with('success', $registration->external_member_name . ' rejected.');
+        $this->notifyExternalMember($registration, 'rejected');
+
+        return back()->with('success', $registration->external_member_name.' rejected.');
+    }
+
+    private function notifyExternalMember(ExternalRegistration $reg, string $status): void
+    {
+        if (! $reg->external_member_email) {
+            return;
+        }
+
+        $clubName = ThemeSetting::get('club_full_name', config('app.name'));
+        $event = $reg->event;
+
+        $body = $status === 'approved'
+            ? __("Dear :name,\n\nYour registration for \":event\" on :date has been approved by :club.\n\nLocation: :location\n\nWe look forward to seeing you!\n:club", [
+                'name' => $reg->external_member_name,
+                'event' => $event->title,
+                'date' => $event->event_date->format('d/m/Y'),
+                'location' => $event->location ?? '—',
+                'club' => $clubName,
+            ])
+            : __("Dear :name,\n\nUnfortunately, your registration for \":event\" on :date could not be accepted by :club.\n\nPlease contact us if you have questions.\n:club", [
+                'name' => $reg->external_member_name,
+                'event' => $event->title,
+                'date' => $event->event_date->format('d/m/Y'),
+                'club' => $clubName,
+            ]);
+
+        $subject = $status === 'approved'
+            ? __('Registration Approved — :event', ['event' => $event->title])
+            : __('Registration Update — :event', ['event' => $event->title]);
+
+        Mail::raw($body, fn ($m) => $m->to($reg->external_member_email)->subject($subject));
     }
 }

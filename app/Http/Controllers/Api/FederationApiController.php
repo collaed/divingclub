@@ -142,4 +142,27 @@ class FederationApiController extends Controller
 
         return response()->json(['status' => 'cancelled']);
     }
+
+    /**
+     * GET /api/federation/register/{id} — check registration status.
+     */
+    public function status(Request $request, int $id): JsonResponse
+    {
+        $partner = $this->authenticate($request);
+        if (! $partner) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $reg = ExternalRegistration::where('id', $id)->where('partnership_id', $partner->id)->first();
+        if (! $reg) {
+            return response()->json(['error' => 'Registration not found'], 404);
+        }
+
+        return response()->json([
+            'registration_id' => $reg->id,
+            'status' => $reg->status,
+            'event_title' => $reg->event->title,
+            'event_date' => $reg->event->event_date,
+        ]);
+    }
 }

@@ -399,6 +399,8 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::delete('/payments/components/{component}', [PaymentController::class, 'destroyComponent'])->name('payments.component.destroy');
         Route::post('/payments/{user}/calculate', [PaymentController::class, 'calculateFee'])->name('payments.calculate');
         Route::post('/payments/{user}/generate', [PaymentController::class, 'generateFee'])->name('payments.generate');
+        Route::post('/payments/generate-bulk', [PaymentController::class, 'generateBulkFees'])->name('payments.generate-bulk');
+        Route::put('/payments/{payment}/adjust', [PaymentController::class, 'adjustComponents'])->name('payments.adjust');
         Route::get('/payments/reconciliation', [PaymentController::class, 'reconciliation'])->name('payments.reconciliation');
         Route::post('/payments/import-statement', [PaymentController::class, 'importStatement'])->name('payments.import-statement');
         Route::post('/payments/suggest-matches', [PaymentController::class, 'suggestMatches'])->name('payments.suggest-matches');

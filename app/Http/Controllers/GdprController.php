@@ -12,6 +12,7 @@ class GdprController extends Controller
     public function consents()
     {
         $consents = auth()->user()->gdprConsents()->get()->keyBy('consent_type');
+
         return view('gdpr.consents', compact('consents'));
     }
 
@@ -25,7 +26,7 @@ class GdprController extends Controller
             [
                 'granted' => $granted,
                 'granted_at' => $granted ? now() : null,
-                'revoked_at' => !$granted ? now() : null,
+                'revoked_at' => ! $granted ? now() : null,
             ]
         );
 
@@ -35,19 +36,27 @@ class GdprController extends Controller
     public function exportData()
     {
         $user = auth()->user();
-        $user->load(['detail', 'emails', 'licences', 'documents', 'gdprConsents']);
+        $user->load(['detail', 'emails', 'licences', 'documents', 'gdprConsents', 'eventRegistrations.event', 'paymentsExpected']);
 
         $data = [
             'user' => $user->only(['id', 'username', 'primary_email', 'created_at']),
             'detail' => $user->detail?->toArray(),
             'emails' => $user->emails->toArray(),
             'licences' => $user->licences->toArray(),
-            'documents' => $user->documents->map(fn($d) => $d->only(['category', 'original_filename', 'date_established', 'created_at']))->toArray(),
+            'documents' => $user->documents->map(fn ($d) => $d->only(['category', 'original_filename', 'date_established', 'created_at']))->toArray(),
             'consents' => $user->gdprConsents->toArray(),
+            'event_registrations' => $user->eventRegistrations->map(fn ($r) => [
+                'event' => $r->event?->title,
+                'event_date' => $r->event?->event_date?->format('Y-m-d'),
+                'status' => $r->status,
+                'registered_at' => $r->created_at?->toIso8601String(),
+            ])->toArray(),
+            'payments' => $user->paymentsExpected->map(fn ($p) => $p->only(['type', 'season_year', 'amount_due', 'amount_paid', 'status', 'communication']))->toArray(),
             'exported_at' => now()->toIso8601String(),
         ];
 
-        $filename = "gdpr-export-{$user->id}-" . now()->format('Ymd') . '.json';
+        $filename = "gdpr-export-{$user->id}-".now()->format('Ymd').'.json';
+
         return response()->json($data)->header('Content-Disposition', "attachment; filename={$filename}");
     }
 
@@ -97,6 +106,7 @@ class GdprController extends Controller
         ]);
 
         auth()->logout();
+
         return redirect('/')->with('success', __('Your data has been erased.'));
     }
 }

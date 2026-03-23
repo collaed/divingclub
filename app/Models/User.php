@@ -98,6 +98,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(PaymentExpected::class);
     }
 
+    public function eventRegistrations()
+    {
+        return $this->hasMany(EventRegistration::class);
+    }
+
     public function equipmentLoans()
     {
         return $this->hasMany(EquipmentLoan::class);

@@ -90,12 +90,13 @@ class EquipmentController extends Controller
             return back()->with('error', __('Equipment is not available for loan.'));
         }
 
-        $request->validate(['user_id' => 'required|exists:users,id']);
+        $request->validate(['user_id' => 'required|exists:users,id', 'expected_return_date' => 'nullable|date|after:today']);
 
         EquipmentLoan::create([
             'equipment_id' => $equipment->id,
             'user_id' => $request->user_id,
             'loaned_at' => now(),
+            'expected_return_date' => $request->expected_return_date,
             'loaned_by' => auth()->id(),
         ]);
         $equipment->update(['status' => 'on_loan']);
