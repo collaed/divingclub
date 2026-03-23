@@ -40,8 +40,10 @@
                         </div>
                         <div class="col-sm-6">
                             <table class="table table-sm table-borderless mb-0">
+                                @if($viewer->id === $target->id || $viewer->isBureau())
                                 <tr><th class="text-muted" style="width:140px">{{ __('Email') }}</th><td>{{ $target->primary_email }}</td></tr>
                                 <tr><th class="text-muted">{{ __('Mobile') }}</th><td>{{ $target->detail?->phone_mobile ?? '—' }}</td></tr>
+                                @endif
                                 <tr><th class="text-muted">{{ __('Cert Level') }}</th><td>
                                     @php $primaryCert = $target->primaryCertification(); @endphp
                                     @if($primaryCert)
