@@ -3,7 +3,7 @@
 ## Social Login Providers
 
 - [ ] **Yahoo OAuth** — Add Yahoo as social login provider (covers 11 members: yahoo.com, yahoo.fr, yahoo.co.uk)
-- [ ] **EU Login (CAS)** — Code is ready (`EuLoginController`, routes, button, `apereo/phpcas`). **Blocked on ECAS service registration**: EU Login requires application registration even for basic CAS — service URLs must be whitelisted. Action: email `EC-IAM-SERVICE-DESK@ec.europa.eu` or open SMT ticket to `DIGIT NUPS IAM BO` with service URL `https://test.clubcep.eu/auth/eulogin/callback` requesting PASSWORD authentication method. Covers 8 members (ec.europa.eu, curia.europa.eu, eib.org, eif.org).
+- [ ] **EU Login (CAS)** — Code is ready (`EuLoginController`, routes, button, `apereo/phpcas`). **Blocked: ECAS restricts service URLs to European institution domains by default.** External URLs like `test.clubcep.eu` need explicit approval from the ECAS service team. Use `laxValidate` endpoint (not `proxyValidate`) to allow external users. Contact: `EC-IAM-SERVICE-DESK@ec.europa.eu` or SMT ticket to `DIGIT NUPS IAM BO`. Realistically may not be approved for a non-EU-institution site. Covers 8 members (ec.europa.eu, curia.europa.eu, eib.org, eif.org). Official PHP lib: `ecphp/cas-lib` at code.europa.eu.
 
 ## Infrastructure
 

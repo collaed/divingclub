@@ -34,7 +34,8 @@ class EuLoginController extends Controller
                 '/cas',
                 config('app.url')
             );
-            // EU Login uses valid SSL — but if testing over HTTP:
+            // EU Login requires laxValidate for external (non-Commission) users
+            \phpCAS::setServerServiceValidateURL('https://ecas.ec.europa.eu/cas/laxValidate');
             \phpCAS::setNoCasServerValidation();
         }
     }
