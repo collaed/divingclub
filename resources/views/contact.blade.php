@@ -21,7 +21,7 @@
 
                             <h5 class="mb-3">@icon('📋') {{ __('Club Details') }}</h5>
                             <p class="fw-bold mb-1">{{ $clubName }}</p>
-                            @if($clubAddress)<p class="text-muted">{{ $clubAddress }}</p>@endif
+                            @if($clubAddress)<p class="text-muted">{!! nl2br(e(str_replace(' / ', "\n", $clubAddress))) !!}</p>@endif
                             @if($clubEmail)<p>@icon('📧') <a href="mailto:{{ $clubEmail }}">{{ $clubEmail }}</a></p>@endif
                             @if($clubPhone)<p>@icon('📞') <a href="tel:{{ $clubPhone }}">{{ $clubPhone }}</a></p>@endif
 
