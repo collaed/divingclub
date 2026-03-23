@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LibraryFile extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['filename', 'original_name', 'path', 'mime_type', 'size', 'folder', 'visibility', 'description', 'uploaded_by'];
 
     // Visibility levels ordered from most to least restrictive
     const VISIBILITY_OPTIONS = ['public', 'members', 'instructors', 'bureau'];

@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Document extends Model
 {
-    use \App\Traits\Auditable;
-    protected $guarded = ['id'];
+    use Auditable;
+    use SoftDeletes;
+
+    protected $fillable = ['user_id', 'category', 'cert_type', 'file_path', 'original_filename', 'mime_type', 'size_bytes', 'date_established', 'expiry_date', 'is_verified', 'verified_by', 'verified_at', 'superseded_by', 'is_current', 'is_compliant', 'compliance_notes', 'reminder_30_sent_at', 'reminder_15_sent_at', 'reminder_7_sent_at', 'reminder_0_sent_at'];
 
     protected function casts(): array
     {
@@ -21,9 +25,20 @@ class Document extends Model
         ];
     }
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function verifier() { return $this->belongsTo(User::class, 'verified_by'); }
-    public function supersededBy() { return $this->belongsTo(Document::class, 'superseded_by'); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function supersededBy()
+    {
+        return $this->belongsTo(Document::class, 'superseded_by');
+    }
 
     public function isExpired(): bool
     {

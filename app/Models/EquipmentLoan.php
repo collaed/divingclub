@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EquipmentLoan extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['equipment_id', 'user_id', 'loaned_at', 'expected_return_date', 'returned_at', 'loaned_by', 'returned_by', 'reminder_sent_at'];
 
     protected function casts(): array
     {

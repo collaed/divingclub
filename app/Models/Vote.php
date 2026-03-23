@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vote extends Model
 {
-    protected $guarded = ['id'];
+    use SoftDeletes;
+
+    protected $fillable = ['title', 'description', 'mode', 'allow_multiple', 'allow_change', 'num_positions', 'min_vote_pct', 'is_public', 'status', 'opens_at', 'closes_at', 'created_by'];
 
     protected function casts(): array
     {
@@ -19,15 +22,30 @@ class Vote extends Model
         ];
     }
 
-    public function options() { return $this->hasMany(VoteOption::class); }
-    public function tokens() { return $this->hasMany(VoteToken::class); }
-    public function ballots() { return $this->hasMany(VoteBallot::class); }
-    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function options()
+    {
+        return $this->hasMany(VoteOption::class);
+    }
+
+    public function tokens()
+    {
+        return $this->hasMany(VoteToken::class);
+    }
+
+    public function ballots()
+    {
+        return $this->hasMany(VoteBallot::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     public function isOpen(): bool
     {
         return $this->status === 'open'
-            && (!$this->opens_at || $this->opens_at->isPast())
-            && (!$this->closes_at || $this->closes_at->isFuture());
+            && (! $this->opens_at || $this->opens_at->isPast())
+            && (! $this->closes_at || $this->closes_at->isFuture());
     }
 }

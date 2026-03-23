@@ -6,9 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class DiveGroupMember extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['dive_group_id', 'user_id', 'role'];
 
-    public function group() { return $this->belongsTo(DiveGroup::class, 'dive_group_id'); }
-    public function diveGroup() { return $this->group(); }
-    public function user() { return $this->belongsTo(User::class); }
+    public function group()
+    {
+        return $this->belongsTo(DiveGroup::class, 'dive_group_id');
+    }
+
+    public function diveGroup()
+    {
+        return $this->group();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

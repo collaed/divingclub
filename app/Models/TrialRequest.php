@@ -6,14 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrialRequest extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['first_name', 'last_name', 'email', 'phone', 'preferred_date', 'message', 'status', 'confirmed_by', 'confirmed_date', 'admin_notes'];
 
     protected function casts(): array
     {
         return ['preferred_date' => 'date', 'confirmed_date' => 'date'];
     }
 
-    public function confirmedBy() { return $this->belongsTo(User::class, 'confirmed_by'); }
+    public function confirmedBy()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
 
-    public function scopePending($q) { return $q->where('status', 'pending'); }
+    public function scopePending($q)
+    {
+        return $q->where('status', 'pending');
+    }
 }

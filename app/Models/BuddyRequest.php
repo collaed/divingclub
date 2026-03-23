@@ -6,18 +6,32 @@ use Illuminate\Database\Eloquent\Model;
 
 class BuddyRequest extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['user_id', 'dive_site_id', 'location_text', 'dive_date', 'dive_time', 'need_type', 'description', 'max_depth', 'desired_cert_level', 'max_buddies', 'is_active'];
 
     protected function casts(): array
     {
         return ['dive_date' => 'date', 'is_active' => 'boolean'];
     }
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function diveSite() { return $this->belongsTo(DiveSite::class); }
-    public function responses() { return $this->hasMany(BuddyResponse::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-    public function scopeActive($q) { return $q->where('is_active', true)->where('dive_date', '>=', today()); }
+    public function diveSite()
+    {
+        return $this->belongsTo(DiveSite::class);
+    }
+
+    public function responses()
+    {
+        return $this->hasMany(BuddyResponse::class);
+    }
+
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true)->where('dive_date', '>=', today());
+    }
 
     public function locationLabel(): string
     {

@@ -20,7 +20,7 @@ class EmailLog extends Model
 {
     protected $table = 'email_log';
 
-    protected $guarded = ['id'];
+    protected $fillable = ['event_id', 'user_id', 'to_email', 'alias', 'from_name', 'from_email', 'subject', 'body', 'template_slug', 'status', 'direction', 'authorized', 'attempts', 'error'];
 
     public function event()
     {

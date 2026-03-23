@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DiveGroup extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['event_id', 'name', 'dive_mode', 'purpose', 'planned_depth', 'planned_duration', 'gas_mix', 'line_number', 'planned_entry_time', 'planned_exit_time', 'notes', 'created_by'];
 
     public function event()
     {

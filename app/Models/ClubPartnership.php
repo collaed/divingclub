@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ClubPartnership extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['name', 'base_url', 'api_key_id', 'is_active', 'last_sync_at'];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -17,7 +17,7 @@ class ClubPartnership extends Model
     public static function generateKeyPair(): array
     {
         return [
-            'key_id' => 'dc_' . Str::random(32),
+            'key_id' => 'dc_'.Str::random(32),
             'secret' => Str::random(64),
         ];
     }

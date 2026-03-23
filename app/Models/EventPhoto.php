@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventPhoto extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = ['event_id', 'uploaded_by', 'path', 'thumbnail_path', 'caption', 'quality_score', 'has_faces', 'approved', 'gdpr_consent'];
 
     protected function casts(): array
     {

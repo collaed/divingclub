@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ArticleTranslation extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['article_id', 'locale', 'title', 'body', 'auto_translated', 'stale'];
 
     public function article()
     {

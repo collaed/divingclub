@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Article extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'title', 'slug', 'body', 'article_type', 'featured_image',
         'is_published', 'is_public', 'author_id', 'vote_id', 'expires_at', 'sort_order',
@@ -21,19 +24,19 @@ class Article extends Model
     }
 
     public const TYPES = [
-        'news'         => ['icon' => '📰', 'color' => '#0d6efd', 'label' => 'News'],
-        'history'      => ['icon' => '🏛️', 'color' => '#6f42c1', 'label' => 'Club History'],
-        'safety'       => ['icon' => '🛟', 'color' => '#dc3545', 'label' => 'Safety'],
-        'training'     => ['icon' => '🎓', 'color' => '#198754', 'label' => 'Training'],
-        'regulation'   => ['icon' => '📋', 'color' => '#6c757d', 'label' => 'Regulation'],
-        'trip_report'  => ['icon' => '🌊', 'color' => '#0dcaf0', 'label' => 'Trip Report'],
-        'trip_proposal'=> ['icon' => '🗺️', 'color' => '#fd7e14', 'label' => 'Trip Proposal'],
-        'environment'  => ['icon' => '🌿', 'color' => '#20c997', 'label' => 'Environment'],
-        'gear'         => ['icon' => '🤿', 'color' => '#0077be', 'label' => 'Gear'],
-        'classified'   => ['icon' => '🏷️', 'color' => '#ffc107', 'label' => 'Classified'],
-        'faq'          => ['icon' => '❓', 'color' => '#adb5bd', 'label' => 'FAQ'],
-        'newsletter'   => ['icon' => '📬', 'color' => '#e83e8c', 'label' => 'Newsletter'],
-        'video'        => ['icon' => '🎬', 'color' => '#e74c3c', 'label' => 'Video'],
+        'news' => ['icon' => '📰', 'color' => '#0d6efd', 'label' => 'News'],
+        'history' => ['icon' => '🏛️', 'color' => '#6f42c1', 'label' => 'Club History'],
+        'safety' => ['icon' => '🛟', 'color' => '#dc3545', 'label' => 'Safety'],
+        'training' => ['icon' => '🎓', 'color' => '#198754', 'label' => 'Training'],
+        'regulation' => ['icon' => '📋', 'color' => '#6c757d', 'label' => 'Regulation'],
+        'trip_report' => ['icon' => '🌊', 'color' => '#0dcaf0', 'label' => 'Trip Report'],
+        'trip_proposal' => ['icon' => '🗺️', 'color' => '#fd7e14', 'label' => 'Trip Proposal'],
+        'environment' => ['icon' => '🌿', 'color' => '#20c997', 'label' => 'Environment'],
+        'gear' => ['icon' => '🤿', 'color' => '#0077be', 'label' => 'Gear'],
+        'classified' => ['icon' => '🏷️', 'color' => '#ffc107', 'label' => 'Classified'],
+        'faq' => ['icon' => '❓', 'color' => '#adb5bd', 'label' => 'FAQ'],
+        'newsletter' => ['icon' => '📬', 'color' => '#e83e8c', 'label' => 'Newsletter'],
+        'video' => ['icon' => '🎬', 'color' => '#e74c3c', 'label' => 'Video'],
     ];
 
     public const MEMBER_TYPES = ['classified'];
@@ -66,13 +69,19 @@ class Article extends Model
             '<div class="ratio ratio-16x9 mb-3"><iframe src="https://player.vimeo.com/video/$1" allowfullscreen loading="lazy"></iframe></div>',
             $body
         );
+
         return $body;
     }
 
     public function canBeEditedBy($user): bool
     {
-        if ($user->isBureauMaster()) return true;
-        if (in_array($this->article_type, self::MEMBER_TYPES) && $this->author_id === $user->id) return true;
+        if ($user->isBureauMaster()) {
+            return true;
+        }
+        if (in_array($this->article_type, self::MEMBER_TYPES) && $this->author_id === $user->id) {
+            return true;
+        }
+
         return false;
     }
 
@@ -108,11 +117,12 @@ class Article extends Model
     {
         $locale = $locale ?? app()->getLocale();
         $t = $this->translations->firstWhere('locale', $locale);
+
         return [
             'title' => $t?->title ?? $this->title,
-            'body'  => $t?->body ?? $this->body,
+            'body' => $t?->body ?? $this->body,
             'locale' => $t ? $locale : null,
-            'auto'  => $t?->auto_translated ?? false,
+            'auto' => $t?->auto_translated ?? false,
         ];
     }
 

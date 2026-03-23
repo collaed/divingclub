@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Equipment extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'equipment';
 
-    protected $guarded = ['id'];
+    protected $fillable = ['club_id', 'name', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'notes'];
 
     protected function casts(): array
     {
