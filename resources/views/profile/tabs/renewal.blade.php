@@ -53,7 +53,7 @@
                             <button type="button" class="btn btn-outline-secondary" onclick="startQrScan({{ $lic->id }})" title="{{ __('Scan QR') }}">📷</button>
                             <button type="submit" class="btn btn-outline-primary">{{ __('Save') }}</button>
                         </div>
-                        <small class="text-muted">{{ __('6-char key from the FFESSM card QR code, or use @icon('📷') to scan it') }}</small>
+                        <small class="text-muted">{{ __('6-char key from the FFESSM card QR code, or use 📷 to scan it') }}</small>
                     </form>
                     {{-- Camera viewfinder (hidden until scan button pressed) --}}
                     <div id="qr-scanner-{{ $lic->id }}" class="mt-2" style="display:none; max-width:400px;">

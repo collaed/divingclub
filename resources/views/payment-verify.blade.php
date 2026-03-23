@@ -55,8 +55,8 @@
         const text = "IBAN: {{ $iban }}\nBIC: {{ $bic }}\nBeneficiary: {{ $beneficiary }}\nAmount: {{ number_format($amount, 2) }}€\nCommunication: {{ $communication }}";
         navigator.clipboard.writeText(text).then(() => {
             const btn = event.target;
-            btn.textContent = '@icon('✅') {{ __("Copied!") }}';
-            setTimeout(() => btn.textContent = '@icon('📋') {{ __("Copy payment details") }}', 2000);
+            btn.textContent = '✅ {{ __("Copied!") }}';
+            setTimeout(() => btn.textContent = '📋 {{ __("Copy payment details") }}', 2000);
         });
     }
     </script>

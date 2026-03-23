@@ -94,9 +94,9 @@
     <div class="mt-3 small text-muted">
         <strong>{{ __('Diver condition syntax') }}:</strong>
         <code>no_cert</code> = uncertified,
-        <code>max_rank:20</code> = rank ≤ 20 (e.g. 1@icon('★')/OWD),
-        <code>min_rank:60</code> = rank ≥ 60 (e.g. 3@icon('★')),
+        <code>max_rank:20</code> = rank ≤ 20 (e.g. 1★/OWD),
+        <code>min_rank:60</code> = rank ≥ 60 (e.g. 3★),
         <code>any</code> = all divers.
-        <strong>{{ __('Rank reference') }}:</strong> 10=basic, 20=1@icon('★'), 40=2@icon('★'), 60=3@icon('★'), 70=GP/4@icon('★'), 100=instr1, 110=instr2, 120=instr3
+        <strong>{{ __('Rank reference') }}:</strong> 10=basic, 20=1★, 40=2★, 60=3★, 70=GP/4★, 100=instr1, 110=instr2, 120=instr3
     </div>
 </x-layout>

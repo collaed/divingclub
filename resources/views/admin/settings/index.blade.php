@@ -603,8 +603,8 @@
                         </div>
 
                         <div class="alert alert-info small py-2">
-                            ℹ@icon('️') {{ __('Facebook: requires') }} <code>FACEBOOK_PAGE_TOKEN</code> {{ __('in .env. Group must be confirmed closed.') }}<br>
-                            ℹ@icon('️') {{ __('Instagram: requires') }} <code>INSTAGRAM_ACCESS_TOKEN</code> {{ __('in .env. Uses Instagram Graph API (Business account). Since Instagram is public, photos with faces or from minors are automatically excluded.') }}
+                            ℹ️ {{ __('Facebook: requires') }} <code>FACEBOOK_PAGE_TOKEN</code> {{ __('in .env. Group must be confirmed closed.') }}<br>
+                            ℹ️ {{ __('Instagram: requires') }} <code>INSTAGRAM_ACCESS_TOKEN</code> {{ __('in .env. Uses Instagram Graph API (Business account). Since Instagram is public, photos with faces or from minors are automatically excluded.') }}
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Social Settings') }}</button>
                     </form>

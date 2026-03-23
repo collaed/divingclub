@@ -161,7 +161,7 @@
                     const base = {responsive:true, maintainAspectRatio:false};
 
                     // Gender — doughnut
-                    const genderLabels = Object.keys(stats.gender).map(g => g === 'M' ? '@icon('♂') {{ __("Male") }}' : '@icon('♀') {{ __("Female") }}');
+                    const genderLabels = Object.keys(stats.gender).map(g => g === 'M' ? '♂ {{ __("Male") }}' : '♀ {{ __("Female") }}');
                     new Chart(document.getElementById('chartGender'), {type:'doughnut', data:{labels:genderLabels, datasets:[{data:Object.values(stats.gender), backgroundColor:['#0066cc','#ff6699']}]}, options:{...base, plugins:{legend:{position:'bottom'}}}});
 
                     // Age — vertical bar

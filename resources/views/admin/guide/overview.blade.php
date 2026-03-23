@@ -5,21 +5,21 @@
 <h5>What This System Manages</h5>
 <div class="row g-2 mb-3">
     @foreach([
-        '@icon('👥') Members' => 'Profiles, roles, statuses, multi-federation licences, certification levels, guardian/minor management',
-        '@icon('📅') Events' => 'Calendar, recurring seasons, registration, waiting lists, WhatsApp groups, event photos',
-        '@icon('🫧') Dive Groups' => 'Palanquée planner, 39 rules across 5 federations, mixed-level validation',
-        '@icon('🏥') Medical' => 'Certificate tracking per federation, automated reminders, compliance gate',
-        '@icon('💰') Payments' => 'Fee calculation, bank reconciliation with IBAN matching, SEPA QR codes',
-        '@icon('🤿') Equipment' => 'Inventory, loans, maintenance scheduling',
-        '@icon('📰') Content' => 'Typed articles, auto-translation, image galleries, comments, classifieds, document library',
-        '@icon('✉️') Email' => 'Templates, group targeting, bilingual, send log',
-        '@icon('🗳️') Voting' => 'Simple polls and anonymous elections, multi-select, public results',
-        '@icon('🤝') Partnerships' => 'Inter-club federation API, symmetric key exchange, cross-registration',
-        '@icon('📱') Social Media' => 'Facebook auto-publish with triple GDPR gate',
-        '@icon('🔒') GDPR' => 'Consent management, parental consent for minors, data export, erasure',
-        '@icon('📋') Audit Log' => 'Full change history, diff view, CSV export, retention policy',
-        '@icon('📊') Dashboard' => 'Statistics, bureau worklist, CSV exports',
-        '@icon('💾') Backups' => 'Admin UI: create/inspect/download/delete, DB + files archive, MySQL & SQLite, weekly auto-backup',
+        '👥 Members' => 'Profiles, roles, statuses, multi-federation licences, certification levels, guardian/minor management',
+        '📅 Events' => 'Calendar, recurring seasons, registration, waiting lists, WhatsApp groups, event photos',
+        '🫧 Dive Groups' => 'Palanquée planner, 39 rules across 5 federations, mixed-level validation',
+        '🏥 Medical' => 'Certificate tracking per federation, automated reminders, compliance gate',
+        '💰 Payments' => 'Fee calculation, bank reconciliation with IBAN matching, SEPA QR codes',
+        '🤿 Equipment' => 'Inventory, loans, maintenance scheduling',
+        '📰 Content' => 'Typed articles, auto-translation, image galleries, comments, classifieds, document library',
+        '✉️ Email' => 'Templates, group targeting, bilingual, send log',
+        '🗳️ Voting' => 'Simple polls and anonymous elections, multi-select, public results',
+        '🤝 Partnerships' => 'Inter-club federation API, symmetric key exchange, cross-registration',
+        '📱 Social Media' => 'Facebook auto-publish with triple GDPR gate',
+        '🔒 GDPR' => 'Consent management, parental consent for minors, data export, erasure',
+        '📋 Audit Log' => 'Full change history, diff view, CSV export, retention policy',
+        '📊 Dashboard' => 'Statistics, bureau worklist, CSV exports',
+        '💾 Backups' => 'Admin UI: create/inspect/download/delete, DB + files archive, MySQL & SQLite, weekly auto-backup',
     ] as $label => $desc)
         <div class="col-md-6"><div class="border rounded p-2"><strong>{{ $label }}</strong><br><small class="text-muted">{{ $desc }}</small></div></div>
     @endforeach

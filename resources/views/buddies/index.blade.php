@@ -127,7 +127,7 @@
             {{-- Info box --}}
             <div class="card dc-card">
                 <div class="card-body small">
-                    <strong>ℹ@icon('️') {{ __('Reminder') }}</strong>
+                    <strong>ℹ️ {{ __('Reminder') }}</strong>
                     <ul class="mb-0 mt-1">
                         <li>{{ __('FFESSM: A Directeur de Plongée (N4+) is required on site unless all divers are N3+.') }}</li>
                         <li>{{ __('Levels 1 & 2 need a Guide de Palanquée (N4/P4) or instructor to dive.') }}</li>
