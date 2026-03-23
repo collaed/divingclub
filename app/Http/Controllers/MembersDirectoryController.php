@@ -23,7 +23,15 @@ class MembersDirectoryController extends Controller
             }));
         }
 
-        $members = $query->orderByDesc('id')->paginate($this->perPage(30))->withQueryString();
+        $sortable = ['last_name', 'certification_level', 'adhesion_year'];
+        $sort = in_array($request->sort, $sortable) ? $request->sort : 'last_name';
+        $dir = $request->dir === 'desc' ? 'desc' : 'asc';
+
+        $query->join('member_details', 'users.id', '=', 'member_details.user_id')
+            ->orderBy("member_details.{$sort}", $dir)
+            ->select('users.*');
+
+        $members = $query->paginate($this->perPage(50))->withQueryString();
 
         if ($request->ajax()) {
             return view('members._directory_rows', compact('members'));

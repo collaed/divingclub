@@ -4,9 +4,25 @@
         <input type="text" id="memberSearch" class="form-control" placeholder="{{ __('Search by name...') }}" value="{{ request('search') }}" autofocus>
     </div>
 
+    @php
+        $sort = request('sort', 'last_name');
+        $dir = request('dir', 'asc');
+        $nextDir = fn($col) => $sort === $col && $dir === 'asc' ? 'desc' : 'asc';
+        $arrow = fn($col) => $sort === $col ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
+        $sortUrl = fn($col) => request()->fullUrlWithQuery(['sort' => $col, 'dir' => $nextDir($col)]);
+    @endphp
+
     <div class="table-responsive">
         <table class="table table-hover">
-            <thead><tr><th></th><th>{{ __('Name') }}</th><th>{{ __('Level') }}</th><th>{{ __('Status') }}</th><th>{{ __('Member Since') }}</th></tr></thead>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th><a href="{{ $sortUrl('last_name') }}" class="text-decoration-none text-body">{{ __('Name') }}{!! $arrow('last_name') !!}</a></th>
+                    <th><a href="{{ $sortUrl('certification_level') }}" class="text-decoration-none text-body">{{ __('Level') }}{!! $arrow('certification_level') !!}</a></th>
+                    <th>{{ __('Status') }}</th>
+                    <th><a href="{{ $sortUrl('adhesion_year') }}" class="text-decoration-none text-body">{{ __('Member Since') }}{!! $arrow('adhesion_year') !!}</a></th>
+                </tr>
+            </thead>
             <tbody id="memberRows">
                 @include('members._directory_rows')
             </tbody>
