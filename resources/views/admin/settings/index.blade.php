@@ -442,7 +442,7 @@
 
                         <h6>{{ __('Branding') }}</h6>
                         <div class="row g-2 mb-3">
-                            <div class="col-md-1"><label class="form-label small">{{ __('Emoji') }}</label><input type="text" name="logo_emoji" class="form-control form-control-sm" value="{{ $themeSettings['logo_emoji'] ?? '@icon('🤿')' }}"></div>
+                            <div class="col-md-1"><label class="form-label small">{{ __('Emoji') }}</label><input type="text" name="logo_emoji" class="form-control form-control-sm" value="{{ $themeSettings['logo_emoji'] ?? '🤿' }}"></div>
                             <div class="col-md-2"><label class="form-label small">{{ __('Accent Text') }}</label><input type="text" name="logo_accent_text" class="form-control form-control-sm" value="{{ $themeSettings['logo_accent_text'] ?? 'Diving' }}"></div>
                             <div class="col-md-2"><label class="form-label small">{{ __('Plain Text') }}</label><input type="text" name="logo_plain_text" class="form-control form-control-sm" value="{{ $themeSettings['logo_plain_text'] ?? 'Club' }}"></div>
                             <div class="col-md-4"><label class="form-label small">{{ __('Club Full Name') }}</label><input type="text" name="club_full_name" class="form-control form-control-sm" value="{{ $themeSettings['club_full_name'] ?? '' }}"></div>

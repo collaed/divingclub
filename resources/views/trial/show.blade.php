@@ -37,7 +37,7 @@
                     </div>
 
                     <h4>{{ __('After the trial') }}</h4>
-                    <p>{{ __('Enjoyed it? You can join the club and start your first certification (P1@icon('★') / 1 Star Diver). See our') }} <a href="{{ url('/article/first-certification') }}">{{ __('First Certification Guide') }}</a> {{ __('for details.') }}</p>
+                    <p>{{ __('Enjoyed it? You can join the club and start your first certification (P1★ / 1 Star Diver). See our') }} <a href="{{ url('/article/first-certification') }}">{{ __('First Certification Guide') }}</a> {{ __('for details.') }}</p>
                 </div>
             </div>
 

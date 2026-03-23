@@ -113,7 +113,7 @@
     function toggleEditMode() {
         editMode = !editMode;
         document.body.classList.toggle('hp-editing', editMode);
-        document.getElementById('editToggle').innerHTML = editMode ? '@icon('💾') {{ __("Save & Close") }}' : '@icon('⚙️') {{ __("Edit Layout") }}';
+        document.getElementById('editToggle').innerHTML = editMode ? '💾 {{ __("Save & Close") }}' : '⚙️ {{ __("Edit Layout") }}';
         document.getElementById('disabledPanel').classList.toggle('d-none', !editMode);
 
         // Show/hide widget bars
