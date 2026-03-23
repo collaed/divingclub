@@ -1,7 +1,8 @@
 <x-layout :title="__('Members Directory')">
     <h4 class="mb-3">{{ __('Members Directory') }}</h4>
-    <div class="mb-4">
-        <input type="text" id="memberSearch" class="form-control" placeholder="{{ __('Search by name...') }}" value="{{ request('search') }}" autofocus>
+    <div class="mb-4 position-relative">
+        <input type="text" id="memberSearch" class="form-control pe-5" placeholder="{{ __('Search by name...') }}" value="{{ request('search') }}" autofocus>
+        <button type="button" id="clearSearch" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted" style="display:none;font-size:1.2rem;text-decoration:none">&times;</button>
     </div>
 
     @php
@@ -33,21 +34,28 @@
 @push('scripts')
 <script>
 (function(){
-    let timer, input = document.getElementById('memberSearch');
-    input.addEventListener('input', function(){
+    let timer, input = document.getElementById('memberSearch'),
+        clearBtn = document.getElementById('clearSearch');
+
+    function toggleClear() { clearBtn.style.display = input.value ? 'block' : 'none'; }
+    function doSearch() {
         clearTimeout(timer);
         timer = setTimeout(() => {
-            fetch('{{ route("members.directory") }}?search=' + encodeURIComponent(this.value), {
+            fetch('{{ route("members.directory") }}?search=' + encodeURIComponent(input.value), {
                 headers: {'X-Requested-With': 'XMLHttpRequest'}
             })
             .then(r => r.text())
             .then(html => {
                 document.getElementById('memberRows').innerHTML = html;
                 document.getElementById('memberPagination').innerHTML = '';
-                history.replaceState(null, '', this.value ? '?search=' + encodeURIComponent(this.value) : location.pathname);
+                history.replaceState(null, '', input.value ? '?search=' + encodeURIComponent(input.value) : location.pathname);
             });
         }, 300);
-    });
+    }
+
+    input.addEventListener('input', function(){ toggleClear(); doSearch(); });
+    clearBtn.addEventListener('click', function(){ input.value = ''; toggleClear(); doSearch(); input.focus(); });
+    toggleClear();
 })();
 </script>
 @endpush
