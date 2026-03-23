@@ -17,10 +17,17 @@ class MembersDirectoryController extends Controller
 
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->whereHas('detail', fn ($q) => $q->where('first_name', 'like', "%{$s}%")->orWhere('last_name', 'like', "%{$s}%"));
+            $query->whereHas('detail', fn ($q) => $q->where(function ($w) use ($s) {
+                $w->whereRaw('LOWER(first_name) like ?', ['%'.strtolower($s).'%'])
+                    ->orWhereRaw('LOWER(last_name) like ?', ['%'.strtolower($s).'%']);
+            }));
         }
 
         $members = $query->orderByDesc('id')->paginate($this->perPage(30))->withQueryString();
+
+        if ($request->ajax()) {
+            return view('members._directory_rows', compact('members'));
+        }
 
         return view('members.directory', compact('members'));
     }
