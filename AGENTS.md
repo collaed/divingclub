@@ -255,4 +255,37 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - To run all tests in a file: `php artisan test --compact tests/Feature/ExampleTest.php`.
 - To filter on a particular test name: `php artisan test --compact --filter=testName` (recommended after making a change to a related file).
 
+=== project rules ===
+
+# DivingClub-Manager Project Rules
+
+## Blade Templates
+
+- **NEVER use `@icon()` inside `{{ }}`, `__()`, JavaScript strings, `innerHTML`, `onclick` handlers, or HTML attribute values.** `@icon()` is a Blade directive compiled at template level — it cannot be nested inside PHP expressions or JS. Use raw emoji characters instead (e.g. `🤿` not `@icon('🤿')`).
+- `@icon()` is ONLY safe at the start of HTML content or after `>` in tags (e.g. `<span>@icon('📧') text</span>`).
+
+## HTML Sanitization
+
+- Use `App\Helpers\HtmlSanitizer::clean($html, $preset)` for all HTML purification. Three presets: `rich` (articles, events), `basic` (classifieds), `comment` (comments). Never instantiate HTMLPurifier directly in controllers.
+
+## Database Compatibility
+
+- Code must work on both MySQL (local dev) and PostgreSQL (Hetzner staging). Avoid DB-specific syntax (e.g. `SHOW INDEX`). Use `Schema` facade or try/catch for cross-DB operations.
+
+## Deployment
+
+- SSH: `root@204.168.168.60`, app path: `/opt/deploy/apps/divingclub`, deploy user: `deploy`
+- Flow: edit locally → `vendor/bin/pint --dirty` → `php artisan test --compact` → git push → pull on Hetzner → `php artisan optimize:clear`
+- Commit messages: `fix:`, `feat:`, `chore:` prefix
+
+## Localization
+
+- French content in seeds/fixtures, English in code
+- Portuguese must be European Portuguese (pt-PT), not Brazilian
+- Google Translate API: `pt` locale maps to `pt-PT`
+
+## Privacy
+
+- Regular members cannot see other members' email or phone — only the profile owner and bureau roles
+
 </laravel-boost-guidelines>
