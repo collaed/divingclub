@@ -9,7 +9,10 @@
                 @foreach($widget['data']['photos'] as $photo)
                     @php $url = $photo->url ?? asset('storage/' . $photo->path); @endphp
                     <div class="col-6 col-md-4 col-lg-3">
-                        <div style="aspect-ratio:4/3;background:url('{{ $url }}') center/cover;border-radius:4px"></div>
+                        <div style="aspect-ratio:4/3;position:relative;overflow:hidden;border-radius:4px;background:#1a1a2e">
+                            <div style="position:absolute;inset:-10px;background:url('{{ $url }}') center/cover;filter:blur(10px) brightness(0.6);transform:scale(1.1)"></div>
+                            <div style="position:absolute;inset:0;background:url('{{ $url }}') center/contain no-repeat"></div>
+                        </div>
                     </div>
                 @endforeach
             </div>

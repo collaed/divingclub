@@ -22,9 +22,10 @@
 
     @foreach($items as $i => $photo)
         @php $url = is_string($photo) ? $photo : ($photo->url ?? $photo['url'] ?? asset('storage/' . ($photo->path ?? $photo['path'] ?? ''))); @endphp
-        <div class="dc-ss-slide {{ $i === 0 ? 'active' : '' }}"
-             style="background-image:url('{{ $url }}')"
-             data-index="{{ $i }}"></div>
+        <div class="dc-ss-slide {{ $i === 0 ? 'active' : '' }}" data-index="{{ $i }}">
+            <div class="dc-ss-bg" style="background-image:url('{{ $url }}')"></div>
+            <div class="dc-ss-fg" style="background-image:url('{{ $url }}')"></div>
+        </div>
     @endforeach
 
     {{-- Optional overlay slot (e.g. hero text) --}}
@@ -49,11 +50,20 @@
     }
     .dc-ss-slide {
         position: absolute; inset: 0;
-        background-size: cover; background-position: center;
         opacity: 0; transition: opacity 1.2s ease-in-out;
-        /* Ken Burns: subtle zoom + pan */
         animation: dc-kenburns var(--ss-interval, 6000ms) ease-in-out infinite alternate;
         transform-origin: center;
+    }
+    /* Blurred stretched background — fills empty sides */
+    .dc-ss-bg {
+        position: absolute; inset: -20px;
+        background-size: cover; background-position: center;
+        filter: blur(20px) brightness(0.7); transform: scale(1.1);
+    }
+    /* Sharp photo — shown at natural aspect ratio, no crop */
+    .dc-ss-fg {
+        position: absolute; inset: 0;
+        background-size: contain; background-position: center; background-repeat: no-repeat;
     }
     .dc-ss-slide.active { opacity: 1; }
     /* Alternate pan directions per slide */
