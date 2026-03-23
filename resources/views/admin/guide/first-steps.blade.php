@@ -56,25 +56,11 @@ FEDERATION_SALT=change_this_to_a_random_string</code></pre>
 <h5>9. Set Up Scheduled Tasks (Cron)</h5>
 <p>Scheduled tasks handle medical reminders, vote auto-open/close, article translation, and weekly backups.</p>
 
-<p><strong>Option A: Server cron (VPS / dedicated)</strong></p>
+<p>Add this single cron entry on your server:</p>
 <pre class="bg-light p-3 rounded"><code>* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1</code></pre>
 
-<p><strong>Option B: Shared hosting without cron access (e.g. Great-Héberg)</strong></p>
-<p>Use the free service <a href="https://cron-job.org" target="_blank">cron-job.org</a> to ping your site every 15 minutes:</p>
-<ol>
-    <li>Set a secret key in <code>.env</code>: <code>CRON_KEY=your-random-secret-here</code></li>
-    <li>Create a free account at <a href="https://cron-job.org" target="_blank">cron-job.org</a></li>
-    <li>Add a new cron job:
-        <ul>
-            <li><strong>URL:</strong> <code>{{ config('app.url') }}/cron/run?key=your-random-secret-here</code></li>
-            <li><strong>Schedule:</strong> Every 15 minutes</li>
-            <li><strong>Method:</strong> GET</li>
-        </ul>
-    </li>
-    <li>Test it: visit the URL in your browser — you should see <code>OK</code> followed by the current date/time</li>
-</ol>
 <div class="alert alert-info">
-    <strong>Alternatives:</strong> <a href="https://uptimerobot.com" target="_blank">UptimeRobot</a> (free, every 5 min) or any service that can ping a URL on a schedule.
+    <strong>Shared hosting:</strong> If your host doesn't support cron, most provide a "scheduled tasks" panel where you can add the same command. Contact your hosting provider for details.
 </div>
 
 <h5>10. Change Default Password</h5>

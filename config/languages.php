@@ -23,4 +23,8 @@ return [
     'pl' => ['label' => 'Polish',         'flag' => '🇵🇱', 'native' => 'Polski'],
     'hu' => ['label' => 'Hungarian',      'flag' => '🇭🇺', 'native' => 'Magyar'],
     'ro' => ['label' => 'Romanian',       'flag' => '🇷🇴', 'native' => 'Română'],
+    'el' => ['label' => 'Greek',          'flag' => '🇬🇷', 'native' => 'Ελληνικά'],
+    'et' => ['label' => 'Estonian',       'flag' => '🇪🇪', 'native' => 'Eesti'],
+    'sk' => ['label' => 'Slovak',         'flag' => '🇸🇰', 'native' => 'Slovenčina'],
+    'fi' => ['label' => 'Finnish',        'flag' => '🇫🇮', 'native' => 'Suomi'],
 ];

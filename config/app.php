@@ -100,8 +100,6 @@ return [
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
-    'cron_key' => env('CRON_KEY', 'change-me'),
-
     'version' => '1.0.0',
 
     'dev_public_key' => env('DEV_PUBLIC_KEY'),

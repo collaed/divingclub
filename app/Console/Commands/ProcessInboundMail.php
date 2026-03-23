@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\EmailLog;
+use App\Models\User;
 use App\Services\MailAliasService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
@@ -10,10 +11,10 @@ use Illuminate\Support\Facades\Mail;
 /**
  * Process inbound email piped from Postfix.
  *
- * Postfix config (in /etc/aliases or transport):
- *   clubcep: "| /usr/bin/php /opt/deploy/apps/divingclub/artisan mail:inbound"
+ * Postfix pipes to:
+ *   /usr/bin/php /opt/deploy/apps/divingclub/artisan mail:inbound --to=${recipient} --from=${sender} --subject=${subject}
  *
- * Or test manually:
+ * Test:
  *   echo "Test body" | php artisan mail:inbound --to=bureau@clubcep.eu --from=eddy@test.com --subject="Test"
  */
 class ProcessInboundMail extends Command
@@ -34,10 +35,49 @@ class ProcessInboundMail extends Command
 
         $resolved = MailAliasService::resolve($to);
 
-        if (! $resolved || empty($resolved['emails'])) {
-            $this->error("Unknown alias or no recipients: {$to}");
+        if ($resolved) {
+            // Known alias — check authorization
+            if (! MailAliasService::isAuthorized($from, $to)) {
+                $this->error("Unauthorized sender {$from} for alias {$to}");
 
-            return self::FAILURE;
+                EmailLog::create([
+                    'event_id' => $this->extractEventId($to),
+                    'to_email' => $to,
+                    'alias' => $to,
+                    'from_email' => $from,
+                    'subject' => $subject,
+                    'body' => $body,
+                    'status' => 'rejected',
+                    'direction' => 'inbound',
+                    'authorized' => false,
+                    'error' => 'Unauthorized sender',
+                ]);
+
+                return self::FAILURE;
+            }
+        } else {
+            // Unknown alias — forward to bureau if sender is a known member
+            $sender = User::where('primary_email', $from)->first();
+            if (! $sender) {
+                $this->error("Unknown alias {$to} from unknown sender {$from}");
+
+                EmailLog::create([
+                    'to_email' => $to, 'alias' => $to, 'from_email' => $from,
+                    'subject' => $subject, 'body' => $body,
+                    'status' => 'rejected', 'direction' => 'inbound',
+                    'authorized' => false, 'error' => 'Unknown alias + unknown sender',
+                ]);
+
+                return self::FAILURE;
+            }
+
+            $resolved = MailAliasService::resolve('bureau@'.config('club.domain'));
+            if (! $resolved || empty($resolved['emails'])) {
+                $this->error('No bureau recipients configured.');
+
+                return self::FAILURE;
+            }
+            $subject = "[Unknown: {$to}] {$subject}";
         }
 
         $count = count($resolved['emails']);
@@ -56,10 +96,13 @@ class ProcessInboundMail extends Command
         EmailLog::create([
             'event_id' => $this->extractEventId($to),
             'to_email' => $to,
+            'alias' => $to,
             'from_email' => $from,
             'subject' => $subject,
             'body' => $body,
             'status' => 'forwarded',
+            'direction' => 'inbound',
+            'authorized' => true,
         ]);
 
         $this->info("Forwarded to {$count} recipients.");

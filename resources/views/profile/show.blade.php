@@ -29,7 +29,11 @@
                     @endif
                 </div>
                 <div class="col-md-9">
-                    <h4 class="mb-1">{{ $target->name }}</h4>
+                    <h4 class="mb-1">{{ $target->name }}
+                        @if($viewer->id !== $target->id)
+                            <a href="{{ route('contact.member', $target) }}" class="btn btn-sm btn-outline-primary ms-2">@icon('✉️') {{ __('Contact') }}</a>
+                        @endif
+                    </h4>
                     <div class="row mt-2">
                         <div class="col-sm-6">
                             <table class="table table-sm table-borderless mb-0">

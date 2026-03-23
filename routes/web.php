@@ -31,6 +31,7 @@ use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\ClassifiedController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContactMemberController;
 use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\DiveGroupController;
 use App\Http\Controllers\DocumentBrowserController;
@@ -49,13 +50,10 @@ use App\Http\Controllers\StagingMailController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\VotePublicController;
 use App\Http\Middleware\CheckLicense;
-use App\Jobs\SendMedicalReminders;
-use App\Jobs\WeeklyBackup;
 use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
@@ -194,6 +192,10 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Members directory (visible to all authenticated users)
     Route::get('/members', [MembersDirectoryController::class, 'directory'])->name('members.directory');
     Route::get('/members/trombinoscope', [MembersDirectoryController::class, 'trombinoscope'])->name('members.trombinoscope');
+
+    // Contact member (no email exposed)
+    Route::get('/members/{user}/contact', [ContactMemberController::class, 'create'])->name('contact.member');
+    Route::post('/members/{user}/contact', [ContactMemberController::class, 'store'])->middleware('throttle:10,1')->name('contact.member.send');
 
     // Document browser (role-based visibility, upload for instructors/bureau)
     Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');
@@ -450,7 +452,6 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 // Offline page for PWA
 Route::get('/offline', fn () => view('offline'))->name('offline');
 
-// Web-based cron trigger for shared hosting (use with cron-job.org)
 // Staging mail viewer (only active when STAGING_MODE=true)
 Route::prefix('staging-mail')->group(function () {
     Route::get('/', [StagingMailController::class, 'index'])->name('staging.mail.index');
@@ -458,40 +459,6 @@ Route::prefix('staging-mail')->group(function () {
     Route::get('/{mail}/raw', [StagingMailController::class, 'raw'])->name('staging.mail.raw');
     Route::delete('/', [StagingMailController::class, 'clear'])->name('staging.mail.clear');
 });
-
-// Cron helper — accepts key via query string or X-Cron-Key header
-$cronAuth = function (Request $request) {
-    $key = $request->header('X-Cron-Key') ?? $request->query('key');
-    abort_unless($key && $key === config('app.cron_key'), 403);
-};
-
-Route::get('/cron/run', function (Request $request) use ($cronAuth) {
-    $cronAuth($request);
-    Artisan::call('schedule:run');
-
-    return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
-})->middleware('throttle:10,1')->name('cron.run');
-
-Route::get('/cron/run-schedule', function (Request $request) use ($cronAuth) {
-    $cronAuth($request);
-    Artisan::call('schedule:run');
-
-    return response('OK '.now()->toDateTimeString(), 200, ['Content-Type' => 'text/plain']);
-})->middleware('throttle:10,1')->name('cron.run-schedule');
-
-Route::get('/cron/medical-reminders', function (Request $request) use ($cronAuth) {
-    $cronAuth($request);
-    dispatch_sync(new SendMedicalReminders);
-
-    return response('OK', 200, ['Content-Type' => 'text/plain']);
-})->middleware('throttle:10,1')->name('cron.medical-reminders');
-
-Route::get('/cron/weekly-backup', function (Request $request) use ($cronAuth) {
-    $cronAuth($request);
-    dispatch_sync(new WeeklyBackup);
-
-    return response('OK', 200, ['Content-Type' => 'text/plain']);
-})->middleware('throttle:10,1')->name('cron.weekly-backup');
 
 // Public voting (token-based, no login required)
 Route::get('/vote/{token}', [VotePublicController::class, 'show'])->name('vote.show');
