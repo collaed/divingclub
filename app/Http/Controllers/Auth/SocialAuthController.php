@@ -59,17 +59,24 @@ class SocialAuthController extends Controller
         }
 
         // 2. Email matches existing account — require confirmation (anti-takeover)
-        $emailRecord = UserEmail::where('email', $socialUser->getEmail())->first();
+        $email = $socialUser->getEmail();
 
-        if ($emailRecord) {
+        if (! $email) {
+            return redirect()->route('login')->with('error', __('No email returned by :provider. Please use another login method.', ['provider' => ucfirst($provider)]));
+        }
+
+        $emailRecord = UserEmail::where('email', $email)->first();
+        $existingUser = $emailRecord?->user ?? User::where('primary_email', $email)->first();
+
+        if ($existingUser) {
             session([
                 'pending_social_link' => [
                     'provider' => $provider,
                     'provider_user_id' => $socialUser->getId(),
-                    'email' => $socialUser->getEmail(),
+                    'email' => $email,
                     'token' => encrypt($socialUser->token),
                     'refresh_token' => encrypt($socialUser->refreshToken ?? ''),
-                    'user_id' => $emailRecord->user_id,
+                    'user_id' => $existingUser->id,
                 ],
             ]);
 
