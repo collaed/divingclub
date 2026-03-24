@@ -18,11 +18,11 @@
         <img src="{{ asset('images/newsletter/bulles-bg.jpg') }}" style="width:100%;display:block" alt="">
         {{-- Cards positioned at exact coordinates matching the white boxes in the image --}}
         {{-- Percentages: left/top/width/height relative to 650×975 --}}
-        <div style="position:absolute;left:2.9%;top:22.5%;width:44.9%;height:31.9%;overflow:hidden">{!! $slot1 !!}</div>
-        <div style="position:absolute;left:52.3%;top:22.5%;width:44.9%;height:31.9%;overflow:hidden">{!! $slot2 !!}</div>
-        <div style="position:absolute;left:2.9%;top:57.3%;width:44.9%;height:28.9%;overflow:hidden">{!! $slot3 !!}</div>
-        <div style="position:absolute;left:52.3%;top:57.3%;width:44.9%;height:28.9%;overflow:hidden">{!! $slot4 !!}</div>
-        <div style="position:absolute;left:50%;top:89.2%;transform:translateX(-50%);max-width:55%">{!! $slot5 !!}</div>
+        <div style="position:absolute;left:11.2%;top:32.1%;width:36.3%;height:20.5%;overflow:hidden">{!! $slot1 !!}</div>
+        <div style="position:absolute;left:52.0%;top:32.1%;width:36.3%;height:20.5%;overflow:hidden">{!! $slot2 !!}</div>
+        <div style="position:absolute;left:11.2%;top:55.1%;width:36.3%;height:20.6%;overflow:hidden">{!! $slot3 !!}</div>
+        <div style="position:absolute;left:52.0%;top:55.1%;width:36.3%;height:20.6%;overflow:hidden">{!! $slot4 !!}</div>
+        <div style="position:absolute;left:50%;top:80.0%;transform:translateX(-50%);width:36%;height:6.3%;overflow:hidden">{!! $slot5 !!}</div>
     </div>
 @else
     {{-- Gradient themes: CSS-only layout --}}
