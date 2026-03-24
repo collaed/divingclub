@@ -26,6 +26,8 @@ class VoteController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['options' => array_values(array_filter($request->input('options', []), fn ($v) => trim($v) !== ''))]);
+
         $v = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
