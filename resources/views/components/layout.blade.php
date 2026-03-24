@@ -41,7 +41,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <a href="/" class="dc-brand text-decoration-none d-flex align-items-center gap-2">
                     <img src="/images/club-logo.png" alt="" height="36" class="d-inline-block">
-                    <span><span class="dc-brand-accent">{{ $theme['logo_accent_text'] ?? 'Diving' }}</span>{{ $theme['logo_plain_text'] ?? 'Club' }}</span>
+                    <span>{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
                 </a>
                 <div class="text-white d-flex align-items-center gap-3">
                     {{-- Dark mode toggle --}}

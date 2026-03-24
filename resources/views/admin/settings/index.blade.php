@@ -677,4 +677,14 @@
     </div>{{-- end tab-license --}}
 
     </div>{{-- end tab-content --}}
+
+    <script>
+    // Remember open tab + accordion section across saves
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(t => t.addEventListener('shown.bs.tab', () => sessionStorage.setItem('settings_tab', t.dataset.bsTarget)));
+    document.querySelectorAll('.accordion-collapse').forEach(c => c.addEventListener('shown.bs.collapse', () => sessionStorage.setItem('settings_section', c.id)));
+    const savedTab = sessionStorage.getItem('settings_tab');
+    const savedSection = sessionStorage.getItem('settings_section');
+    if (savedTab) { const t = document.querySelector('[data-bs-target="'+savedTab+'"]'); if (t) new bootstrap.Tab(t).show(); }
+    if (savedSection) { const s = document.getElementById(savedSection); if (s) new bootstrap.Collapse(s, {toggle: true}); }
+    </script>
 </x-layout>
