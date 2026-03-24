@@ -50,12 +50,21 @@ class HomepageLayoutController extends Controller
         ];
     }
 
-    /** Get the saved layout or default. */
+    /** Get the saved layout or default, merging any new widget types. */
     public static function getLayout(): array
     {
         $json = ThemeSetting::get('homepage_layout');
+        $layout = $json ? json_decode($json, true) : self::defaultLayout();
 
-        return $json ? json_decode($json, true) : self::defaultLayout();
+        // Merge any new widget types from defaults that aren't in the saved layout
+        $savedTypes = collect($layout)->pluck('type')->all();
+        foreach (self::defaultLayout() as $default) {
+            if (! in_array($default['type'], $savedTypes)) {
+                $layout[] = $default;
+            }
+        }
+
+        return $layout;
     }
 
     /** Save layout via AJAX. */
