@@ -177,12 +177,12 @@ class EventController extends Controller
                 return back()->with('error', $msg);
             }
 
-            if (! app(MedicalComplianceService::class)->isCompliant($targetUser)) {
+            if (! app(MedicalComplianceService::class)->isCompliant($targetUser, $event->event_date)) {
                 $msg = $targetUser->id === $actor->id
-                    ? __('You need a valid medical certificate to register for this event. Please upload one in your profile.')
-                    : __(':name needs a valid medical certificate.', ['name' => $targetUser->name]);
+                    ? __('Warning: your medical certificate will not be valid on the event date. You can still register, but please update it before the event.')
+                    : __('Warning: :name\'s medical certificate will not be valid on the event date.', ['name' => $targetUser->name]);
 
-                return back()->with('error', $msg);
+                session()->flash('warning', $msg);
             }
         }
 

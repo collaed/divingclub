@@ -80,22 +80,26 @@ class MedicalComplianceService
     }
 
     /**
-     * Check if a user is medically compliant (has a current, non-expired medical cert).
+     * Check if a user is medically compliant at a given date (defaults to now).
      */
-    public function isCompliant(User $user): bool
+    public function isCompliant(User $user, ?Carbon $atDate = null): bool
     {
+        $date = $atDate ?? now();
+
         return $user->documents()
             ->where('category', 'medical')
             ->where('is_current', true)
-            ->where(fn ($q) => $q->whereNull('expiry_date')->orWhere('expiry_date', '>', now()))
+            ->where(fn ($q) => $q->whereNull('expiry_date')->orWhere('expiry_date', '>', $date))
             ->exists();
     }
 
     /**
-     * Get compliance status details for a user.
+     * Get compliance status details for a user, optionally at a specific date.
      */
-    public function getStatus(User $user): array
+    public function getStatus(User $user, ?Carbon $atDate = null): array
     {
+        $date = $atDate ?? now();
+
         $cert = $user->documents()
             ->where('category', 'medical')
             ->where('is_current', true)
@@ -105,12 +109,12 @@ class MedicalComplianceService
             return ['status' => 'missing', 'badge' => 'danger', 'label' => 'No Certificate', 'days' => null, 'cert' => null];
         }
 
-        if ($cert->isExpired()) {
+        if (! $cert->expiry_date || $cert->expiry_date <= $date) {
             return ['status' => 'expired', 'badge' => 'danger', 'label' => 'Expired', 'days' => $cert->daysUntilExpiry(), 'cert' => $cert];
         }
 
-        $days = $cert->daysUntilExpiry();
-        if ($days !== null && $days <= 30) {
+        $days = (int) $date->diffInDays($cert->expiry_date, false);
+        if ($days <= 30) {
             return ['status' => 'expiring', 'badge' => 'warning', 'label' => "Expires in {$days}d", 'days' => $days, 'cert' => $cert];
         }
 

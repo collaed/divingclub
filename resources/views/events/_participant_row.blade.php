@@ -2,10 +2,11 @@
 @php
     $d = $reg->user->detail;
     $cert = $d?->certification_level ?? '';
-    $med = app(\App\Services\MedicalComplianceService::class)->getStatus($reg->user);
+    $med = app(\App\Services\MedicalComplianceService::class)->getStatus($reg->user, $event->event_date);
     $isCancelled = $reg->status === 'cancelled';
+    $medInvalid = !$isCancelled && in_array($med['status'], ['missing', 'expired']);
 @endphp
-<div class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : '' }}">
+<div class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}">
     <div class="d-flex justify-content-between align-items-start">
         <div>
             <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</span>
@@ -14,6 +15,9 @@
             @endif
             @if(!$isCancelled && $isPrivileged)
                 <span class="badge bg-{{ $med['badge'] }}" style="font-size:0.55rem">{{ __($med['label']) }}</span>
+            @endif
+            @if($medInvalid && !$isPrivileged)
+                <span class="text-danger" style="font-size:0.7rem">⚠ {{ __('Medical cert invalid at event date') }}</span>
             @endif
             @if(isset($showPosition) && $reg->waiting_list_position)
                 <span class="badge bg-warning text-dark">#{{ $reg->waiting_list_position }}</span>
