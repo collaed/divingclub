@@ -16,12 +16,12 @@
     {{-- Bulles theme: single background image with absolutely positioned cards --}}
     <div class="newsletter-frame" style="position:relative;max-width:650px;margin:0 auto;font-size:0">
         <img src="{{ asset('images/newsletter/bulles-bg.jpg') }}" style="width:100%;display:block" alt="">
-        {{-- Cards positioned at exact coordinates matching the white boxes in the image --}}
-        <div style="position:absolute;left:12.5%;top:32.1%;width:34.5%;height:20.5%;overflow:hidden">{!! $slot1 !!}</div>
-        <div style="position:absolute;left:53.0%;top:32.1%;width:34.5%;height:20.5%;overflow:hidden">{!! $slot2 !!}</div>
-        <div style="position:absolute;left:12.5%;top:55.1%;width:34.5%;height:20.6%;overflow:hidden">{!! $slot3 !!}</div>
-        <div style="position:absolute;left:53.0%;top:55.1%;width:34.5%;height:20.6%;overflow:hidden">{!! $slot4 !!}</div>
-        <div style="position:absolute;left:23.2%;top:80.5%;width:36.2%;height:5.8%;overflow:hidden">{!! $slot5 !!}</div>
+        {{-- Cards positioned inside the white boxes, slightly inset to reveal decorative edges --}}
+        <div style="position:absolute;left:13.5%;top:33.5%;width:32.5%;height:18.5%;overflow:hidden">{!! $slot1 !!}</div>
+        <div style="position:absolute;left:54.0%;top:33.5%;width:32.5%;height:18.5%;overflow:hidden">{!! $slot2 !!}</div>
+        <div style="position:absolute;left:13.5%;top:56.5%;width:32.5%;height:18.5%;overflow:hidden">{!! $slot3 !!}</div>
+        <div style="position:absolute;left:54.0%;top:56.5%;width:32.5%;height:18.5%;overflow:hidden">{!! $slot4 !!}</div>
+        <div style="position:absolute;left:23.5%;top:81%;width:35.5%;height:5.5%;overflow:hidden">{!! $slot5 !!}</div>
     </div>
 @else
     {{-- Gradient themes: CSS-only layout --}}
