@@ -15,11 +15,6 @@
                 @error('dive_count') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="mb-3">
-                <label class="form-label">{{ __('Total Logged Dives') }}</label>
-                <input type="number" name="total_dives" class="form-control @error('total_dives') is-invalid @enderror" value="{{ old('total_dives', $d?->total_dives ?? 0) }}" min="0">
-                @error('total_dives') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            <div class="mb-3">
                 <label class="form-label">{{ __('Last Dive Date') }}</label>
                 <input type="date" name="last_dive_date" class="form-control @error('last_dive_date') is-invalid @enderror" value="{{ old('last_dive_date', $d?->last_dive_date?->format('Y-m-d')) }}">
                 @error('last_dive_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
