@@ -11,7 +11,7 @@ class Equipment extends Model
 
     protected $table = 'equipment';
 
-    protected $fillable = ['club_id', 'name', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'notes'];
+    protected $fillable = ['club_id', 'name', 'short_number', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'notes'];
 
     protected function casts(): array
     {

@@ -42,7 +42,7 @@
                 <select name="cylinder_id" class="form-select form-select-sm">
                     <option value="">—</option>
                     @foreach($cylinders as $c)
-                        <option value="{{ $c->id }}">{{ $c->name }}@if($c->volume) ({{ $c->volume }}L)@endif</option>
+                        <option value="{{ $c->id }}">{{ $c->short_number ?? $c->id }} · {{ $c->name }}@if($c->volume) ({{ $c->volume }}L)@endif</option>
                     @endforeach
                 </select>
             </div>
@@ -51,7 +51,7 @@
                 <select name="bcd_id" class="form-select form-select-sm">
                     <option value="">—</option>
                     @foreach($bcds as $b)
-                        <option value="{{ $b->id }}">{{ $b->name }}</option>
+                        <option value="{{ $b->id }}">{{ $b->short_number ?? $b->id }} · {{ $b->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -60,7 +60,7 @@
                 <select name="regulator_id" class="form-select form-select-sm">
                     <option value="">—</option>
                     @foreach($regulators as $r)
-                        <option value="{{ $r->id }}">{{ $r->name }}</option>
+                        <option value="{{ $r->id }}">{{ $r->short_number ?? $r->id }} · {{ $r->name }}</option>
                     @endforeach
                 </select>
             </div>

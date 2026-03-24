@@ -19,6 +19,7 @@
                     </select>
                     @error('condition') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
+                <div class="col-md-2"><label class="form-label">{{ __('Short #') }}</label><input type="text" name="short_number" class="form-control @error('short_number') is-invalid @enderror" maxlength="10" placeholder="e.g. 12, M3">@error('short_number') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
                 <div class="col-md-4"><label class="form-label">{{ __('Serial Number') }}</label><input type="text" name="serial_number" class="form-control @error('serial_number') is-invalid @enderror">@error('serial_number') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
                 <div class="col-md-4"><label class="form-label">{{ __('Purchase Date') }}</label><input type="date" name="purchase_date" class="form-control @error('purchase_date') is-invalid @enderror">@error('purchase_date') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
                 <div class="col-12"><label class="form-label">{{ __('Notes') }}</label><textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="2"></textarea>@error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>

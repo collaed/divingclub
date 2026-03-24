@@ -25,10 +25,11 @@
 
     <div class="table-responsive">
         <table class="table table-sm table-hover">
-            <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Type') }}</th><th>{{ __('Serial') }}</th><th>{{ __('Condition') }}</th><th>{{ __('Status') }}</th><th>{{ __('Loaned To') }}</th><th></th></tr></thead>
+            <thead><tr><th>#</th><th>{{ __('Name') }}</th><th>{{ __('Type') }}</th><th>{{ __('Serial') }}</th><th>{{ __('Condition') }}</th><th>{{ __('Status') }}</th><th>{{ __('Loaned To') }}</th><th></th></tr></thead>
             <tbody>
             @foreach($equipment as $e)
                 <tr>
+                    <td class="fw-bold">{{ $e->short_number ?? '—' }}</td>
                     <td>{{ $e->name }}</td>
                     <td><span class="badge bg-secondary">{{ ucfirst($e->type) }}</span></td>
                     <td class="small">{{ $e->serial_number ?? '—' }}</td>

@@ -1,4 +1,5 @@
 {{-- Shared date/time pickers (Flatpickr), input masks, IBAN formatter --}}
+<style>input.flatpickr-input{max-width:20ch}</style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
