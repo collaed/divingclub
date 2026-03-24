@@ -164,8 +164,8 @@
         @endif
     </div>
 
-    {{-- Email Management (Vault only) --}}
-    @if($tierVault)
+    {{-- Email Management (own profile only) --}}
+    @if($isSelf)
     <div class="card dc-card mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{ __('Email Addresses') }}</h5>
