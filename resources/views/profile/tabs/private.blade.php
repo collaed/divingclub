@@ -69,10 +69,5 @@
             @error('emergency_contact_relationship') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
-    <div class="mb-3">
-        <label class="form-label">{{ __('Brevet Date') }}</label>
-        <input type="date" name="brevet_date" class="form-control @error('brevet_date') is-invalid @enderror" value="{{ old('brevet_date', $d?->brevet_date?->format('Y-m-d')) }}">
-        @error('brevet_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
-    </div>
     <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
 </form>
