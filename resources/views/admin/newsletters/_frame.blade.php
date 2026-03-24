@@ -21,7 +21,7 @@
         <div style="position:absolute;left:53.0%;top:32.1%;width:34.5%;height:20.5%;overflow:hidden">{!! $slot2 !!}</div>
         <div style="position:absolute;left:12.5%;top:55.1%;width:34.5%;height:20.6%;overflow:hidden">{!! $slot3 !!}</div>
         <div style="position:absolute;left:53.0%;top:55.1%;width:34.5%;height:20.6%;overflow:hidden">{!! $slot4 !!}</div>
-        <div style="position:absolute;left:22%;top:80.5%;width:36%;height:5.8%;overflow:hidden">{!! $slot5 !!}</div>
+        <div style="position:absolute;left:23.2%;top:80.5%;width:36.2%;height:5.8%;overflow:hidden">{!! $slot5 !!}</div>
     </div>
 @else
     {{-- Gradient themes: CSS-only layout --}}

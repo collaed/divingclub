@@ -97,7 +97,7 @@
                 $icon = \App\Models\Article::TYPES[$article->article_type]['icon'] ?? '📄';
 
                 if ($i <= 4) {
-                    $slotHtml[$i] = '<a href="' . $url . '" target="_blank" style="background:#fff;overflow:hidden;height:100%;display:flex;flex-direction:column;text-decoration:none;color:inherit">'
+                    $slotHtml[$i] = '<a href="' . $url . '" target="_blank" style="background:#f0f7ff;overflow:hidden;height:100%;display:flex;flex-direction:column;text-decoration:none;color:inherit">'
                         . $img
                         . '<div style="padding:6px;flex:1;overflow:hidden"><h6 style="font-size:12px;margin:0 0 4px;color:#003366;line-height:1.3;font-weight:bold">' . $icon . ' ' . e($t['title']) . '</h6>'
                         . '<p style="font-size:9px;color:#555;margin:0;line-height:1.35;overflow:hidden">' . e($excerpt) . '</p>'
@@ -105,12 +105,12 @@
                         . '<div style="padding:2px 6px 4px;text-align:right"><span style="font-size:9px;color:#0077be">Lire la suite →</span></div>'
                         . '</a>';
                 } else {
-                    $slotHtml[$i] = '<a href="' . $url . '" target="_blank" style="background:#fff;height:100%;display:flex;align-items:center;justify-content:center;padding:0 8px;text-decoration:none">'
+                    $slotHtml[$i] = '<a href="' . $url . '" target="_blank" style="background:#f0f7ff;height:100%;display:flex;align-items:center;justify-content:center;padding:0 8px;text-decoration:none">'
                         . '<span style="font-weight:bold;font-size:11px;color:#003366;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' . $icon . ' ' . e($t['title']) . '</span>'
                         . '</a>';
                 }
             } else {
-                $slotHtml[$i] = '<div style="background:#fff;height:100%;display:flex;align-items:center;justify-content:center;color:#999"><small style="font-size:10px">' . __('Empty slot') . ' ' . $i . '</small></div>';
+                $slotHtml[$i] = '<div style="background:#f0f7ff;height:100%;display:flex;align-items:center;justify-content:center;color:#999"><small style="font-size:10px">' . __('Empty slot') . ' ' . $i . '</small></div>';
             }
         }
     @endphp
