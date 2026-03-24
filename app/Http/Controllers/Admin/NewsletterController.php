@@ -40,20 +40,22 @@ class NewsletterController extends Controller
             'title' => 'required|string|max:255',
             'month' => 'required|string|max:7',
             'background_image' => 'nullable|image|max:5120',
+            'background_preset' => 'nullable|string|max:50',
             'slots' => 'required|array|min:1',
             'slots.*.position' => 'required|integer|between:1,5',
             'slots.*.article_id' => 'required|exists:articles,id',
+            'slots.*.article_type' => 'nullable|string|max:30',
         ]);
 
-        $bgPath = null;
+        $bg = $request->input('background_preset', 'default-bulles');
         if ($request->hasFile('background_image')) {
-            $bgPath = $request->file('background_image')->store('newsletters', 'public');
+            $bg = $request->file('background_image')->store('newsletters', 'public');
         }
 
         $newsletter = Newsletter::create([
             'title' => $v['title'],
             'month' => $v['month'],
-            'background_image' => $bgPath,
+            'background_image' => $bg,
             'slots' => $v['slots'],
             'status' => 'draft',
             'created_by' => auth()->id(),
@@ -89,21 +91,24 @@ class NewsletterController extends Controller
             'title' => 'required|string|max:255',
             'month' => 'required|string|max:7',
             'background_image' => 'nullable|image|max:5120',
+            'background_preset' => 'nullable|string|max:50',
             'slots' => 'required|array|min:1',
             'slots.*.position' => 'required|integer|between:1,5',
             'slots.*.article_id' => 'required|exists:articles,id',
+            'slots.*.article_type' => 'nullable|string|max:30',
         ]);
 
+        $bg = $request->input('background_preset') ?: $newsletter->background_image;
         if ($request->hasFile('background_image')) {
-            $newsletter->background_image = $request->file('background_image')->store('newsletters', 'public');
+            $bg = $request->file('background_image')->store('newsletters', 'public');
         }
 
         $newsletter->update([
             'title' => $v['title'],
             'month' => $v['month'],
-            'background_image' => $newsletter->background_image,
+            'background_image' => $bg,
             'slots' => $v['slots'],
-            'status' => 'draft', // reset approvals on edit
+            'status' => 'draft',
         ]);
         $newsletter->approvals()->delete();
 

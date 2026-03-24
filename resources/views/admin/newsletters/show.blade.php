@@ -79,10 +79,17 @@
     @endif
 
     {{-- Visual preview --}}
-    <div class="position-relative rounded overflow-hidden" style="max-width:650px;margin:0 auto;min-height:600px;background:linear-gradient(135deg,#003366,#0077be);padding:20px">
-        @if($newsletter->background_image)
-            <img src="{{ asset('storage/'.$newsletter->background_image) }}" class="position-absolute top-0 start-0 w-100 h-100" style="object-fit:cover;opacity:0.4" alt="">
-        @endif
+    @php
+        $bgPresets = [
+            'default-bulles' => 'url(' . asset('storage/newsletters/default-bulles.png') . ') center/cover',
+            'gradient-abyss' => 'linear-gradient(160deg, #0a0a2e 0%, #1a1a5e 30%, #0d2b45 60%, #000428 100%)',
+            'gradient-coral' => 'linear-gradient(160deg, #1a3a5c 0%, #0e4d6e 25%, #2d6a7a 50%, #c0392b 80%, #e74c3c 100%)',
+            'gradient-arctic' => 'linear-gradient(160deg, #37474f 0%, #455a64 25%, #546e7a 50%, #78909c 75%, #b0bec5 100%)',
+        ];
+        $bg = $newsletter->background_image;
+        $bgCss = $bgPresets[$bg] ?? (str_starts_with($bg, 'gradient-') ? $bgPresets['gradient-abyss'] : 'url(' . asset('storage/' . $bg) . ') center/cover');
+    @endphp
+    <div class="position-relative rounded overflow-hidden" style="max-width:650px;margin:0 auto;min-height:600px;background:{{ $bgCss }};padding:20px">
         <div class="position-relative">
             <h3 class="text-center text-warning mb-4" style="text-shadow:2px 2px 4px rgba(0,0,0,0.7)">{{ $newsletter->title }}</h3>
 
@@ -118,8 +125,10 @@
             {{-- Slot 5 --}}
             @if(isset($slotArticles[5]))
                 @php $a5 = $slotArticles[5]['article']; @endphp
-                <div class="bg-white rounded p-2 text-center" style="max-width:60%">
-                    <a href="{{ route('article.show', $a5->slug) }}" class="fw-bold small text-decoration-none" target="_blank">{{ $a5->translated('fr')['title'] }}</a>
+                <div class="d-flex justify-content-center">
+                    <div class="bg-white rounded p-2 text-center" style="width:55%">
+                        <a href="{{ route('article.show', $a5->slug) }}" class="fw-bold small text-decoration-none" target="_blank">{{ $a5->translated('fr')['title'] }}</a>
+                    </div>
                 </div>
             @endif
         </div>
