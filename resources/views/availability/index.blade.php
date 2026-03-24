@@ -104,9 +104,11 @@
     function toggleEvent(eventId) {
         fetch('{{ route("availability.toggle") }}', {
             method: 'POST',
-            headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
+            headers: {'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},
             body: JSON.stringify({event_id: eventId})
-        }).then(r => r.json()).then(() => location.reload());
+        }).then(r => { if (!r.ok) { return r.text().then(t => { alert('Error '+r.status+': '+t); throw t; }); } return r.json(); })
+          .then(() => location.reload())
+          .catch(e => console.error(e));
     }
     </script>
     @endif
