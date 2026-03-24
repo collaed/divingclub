@@ -78,69 +78,46 @@
         </div>
     @endif
 
-    {{-- Visual preview --}}
+    {{-- Visual preview using sliced frame --}}
     @php
-        $bgPresets = [
-            'default-bulles' => asset('storage/newsletters/default-bulles.png'),
-            'gradient-abyss' => null,
-            'gradient-coral' => null,
-            'gradient-arctic' => null,
-        ];
-        $gradients = [
-            'gradient-abyss' => 'linear-gradient(160deg, #0a0a2e 0%, #1a1a5e 30%, #0d2b45 60%, #000428 100%)',
-            'gradient-coral' => 'linear-gradient(160deg, #1a3a5c 0%, #0e4d6e 25%, #2d6a7a 50%, #c0392b 80%, #e74c3c 100%)',
-            'gradient-arctic' => 'linear-gradient(160deg, #37474f 0%, #455a64 25%, #546e7a 50%, #78909c 75%, #b0bec5 100%)',
-        ];
-        $bg = $newsletter->background_image;
-        $bgImage = $bgPresets[$bg] ?? (isset($gradients[$bg]) ? null : asset('storage/' . $bg));
-        $bgGradient = $gradients[$bg] ?? null;
-    @endphp
-    <div class="position-relative rounded overflow-hidden"
-         style="max-width:650px;margin:0 auto;{{ $bgGradient ? 'background:'.$bgGradient : '' }}">
-        @if($bgImage)
-            <img src="{{ $bgImage }}" class="w-100" style="display:block" alt="">
-        @endif
-        {{-- Article cards overlaid on the background --}}
-        <div class="position-absolute" style="top:0;left:0;right:0;bottom:0;padding:22% 5% 8% 5%;z-index:1;display:flex;flex-direction:column;gap:10px">
-            {{-- 2×2 grid for slots 1-4 --}}
-            <div class="row g-2 flex-grow-1">
-                @for($i = 1; $i <= 4; $i++)
-                    <div class="col-6 d-flex">
-                        @if(isset($slotArticles[$i]))
-                            @php
-                                $article = $slotArticles[$i]['article'];
-                                $t = $article->translated('fr');
-                            @endphp
-                            <div class="card w-100" style="overflow:hidden">
-                                @if($article->featured_image)
-                                    <img src="{{ asset('storage/'.$article->featured_image) }}" class="card-img-top" style="max-height:100px;object-fit:cover" alt="">
-                                @endif
-                                <div class="card-body p-2">
-                                    <h6 class="card-title mb-1" style="font-size:12px">{{ $t['title'] }}</h6>
-                                    <p class="card-text text-muted mb-1" style="font-size:10px;line-height:1.3">{{ Str::limit(strip_tags($t['body']), 80) }}</p>
-                                    <a href="{{ route('article.show', $article->slug) }}" style="font-size:11px" target="_blank">{{ __('Read more →') }}</a>
-                                </div>
-                            </div>
-                        @else
-                            <div class="card w-100 border-dashed">
-                                <div class="card-body text-center text-muted d-flex align-items-center justify-content-center">
-                                    <span>{{ __('Empty slot') }} {{ $i }}</span>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                @endfor
-            </div>
+        $theme = $newsletter->background_image ?? 'default-bulles';
 
-            {{-- Slot 5 --}}
-            <div class="d-flex justify-content-center">
-                @if(isset($slotArticles[5]))
-                    @php $a5 = $slotArticles[5]['article']; @endphp
-                    <div class="bg-white rounded p-2 text-center" style="width:55%">
-                        <a href="{{ route('article.show', $a5->slug) }}" class="fw-bold small text-decoration-none" target="_blank">{{ $a5->translated('fr')['title'] }}</a>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
+        // Build slot HTML
+        $slotHtml = [];
+        foreach (range(1, 5) as $i) {
+            if (isset($slotArticles[$i])) {
+                $article = $slotArticles[$i]['article'];
+                $t = $article->translated('fr');
+                $img = $article->featured_image
+                    ? '<img src="'.asset('storage/'.$article->featured_image).'" style="width:100%;max-height:100px;object-fit:cover;display:block;border-radius:4px 4px 0 0" alt="">'
+                    : '';
+                $excerpt = Str::limit(strip_tags($t['body']), $i <= 4 ? 80 : 40);
+                $url = route('article.show', $article->slug);
+
+                if ($i <= 4) {
+                    $slotHtml[$i] = '<div class="bg-white rounded h-100" style="overflow:hidden">'
+                        . $img
+                        . '<div style="padding:8px"><h6 style="font-size:12px;margin:0 0 4px">' . e($t['title']) . '</h6>'
+                        . '<p style="font-size:10px;color:#666;margin:0 0 4px;line-height:1.3">' . e($excerpt) . '</p>'
+                        . '<a href="' . $url . '" target="_blank" style="font-size:11px;color:#0077be">' . __('Read more →') . '</a>'
+                        . '</div></div>';
+                } else {
+                    $slotHtml[$i] = '<div class="bg-white rounded p-2 text-center">'
+                        . '<a href="' . $url . '" target="_blank" class="fw-bold small text-decoration-none">' . e($t['title']) . '</a>'
+                        . '</div>';
+                }
+            } else {
+                $slotHtml[$i] = '<div class="bg-white rounded h-100 d-flex align-items-center justify-content-center text-muted" style="min-height:' . ($i <= 4 ? '150px' : '35px') . '"><small>' . __('Empty slot') . ' ' . $i . '</small></div>';
+            }
+        }
+    @endphp
+
+    @include('admin.newsletters._frame', [
+        'theme' => $theme,
+        'slot1' => $slotHtml[1],
+        'slot2' => $slotHtml[2],
+        'slot3' => $slotHtml[3],
+        'slot4' => $slotHtml[4],
+        'slot5' => $slotHtml[5],
+    ])
 </x-layout>

@@ -178,10 +178,10 @@
     <script>
         let activeSlot = null;
         const slots = {};
-        const defaultBgUrl = '{{ asset("storage/newsletters/default-bulles.png") }}';
+        const defaultBgUrl = '{{ asset("images/newsletter/bulles/header.jpg") }}'; // just for reference
 
         const bgStyles = {
-            'default-bulles': 'url(' + defaultBgUrl + ') center/cover',
+            'default-bulles': '#1a6fa0',
             'gradient-abyss': 'linear-gradient(160deg, #0a0a2e 0%, #1a1a5e 30%, #0d2b45 60%, #000428 100%)',
             'gradient-coral': 'linear-gradient(160deg, #1a3a5c 0%, #0e4d6e 25%, #2d6a7a 50%, #c0392b 80%, #e74c3c 100%)',
             'gradient-arctic': 'linear-gradient(160deg, #37474f 0%, #455a64 25%, #546e7a 50%, #78909c 75%, #b0bec5 100%)',

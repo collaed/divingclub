@@ -219,23 +219,22 @@ class NewsletterController extends Controller
 
     private function renderEmailHtml(Newsletter $newsletter, array $slotArticles, string $locale, string $appUrl, string $clubName): string
     {
-        $bgUrl = $newsletter->background_image
-            ? $appUrl.'/storage/'.$newsletter->background_image
-            : '';
+        $isBulles = ($newsletter->background_image ?? 'default-bulles') === 'default-bulles';
+        $headerImg = $isBulles ? $appUrl.'/images/newsletter/bulles/header.jpg' : '';
 
         $html = '<div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif">';
 
-        // Header with background
-        if ($bgUrl) {
-            $html .= '<div style="background:url('.$bgUrl.') center/cover;padding:40px 20px;text-align:center;border-radius:8px">';
-            $html .= '<h1 style="color:#d4a843;text-shadow:2px 2px 4px rgba(0,0,0,0.7);font-size:24px;margin:0">'.e($newsletter->title).'</h1>';
-            $html .= '</div>';
+        // Header
+        if ($headerImg) {
+            $html .= '<img src="'.$headerImg.'" style="width:100%;display:block;border-radius:8px 8px 0 0" alt="'.e($newsletter->title).'">';
         } else {
-            $html .= '<h1 style="color:#003366;text-align:center;padding:20px">'.e($newsletter->title).'</h1>';
+            $html .= '<div style="background:#003366;padding:30px 20px;text-align:center;border-radius:8px 8px 0 0">';
+            $html .= '<h1 style="color:#d4a843;font-size:22px;margin:0;font-family:Georgia,serif">'.e($newsletter->title).'</h1>';
+            $html .= '</div>';
         }
 
-        // Article slots in 2-column grid
-        $html .= '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px"><tr>';
+        // Article slots in 2-column table
+        $html .= '<table width="100%" cellpadding="0" cellspacing="0" style="background:#1a6fa0"><tr>';
         $col = 0;
         foreach ([1, 2, 3, 4] as $pos) {
             if ($col > 0 && $col % 2 === 0) {
@@ -248,33 +247,32 @@ class NewsletterController extends Controller
                 $t = $article->translated($locale);
                 $url = $appUrl.'/article/'.$article->slug;
                 $img = $article->featured_image
-                    ? '<img src="'.$appUrl.'/storage/'.$article->featured_image.'" style="width:100%;max-height:120px;object-fit:cover;border-radius:4px" alt="">'
+                    ? '<img src="'.$appUrl.'/storage/'.$article->featured_image.'" style="width:100%;max-height:120px;object-fit:cover;border-radius:4px 4px 0 0" alt="">'
                     : '';
                 $excerpt = Str::limit(strip_tags($t['body']), 120);
 
-                $html .= '<div style="background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden">';
+                $html .= '<div style="background:#fff;border-radius:6px;overflow:hidden">';
                 $html .= $img;
                 $html .= '<div style="padding:10px">';
                 $html .= '<h3 style="margin:0 0 6px;font-size:14px;color:#003366">'.e($t['title']).'</h3>';
                 $html .= '<p style="margin:0 0 8px;font-size:12px;color:#555">'.$excerpt.'</p>';
                 $html .= '<a href="'.$url.'" style="color:#0077be;font-size:12px;text-decoration:none">'.($locale === 'fr' ? 'Lire la suite →' : __('Read more →')).'</a>';
                 $html .= '</div></div>';
-            } else {
-                $html .= '&nbsp;';
             }
             $html .= '</td>';
             $col++;
         }
         $html .= '</tr></table>';
 
-        // Slot 5 — small bottom banner
+        // Slot 5 — centered bottom banner
         if (isset($slotArticles[5])) {
             $article = $slotArticles[5]['article'];
             $t = $article->translated($locale);
             $url = $appUrl.'/article/'.$article->slug;
-            $html .= '<div style="margin-top:12px;padding:12px;background:#f0f8ff;border-radius:6px;text-align:center">';
-            $html .= '<a href="'.$url.'" style="color:#003366;font-weight:bold;text-decoration:none">'.e($t['title']).'</a>';
-            $html .= '</div>';
+            $html .= '<div style="background:#1a6fa0;padding:12px;text-align:center">';
+            $html .= '<div style="display:inline-block;background:#fff;border-radius:6px;padding:8px 20px">';
+            $html .= '<a href="'.$url.'" style="color:#003366;font-weight:bold;text-decoration:none;font-size:13px">'.e($t['title']).'</a>';
+            $html .= '</div></div>';
         }
 
         // Footer
