@@ -46,6 +46,11 @@
                 <div class="text-white d-flex align-items-center gap-3">
                     {{-- Dark mode toggle --}}
                     <button class="dc-dark-toggle" onclick="toggleDarkMode()" title="{{ __('Toggle dark mode') }}" id="darkToggle">🌙</button>
+                    {{-- Font size --}}
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-light py-0 px-1" onclick="setFontSize(-1)" title="{{ __('Smaller text') }}">A-</button>
+                        <button class="btn btn-outline-light py-0 px-1" onclick="setFontSize(1)" title="{{ __('Larger text') }}">A+</button>
+                    </div>
                     {{-- Language selector --}}
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-light dropdown-toggle py-0 px-2" data-bs-toggle="dropdown" aria-label="Language">
@@ -170,7 +175,6 @@
                                         <li><a class="dropdown-item" href="{{ route('admin.links.index') }}">{{ __('Links') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.library.index') }}">@icon('📁') {{ __('Documents') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.email.index') }}">{{ __('Email') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">📬 {{ __('Newsletters') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.votes.index') }}">{{ __('Votes') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         {{-- Diving --}}
@@ -185,6 +189,8 @@
                                         <li><a class="dropdown-item" href="{{ route('admin.guide.index') }}">@icon('📖') {{ __('Admin Guide') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.annual-report') }}">@icon('📊') {{ __('Annual Report') }}</a></li>
                                     @endif
+                                    {{-- Visible to all bureau roles --}}
+                                    <li><a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">📬 {{ __('Newsletters') }}</a></li>
                                 </ul>
                             </li>
                         @endif
@@ -304,6 +310,13 @@
         var b = document.getElementById('darkToggle');
         if(b) b.textContent = t === 'dark' ? '☀️' : '🌙';
     }
+    function setFontSize(d){
+        var s = parseInt(localStorage.getItem('dc_fontsize') || '100');
+        s = Math.max(80, Math.min(130, s + d * 10));
+        document.documentElement.style.fontSize = s + '%';
+        localStorage.setItem('dc_fontsize', s);
+    }
+    (function(){var s=localStorage.getItem('dc_fontsize');if(s)document.documentElement.style.fontSize=s+'%';})();
     </script>
     @auth
     <script>
