@@ -10,7 +10,7 @@
     <div class="d-flex justify-content-between align-items-start">
         <div>
             <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</span>
-            @if($cert && $event->levels_display)
+            @if($cert && ($event->levels_display || $isPrivileged))
                 <span class="badge bg-info text-dark" style="font-size:0.65rem">{{ $cert }}</span>
             @endif
             @if(!$isCancelled && $isPrivileged)
@@ -37,6 +37,17 @@
         @endif
         @if($reg->comment)
             — <em>{{ $reg->comment }}</em>
+        @endif
+        @if(!$isCancelled && ($isPrivileged || (auth()->check() && $reg->user_id === auth()->id())))
+            <a href="#" onclick="this.nextElementSibling.classList.toggle('d-none');return false" class="ms-1">✏️</a>
+            <form method="POST" action="{{ route('events.update-comment', $event) }}" class="d-none mt-1">
+                @csrf
+                <input type="hidden" name="registration_id" value="{{ $reg->id }}">
+                <div class="input-group input-group-sm" style="max-width:300px">
+                    <input type="text" name="comment" class="form-control" value="{{ $reg->comment }}" placeholder="{{ __('Comment') }}" style="font-size:0.7rem">
+                    <button class="btn btn-outline-primary" style="font-size:0.7rem">💾</button>
+                </div>
+            </form>
         @endif
     </div>
     {{-- Cancellation info --}}

@@ -149,6 +149,7 @@
 
         {{-- Sidebar: registration form, participant list, payments, communications --}}
         <div class="col-lg-4">
+            @php $isPrivileged = auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? [])); @endphp
             {{-- Registration --}}
             @auth
                 <div class="card dc-card mb-4">
@@ -194,8 +195,8 @@
                             @endif
                         @endif
 
-                        {{-- Register another person --}}
-                        @if($event->isRegistrationOpen() && $members->count())
+                        {{-- Register another person (bureau can always do this) --}}
+                        @if(($event->isRegistrationOpen() || $isPrivileged) && $members->count())
                             <hr>
                             <form method="POST" action="{{ route('events.register', $event) }}">
                                 @csrf
@@ -223,7 +224,6 @@
                 $cancelled = $event->registrations->where('status', 'cancelled');
                 $instructorRegs = $confirmed->filter(fn($r) => $r->user->role_id === 3 || $r->user->detail?->active_instructor);
                 $memberRegs = $confirmed->reject(fn($r) => $r->user->role_id === 3 || $r->user->detail?->active_instructor);
-                $isPrivileged = auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? []));
             @endphp
             <div class="card dc-card mb-4">
                 <div class="card-header d-flex justify-content-between">
@@ -331,7 +331,7 @@
             @endauth
 
             {{-- Dive Groups link --}}
-            @if(in_array($event->event_type, ['dive', 'training']))
+            @if(in_array($event->event_type, ['dive', 'training']) || $isPrivileged)
                 <div class="card dc-card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>@icon('🤿') {{ __('Dive Groups') }}</span>

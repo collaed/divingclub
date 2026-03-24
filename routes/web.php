@@ -267,6 +267,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::post('/events/{event}/register', [EventController::class, 'register'])->name('events.register');
     Route::post('/events/{event}/cancel-registration', [EventController::class, 'cancelRegistration'])->name('events.cancel-registration');
+    Route::post('/events/{event}/update-comment', [EventController::class, 'updateComment'])->name('events.update-comment');
     Route::post('/events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
     Route::post('/events/{event}/photos', [EventController::class, 'uploadPhoto'])->name('events.photo.upload');
     Route::delete('/events/{event}/photos/{photo}', [EventController::class, 'deletePhoto'])->name('events.photo.delete');

@@ -34,6 +34,7 @@ use App\Services\MedicalComplianceService;
 use App\Services\PushNotificationService;
 use App\Services\SocialPublishService;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -284,6 +285,16 @@ class EventController extends Controller
         }
 
         return back()->with('success', __('Registration cancelled.'));
+    }
+
+    public function updateComment(Event $event, Request $request): RedirectResponse
+    {
+        $request->validate(['registration_id' => 'required|integer', 'comment' => 'nullable|string|max:500']);
+        $reg = $event->registrations()->findOrFail($request->registration_id);
+        abort_unless(auth()->user()->isBureau() || $reg->user_id === auth()->id(), 403);
+        $reg->update(['comment' => $request->comment]);
+
+        return back()->with('success', __('Comment updated.'));
     }
 
     public function cancel(Event $event)
