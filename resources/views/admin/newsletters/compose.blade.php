@@ -95,7 +95,7 @@
                                             <img src="{{ asset('storage/'.$article->featured_image) }}" style="width:50px;height:50px;object-fit:cover;border-radius:4px" alt="">
                                         @else
                                             <div style="width:50px;height:50px;background:#eee;border-radius:4px" class="d-flex align-items-center justify-content-center">
-                                                <span>{{ Article::TYPES[$article->article_type]['icon'] ?? '📄' }}</span>
+                                                <span>{{ \App\Models\Article::TYPES[$article->article_type]['icon'] ?? '📄' }}</span>
                                             </div>
                                         @endif
                                         <div class="flex-grow-1" style="min-width:0">
