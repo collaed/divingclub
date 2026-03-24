@@ -36,7 +36,12 @@
                     <td>{{ ucfirst($e->condition) }}</td>
                     <td><span class="badge bg-{{ $e->status === 'available' ? 'success' : ($e->status === 'on_loan' ? 'info' : ($e->status === 'maintenance_required' ? 'danger' : 'secondary')) }}">{{ ucfirst(str_replace('_', ' ', $e->status)) }}</span></td>
                     <td>{{ $e->currentLoan?->user?->name ?? '—' }}</td>
-                    <td><a href="{{ route('admin.equipment.show', $e) }}" class="btn btn-sm btn-outline-primary">{{ __('View') }}</a></td>
+                    <td class="text-end text-nowrap">
+                        @if($e->currentLoan)
+                            <form method="POST" action="{{ route('admin.equipment.return', $e->currentLoan) }}" class="d-inline">@csrf<button class="btn btn-sm btn-outline-success py-0">↩ {{ __('Return') }}</button></form>
+                        @endif
+                        <a href="{{ route('admin.equipment.show', $e) }}" class="btn btn-sm btn-outline-primary py-0">{{ __('View') }}</a>
+                    </td>
                 </tr>
             @endforeach
             </tbody>
