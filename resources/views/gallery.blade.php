@@ -1,35 +1,43 @@
-{{-- Photo gallery — lightweight card-stack previews per event | ClubCEP.eu --}}
+{{-- Photo gallery — responsive grid of event cards with fanned thumbnails | ClubCEP.eu --}}
 <x-layout :title="__('Photo Gallery')">
     <h4 class="mb-4">@icon('📸') {{ __('Photo Gallery') }}</h4>
 
-    @forelse($photos as $eventTitle => $eventPhotos)
-        @php $items = $eventPhotos->values()->take(5); @endphp
-        <div class="card dc-card mb-4">
-            <div class="card-header d-flex justify-content-between">
-                <span>{{ $eventTitle }}</span>
-                <span class="badge bg-secondary">{{ $eventPhotos->count() }} {{ __('photos') }}</span>
-            </div>
-            <div class="card-body d-flex justify-content-center py-4">
-                <div class="photo-stack" style="position:relative;width:280px;height:200px">
-                    @foreach($items as $i => $photo)
-                        @php
-                            $url = is_string($photo) ? $photo : ($photo->url ?? $photo['url'] ?? asset('storage/' . ($photo->path ?? $photo['path'] ?? '')));
-                            $rot = ($i - floor($items->count() / 2)) * 8;
-                            $z = $items->count() - $i;
-                        @endphp
-                        <img src="{{ $url }}" alt="" loading="lazy"
-                             style="position:absolute;top:50%;left:50%;width:200px;height:150px;object-fit:cover;border-radius:6px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);transform:translate(-50%,-50%) rotate({{ $rot }}deg);z-index:{{ $z }};transition:transform .3s"
-                             onmouseenter="this.style.zIndex=99;this.style.transform='translate(-50%,-55%) rotate(0deg) scale(1.1)'"
-                             onmouseleave="this.style.zIndex={{ $z }};this.style.transform='translate(-50%,-50%) rotate({{ $rot }}deg)'">
-                    @endforeach
+    @if($events->count())
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+            @foreach($events as $ev)
+                <div class="col">
+                    <div class="card dc-card h-100">
+                        <div class="d-flex justify-content-center align-items-center py-3" style="height:160px;overflow:hidden;background:#f0f4f8">
+                            @foreach($ev->photos as $i => $photo)
+                                @php
+                                    $url = is_string($photo) ? $photo : ($photo->url ?? $photo['url'] ?? asset('storage/' . ($photo->path ?? $photo['path'] ?? '')));
+                                    $rot = ($i - floor($ev->photos->count() / 2)) * 8;
+                                    $z = $ev->photos->count() - $i;
+                                @endphp
+                                <img src="{{ $url }}" alt="" loading="lazy"
+                                     style="position:absolute;width:120px;height:90px;object-fit:cover;border-radius:4px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transform:rotate({{ $rot }}deg);z-index:{{ $z }};transition:transform .2s"
+                                     onmouseenter="this.style.zIndex=99;this.style.transform='rotate(0deg) scale(1.15)'"
+                                     onmouseleave="this.style.zIndex={{ $z }};this.style.transform='rotate({{ $rot }}deg)'">
+                            @endforeach
+                        </div>
+                        <div class="card-body py-2 px-2 text-center">
+                            <strong class="small">{{ Str::limit($ev->title, 30) }}</strong>
+                            <div class="text-muted" style="font-size:.7rem">
+                                {{ $ev->count }} {{ __('photos') }}
+                                · {{ $ev->latest->translatedFormat('d M Y') }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            @endforeach
         </div>
-    @empty
+
+        <div class="mt-3">{{ $events->links() }}</div>
+    @else
         <div class="card dc-card">
             <div class="card-body text-center py-5 text-muted">
                 @icon('📷') {{ __('No photos yet. Photos will appear here after events.') }}
             </div>
         </div>
-    @endforelse
+    @endif
 </x-layout>

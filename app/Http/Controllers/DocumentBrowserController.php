@@ -15,6 +15,7 @@ namespace App\Http\Controllers;
 use App\Models\EventPhoto;
 use App\Models\LibraryFile;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
 class DocumentBrowserController extends Controller
@@ -25,10 +26,31 @@ class DocumentBrowserController extends Controller
         $user = auth()->user();
         $query = $user ? EventPhoto::bestForMembers(200) : EventPhoto::bestPublic(200);
 
-        $photos = $query->with('event:id,title,event_date')->get()
-            ->groupBy(fn ($p) => $p->event?->title ?? __('Other'));
+        $all = $query->with('event:id,title,event_date')->get()
+            ->groupBy(fn ($p) => $p->event_id ?? 0)
+            ->map(function ($photos) {
+                $event = $photos->first()->event;
 
-        return view('gallery', compact('photos'));
+                return (object) [
+                    'title' => $event?->title ?? __('Other'),
+                    'event_date' => $event?->event_date,
+                    'latest' => $photos->max('created_at'),
+                    'cover' => $photos->first(),
+                    'count' => $photos->count(),
+                    'photos' => $photos->take(5),
+                ];
+            })
+            ->sortByDesc('latest')
+            ->values();
+
+        $page = (int) request('page', 1);
+        $perPage = 12;
+        $events = new LengthAwarePaginator(
+            $all->forPage($page, $perPage), $all->count(), $perPage, $page,
+            ['path' => request()->url()]
+        );
+
+        return view('gallery', compact('events'));
     }
 
     public function index(Request $request)
