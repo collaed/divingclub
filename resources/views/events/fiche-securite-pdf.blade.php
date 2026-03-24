@@ -1,5 +1,5 @@
 {{-- Fiche de Sécurité PDF — FFESSM 2024-2025 format | ClubCEP.eu
-     Printable dive safety sheet: 3 palanquée rows max (9-12 divers),
+     Printable dive safety sheet: 6 palanquée rows max,
      full emergency info block with hospital, hyperbaric chamber, required
      equipment, and VHF/phone contacts from the dive site record.
      Watermarked when installation is unlicensed. --}}
@@ -67,7 +67,7 @@
     @php
         $site = $event->diveSite;
         $clubName = \App\Models\ThemeSetting::get('club_full_name', config('app.name'));
-        $groups = $event->diveGroups->take(3); // Max 3 palanquées per fiche
+        $groups = $event->diveGroups->take(6); // Max 6 palanquées per fiche
     @endphp
 
     {{-- ═══════════ HEADER ═══════════ --}}
@@ -162,16 +162,16 @@
                 </tr>
             @endforeach
 
-            {{-- Empty rows to fill 4 palanquées if fewer groups exist --}}
-            @for($p = $groups->count(); $p < 3; $p++)
-                @for($r = 0; $r < 4; $r++)
+            {{-- Empty rows to fill 6 palanquées if fewer groups exist --}}
+            @for($p = $groups->count(); $p < 6; $p++)
+                @for($r = 0; $r < 3; $r++)
                     <tr>
                         @if($r === 0)
-                            <td rowspan="4" class="pal-num" style="color:#ccc;">{{ $p + 1 }}</td>
-                            <td rowspan="4"></td>
-                            <td rowspan="3" class="pal-depth"></td>
+                            <td rowspan="3" class="pal-num" style="color:#ccc;">{{ $p + 1 }}</td>
+                            <td rowspan="3"></td>
+                            <td rowspan="2" class="pal-depth"></td>
                         @endif
-                        @if($r < 3)
+                        @if($r < 2)
                             <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
                         @else
                             <td colspan="12" style="font-size:8px; background:#f0f7ff;">
