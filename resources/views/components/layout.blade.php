@@ -110,20 +110,24 @@
 
                     @auth
                         {{-- Calendar --}}
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('events.*') ? 'active fw-bold' : '' }}" href="{{ route('events.index') }}">{{ __('Calendar') }}</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/schedule') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ route('events.index') }}">@icon('📆') {{ __('Events') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url('/article/schedule') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
+                                @if(auth()->user()->isBureau() || auth()->user()->hasRole('instructor'))
+                                    <li><a class="dropdown-item" href="{{ route('availability.index') }}">@icon('📅') {{ __('Instructor Availability') }}</a></li>
+                                @endif
+                            </ul>
                         </li>
 
                         {{-- Members --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('buddies.*') || request()->routeIs('availability.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Members') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('buddies.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Members') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('members.directory') }}">@icon('📇') {{ __('Directory') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('members.trombinoscope') }}">@icon('📸') {{ __('Trombinoscope') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('buddies.index') }}">@icon('🤝') {{ __('Buddies') }}</a></li>
-                                @if(auth()->user()->isBureau() || auth()->user()->hasRole('instructor'))
-                                    <li><a class="dropdown-item" href="{{ route('availability.index') }}">@icon('📅') {{ __('Availability') }}</a></li>
-                                @endif
                             </ul>
                         </li>
 
@@ -131,7 +135,6 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') || request()->routeIs('classifieds.*') || request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url('/article/schedule') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ url('/article/first-certification') }}">@icon('🎓') {{ __('First Certification') }}</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('documents.index') }}">@icon('📁') {{ __('Documents') }}</a></li>

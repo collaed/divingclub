@@ -70,12 +70,14 @@
                                         @php $ac = $actColors[$actType] ?? $actColors['pool']; @endphp
                                         <div class="d-inline-block px-1 rounded mb-1" style="background:{{ $ac['color'] }};color:{{ $ac['text'] }};font-size:.7rem;cursor:default" title="{{ __($ac['label']) }}">
                                             @foreach($avails as $av)
+                                                @php $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1)); @endphp
+                                                @php $ic = $av->user->detail?->instructor_color; @endphp
                                                 <span class="fw-bold avail-initial" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}"
+                                                    style="{{ $ic ? 'color:'.$ic.';' : '' }}{{ $isInstructor && $av->user_id === auth()->id() && !$isPast ? 'cursor:pointer;text-decoration:underline' : '' }}"
                                                     @if($isInstructor && $av->user_id === auth()->id() && !$isPast)
-                                                        style="cursor:pointer;text-decoration:underline"
                                                         onclick="removeAvail('{{ $dateStr }}','{{ $av->slot }}','{{ $actType }}')"
                                                     @endif
-                                                >{{ mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1)) }}</span>
+                                                >{{ $ini }}</span>
                                             @endforeach
                                         </div>
                                     @endforeach
@@ -99,7 +101,9 @@
     <div class="mt-2 small text-muted">
         <strong>{{ __('Instructors') }}:</strong>
         @foreach($instructors as $inst)
-            <span class="badge bg-secondary me-1">{{ mb_strtoupper(mb_substr($inst->detail?->first_name ?? '?', 0, 1)) }} = {{ $inst->detail?->first_name }}</span>
+            @php $ini = $inst->detail?->instructor_initial ?: mb_strtoupper(mb_substr($inst->detail?->first_name ?? '?', 0, 1)); @endphp
+            @php $ic = $inst->detail?->instructor_color; @endphp
+            <span class="badge me-1" style="background:{{ $ic ?? '#6c757d' }};color:#fff">{{ $ini }}</span>{{ $inst->detail?->first_name }}
         @endforeach
     </div>
 
