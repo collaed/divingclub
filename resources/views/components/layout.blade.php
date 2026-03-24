@@ -63,7 +63,7 @@
                         </ul>
                     </div>
                     @auth
-                        {{ __('Welcome') }}, {{ auth()->user()->name }}
+                        <a href="{{ route('profile.show') }}" class="text-white text-decoration-none">{{ auth()->user()->name }}</a>
                     @endauth
                 </div>
             </div>
