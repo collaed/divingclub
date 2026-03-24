@@ -63,11 +63,13 @@
                                             $evAvails = $availByEvent->get($ev->id, collect());
                                             $myAvail = $evAvails->firstWhere('user_id', auth()->id());
                                         @endphp
-                                        <div class="d-block mb-1 rounded px-1 text-start {{ $isInstructor && !$isPast ? 'event-toggle' : '' }}"
-                                             style="background:{{ $ev->color_hex ?? '#6c757d' }};font-size:.65rem;color:#fff;{{ $isInstructor && !$isPast ? 'cursor:pointer' : '' }}{{ $myAvail ? ';outline:2px solid #000' : '' }}"
-                                             title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}"
-                                             @if($isInstructor && !$isPast) onclick="toggleEvent({{ $ev->id }})" @endif>
-                                            <span class="text-truncate d-block" style="max-width:80px">{{ Str::limit($ev->title, 14) }}</span>
+                                        <div class="d-block mb-1 rounded px-1 text-start" style="background:{{ $ev->color_hex ?? '#6c757d' }};font-size:.65rem;color:#fff">
+                                            <div class="d-flex align-items-center gap-1">
+                                                <a href="{{ route('events.show', $ev) }}" class="text-white text-truncate text-decoration-none flex-grow-1" style="max-width:70px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 12) }}</a>
+                                                @if($isInstructor && !$isPast)
+                                                    <span class="ms-auto" style="cursor:pointer;font-size:.6rem" onclick="toggleEvent({{ $ev->id }})" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✅' : '➕' }}</span>
+                                                @endif
+                                            </div>
                                             @if($evAvails->isNotEmpty())
                                                 <span class="d-block" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
                                                     $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
