@@ -178,6 +178,23 @@ class BackupService
             if (file_exists($dbPath)) {
                 copy($dbPath, "{$dir}/database.sqlite");
             }
+        } elseif ($driver === 'pgsql') {
+            $dumpFile = "{$dir}/database.sql.gz";
+            $env = $conn['password'] ? 'PGPASSWORD='.escapeshellarg($conn['password']).' ' : '';
+            $cmd = sprintf(
+                '%spg_dump -h %s -p %s -U %s %s | gzip > %s 2>&1',
+                $env,
+                escapeshellarg($conn['host'] ?? '127.0.0.1'),
+                escapeshellarg($conn['port'] ?? '5432'),
+                escapeshellarg($conn['username']),
+                escapeshellarg($conn['database']),
+                escapeshellarg($dumpFile)
+            );
+            exec($cmd, $output, $code);
+            if ($code !== 0) {
+                Log::error('PG dump failed: '.implode("\n", $output));
+                throw new \RuntimeException('Database dump failed');
+            }
         } else {
             $dumpFile = "{$dir}/database.sql.gz";
             $cmd = sprintf(
