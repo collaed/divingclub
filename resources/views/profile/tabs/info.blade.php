@@ -1,4 +1,5 @@
-@php $d = $target->detail; $isSelf = $viewer->id === $target->id; $isBM = $viewer->isBureauMaster(); @endphp
+@php $d = $target->detail; $isSelf = $viewer->id === $target->id; $isBM = $viewer->isBureauMaster(); $canEdit = $canEdit ?? ($isSelf || $isBM); @endphp
+@if($canEdit)
 <form method="POST" action="{{ $isBM && !$isSelf ? route('admin.profile.update.info', $target) : route('profile.update.info') }}">
     @csrf
     <input type="hidden" name="tab" value="info">
@@ -121,3 +122,14 @@
 
     <button type="submit" class="btn btn-primary mt-3">{{ __('Save') }}</button>
 </form>
+@else
+{{-- Read-only Batch 2 (Deck) view for regular members --}}
+<table class="table table-sm">
+    <tr><th style="width:180px">{{ __('First Name') }}</th><td>{{ $d?->first_name ?? '—' }}</td></tr>
+    <tr><th>{{ __('Last Name') }}</th><td>{{ $d?->last_name ?? '—' }}</td></tr>
+    <tr><th>{{ __('Nationality') }}</th><td>{{ $d?->nationality ?? '—' }}</td></tr>
+    <tr><th>{{ __('Sex') }}</th><td>{{ $d?->sex ?? '—' }}</td></tr>
+    <tr><th>{{ __('Status') }}</th><td>{{ $target->status?->name ?? '—' }}</td></tr>
+    <tr><th>{{ __('Member Since') }}</th><td>{{ $d?->adhesion_year ?? '—' }}</td></tr>
+</table>
+@endif

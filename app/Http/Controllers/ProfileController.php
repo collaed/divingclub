@@ -98,8 +98,13 @@ class ProfileController extends Controller
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
+        $isSelf = $viewer->id === $target->id;
+        $isBureau = $viewer->isBureau();
+        $isInstructor = $viewer->hasAnyRole(['instructor', 'assistant']);
 
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        // Any logged-in member can view Batch 2 (Deck) data
+        // But only self/bureau can edit
+        if (! $isSelf && ! $isBureau && ! auth()->check()) {
             abort(403);
         }
 
@@ -108,7 +113,13 @@ class ProfileController extends Controller
         $tab = $request->get('tab', 'info');
         $medicalStatus = app(MedicalComplianceService::class)->getStatus($target);
 
-        return view('profile.show', compact('target', 'viewer', 'statuses', 'tab', 'medicalStatus'));
+        // GDPR tiers
+        $canEdit = $isSelf || $isBureau;
+        $tierVault = $isSelf || $isBureau;                    // Batch 1: self + bureau
+        $tierManifest = $tierVault || $isInstructor;           // Batch 1.5: + instructors
+        // Batch 2 (Deck): all logged-in members — always true here
+
+        return view('profile.show', compact('target', 'viewer', 'statuses', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierManifest'));
     }
 
     public function updateInfo(Request $request, ?User $user = null)

@@ -191,6 +191,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Members directory (visible to all authenticated users)
     Route::get('/members', [MembersDirectoryController::class, 'directory'])->name('members.directory');
     Route::get('/members/trombinoscope', [MembersDirectoryController::class, 'trombinoscope'])->name('members.trombinoscope');
+    Route::get('/members/{user}/profile', [ProfileController::class, 'show'])->name('members.profile');
 
     // Contact member (no email exposed)
     Route::get('/members/{user}/contact', [ContactMemberController::class, 'create'])->name('contact.member');
