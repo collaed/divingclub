@@ -81,38 +81,48 @@
     {{-- Visual preview --}}
     @php
         $bgPresets = [
-            'default-bulles' => 'url(' . asset('storage/newsletters/default-bulles.png') . ') center/cover',
+            'default-bulles' => asset('storage/newsletters/default-bulles.png'),
+            'gradient-abyss' => null,
+            'gradient-coral' => null,
+            'gradient-arctic' => null,
+        ];
+        $gradients = [
             'gradient-abyss' => 'linear-gradient(160deg, #0a0a2e 0%, #1a1a5e 30%, #0d2b45 60%, #000428 100%)',
             'gradient-coral' => 'linear-gradient(160deg, #1a3a5c 0%, #0e4d6e 25%, #2d6a7a 50%, #c0392b 80%, #e74c3c 100%)',
             'gradient-arctic' => 'linear-gradient(160deg, #37474f 0%, #455a64 25%, #546e7a 50%, #78909c 75%, #b0bec5 100%)',
         ];
         $bg = $newsletter->background_image;
-        $bgCss = $bgPresets[$bg] ?? (str_starts_with($bg, 'gradient-') ? $bgPresets['gradient-abyss'] : 'url(' . asset('storage/' . $bg) . ') center/cover');
+        $bgImage = $bgPresets[$bg] ?? (isset($gradients[$bg]) ? null : asset('storage/' . $bg));
+        $bgGradient = $gradients[$bg] ?? null;
     @endphp
-    <div class="position-relative rounded overflow-hidden" style="max-width:650px;margin:0 auto;min-height:600px;background:{{ $bgCss }};padding:20px">
-        <div class="position-relative">
-            <h3 class="text-center text-warning mb-4" style="text-shadow:2px 2px 4px rgba(0,0,0,0.7)">{{ $newsletter->title }}</h3>
-
-            <div class="row g-3 mb-3">
+    <div class="position-relative rounded overflow-hidden"
+         style="max-width:650px;margin:0 auto;{{ $bgGradient ? 'background:'.$bgGradient : '' }}">
+        @if($bgImage)
+            <img src="{{ $bgImage }}" class="w-100" style="display:block" alt="">
+        @endif
+        {{-- Article cards overlaid on the background --}}
+        <div class="position-absolute" style="top:0;left:0;right:0;bottom:0;padding:22% 5% 8% 5%;z-index:1;display:flex;flex-direction:column;gap:10px">
+            {{-- 2×2 grid for slots 1-4 --}}
+            <div class="row g-2 flex-grow-1">
                 @for($i = 1; $i <= 4; $i++)
-                    <div class="col-6">
+                    <div class="col-6 d-flex">
                         @if(isset($slotArticles[$i]))
                             @php
                                 $article = $slotArticles[$i]['article'];
                                 $t = $article->translated('fr');
                             @endphp
-                            <div class="card h-100">
+                            <div class="card w-100" style="overflow:hidden">
                                 @if($article->featured_image)
-                                    <img src="{{ asset('storage/'.$article->featured_image) }}" class="card-img-top" style="max-height:120px;object-fit:cover" alt="">
+                                    <img src="{{ asset('storage/'.$article->featured_image) }}" class="card-img-top" style="max-height:100px;object-fit:cover" alt="">
                                 @endif
                                 <div class="card-body p-2">
-                                    <h6 class="card-title mb-1" style="font-size:13px">{{ $t['title'] }}</h6>
-                                    <p class="card-text text-muted" style="font-size:11px">{{ Str::limit(strip_tags($t['body']), 100) }}</p>
-                                    <a href="{{ route('article.show', $article->slug) }}" class="small" target="_blank">{{ __('Read more →') }}</a>
+                                    <h6 class="card-title mb-1" style="font-size:12px">{{ $t['title'] }}</h6>
+                                    <p class="card-text text-muted mb-1" style="font-size:10px;line-height:1.3">{{ Str::limit(strip_tags($t['body']), 80) }}</p>
+                                    <a href="{{ route('article.show', $article->slug) }}" style="font-size:11px" target="_blank">{{ __('Read more →') }}</a>
                                 </div>
                             </div>
                         @else
-                            <div class="card h-100 border-dashed" style="min-height:150px">
+                            <div class="card w-100 border-dashed">
                                 <div class="card-body text-center text-muted d-flex align-items-center justify-content-center">
                                     <span>{{ __('Empty slot') }} {{ $i }}</span>
                                 </div>
@@ -123,14 +133,14 @@
             </div>
 
             {{-- Slot 5 --}}
-            @if(isset($slotArticles[5]))
-                @php $a5 = $slotArticles[5]['article']; @endphp
-                <div class="d-flex justify-content-center">
+            <div class="d-flex justify-content-center">
+                @if(isset($slotArticles[5]))
+                    @php $a5 = $slotArticles[5]['article']; @endphp
                     <div class="bg-white rounded p-2 text-center" style="width:55%">
                         <a href="{{ route('article.show', $a5->slug) }}" class="fw-bold small text-decoration-none" target="_blank">{{ $a5->translated('fr')['title'] }}</a>
                     </div>
-                </div>
-            @endif
+                @endif
+            </div>
         </div>
     </div>
 </x-layout>
