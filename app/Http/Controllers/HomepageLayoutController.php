@@ -104,6 +104,7 @@ class HomepageLayoutController extends Controller
                 : EventPhoto::randomPublic($widget['config']['count'] ?? 8)->get()],
             'upcoming_events' => ['events' => auth()->check()
                 ? Event::where('event_date', '>=', now())
+                    ->withCount('registrations')
                     ->orderBy('event_date')->limit($widget['config']['limit'] ?? 5)->get()
                 : collect()],
             default => [],
