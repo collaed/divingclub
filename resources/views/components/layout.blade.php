@@ -111,10 +111,10 @@
                     @auth
                         {{-- Calendar --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/schedule') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/training-schedule-*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('events.index') }}">@icon('📆') {{ __('Events') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ url('/article/schedule') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url('/article/training-schedule-ULO7R') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
                                 @if(auth()->user()->isBureau() || auth()->user()->hasRole('instructor'))
                                     <li><a class="dropdown-item" href="{{ route('availability.index') }}">@icon('📅') {{ __('Instructor Availability') }}</a></li>
                                 @endif
