@@ -309,6 +309,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::resource('newsletters', NewsletterController::class)->except('show');
         Route::get('newsletters/{newsletter}', [NewsletterController::class, 'show'])->name('newsletters.show');
         Route::post('newsletters/{newsletter}/submit', [NewsletterController::class, 'submit'])->name('newsletters.submit');
+        Route::post('newsletters/{newsletter}/withdraw', [NewsletterController::class, 'withdraw'])->name('newsletters.withdraw');
         Route::post('newsletters/{newsletter}/send', [NewsletterController::class, 'send'])->name('newsletters.send');
 
         // Document Library

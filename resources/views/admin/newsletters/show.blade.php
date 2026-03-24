@@ -51,7 +51,13 @@
                 @endif
 
                 @if($newsletter->created_by === auth()->id())
-                    <div class="alert alert-info py-2 mb-0">{{ __('You cannot approve your own newsletter. Waiting for 3 other bureau members.') }}</div>
+                    <div class="alert alert-info py-2 mb-0 d-flex justify-content-between align-items-center">
+                        {{ __('You cannot approve your own newsletter. Waiting for 3 other bureau members.') }}
+                        <form method="POST" action="{{ route('admin.newsletters.withdraw', $newsletter) }}" onsubmit="return confirm('{{ __('Withdraw and return to draft?') }}')">
+                            @csrf
+                            <button class="btn btn-outline-secondary btn-sm">✏️ {{ __('Back to Draft') }}</button>
+                        </form>
+                    </div>
                 @elseif($newsletter->isApprovedBy(auth()->user()))
                     <div class="alert alert-success py-2 mb-0">{{ __('You have already approved this newsletter.') }}</div>
                 @else
@@ -117,6 +123,7 @@
 
     @include('admin.newsletters._frame', [
         'theme' => $theme,
+        'month' => $newsletter->month,
         'slot1' => $slotHtml[1],
         'slot2' => $slotHtml[2],
         'slot3' => $slotHtml[3],

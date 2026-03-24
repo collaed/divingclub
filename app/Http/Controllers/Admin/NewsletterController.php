@@ -9,6 +9,7 @@ use App\Models\Newsletter;
 use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Services\ArticleTranslationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -122,6 +123,16 @@ class NewsletterController extends Controller
         $newsletter->update(['status' => 'pending']);
 
         return back()->with('success', __('Newsletter submitted for bureau approval.'));
+    }
+
+    public function withdraw(Newsletter $newsletter): RedirectResponse
+    {
+        abort_unless($newsletter->status === 'pending', 403);
+        abort_unless($newsletter->created_by === auth()->id(), 403);
+        $newsletter->approvals()->delete();
+        $newsletter->update(['status' => 'draft']);
+
+        return redirect()->route('admin.newsletters.edit', $newsletter)->with('success', __('Newsletter withdrawn to draft.'));
     }
 
     public function approve(Request $request, Newsletter $newsletter)
