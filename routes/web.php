@@ -286,8 +286,8 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Stop impersonation (must be outside bureau_master group — user is impersonated)
     Route::get('/admin/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('admin.stop-impersonation');
 
-    // Admin routes (Bureau Master)
-    Route::middleware('role:bureau_master')->prefix('admin')->name('admin.')->group(function () {
+    // Admin routes (all bureau roles)
+    Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->prefix('admin')->name('admin.')->group(function () {
         Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
         Route::get('/export-dan', [DiveDataController::class, 'exportDan'])->name('export-dan');
         Route::get('/members', [MemberController::class, 'index'])->name('members.index');
