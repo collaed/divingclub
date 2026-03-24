@@ -65,7 +65,7 @@
                                         @endphp
                                         <div class="d-block mb-1 rounded px-1 text-start {{ $isInstructor && !$isPast ? 'event-toggle' : '' }}"
                                              style="background:{{ $ev->color_hex ?? '#6c757d' }};font-size:.65rem;color:#fff;{{ $isInstructor && !$isPast ? 'cursor:pointer' : '' }}{{ $myAvail ? ';outline:2px solid #000' : '' }}"
-                                             title="{{ $ev->title }}{{ $ev->event_time ? ' · '.$ev->event_time->format('H:i') : '' }}"
+                                             title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}"
                                              @if($isInstructor && !$isPast) onclick="toggleEvent({{ $ev->id }})" @endif>
                                             <span class="text-truncate d-block" style="max-width:80px">{{ Str::limit($ev->title, 14) }}</span>
                                             @if($evAvails->isNotEmpty())
