@@ -433,6 +433,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('equipment.show');
         Route::put('/equipment/{equipment}', [EquipmentController::class, 'update'])->name('equipment.update');
         Route::post('/equipment/{equipment}/loan', [EquipmentController::class, 'loan'])->name('equipment.loan');
+        Route::post('/equipment/quick-loan', [EquipmentController::class, 'quickLoan'])->name('equipment.quick-loan');
         Route::post('/equipment/return/{loan}', [EquipmentController::class, 'returnLoan'])->name('equipment.return');
         Route::post('/equipment/maintenance/{maintenance}/complete', [EquipmentController::class, 'completeMaintenance'])->name('equipment.maintenance.complete');
 

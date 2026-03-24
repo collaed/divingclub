@@ -9,6 +9,7 @@ use App\Models\EquipmentLoan;
 use App\Models\EquipmentMaintenance;
 use App\Models\EquipmentMaintenanceRule;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class EquipmentController extends Controller
@@ -112,6 +113,31 @@ class EquipmentController extends Controller
         $loan->equipment->update(['status' => $status]);
 
         return back()->with('success', __('Equipment returned.'));
+    }
+
+    public function quickLoan(Request $request): RedirectResponse
+    {
+        $request->validate(['user_id' => 'required|exists:users,id']);
+        $userId = $request->user_id;
+        $loaned = 0;
+
+        foreach (['cylinder_id', 'bcd_id', 'regulator_id'] as $field) {
+            if ($id = $request->input($field)) {
+                $eq = Equipment::findOrFail($id);
+                if ($eq->isAvailable()) {
+                    EquipmentLoan::create([
+                        'equipment_id' => $eq->id,
+                        'user_id' => $userId,
+                        'loaned_at' => now(),
+                        'loaned_by' => auth()->id(),
+                    ]);
+                    $eq->update(['status' => 'on_loan']);
+                    $loaned++;
+                }
+            }
+        }
+
+        return back()->with('success', __(':count item(s) loaned.', ['count' => $loaned]));
     }
 
     public function completeMaintenance(EquipmentMaintenance $maintenance)

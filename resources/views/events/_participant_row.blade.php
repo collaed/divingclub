@@ -10,6 +10,9 @@
     <div class="d-flex justify-content-between align-items-start">
         <div>
             <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</span>
+            @if($isPrivileged && !$isCancelled)
+                <a href="{{ route('admin.profile.show', $reg->user) }}?tab=equipment" class="ms-1" title="{{ __('Equipment') }}" style="font-size:0.7rem;text-decoration:none">🔧</a>
+            @endif
             @if($cert && ($event->levels_display || $isPrivileged))
                 <span class="badge bg-info text-dark" style="font-size:0.65rem">{{ $cert }}</span>
             @endif
