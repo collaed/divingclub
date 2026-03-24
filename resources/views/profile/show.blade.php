@@ -164,7 +164,8 @@
         @endif
     </div>
 
-    {{-- Email Management --}}
+    {{-- Email Management (Vault only) --}}
+    @if($tierVault)
     <div class="card dc-card mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{ __('Email Addresses') }}</h5>
@@ -207,4 +208,5 @@
             @endif
         </div>
     </div>
+    @endif
 </x-layout>

@@ -43,10 +43,12 @@ class MembersDirectoryController extends Controller
     public function trombinoscope()
     {
         $members = User::with('detail')
-            ->whereHas('detail', fn ($q) => $q->whereNotNull('first_name'))
+            ->whereHas('detail', fn ($q) => $q->whereNotNull('avatar_path')->whereNotNull('first_name'))
             ->get()
             ->sortBy(fn ($u) => $u->detail?->last_name);
 
-        return view('members.trombinoscope', compact('members'));
+        $viewerHasPhoto = auth()->user()->detail?->avatar_path;
+
+        return view('members.trombinoscope', compact('members', 'viewerHasPhoto'));
     }
 }
