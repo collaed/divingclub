@@ -89,25 +89,27 @@
                 $article = $slotArticles[$i]['article'];
                 $t = $article->translated('fr');
                 $img = $article->featured_image
-                    ? '<img src="'.asset('storage/'.$article->featured_image).'" style="width:100%;max-height:100px;object-fit:cover;display:block;border-radius:4px 4px 0 0" alt="">'
+                    ? '<img src="'.asset('storage/'.$article->featured_image).'" style="width:100%;height:100px;object-fit:cover;display:block;border-radius:4px 4px 0 0" alt="">'
                     : '';
-                $excerpt = Str::limit(strip_tags($t['body']), $i <= 4 ? 80 : 40);
+                $excerptLen = $article->featured_image ? 80 : 180;
+                $excerpt = Str::limit(strip_tags($t['body']), $i <= 4 ? $excerptLen : 40);
                 $url = route('article.show', $article->slug);
+                $icon = \App\Models\Article::TYPES[$article->article_type]['icon'] ?? '📄';
 
                 if ($i <= 4) {
-                    $slotHtml[$i] = '<div class="bg-white rounded h-100" style="overflow:hidden">'
+                    $slotHtml[$i] = '<div style="background:#fff;border-radius:6px;overflow:hidden;height:100%;display:flex;flex-direction:column">'
                         . $img
-                        . '<div style="padding:8px"><h6 style="font-size:12px;margin:0 0 4px">' . e($t['title']) . '</h6>'
-                        . '<p style="font-size:10px;color:#666;margin:0 0 4px;line-height:1.3">' . e($excerpt) . '</p>'
-                        . '<a href="' . $url . '" target="_blank" style="font-size:11px;color:#0077be">' . __('Read more →') . '</a>'
+                        . '<div style="padding:8px;flex:1"><h6 style="font-size:13px;margin:0 0 6px;color:#003366">' . $icon . ' ' . e($t['title']) . '</h6>'
+                        . '<p style="font-size:11px;color:#555;margin:0 0 8px;line-height:1.4">' . e($excerpt) . '</p>'
+                        . '<a href="' . $url . '" target="_blank" style="font-size:11px;color:#0077be;text-decoration:none">' . __('Read more →') . '</a>'
                         . '</div></div>';
                 } else {
-                    $slotHtml[$i] = '<div class="bg-white rounded p-2 text-center">'
-                        . '<a href="' . $url . '" target="_blank" class="fw-bold small text-decoration-none">' . e($t['title']) . '</a>'
+                    $slotHtml[$i] = '<div style="background:#fff;border-radius:6px;padding:8px 16px;text-align:center;display:inline-block">'
+                        . '<a href="' . $url . '" target="_blank" style="font-weight:bold;font-size:13px;text-decoration:none;color:#003366">' . $icon . ' ' . e($t['title']) . '</a>'
                         . '</div>';
                 }
             } else {
-                $slotHtml[$i] = '<div class="bg-white rounded h-100 d-flex align-items-center justify-content-center text-muted" style="min-height:' . ($i <= 4 ? '150px' : '35px') . '"><small>' . __('Empty slot') . ' ' . $i . '</small></div>';
+                $slotHtml[$i] = '<div style="background:rgba(255,255,255,0.85);border-radius:6px;height:100%;display:flex;align-items:center;justify-content:center;color:#999;min-height:' . ($i <= 4 ? '150px' : '35px') . '"><small>' . __('Empty slot') . ' ' . $i . '</small></div>';
             }
         }
     @endphp
