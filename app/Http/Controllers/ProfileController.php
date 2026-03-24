@@ -259,9 +259,9 @@ class ProfileController extends Controller
             'training_enrollments' => 'nullable|string',
         ]);
 
-        $validated['other_certifications'] = $validated['other_certifications']
+        $validated['other_certifications'] = isset($validated['other_certifications']) && $validated['other_certifications']
             ? array_map('trim', explode(',', $validated['other_certifications'])) : [];
-        $validated['training_enrollments'] = $validated['training_enrollments']
+        $validated['training_enrollments'] = isset($validated['training_enrollments']) && $validated['training_enrollments']
             ? array_map('trim', explode(',', $validated['training_enrollments'])) : [];
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
