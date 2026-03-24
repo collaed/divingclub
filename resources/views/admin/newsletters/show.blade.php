@@ -89,23 +89,25 @@
                 $article = $slotArticles[$i]['article'];
                 $t = $article->translated('fr');
                 $img = $article->featured_image
-                    ? '<img src="'.asset('storage/'.$article->featured_image).'" style="width:100%;height:100px;object-fit:cover;display:block;border-radius:4px 4px 0 0" alt="">'
+                    ? '<img src="'.asset('storage/'.$article->featured_image).'" style="width:100%;height:60px;object-fit:cover;display:block" alt="">'
                     : '';
-                $excerptLen = $article->featured_image ? 80 : 180;
+                $excerptLen = $article->featured_image ? 200 : 400;
                 $excerpt = Str::limit(strip_tags($t['body']), $i <= 4 ? $excerptLen : 40);
                 $url = route('article.show', $article->slug);
                 $icon = \App\Models\Article::TYPES[$article->article_type]['icon'] ?? '📄';
 
                 if ($i <= 4) {
-                    $slotHtml[$i] = '<div style="background:#fff;overflow:hidden;height:100%;display:flex;flex-direction:column">'
+                    $slotHtml[$i] = '<a href="' . $url . '" target="_blank" style="background:#fff;overflow:hidden;height:100%;display:flex;flex-direction:column;text-decoration:none;color:inherit">'
                         . $img
-                        . '<div style="padding:6px;flex:1"><h6 style="font-size:11px;margin:0 0 3px;color:#003366;line-height:1.2">' . $icon . ' ' . e($t['title']) . '</h6>'
-                        . '<p style="font-size:9px;color:#555;margin:0;line-height:1.3">' . e($excerpt) . '</p>'
-                        . '</div></div>';
+                        . '<div style="padding:6px;flex:1;overflow:hidden"><h6 style="font-size:11px;margin:0 0 4px;color:#003366;line-height:1.3">' . $icon . ' ' . e($t['title']) . '</h6>'
+                        . '<p style="font-size:9px;color:#555;margin:0;line-height:1.35;overflow:hidden">' . e($excerpt) . '</p>'
+                        . '</div>'
+                        . '<div style="padding:2px 6px 4px;text-align:right"><span style="font-size:9px;color:#0077be">Lire la suite →</span></div>'
+                        . '</a>';
                 } else {
-                    $slotHtml[$i] = '<div style="background:#fff;height:100%;display:flex;align-items:center;justify-content:center;padding:0 8px">'
-                        . '<a href="' . $url . '" target="_blank" style="font-weight:bold;font-size:11px;text-decoration:none;color:#003366;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' . $icon . ' ' . e($t['title']) . '</a>'
-                        . '</div>';
+                    $slotHtml[$i] = '<a href="' . $url . '" target="_blank" style="background:#fff;height:100%;display:flex;align-items:center;justify-content:center;padding:0 8px;text-decoration:none">'
+                        . '<span style="font-weight:bold;font-size:11px;color:#003366;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' . $icon . ' ' . e($t['title']) . '</span>'
+                        . '</a>';
                 }
             } else {
                 $slotHtml[$i] = '<div style="background:#fff;height:100%;display:flex;align-items:center;justify-content:center;color:#999"><small style="font-size:10px">' . __('Empty slot') . ' ' . $i . '</small></div>';
