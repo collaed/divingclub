@@ -51,10 +51,10 @@ class CepEquipmentSeeder extends Seeder
             $this->tank('17', '91AA31103CA', 'SPIROTECHNIQUE', 'ROTH', '1991-01-01', 14.6, '12.1 L', 300, 200, '2021-10-15', '2026-10-14', null),
             $this->tank('18', '91AA31126CA', 'SPIROTECHNIQUE', 'ROTH', '1991-01-01', 14.5, '12.1 L', 300, 200, '2021-10-15', '2026-10-14', null),
             $this->tank('19', '93AA43488CA', 'SPIROTECHNIQUE', 'ROTH', '1993-03-01', 14.3, '12.1 L', 300, 200, '2021-10-15', '2026-10-14', null),
-            $this->tank('20', '86AA524CA', 'SPIROTECHNIQUE', 'ROTH', '1985-01-01', 10.1, '9 L', 264, 176, '2021-09-29', '2026-09-28', 'Bi 2x9 séparé en 2 blocs individuel petit gabarit'),
-            $this->tank('21', '85AA448CA', 'SPIROTECHNIQUE', 'ROTH', '1985-01-01', 10.1, '9 L', 264, 176, '2021-10-15', '2026-10-14', 'Bi 2x9 séparé en 2 blocs individuel petit gabarit'),
-            $this->tank('22', '86AA481CA', 'SPIROTECHNIQUE', 'ROTH', '1985-01-01', 10.1, '9 L', 264, 176, '2021-09-29', '2026-09-28', 'Bi 2x9 séparé. Problème de robinetterie'),
-            $this->tank('23', '86AA488CA', 'SPIROTECHNIQUE', 'ROTH', '1985-01-01', 10.1, '9 L', 264, 176, '2021-10-15', '2026-10-14', 'Bi 2x9 séparé en 2 blocs individuel petit gabarit'),
+            $this->tank('20', '86AA524CA', 'SPIROTECHNIQUE', 'ROTH', '1985-01-01', 10.1, '9 L', 264, 176, '2021-09-29', '2026-09-28', 'Bi 2x9 séparé en 2 blocs individuel petit gabarit', 'Piscine Merl'),
+            $this->tank('21', '85AA448CA', 'SPIROTECHNIQUE', 'ROTH', '1985-01-01', 10.1, '9 L', 264, 176, '2021-10-15', '2026-10-14', 'Bi 2x9 séparé en 2 blocs individuel petit gabarit', 'Piscine Merl'),
+            $this->tank('22', '86AA481CA', 'SPIROTECHNIQUE', 'ROTH', '1985-01-01', 10.1, '9 L', 264, 176, '2021-09-29', '2026-09-28', 'Bi 2x9 séparé. Problème de robinetterie', 'Piscine Merl'),
+            $this->tank('23', '86AA488CA', 'SPIROTECHNIQUE', 'ROTH', '1985-01-01', 10.1, '9 L', 264, 176, '2021-10-15', '2026-10-14', 'Bi 2x9 séparé en 2 blocs individuel petit gabarit', 'Piscine Merl'),
             $this->tank('24', '10302863', 'Breathing Apparatus', 'ECS', '2008-01-01', 11.9, '10 L', 345, 230, '2021-10-15', '2026-10-14', null),
             $this->tank('25', '10302864', 'Breathing Apparatus', 'ECS', '2008-01-01', 11.6, '10 L', 345, 230, '2021-10-15', '2026-10-14', null),
             $this->tank('26', '10302833', 'Breathing Apparatus', 'ECS', '2008-01-01', 11.9, '10 L', 345, 230, '2021-09-29', '2026-09-28', null),
@@ -62,7 +62,7 @@ class CepEquipmentSeeder extends Seeder
             $this->tank('29', 'GQBO73', 'Breathing Apparatus', 'ECS', '2013-01-01', 11.9, '10 L', 348, 232, '2021-10-15', '2026-10-14', null),
             $this->tank('30', 'GQBO81', 'Breathing Apparatus', 'ECS', '2013-01-01', 11.9, '10 L', 348, 232, '2021-09-29', '2026-09-28', null),
             $this->tank('31', 'GQBO96', 'Breathing Apparatus', 'ECS', '2014-01-01', 12.2, '10 L', 348, 232, '2021-09-29', '2026-09-28', null),
-            $this->tank('32', 'LUR 184 UT', 'Polaris TS 50', 'ECS', '2015-09-01', 8.4, '7 L', 348, 232, '2021-09-29', '2026-09-28', null),
+            $this->tank('32', 'LUR 184 UT', 'Polaris TS 50', 'ECS', '2015-09-01', 8.4, '7 L', 348, 232, '2021-09-29', '2026-09-28', null, 'Piscine Merl'),
             $this->tank('M02', '93AA59432CA', 'SPIROTECHNIQUE', 'ROTH', '1993-05-01', 14.1, '12.1 L', 300, 200, '2021-09-29', '2026-09-28', null),
             $this->tank('M03', '93AA43993CA', 'SPIROTECHNIQUE', 'ROTH', '1993-03-01', 14.2, '12.1 L', 300, 200, '2021-10-15', '2026-10-14', null),
             $this->tank('M04', '93AA59456CA', 'SPIROTECHNIQUE', 'ROTH', '1993-05-01', 14.1, '12.1 L', 300, 200, '2021-09-29', '2026-09-28', null),
@@ -191,7 +191,7 @@ class CepEquipmentSeeder extends Seeder
 
     // ── Helper builders ───────────────────────────────────────────────
 
-    private function tank(string $shortNum, string $serial, string $brand, string $mfr, string $mfgDate, ?float $weight, string $volume, int $testBar, int $workBar, string $lastRetest, string $nextRetest, ?string $notes): array
+    private function tank(string $shortNum, string $serial, string $brand, string $mfr, string $mfgDate, ?float $weight, string $volume, int $testBar, int $workBar, string $lastRetest, string $nextRetest, ?string $notes, string $location = 'Entrepôt'): array
     {
         return [
             'name' => 'Bloc Air '.$volume,
@@ -212,11 +212,12 @@ class CepEquipmentSeeder extends Seeder
             'last_inventory_date' => '2021-05-19',
             'condition' => 'good',
             'status' => 'available',
+            'location' => $location,
             'notes' => $notes,
         ];
     }
 
-    private function nitrox(string $shortNum, string $serial, string $brand, string $mfr, string $mfgDate, ?float $weight, string $volume, int $testBar, int $workBar, string $lastRetest, string $nextRetest, ?string $notes): array
+    private function nitrox(string $shortNum, string $serial, string $brand, string $mfr, string $mfgDate, ?float $weight, string $volume, int $testBar, int $workBar, string $lastRetest, string $nextRetest, ?string $notes, string $location = 'Entrepôt'): array
     {
         return [
             'name' => 'Bloc Nitrox '.$volume,
@@ -237,6 +238,7 @@ class CepEquipmentSeeder extends Seeder
             'last_inventory_date' => '2021-05-19',
             'condition' => 'good',
             'status' => 'available',
+            'location' => $location,
             'notes' => $notes,
         ];
     }

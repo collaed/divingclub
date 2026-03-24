@@ -18,7 +18,7 @@ class EquipmentController extends Controller
 
     public function index(Request $request)
     {
-        $sortable = ['name' => 'name', 'type' => 'type', 'status' => 'status', 'short_number' => 'short_number'];
+        $sortable = ['name' => 'name', 'type' => 'type', 'status' => 'status', 'short_number' => 'short_number', 'location' => 'location'];
         $sort = $sortable[$request->get('sort')] ?? 'name';
         $dir = $request->get('dir', 'asc') === 'desc' ? 'desc' : 'asc';
 

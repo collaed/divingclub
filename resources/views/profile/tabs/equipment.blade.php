@@ -30,6 +30,13 @@
     @php
         $available = \App\Models\Equipment::where('status', 'available')->where('is_loanable', true)->orderBy('short_number')->orderBy('name')->get();
         $loanGroups = $available->groupBy('type');
+        // Sort BCDs by proximity to user's preferred size
+        $userSize = $target->detail?->bcd_size;
+        if ($userSize && $loanGroups->has('bcd')) {
+            $sizeOrder = ['XXXS' => 0, 'XXS' => 1, 'XS' => 2, 'S' => 3, 'M' => 4, 'ML' => 5, 'L' => 6, 'XL' => 7, 'XXL' => 8];
+            $userIdx = $sizeOrder[strtoupper($userSize)] ?? 4;
+            $loanGroups['bcd'] = $loanGroups['bcd']->sortBy(fn($e) => abs(($sizeOrder[strtoupper($e->volume)] ?? 99) - $userIdx));
+        }
     @endphp
     <form method="POST" action="{{ route('admin.equipment.quick-loan') }}">
         @csrf
