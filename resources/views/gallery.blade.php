@@ -6,6 +6,7 @@
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
             @foreach($events as $ev)
                 <div class="col">
+                    <a href="{{ $ev->event_id ? route('gallery.event', $ev->event_id) : '#' }}" class="text-decoration-none">
                     <div class="card dc-card h-100">
                         <div class="d-flex justify-content-center align-items-center py-3" style="height:160px;overflow:hidden;background:#f0f4f8">
                             @foreach($ev->photos as $i => $photo)
@@ -28,6 +29,7 @@
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
             @endforeach
         </div>

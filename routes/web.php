@@ -198,6 +198,8 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Document browser (role-based visibility, upload for instructors/bureau)
     Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');
+    Route::get('/gallery/{event}', [DocumentBrowserController::class, 'galleryEvent'])->name('gallery.event');
+    Route::post('/gallery/{event}/upload', [DocumentBrowserController::class, 'galleryUpload'])->name('gallery.upload');
     Route::get('/documents', [DocumentBrowserController::class, 'index'])->name('documents.index');
     Route::get('/documents/{file}/download', [DocumentBrowserController::class, 'download'])->name('documents.download');
     Route::get('/documents/{file}/thumb', [DocumentBrowserController::class, 'thumb'])->name('documents.thumb');

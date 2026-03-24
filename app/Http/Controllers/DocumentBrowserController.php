@@ -12,11 +12,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\EventPhoto;
 use App\Models\LibraryFile;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
 class DocumentBrowserController extends Controller
 {
@@ -32,6 +35,7 @@ class DocumentBrowserController extends Controller
                 $event = $photos->first()->event;
 
                 return (object) [
+                    'event_id' => $event?->id,
                     'title' => $event?->title ?? __('Other'),
                     'event_date' => $event?->event_date,
                     'latest' => $photos->max('created_at'),
@@ -51,6 +55,36 @@ class DocumentBrowserController extends Controller
         );
 
         return view('gallery', compact('events'));
+    }
+
+    public function galleryEvent(Event $event): View
+    {
+        $user = auth()->user();
+        $photos = EventPhoto::where('event_id', $event->id)
+            ->where('approved', true)->where('gdpr_consent', true)
+            ->orderByDesc('quality_score')->get();
+
+        return view('gallery-event', compact('event', 'photos', 'user'));
+    }
+
+    public function galleryUpload(Request $request, Event $event): RedirectResponse
+    {
+        $request->validate([
+            'photos.*' => 'required|image|max:10240',
+        ]);
+
+        foreach ($request->file('photos', []) as $file) {
+            EventPhoto::create([
+                'event_id' => $event->id,
+                'uploaded_by' => auth()->id(),
+                'path' => $file->store('event-photos/'.$event->id, 'public'),
+                'gdpr_consent' => true,
+                'approved' => true,
+                'quality_score' => 50,
+            ]);
+        }
+
+        return back()->with('success', __('Photos uploaded.'));
     }
 
     public function index(Request $request)
