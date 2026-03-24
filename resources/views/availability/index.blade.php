@@ -13,21 +13,12 @@
         </div>
     </div>
 
-    {{-- Legend --}}
-    <div class="mb-3 d-flex flex-wrap gap-2 small">
-        @foreach($actColors as $key => $c)
-            <span class="badge px-2 py-1" style="background:{{ $c['color'] }};color:{{ $c['text'] }}">{{ $c['icon'] }} {{ __($c['label']) }}</span>
-        @endforeach
-        <span class="badge px-2 py-1 bg-danger text-white">@icon('⚠️') {{ __('No instructor') }}</span>
-    </div>
-
     @if($isInstructor)
         <div class="alert alert-info small py-2 mb-3">
-            @icon('💡') {{ __('Click a day cell, pick an activity type, and your initial will appear. Click your initial to remove.') }}
+            @icon('💡') {{ __('Click an event to mark yourself available. Your initial will appear. Click again to remove.') }}
         </div>
     @endif
 
-    {{-- Calendar grid: weekly rows, day columns --}}
     <div class="table-responsive">
         <table class="table table-bordered table-sm text-center align-middle" style="font-size:.85rem">
             <thead class="table-dark">
@@ -40,9 +31,17 @@
             </thead>
             <tbody>
                 @php
-                    // Start from Monday of the week containing the 1st
                     $cursor = $start->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
                     $endWeek = $end->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
+                    // Index availabilities by event_id for quick lookup
+                    $availByEvent = collect();
+                    foreach ($availabilities as $dateAvails) {
+                        foreach ($dateAvails as $av) {
+                            if ($av->event_id) {
+                                $availByEvent[$av->event_id] = $availByEvent->get($av->event_id, collect())->push($av);
+                            }
+                        }
+                    }
                 @endphp
                 @while($cursor->lte($endWeek))
                     <tr>
@@ -53,39 +52,32 @@
                                 $dateStr = $day->format('Y-m-d');
                                 $inMonth = $day->month === $start->month;
                                 $isPast = $day->lt(today());
-                                $dayAvails = $availabilities[$dateStr] ?? collect();
                                 $dayEvents = $events[$dateStr] ?? collect();
                                 $isWeekend = $day->isWeekend();
                             @endphp
-                            <td class="{{ !$inMonth ? 'text-muted bg-light' : '' }} {{ $isWeekend && $inMonth ? 'bg-light' : '' }} {{ $day->isToday() ? 'border-primary border-2' : '' }}" style="vertical-align:top;min-width:90px;height:60px">
+                            <td class="{{ !$inMonth ? 'text-muted bg-light' : '' }} {{ $isWeekend && $inMonth ? 'bg-light' : '' }} {{ $day->isToday() ? 'border-primary border-2' : '' }}" style="vertical-align:top;min-width:100px;height:60px">
                                 @if($inMonth)
                                     <div class="fw-bold small {{ $isPast ? 'text-muted' : '' }}">{{ $day->format('d') }}</div>
-                                    {{-- Show events for this day --}}
                                     @foreach($dayEvents as $ev)
-                                        <div class="badge text-truncate d-block mb-1" style="max-width:100%;background:{{ $ev->color_hex ?? '#6c757d' }};font-size:.65rem" title="{{ $ev->title }}">{{ Str::limit($ev->title, 12) }}</div>
-                                    @endforeach
-                                    {{-- Show instructor availability grouped by activity --}}
-                                    @php $byActivity = $dayAvails->groupBy('activity_type'); @endphp
-                                    @foreach($byActivity as $actType => $avails)
-                                        @php $ac = $actColors[$actType] ?? $actColors['pool']; @endphp
-                                        <div class="d-inline-block px-1 rounded mb-1" style="background:{{ $ac['color'] }};color:{{ $ac['text'] }};font-size:.7rem;cursor:default" title="{{ __($ac['label']) }}">
-                                            @foreach($avails as $av)
-                                                @php $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1)); @endphp
-                                                @php $ic = $av->user->detail?->instructor_color; @endphp
-                                                <span class="fw-bold avail-initial" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}"
-                                                    style="{{ $ic ? 'color:'.$ic.';' : '' }}{{ $isInstructor && $av->user_id === auth()->id() && !$isPast ? 'cursor:pointer;text-decoration:underline' : '' }}"
-                                                    @if($isInstructor && $av->user_id === auth()->id() && !$isPast)
-                                                        onclick="removeAvail('{{ $dateStr }}','{{ $av->slot }}','{{ $actType }}')"
-                                                    @endif
-                                                >{{ $ini }}</span>
-                                            @endforeach
+                                        @php
+                                            $evAvails = $availByEvent->get($ev->id, collect());
+                                            $myAvail = $evAvails->firstWhere('user_id', auth()->id());
+                                        @endphp
+                                        <div class="d-block mb-1 rounded px-1 text-start {{ $isInstructor && !$isPast ? 'event-toggle' : '' }}"
+                                             style="background:{{ $ev->color_hex ?? '#6c757d' }};font-size:.65rem;color:#fff;{{ $isInstructor && !$isPast ? 'cursor:pointer' : '' }}{{ $myAvail ? ';outline:2px solid #000' : '' }}"
+                                             title="{{ $ev->title }}{{ $ev->event_time ? ' · '.$ev->event_time->format('H:i') : '' }}"
+                                             @if($isInstructor && !$isPast) onclick="toggleEvent({{ $ev->id }})" @endif>
+                                            <span class="text-truncate d-block" style="max-width:80px">{{ Str::limit($ev->title, 14) }}</span>
+                                            @if($evAvails->isNotEmpty())
+                                                <span class="d-block" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
+                                                    $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
+                                                    $ic = $av->user->detail?->instructor_color;
+                                                @endphp<span class="fw-bold" style="{{ $ic ? 'color:'.$ic : '' }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
+                                            @endif
                                         </div>
                                     @endforeach
-                                    {{-- Add button for instructors --}}
-                                    @if($isInstructor && !$isPast)
-                                        <div class="mt-1">
-                                            <button class="btn btn-outline-secondary border-0 p-0" style="font-size:.6rem;line-height:1" onclick="showPicker('{{ $dateStr }}')" title="{{ __('Add availability') }}">＋</button>
-                                        </div>
+                                    @if($dayEvents->isEmpty() && !$isPast)
+                                        <span class="text-muted" style="font-size:.6rem">—</span>
                                     @endif
                                 @endif
                             </td>
@@ -107,45 +99,13 @@
         @endforeach
     </div>
 
-    {{-- Activity picker modal --}}
-    <div class="modal fade" id="activityPicker" tabindex="-1">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header py-2"><h6 class="modal-title">{{ __('Pick activity') }}</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body d-flex flex-wrap gap-2 justify-content-center">
-                    @foreach($actColors as $key => $c)
-                        <button class="btn btn-sm px-2" style="background:{{ $c['color'] }};color:{{ $c['text'] }}" onclick="addAvail('{{ $key }}')">{{ $c['icon'] }} {{ __($c['label']) }}</button>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>
-
     @if($isInstructor)
     <script>
-    let pickerDate = null;
-    const pickerModal = new bootstrap.Modal(document.getElementById('activityPicker'));
-
-    function showPicker(date) {
-        pickerDate = date;
-        pickerModal.show();
-    }
-
-    function addAvail(activityType) {
-        pickerModal.hide();
+    function toggleEvent(eventId) {
         fetch('{{ route("availability.toggle") }}', {
             method: 'POST',
             headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
-            body: JSON.stringify({date: pickerDate, slot: 'evening', activity_type: activityType})
-        }).then(r => r.json()).then(() => location.reload());
-    }
-
-    function removeAvail(date, slot, activityType) {
-        if (!confirm('{{ __("Remove your availability?") }}')) return;
-        fetch('{{ route("availability.toggle") }}', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
-            body: JSON.stringify({date, slot, activity_type: activityType})
+            body: JSON.stringify({event_id: eventId})
         }).then(r => r.json()).then(() => location.reload());
     }
     </script>
