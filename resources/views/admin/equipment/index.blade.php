@@ -25,7 +25,12 @@
 
     <div class="table-responsive">
         <table class="table table-sm table-hover">
-            <thead><tr><th>#</th><th>{{ __('Name') }}</th><th>{{ __('Type') }}</th><th>{{ __('Serial') }}</th><th>{{ __('Condition') }}</th><th>{{ __('Status') }}</th><th>{{ __('Loaned To') }}</th><th></th></tr></thead>
+            @php
+                $s = request('sort'); $d = request('dir','asc');
+                $arrow = fn($col) => $s === $col ? ($d === 'asc' ? '↑' : '↓') : '';
+                $link = fn($col, $label) => '<a href="?sort='.$col.'&dir='.($s === $col && $d === 'asc' ? 'desc' : 'asc').'" class="text-decoration-none text-dark">'.$label.' '.$arrow($col).'</a>';
+            @endphp
+            <thead><tr><th>{!! $link('short_number', '#') !!}</th><th>{!! $link('name', __('Name')) !!}</th><th>{!! $link('type', __('Type')) !!}</th><th>{{ __('Serial') }}</th><th>{{ __('Condition') }}</th><th>{!! $link('status', __('Status')) !!}</th><th>{!! $link('loaned_to', __('Loaned To')) !!}</th><th></th></tr></thead>
             <tbody>
             @foreach($equipment as $e)
                 <tr>

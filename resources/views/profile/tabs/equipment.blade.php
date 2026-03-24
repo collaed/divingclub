@@ -28,7 +28,7 @@
     <hr>
     <h6>{{ __('Quick Loan') }}</h6>
     @php
-        $available = \App\Models\Equipment::where('status', 'available')->orderBy('name')->get();
+        $available = \App\Models\Equipment::where('status', 'available')->orderBy('short_number')->orderBy('name')->get();
         $cylinders = $available->filter(fn($e) => in_array($e->type, ['tank', 'tank_air', 'tank_nitrox']));
         $bcds = $available->where('type', 'bcd');
         $regulators = $available->where('type', 'regulator');
