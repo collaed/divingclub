@@ -71,8 +71,8 @@
                                             @if($evAvails->isNotEmpty())
                                                 <span class="d-block" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
                                                     $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
-                                                    $ic = $av->user->detail?->instructor_color;
-                                                @endphp<span class="fw-bold" style="{{ $ic ? 'color:'.$ic : '' }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
+                                                    $ic = $av->user->detail?->instructor_color ?? '#6c757d';
+                                                @endphp<span class="badge fw-bold px-1" style="background:{{ $ic }};color:#fff;font-size:.55rem" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
                                             @endif
                                         </div>
                                     @endforeach
@@ -90,13 +90,17 @@
     </div>
 
     {{-- Instructor initials legend --}}
-    <div class="mt-2 small text-muted">
-        <strong>{{ __('Instructors') }}:</strong>
-        @foreach($instructors as $inst)
-            @php $ini = $inst->detail?->instructor_initial ?: mb_strtoupper(mb_substr($inst->detail?->first_name ?? '?', 0, 1)); @endphp
-            @php $ic = $inst->detail?->instructor_color; @endphp
-            <span class="badge me-1" style="background:{{ $ic ?? '#6c757d' }};color:#fff">{{ $ini }}</span>{{ $inst->detail?->first_name }}
-        @endforeach
+    <div class="mt-3">
+        <strong class="small text-muted">{{ __('Instructors') }}:</strong>
+        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-1 mt-1">
+            @foreach($instructors as $inst)
+                @php
+                    $ini = $inst->detail?->instructor_initial ?: mb_strtoupper(mb_substr($inst->detail?->first_name ?? '?', 0, 1));
+                    $ic = $inst->detail?->instructor_color ?? '#6c757d';
+                @endphp
+                <div class="col small"><span class="badge me-1" style="background:{{ $ic }};color:#fff">{{ $ini }}</span>{{ $inst->detail?->first_name }} {{ $inst->detail?->last_name }}</div>
+            @endforeach
+        </div>
     </div>
 
     @if($isInstructor)
