@@ -26,6 +26,7 @@ use App\Services\Homogeneity\DiveContext;
 use App\Services\Homogeneity\HomogeneityAssessmentService;
 use App\Services\SwapSuggestionService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class DiveGroupController extends Controller
@@ -122,6 +123,14 @@ class DiveGroupController extends Controller
         $member->delete();
 
         return back()->with('success', __('Member removed from group.'));
+    }
+
+    public function toggleLeader(DiveGroupMember $member): RedirectResponse
+    {
+        abort_unless($this->canManage($member->group->event), 403);
+        $member->update(['role' => $member->role === 'leader' ? 'diver' : 'leader']);
+
+        return back();
     }
 
     public function destroy(DiveGroup $group)

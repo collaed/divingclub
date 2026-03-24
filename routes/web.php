@@ -277,6 +277,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/dive-groups', [DiveGroupController::class, 'store'])->name('events.dive-groups.store');
     Route::post('/dive-groups/{group}/members', [DiveGroupController::class, 'addMember'])->name('dive-groups.add-member');
     Route::delete('/dive-group-members/{member}', [DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
+    Route::post('/dive-group-members/{member}/toggle-leader', [DiveGroupController::class, 'toggleLeader'])->name('dive-groups.toggle-leader');
     Route::delete('/dive-groups/{group}', [DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
     Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validate_groups'])->name('events.dive-groups.validate');
     Route::get('/events/{event}/dive-groups/propose', [DiveGroupController::class, 'propose'])->name('events.dive-groups.propose');

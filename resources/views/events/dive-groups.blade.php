@@ -45,7 +45,7 @@
         .dg-board { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; align-items: flex-start; }
         .dg-column { min-width: 260px; max-width: 300px; flex-shrink: 0; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; }
         .dg-column-header { padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
-        .dg-column-body { padding: 8px; min-height: 80px; }
+        .dg-column-body { padding: 8px; min-height: 150px; }
         .dg-card { padding: 8px 10px; margin-bottom: 6px; border-radius: 6px; border: 1px solid #dee2e6; cursor: grab; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; transition: box-shadow 0.15s; user-select: none; -webkit-user-select: none; }
         .dg-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
         .dg-card .drag-handle { cursor: grab; padding: 0 6px; font-size: 1rem; color: #aaa; flex-shrink: 0; }
@@ -216,7 +216,14 @@
                         <div class="dg-card" style="background:{{ rankColor($rank) }}" draggable="{{ $canManage ? 'true' : 'false' }}" data-user-id="{{ $m->user_id }}" data-member-id="{{ $m->id }}">
                             @if($canManage)<span class="drag-handle" title="{{ __('Drag') }}">⠿</span>@endif
                             <div style="flex:1;min-width:0">
-                                @if($m->role === 'leader')@icon('👑') @endif
+                                @if($canManage)
+                                    <form method="POST" action="{{ route('dive-groups.toggle-leader', $m) }}" class="d-inline" title="{{ $m->role === 'leader' ? __('Remove leader') : __('Make leader') }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm p-0 border-0" style="font-size:0.85rem;background:none">{{ $m->role === 'leader' ? '👑' : '👤' }}</button>
+                                    </form>
+                                @else
+                                    @if($m->role === 'leader')👑 @endif
+                                @endif
                                 <strong>{{ $m->user->detail?->first_name }} {{ $m->user->detail?->last_name }}</strong>
                                 <br>
                                 @if($cert)

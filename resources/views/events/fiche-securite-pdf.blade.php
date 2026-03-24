@@ -162,12 +162,12 @@
                 </tr>
             @endforeach
 
-            {{-- Empty rows to fill 6 palanquées if fewer groups exist --}}
-            @for($p = $groups->count(); $p < 6; $p++)
+            {{-- One empty group for hand-filling --}}
+            @if($groups->count() < 6)
                 @for($r = 0; $r < 3; $r++)
                     <tr>
                         @if($r === 0)
-                            <td rowspan="3" class="pal-num" style="color:#ccc;">{{ $p + 1 }}</td>
+                            <td rowspan="3" class="pal-num" style="color:#ccc;">{{ $groups->count() + 1 }}</td>
                             <td rowspan="3"></td>
                             <td rowspan="2" class="pal-depth"></td>
                         @endif
@@ -184,7 +184,7 @@
                         @endif
                     </tr>
                 @endfor
-            @endfor
+            @endif
         </tbody>
     </table>
 
