@@ -23,6 +23,7 @@
                 <div class="col-md-4"><label class="form-label">{{ __('Serial Number') }}</label><input type="text" name="serial_number" class="form-control @error('serial_number') is-invalid @enderror">@error('serial_number') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
                 <div class="col-md-4"><label class="form-label">{{ __('Purchase Date') }}</label><input type="date" name="purchase_date" class="form-control @error('purchase_date') is-invalid @enderror">@error('purchase_date') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
                 <div class="col-12"><label class="form-label">{{ __('Notes') }}</label><textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="2"></textarea>@error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
+                <div class="col-12"><div class="form-check"><input type="hidden" name="is_loanable" value="0"><input type="checkbox" name="is_loanable" value="1" class="form-check-input" id="loanable" checked><label class="form-check-label" for="loanable">{{ __('Available for loan') }}</label></div></div>
             </div>
             <button class="btn btn-primary mt-3">{{ __('Create') }}</button>
         </form>

@@ -124,19 +124,17 @@ class EquipmentController extends Controller
         $userId = $request->user_id;
         $loaned = 0;
 
-        foreach (['cylinder_id', 'bcd_id', 'regulator_id'] as $field) {
-            if ($id = $request->input($field)) {
-                $eq = Equipment::findOrFail($id);
-                if ($eq->isAvailable()) {
-                    EquipmentLoan::create([
-                        'equipment_id' => $eq->id,
-                        'user_id' => $userId,
-                        'loaned_at' => now(),
-                        'loaned_by' => auth()->id(),
-                    ]);
-                    $eq->update(['status' => 'on_loan']);
-                    $loaned++;
-                }
+        foreach (array_filter($request->input('equipment_ids', [])) as $id) {
+            $eq = Equipment::findOrFail($id);
+            if ($eq->isAvailable()) {
+                EquipmentLoan::create([
+                    'equipment_id' => $eq->id,
+                    'user_id' => $userId,
+                    'loaned_at' => now(),
+                    'loaned_by' => auth()->id(),
+                ]);
+                $eq->update(['status' => 'on_loan']);
+                $loaned++;
             }
         }
 

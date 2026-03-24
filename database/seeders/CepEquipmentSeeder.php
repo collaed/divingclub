@@ -28,6 +28,7 @@ class CepEquipmentSeeder extends Seeder
             $this->tampons(),
             $this->regulators(),
             $this->bcds(),
+            $this->keys(),
         );
     }
 
@@ -90,8 +91,8 @@ class CepEquipmentSeeder extends Seeder
     private function oxygen(): array
     {
         return [
-            ['name' => 'Bouteille O2 2L', 'short_number' => 'O2-1', 'type' => 'oxygen', 'serial_number' => '428852', 'brand' => 'Air Liquide', 'volume' => '2 L', 'condition' => 'good', 'status' => 'available', 'notes' => 'In the first aid kit'],
-            ['name' => 'Bouteille O2 5L', 'short_number' => 'O2-2', 'type' => 'oxygen', 'serial_number' => '399075', 'brand' => 'Air Liquide', 'volume' => '5 L', 'condition' => 'good', 'status' => 'available', 'notes' => 'In the warehouse'],
+            ['name' => 'Bouteille O2 2L', 'short_number' => 'O2-1', 'type' => 'other', 'serial_number' => '428852', 'brand' => 'Air Liquide', 'volume' => '2 L', 'condition' => 'good', 'status' => 'available', 'is_loanable' => false, 'notes' => 'Oxygen — In the first aid kit'],
+            ['name' => 'Bouteille O2 5L', 'short_number' => 'O2-2', 'type' => 'other', 'serial_number' => '399075', 'brand' => 'Air Liquide', 'volume' => '5 L', 'condition' => 'good', 'status' => 'available', 'is_loanable' => false, 'notes' => 'Oxygen — In the warehouse'],
         ];
     }
 
@@ -100,10 +101,10 @@ class CepEquipmentSeeder extends Seeder
     private function tampons(): array
     {
         return [
-            ['name' => 'Tampon 50L', 'short_number' => 'T1', 'type' => 'buffer_tank', 'serial_number' => '12623130', 'brand' => 'Fischer Gase', 'manufacture_date' => '2015-04-10', 'weight_kg' => 77.1, 'volume' => '50 L', 'working_pressure_bar' => 300, 'last_retest_date' => '2015-04-10', 'next_retest_date' => '2025-04-07', 'condition' => 'good', 'status' => 'available'],
-            ['name' => 'Tampon 50L', 'short_number' => 'T2', 'type' => 'buffer_tank', 'serial_number' => '12623153', 'brand' => 'Fischer Gase', 'manufacture_date' => '2015-04-10', 'weight_kg' => 77.2, 'volume' => '50 L', 'working_pressure_bar' => 300, 'last_retest_date' => '2015-04-10', 'next_retest_date' => '2025-04-07', 'condition' => 'good', 'status' => 'available'],
-            ['name' => 'Tampon 50L', 'short_number' => 'T3', 'type' => 'buffer_tank', 'serial_number' => '12623135', 'brand' => 'Fischer Gase', 'manufacture_date' => '2015-04-10', 'weight_kg' => 77.1, 'volume' => '50 L', 'working_pressure_bar' => 300, 'last_retest_date' => '2015-04-10', 'next_retest_date' => '2025-04-07', 'condition' => 'good', 'status' => 'available'],
-            ['name' => 'Tampon 50L', 'short_number' => 'T4', 'type' => 'buffer_tank', 'serial_number' => '12523160', 'brand' => 'Fischer Gase', 'manufacture_date' => '2015-04-10', 'weight_kg' => 77.2, 'volume' => '50 L', 'working_pressure_bar' => 300, 'last_retest_date' => '2015-04-10', 'next_retest_date' => '2025-04-07', 'condition' => 'good', 'status' => 'available'],
+            ['name' => 'Tampon 50L', 'short_number' => 'T1', 'type' => 'other', 'serial_number' => '12623130', 'brand' => 'Fischer Gase', 'manufacture_date' => '2015-04-10', 'weight_kg' => 77.1, 'volume' => '50 L', 'working_pressure_bar' => 300, 'last_retest_date' => '2015-04-10', 'next_retest_date' => '2025-04-07', 'condition' => 'good', 'status' => 'available', 'is_loanable' => false, 'notes' => 'Buffer tank'],
+            ['name' => 'Tampon 50L', 'short_number' => 'T2', 'type' => 'other', 'serial_number' => '12623153', 'brand' => 'Fischer Gase', 'manufacture_date' => '2015-04-10', 'weight_kg' => 77.2, 'volume' => '50 L', 'working_pressure_bar' => 300, 'last_retest_date' => '2015-04-10', 'next_retest_date' => '2025-04-07', 'condition' => 'good', 'status' => 'available', 'is_loanable' => false, 'notes' => 'Buffer tank'],
+            ['name' => 'Tampon 50L', 'short_number' => 'T3', 'type' => 'other', 'serial_number' => '12623135', 'brand' => 'Fischer Gase', 'manufacture_date' => '2015-04-10', 'weight_kg' => 77.1, 'volume' => '50 L', 'working_pressure_bar' => 300, 'last_retest_date' => '2015-04-10', 'next_retest_date' => '2025-04-07', 'condition' => 'good', 'status' => 'available', 'is_loanable' => false, 'notes' => 'Buffer tank'],
+            ['name' => 'Tampon 50L', 'short_number' => 'T4', 'type' => 'other', 'serial_number' => '12523160', 'brand' => 'Fischer Gase', 'manufacture_date' => '2015-04-10', 'weight_kg' => 77.2, 'volume' => '50 L', 'working_pressure_bar' => 300, 'last_retest_date' => '2015-04-10', 'next_retest_date' => '2025-04-07', 'condition' => 'good', 'status' => 'available', 'is_loanable' => false, 'notes' => 'Buffer tank'],
         ];
     }
 
@@ -174,6 +175,20 @@ class CepEquipmentSeeder extends Seeder
         ];
     }
 
+    // ── Clés Local / Keys (6) ─────────────────────────────────────────
+
+    private function keys(): array
+    {
+        return [
+            $this->key('1', 'Yves'),
+            $this->key('2', 'Marie-Jo'),
+            $this->key('3', 'Pascale'),
+            $this->key('4', 'Nico/Laura'),
+            $this->key('5', 'Pietro'),
+            $this->key('6', 'Eduardo'),
+        ];
+    }
+
     // ── Helper builders ───────────────────────────────────────────────
 
     private function tank(string $shortNum, string $serial, string $brand, string $mfr, string $mfgDate, ?float $weight, string $volume, int $testBar, int $workBar, string $lastRetest, string $nextRetest, ?string $notes): array
@@ -181,7 +196,7 @@ class CepEquipmentSeeder extends Seeder
         return [
             'name' => 'Bloc Air '.$volume,
             'short_number' => $shortNum,
-            'type' => 'tank_air',
+            'type' => 'tank',
             'serial_number' => $serial,
             'brand' => $brand,
             'manufacturer' => $mfr,
@@ -206,7 +221,7 @@ class CepEquipmentSeeder extends Seeder
         return [
             'name' => 'Bloc Nitrox '.$volume,
             'short_number' => $shortNum,
-            'type' => 'tank_nitrox',
+            'type' => 'tank',
             'serial_number' => $serial,
             'brand' => $brand,
             'manufacturer' => $mfr,
@@ -255,6 +270,19 @@ class CepEquipmentSeeder extends Seeder
             'condition' => 'good',
             'status' => 'available',
             'notes' => implode('. ', array_filter([$color ? "Couleur: $color" : null, $notes])),
+        ];
+    }
+
+    private function key(string $number, string $holder): array
+    {
+        return [
+            'name' => "Clé Local n°$number",
+            'short_number' => "K$number",
+            'type' => 'other',
+            'condition' => 'good',
+            'status' => 'available',
+            'is_loanable' => true,
+            'notes' => "Détenteur: $holder",
         ];
     }
 }
