@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MemberController;
+use App\Http\Controllers\Admin\NewsletterController;
 use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\SeasonController;
@@ -243,6 +244,12 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/availability/toggle', [InstructorAvailabilityController::class, 'toggle'])->name('availability.toggle');
     });
+
+    // Newsletter approval (all bureau roles)
+    Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('newsletters/{newsletter}/review', [NewsletterController::class, 'show'])->name('newsletters.review');
+        Route::post('newsletters/{newsletter}/approve', [NewsletterController::class, 'approve'])->name('newsletters.approve');
+    });
     Route::get('/classifieds/create', [ClassifiedController::class, 'create'])->name('classifieds.create');
     Route::post('/classifieds', [ClassifiedController::class, 'store'])->name('classifieds.store');
     Route::get('/classifieds/{article}/edit', [ClassifiedController::class, 'edit'])->name('classifieds.edit');
@@ -297,6 +304,12 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::resource('articles', ArticleController::class)->except('show');
         Route::post('articles/{article}/translate', [ArticleController::class, 'translate'])->name('articles.translate');
         Route::resource('links', LinkController::class)->only(['index', 'store', 'destroy']);
+
+        // Newsletters (view & approve — all bureau roles)
+        Route::resource('newsletters', NewsletterController::class)->except('show');
+        Route::get('newsletters/{newsletter}', [NewsletterController::class, 'show'])->name('newsletters.show');
+        Route::post('newsletters/{newsletter}/submit', [NewsletterController::class, 'submit'])->name('newsletters.submit');
+        Route::post('newsletters/{newsletter}/send', [NewsletterController::class, 'send'])->name('newsletters.send');
 
         // Document Library
         Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
