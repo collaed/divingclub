@@ -156,6 +156,33 @@
                 <h2 class="h2-section-title">{{ $section->title }}</h2>
                 <div class="h2-section-divider"></div>
                 <div class="h2-section-body">{!! $section->body !!}</div>
+
+                @if($section->slug === 'member-figures')
+                {{-- Live stats --}}
+                <div class="row g-4 mt-3 text-center">
+                    <div class="col-4">
+                        <div class="display-4 fw-bold" style="color:var(--h2-accent)">{{ $memberStats['total'] }}</div>
+                        <div class="text-muted">{{ __('Members') }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="display-4 fw-bold" style="color:var(--h2-accent)">{{ $memberStats['nationality']->count() }}</div>
+                        <div class="text-muted">{{ __('Nationalities') }}</div>
+                    </div>
+                    <div class="col-4">
+                        @php $f = $memberStats['gender']->get('F', 0); $pct = $memberStats['total'] ? round($f / $memberStats['total'] * 100) : 0; @endphp
+                        <div class="display-4 fw-bold" style="color:var(--h2-accent)">{{ $pct }}%</div>
+                        <div class="text-muted">{{ __('Women') }}</div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h5>🌍 {{ __('Nationalities') }}</h5>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        @foreach($memberStats['nationality'] as $nat => $count)
+                            <span class="badge bg-secondary bg-opacity-25 text-body px-2 py-1">{{ $nat }} <strong>{{ $count }}</strong></span>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>

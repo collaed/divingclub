@@ -50,7 +50,7 @@ class HomeController extends Controller
 
     public function index2()
     {
-        $slugs = ['values', 'history', 'bureau', 'instructors', 'contact-info'];
+        $slugs = ['values', 'history', 'bureau', 'member-figures', 'instructors', 'contact-info'];
         $sections = Article::whereIn('slug', $slugs)->where('is_published', true)
             ->get()->keyBy('slug')->only($slugs)->values();
 
@@ -60,7 +60,16 @@ class HomeController extends Controller
         $events = Event::where('event_date', '>=', now())
             ->orderBy('event_date')->limit(3)->get();
 
-        return view('home2', compact('sections', 'photos', 'events'))
+        // Live member stats for the member-figures section
+        $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id'))->get();
+        $memberStats = [
+            'total' => $details->count(),
+            'gender' => $details->groupBy('sex')->map->count()->sortDesc(),
+            'nationality' => $details->filter(fn ($d) => $d->nationality)
+                ->groupBy('nationality')->map->count()->sortDesc()->take(15),
+        ];
+
+        return view('home2', compact('sections', 'photos', 'events', 'memberStats'))
             ->with('theme', ThemeService::settings());
     }
 
