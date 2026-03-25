@@ -9,6 +9,7 @@
         <form method="POST" action="{{ route('profile.update.diving') }}">
             @csrf
             <input type="hidden" name="tab" value="diving">
+            <input type="hidden" name="target_user_id" value="{{ $target->id }}">
             <div class="mb-3">
                 <label class="form-label">{{ __('Dive Count') }}</label>
                 <input type="number" name="dive_count" class="form-control @error('dive_count') is-invalid @enderror" value="{{ old('dive_count', $d?->dive_count) }}" min="0">
@@ -213,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <form method="POST" action="{{ route('profile.update.diving') }}">
     @csrf
     <input type="hidden" name="tab" value="instructor_bio">
+    <input type="hidden" name="target_user_id" value="{{ $target->id }}">
     <div class="mb-3">
         <label class="form-label">{{ __('Experience & Background') }}</label>
         <textarea name="instructor_bio" class="form-control @error('instructor_bio') is-invalid @enderror" rows="3" placeholder="{{ __('e.g. Diving since 2005, FFESSM N4 instructor, 500+ logged dives...') }}">{{ old('instructor_bio', $d?->instructor_bio) }}</textarea>

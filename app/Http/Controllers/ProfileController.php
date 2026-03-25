@@ -238,7 +238,7 @@ class ProfileController extends Controller
     public function updateDiving(Request $request, ?User $user = null)
     {
         $viewer = auth()->user();
-        $target = $user ?? $viewer;
+        $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
 
         if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
             abort(403);
