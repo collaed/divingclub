@@ -52,7 +52,7 @@ class HomeController extends Controller
     {
         $slugs = ['values', 'history', 'bureau', 'member-figures', 'instructors', 'contact-info'];
         $sections = Article::whereIn('slug', $slugs)->where('is_published', true)
-            ->get()->keyBy('slug')->only($slugs)->values();
+            ->get()->sortBy(fn ($a) => array_search($a->slug, $slugs))->values();
 
         $photos = EventPhoto::where('quality_score', '>=', 85)
             ->where('has_faces', false)->inRandomOrder()->limit(6)->pluck('path');
