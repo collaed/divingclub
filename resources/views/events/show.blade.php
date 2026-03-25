@@ -99,7 +99,13 @@
                                     </div>
                                 </div>
                                 <script>
-                                fetch('https://api.open-meteo.com/v1/forecast?latitude={{ $event->diveSite->latitude }}&longitude={{ $event->diveSite->longitude }}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode&timezone={{ urlencode(config('app.timezone', 'UTC')) }}&forecast_days=7')
+                                @php
+                                    $wStart = $event->event_date->format('Y-m-d');
+                                    $wEnd = ($event->end_date ?? $event->event_date)->format('Y-m-d');
+                                    $isPast = $event->event_date->lt(now()->subDays(7));
+                                    $wBase = $isPast ? 'https://archive-api.open-meteo.com/v1/archive' : 'https://api.open-meteo.com/v1/forecast';
+                                @endphp
+                                fetch('{{ $wBase }}?latitude={{ $event->diveSite->latitude }}&longitude={{ $event->diveSite->longitude }}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode&timezone={{ urlencode(config('app.timezone', 'UTC')) }}&start_date={{ $wStart }}&end_date={{ $wEnd }}')
                                     .then(r => r.json()).then(d => {
                                         if (!d.daily) return;
                                         const icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'};

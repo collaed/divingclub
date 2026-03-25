@@ -5,8 +5,11 @@
     </div>
 
     <div class="card dc-card">
+        <div class="card-header py-2">
+            <input type="text" id="siteFilter" class="form-control form-control-sm" placeholder="🔍 {{ __('Filter sites…') }}" autofocus>
+        </div>
         <div class="table-responsive">
-            <table class="table table-sm table-hover mb-0">
+            <table class="table table-sm table-hover mb-0" id="sitesTable">
                 <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Location') }}</th><th>{{ __('Type') }}</th><th>{{ __('Max Depth') }}</th><th>{{ __('Status') }}</th><th></th></tr></thead>
                 <tbody>
                 @forelse($sites as $site)
@@ -34,4 +37,10 @@
             </table>
         </div>
     </div>
+    <script>
+    document.getElementById('siteFilter').addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('#sitesTable tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none');
+    });
+    </script>
 </x-layout>
