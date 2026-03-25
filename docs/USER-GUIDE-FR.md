@@ -380,3 +380,56 @@ Si vous êtes intéressé par un essai de plongée avant de vous engager :
 1. Visitez `/trial` (lien depuis la page d'accueil)
 2. Remplissez : nom, email, téléphone, date souhaitée, message
 3. Validez — l'admin du club vous contactera pour planifier l'essai
+
+## 14. Équipement et Prêts
+
+### 14.1 Emprunter du matériel (Prêt rapide)
+
+Depuis votre **Profil → Équipement**, vous pouvez emprunter du matériel du club :
+
+1. Sélectionnez l'équipement dans les menus déroulants groupés par type (Blocs, Gilets, Détendeurs, etc.)
+2. Les gilets (BCD) sont triés par proximité avec votre taille préférée (définie dans votre profil)
+3. Cliquez **Emprunter** — les articles sont immédiatement marqués comme prêtés à votre nom
+4. Retournez le matériel via le même onglet ou demandez à un administrateur
+
+### 14.2 Inventaire (Admin)
+
+Les administrateurs gèrent l'inventaire complet dans **Admin → Équipement** :
+
+- Chaque article a un **numéro court** (marquage physique, ex. « 5 », « M01 »)
+- Filtre par type, tri par colonne, recherche par nom ou numéro
+- **Suivi de localisation** : Entrepôt, Piscine Merl, etc.
+- **Bouton Retour** : retour en un clic depuis la liste pour les articles en prêt
+- **Planification de maintenance** : règles automatiques avec calcul de la prochaine date
+
+## 15. Documents et Bibliothèque
+
+La section **Documents** (Ressources → Documents) donne accès aux fichiers du club :
+
+- Les membres du bureau peuvent téléverser des fichiers organisés en dossiers
+- Les fichiers peuvent être publics (visibles par tous) ou privés (bureau uniquement)
+
+## 16. Newsletters
+
+Les membres du bureau créent des newsletters HTML dans **Admin → Newsletters** :
+
+1. Composez la newsletter avec l'éditeur riche
+2. Soumettez pour approbation — d'autres membres du bureau valident
+3. Une fois approuvée, envoyez à tous les membres ou un groupe ciblé
+
+## 17. Notifications Push
+
+Si vous installez l'application en PWA (Ajouter à l'écran d'accueil), vous recevez des notifications pour les mises à jour d'événements et les annonces importantes.
+
+## 18. Calendrier de Disponibilité des Moniteurs
+
+Les membres peuvent consulter le calendrier **Disponibilité des Moniteurs** (Calendrier → Disponibilité) :
+
+- Voyez quels moniteurs sont disponibles pour chaque séance
+- Les initiales colorées identifient chaque moniteur d'un coup d'œil
+
+### Pour les Moniteurs
+
+- Cliquez ➕ à côté d'un événement pour vous marquer disponible (inscription automatique)
+- Cliquez ✅ pour retirer votre disponibilité
+- Remplissez votre **bio moniteur** dans Profil → Plongée pour apparaître sur la page publique

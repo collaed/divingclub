@@ -380,3 +380,67 @@ If you're interested in trying diving before committing:
 1. Visit `/trial` (linked from the welcome page)
 2. Fill in: name, email, phone, preferred date, message
 3. Submit — the club admin will contact you to schedule the trial
+
+## 14. Equipment and Loans
+
+### 14.1 Borrowing Equipment (Quick Loan)
+
+From your **Profile → Equipment** tab, you can borrow club gear:
+
+1. Select equipment from the dropdowns grouped by type (Tanks, BCDs, Regulators, etc.)
+2. BCDs are sorted by proximity to your preferred size (set in your profile)
+3. Click **Borrow** — the items are immediately marked as on loan to you
+4. Return equipment by visiting the same tab or asking an admin
+
+### 14.2 Equipment Inventory (Admin)
+
+Admins can manage the full inventory at **Admin → Equipment**:
+
+- Each item has a **short number** (physical marking, e.g. "5", "M01") for easy identification
+- Filter by type, sort by any column, search by name or number
+- **Location tracking**: items can be at "Entrepôt", "Piscine Merl", etc.
+- **Loanable flag**: only items marked as loanable appear in member quick-loan dropdowns
+- **Return button**: one-click return directly from the equipment list for on-loan items
+- **Maintenance scheduling**: set rules (e.g. "every 12 months") with auto-calculated next dates
+
+## 15. Documents and Library
+
+The **Documents** section (Resources → Documents) provides access to club files:
+
+- Bureau members can upload files organized in folders
+- Files can be marked public (visible to all members) or private (bureau only)
+- Common uses: meeting minutes, regulations, insurance documents, training materials
+
+## 16. Newsletters
+
+Bureau members can create rich HTML newsletters at **Admin → Newsletters**:
+
+1. Compose the newsletter with the rich text editor
+2. Submit for approval — other bureau members review and approve
+3. Once approved, send to all members or a targeted group
+4. Full send log tracks delivery
+
+## 17. Push Notifications
+
+If you install the app as a PWA (Add to Home Screen), you can receive push notifications for:
+
+- Event updates and new registrations
+- Newsletter publications
+- Important club announcements
+
+Enable notifications when prompted, or manage them in your profile settings.
+
+## 18. Instructor Availability Calendar
+
+Members can view the **Instructor Availability** calendar (Calendar → Instructor Availability):
+
+- See which instructors are available for each training session
+- Color-coded initials identify each instructor at a glance
+- A legend at the bottom shows full names with their assigned colors
+
+### For Instructors
+
+- Click the ➕ button next to any event to mark yourself as available
+- This also auto-registers you for the event if registration is open
+- Click ✅ to remove your availability (and cancel registration)
+- Fill in your **instructor bio** in Profile → Diving tab to appear on the public instructors page

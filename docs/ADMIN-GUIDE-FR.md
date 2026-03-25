@@ -945,3 +945,49 @@ php artisan migrate:fresh --seed     # Réinitialiser la BDD (DESTRUCTIF)
 php artisan schedule:list            # Vérifier le planificateur
 php artisan queue:retry all          # Relancer les jobs échoués
 ```
+
+## 24. Page d'accueil configurable
+
+### Widgets disponibles
+
+La page d'accueil est composée de widgets glissables-déposables. Cliquez **⚙️ Edit Layout** en haut à droite pour entrer en mode édition.
+
+| Widget | Description | Zones |
+|--------|-------------|-------|
+| 🖼️ Hero Slideshow | Diaporama plein écran avec photos du club | Haut |
+| 👋 Welcome Text | Texte d'accueil personnalisable | Principal, Haut |
+| 📰 Article Stream | Derniers articles publiés | Principal |
+| 📅 Upcoming Events | Prochains événements (compact, configurable) | Principal, Sidebar |
+| 🔗 Quick Links | Liens rapides vers les pages importantes | Sidebar |
+| 📸 Photo Gallery | Diaporama de photos récentes | Sidebar, Principal |
+| ✏️ Custom HTML | Bloc HTML libre | Partout |
+
+### Configuration
+
+- **Glisser-déposer** : réorganisez les widgets entre les zones (haut, principal, sidebar)
+- **Visibilité** : chaque widget peut être visible par Public, Membres, Moniteurs, ou Bureau
+- **⚙ Paramètres** : configurez le nombre d'articles, photos, ou événements affichés
+- **✕ Masquer** : désactivez un widget (il apparaît dans le panneau « Widgets disponibles »)
+- **Sauvegarde** : cliquez « 💾 Save & Close » pour enregistrer la disposition
+
+### Page alternative (home2)
+
+Une page de présentation moderne est disponible à `/home2` — page scrollante avec sections plein écran, idéale pour présenter le club aux visiteurs.
+
+## 25. Sites de plongée et météo
+
+### Gestion des sites
+
+**Admin → Sites de plongée** permet de gérer la base de données des sites :
+
+- Utilisez le **filtre rapide** en haut pour trouver un site par nom
+- Chaque site peut avoir : coordonnées GPS, profondeur max, type d'eau, conditions, vie marine, notes de sécurité, hôpital le plus proche, lien web
+- Les sites avec coordonnées affichent automatiquement un **widget météo** sur les événements associés
+
+### Widget météo
+
+Le widget météo utilise l'API gratuite Open-Meteo (aucune clé API requise) :
+
+- **Événement dans les 16 jours** : prévisions pour les dates exactes de l'événement
+- **Événement plus lointain** : prévisions actuelles avec mention « événement trop éloigné »
+- **Événement passé** : météo historique réelle via l'API d'archives
