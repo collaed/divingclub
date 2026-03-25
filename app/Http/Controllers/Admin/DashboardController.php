@@ -41,6 +41,9 @@ class DashboardController extends Controller
                     [\DB::raw(config('database.default') === 'pgsql' ? 'EXTRACT(DOY FROM NOW())' : 'DAYOFYEAR(NOW())'),
                         \DB::raw(config('database.default') === 'pgsql' ? 'EXTRACT(DOY FROM NOW()) + 30' : 'DAYOFYEAR(NOW()) + 30')]
                 )
+                ->orderByRaw(config('database.default') === 'pgsql'
+                    ? 'EXTRACT(DOY FROM date_of_birth)'
+                    : 'DAYOFYEAR(date_of_birth)')
                 ->with('user')->limit(10)->get(),
             'next_events' => Event::where('event_date', '>=', now())->orderBy('event_date')->limit(5)->get(),
         ];
