@@ -154,9 +154,38 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8 h2-reveal">
+                @if($section->slug === 'history')
+                {{-- Condensed history with vintage gear images --}}
+                <h2 class="h2-section-title">{{ __('Since 1972') }}</h2>
+                <div class="h2-section-divider"></div>
+                <p style="font-size:1.15rem;line-height:1.9">
+                    {{ __('Founded on May 6, 1972 by Guy Le Gloan and a group of European civil servants, the CEP is one of Luxembourg\'s oldest diving clubs. Affiliated to the FFESSM and CMAS, we train divers from beginner to instructor level — with safety as our guiding principle.') }}
+                </p>
+                <p style="font-size:1.15rem;line-height:1.9">
+                    {{ __('From the era of twin-hose regulators and Fenzy buoyancy vests to today\'s modern BCDs and dive computers, the spirit remains the same: share the passion, explore together, and welcome everyone — regardless of language or nationality.') }}
+                </p>
+                <div class="row g-3 my-4 text-center">
+                    <div class="col-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Aqua-Lung_Mistral_1st_generation.jpg/220px-Aqua-Lung_Mistral_1st_generation.jpg" alt="Mistral regulator" class="rounded mb-2" style="width:100%;max-width:200px;aspect-ratio:1;object-fit:cover">
+                        <div class="small text-muted">Mistral (1955) — the twin-hose regulator that started it all</div>
+                    </div>
+                    <div class="col-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Fenzy_ABLJ.jpg/220px-Fenzy_ABLJ.jpg" alt="Fenzy buoyancy vest" class="rounded mb-2" style="width:100%;max-width:200px;aspect-ratio:1;object-fit:cover">
+                        <div class="small text-muted">Fenzy — the buoyancy vest before BCDs existed</div>
+                    </div>
+                    <div class="col-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Scubapro_Hydros_Pro_BCD.jpg/220px-Scubapro_Hydros_Pro_BCD.jpg" alt="Modern BCD" class="rounded mb-2" style="width:100%;max-width:200px;aspect-ratio:1;object-fit:cover">
+                        <div class="small text-muted">Modern BCD — a long way from the Fenzy!</div>
+                    </div>
+                </div>
+                <p class="text-center">
+                    <a href="{{ route('article.show', 'history') }}" class="btn btn-outline-primary">{{ __('Read the full story') }} →</a>
+                </p>
+                @else
                 <h2 class="h2-section-title">{{ $section->title }}</h2>
                 <div class="h2-section-divider"></div>
                 <div class="h2-section-body">{!! $section->body !!}</div>
+                @endif
 
                 @if($section->slug === 'member-figures')
                 {{-- Live stats --}}
