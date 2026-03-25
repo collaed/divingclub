@@ -43,7 +43,15 @@
             $monthStart = $date->copy()->startOfMonth()->startOfWeek(\Carbon\Carbon::MONDAY);
             $monthEnd = $date->copy()->endOfMonth()->endOfWeek(\Carbon\Carbon::SUNDAY);
             $day = $monthStart->copy();
-            $eventsByDate = $events->groupBy(fn($e) => $e->event_date->format('Y-m-d'));
+            $eventsByDate = collect();
+            foreach ($events as $e) {
+                $eStart = $e->event_date->copy();
+                $eEnd = ($e->end_date && $e->end_date->gt($e->event_date)) ? $e->end_date->copy() : $eStart->copy();
+                for ($d = $eStart->copy(); $d->lte($eEnd); $d->addDay()) {
+                    $key = $d->format('Y-m-d');
+                    $eventsByDate[$key] = ($eventsByDate[$key] ?? collect())->push($e);
+                }
+            }
         @endphp
         <div class="table-responsive">
             <table class="table table-bordered">

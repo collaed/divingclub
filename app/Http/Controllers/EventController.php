@@ -61,7 +61,14 @@ class EventController extends Controller
             $end = $date->copy()->endOfDay();
         }
 
-        $events = $query->whereBetween('event_date', [$start, $end])
+        $events = $query->where(function ($q) use ($start, $end) {
+            $q->whereBetween('event_date', [$start, $end])
+                ->orWhere(function ($q2) use ($start, $end) {
+                    $q2->whereNotNull('end_date')
+                        ->where('event_date', '<=', $end)
+                        ->where('end_date', '>=', $start);
+                });
+        })
             ->orderBy('event_date')->orderBy('event_time')
             ->withCount(['confirmedRegistrations as confirmed_count', 'waitingRegistrations as waiting_count'])
             ->get();
