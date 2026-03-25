@@ -50,7 +50,7 @@ class HomeController extends Controller
 
     public function index2()
     {
-        $slugs = ['values', 'history', 'bureau', 'member-figures', 'instructors', 'contact-info'];
+        $slugs = ['values', 'history', 'bureau', 'member-figures', 'instructors'];
         $sections = Article::whereIn('slug', $slugs)->where('is_published', true)
             ->get()->sortBy(fn ($a) => array_search($a->slug, $slugs))->values();
 

@@ -77,6 +77,7 @@
             @foreach($sections as $s)
                 <a href="#s-{{ $s->slug }}">{{ $s->title }}</a>
             @endforeach
+            <a href="#s-contact">{{ __('Contact') }}</a>
         </div>
         <div class="d-flex gap-2 align-items-center">
             <button class="btn btn-sm btn-outline-light py-0" onclick="document.documentElement.dataset.bsTheme = document.documentElement.dataset.bsTheme === 'dark' ? 'light' : 'dark'" title="Toggle dark mode">🌓</button>
@@ -188,6 +189,59 @@
     </div>
 </section>
 @endforeach
+
+{{-- Contact & links section --}}
+<section class="h2-section" id="s-contact">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 h2-reveal">
+                <h2 class="h2-section-title">{{ __('Get in Touch') }}</h2>
+                <div class="h2-section-divider"></div>
+
+                <div class="row g-4 mt-2">
+                    <div class="col-md-6">
+                        <h5>📧 {{ __('Contact') }}</h5>
+                        @if($theme['club_email'] ?? false)
+                            <p><a href="mailto:{{ $theme['club_email'] }}">{{ $theme['club_email'] }}</a></p>
+                        @endif
+                        @if($theme['club_address'] ?? false)
+                            <p class="text-muted">{!! nl2br(str_replace(' / ', "\n", e($theme['club_address']))) !!}</p>
+                        @endif
+                        <a href="{{ route('contact') }}" class="btn btn-outline-primary btn-sm">{{ __('Contact Form') }} →</a>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5>📍 {{ __('Training Locations') }}</h5>
+                        @php $locations = json_decode($theme['training_locations'] ?? '[]', true) @endphp
+                        @foreach($locations as $loc)
+                            <p class="mb-1"><strong>{{ $loc['name'] }}</strong>
+                                @if($loc['address'] ?? false)<br><small class="text-muted">{{ $loc['address'] }}</small>@endif
+                            </p>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="row g-4 mt-2">
+                    <div class="col-md-6">
+                        <h5>📅 {{ __('Useful Links') }}</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="{{ route('events.index') }}">📆 {{ __('Events Calendar') }}</a></li>
+                            <li class="mb-2"><a href="{{ route('article.show', 'training-schedule-ULO7R') }}">🗓️ {{ __('Training Schedule') }}</a></li>
+                            <li class="mb-2"><a href="{{ route('trial.show') }}">🐠 {{ __('Try Diving') }}</a></li>
+                            <li class="mb-2"><a href="{{ route('dues.show') }}">💶 {{ __('Membership Fees') }}</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5>👥 {{ __('The Bureau') }}</h5>
+                        <p>{{ __('The club is run by an elected volunteer bureau.') }}</p>
+                        <a href="{{ route('article.show', 'bureau') }}" class="btn btn-outline-primary btn-sm">{{ __('Meet the Bureau') }} →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 {{-- CTA --}}
 <section class="h2-events text-center">
