@@ -14,8 +14,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Event;
+use App\Models\EventPhoto;
 use App\Models\MemberDetail;
 use App\Services\ArticleTranslationService;
+use App\Services\ThemeService;
 
 class HomeController extends Controller
 {
@@ -43,6 +46,22 @@ class HomeController extends Controller
         $isAdmin = $user?->isBureauMaster();
 
         return view('home', compact('widgets', 'widgetTypes', 'isAdmin'));
+    }
+
+    public function index2()
+    {
+        $slugs = ['values', 'history', 'bureau', 'instructors', 'contact-info'];
+        $sections = Article::whereIn('slug', $slugs)->where('is_published', true)
+            ->get()->keyBy('slug')->only($slugs)->values();
+
+        $photos = EventPhoto::where('quality_score', '>=', 85)
+            ->where('has_faces', false)->inRandomOrder()->limit(6)->pluck('path');
+
+        $events = Event::where('event_date', '>=', now())
+            ->orderBy('event_date')->limit(3)->get();
+
+        return view('home2', compact('sections', 'photos', 'events'))
+            ->with('theme', ThemeService::settings());
     }
 
     public function showArticle(string $slug)

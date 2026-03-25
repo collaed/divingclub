@@ -76,6 +76,7 @@ Route::post('/install', [InstallController::class, 'run'])->name('install.run');
 
 // Public
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/home2', [HomeController::class, 'index2'])->name('home2');
 Route::get('/article/{slug}', [HomeController::class, 'showArticle'])->name('article.show');
 Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
 Route::post('/trial', [TrialController::class, 'store'])->middleware('throttle:3,1')->name('trial.store');
