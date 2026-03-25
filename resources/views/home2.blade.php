@@ -182,7 +182,7 @@
                 <p class="text-center">
                     <a href="{{ route('article.show', 'history') }}" class="btn btn-outline-primary">{{ __('Read the full story') }} →</a>
                 </p>
-                @if($section->slug === 'bureau')
+                @elseif($section->slug === 'bureau')
                 {{-- Dynamic bureau section --}}
                 <h2 class="h2-section-title">{{ __('The Bureau') }}</h2>
                 <div class="h2-section-divider"></div>
