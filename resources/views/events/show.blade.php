@@ -105,20 +105,30 @@
                                     $isPast = $event->event_date->lt(now()->subDays(7));
                                     $wBase = $isPast ? 'https://archive-api.open-meteo.com/v1/archive' : 'https://api.open-meteo.com/v1/forecast';
                                 @endphp
-                                fetch('{{ $wBase }}?latitude={{ $event->diveSite->latitude }}&longitude={{ $event->diveSite->longitude }}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode&timezone={{ urlencode(config('app.timezone', 'UTC')) }}&start_date={{ $wStart }}&end_date={{ $wEnd }}')
-                                    .then(r => r.json()).then(d => {
-                                        if (!d.daily) return;
-                                        const icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'};
-                                        let html = '<table class="table table-sm mb-0" style="font-size:0.75rem"><tbody>';
-                                        for (let i = 0; i < Math.min(5, d.daily.time.length); i++) {
-                                            const dt = new Date(d.daily.time[i]);
-                                            const day = dt.toLocaleDateString('{{ app()->getLocale() }}', {weekday:'short',day:'numeric'});
-                                            const wc = d.daily.weathercode[i];
-                                            html += '<tr><td>' + day + '</td><td>' + (icons[wc]||'🌡️') + '</td><td>' + d.daily.temperature_2m_min[i] + '—' + d.daily.temperature_2m_max[i] + '°C</td><td>💨' + d.daily.windspeed_10m_max[i] + 'km/h</td></tr>';
-                                        }
-                                        html += '</tbody></table>';
-                                        document.getElementById('weather-data').innerHTML = html;
-                                    }).catch(() => { document.getElementById('weather-data').textContent = '{{ __("Weather unavailable") }}'; });
+                                const loc = 'latitude={{ $event->diveSite->latitude }}&longitude={{ $event->diveSite->longitude }}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode&timezone={{ urlencode(config('app.timezone', 'UTC')) }}';
+                                const eventUrl = '{{ $wBase }}?' + loc + '&start_date={{ $wStart }}&end_date={{ $wEnd }}';
+                                const fallbackUrl = 'https://api.open-meteo.com/v1/forecast?' + loc + '&forecast_days=5';
+                                function renderWeather(d, label) {
+                                    if (!d.daily || !d.daily.time || !d.daily.time.length) return false;
+                                    const icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'};
+                                    let html = label ? '<div class="text-muted small mb-1">' + label + '</div>' : '';
+                                    html += '<table class="table table-sm mb-0" style="font-size:0.75rem"><tbody>';
+                                    for (let i = 0; i < Math.min(5, d.daily.time.length); i++) {
+                                        const dt = new Date(d.daily.time[i]);
+                                        const day = dt.toLocaleDateString('{{ app()->getLocale() }}', {weekday:'short',day:'numeric'});
+                                        const wc = d.daily.weathercode[i];
+                                        html += '<tr><td>' + day + '</td><td>' + (icons[wc]||'🌡️') + '</td><td>' + d.daily.temperature_2m_min[i] + '—' + d.daily.temperature_2m_max[i] + '°C</td><td>💨' + d.daily.windspeed_10m_max[i] + 'km/h</td></tr>';
+                                    }
+                                    html += '</tbody></table>';
+                                    document.getElementById('weather-data').innerHTML = html;
+                                    return true;
+                                }
+                                fetch(eventUrl).then(r => r.json()).then(d => {
+                                    if (renderWeather(d, null)) return;
+                                    // Event dates not in forecast range — show current forecast
+                                    return fetch(fallbackUrl).then(r => r.json()).then(d2 => renderWeather(d2, '{{ __("Current forecast (event too far ahead)") }}'));
+                                }).catch(() => fetch(fallbackUrl).then(r => r.json()).then(d => renderWeather(d, '{{ __("Current forecast") }}')))
+                                  .catch(() => { document.getElementById('weather-data').textContent = '{{ __("Weather unavailable") }}'; });
                                 </script>
                             @endif
                         </div>
