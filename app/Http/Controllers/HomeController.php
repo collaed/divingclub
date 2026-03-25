@@ -60,6 +60,18 @@ class HomeController extends Controller
         $events = Event::where('event_date', '>=', now())
             ->orderBy('event_date')->limit(3)->get();
 
+        // Instructor bios for the instructors section
+        $instructors = MemberDetail::whereNotNull('instructor_bio')
+            ->where('instructor_bio', '!=', '')
+            ->where('show_on_public_site', true)
+            ->with('user')
+            ->get();
+
+        // Bureau members for the bureau section
+        $bureauMembers = MemberDetail::where('bureau_member', true)
+            ->with('user')
+            ->get();
+
         // Live member stats for the member-figures section
         $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id'))->get();
         $memberStats = [
@@ -69,7 +81,7 @@ class HomeController extends Controller
                 ->groupBy('nationality')->map->count()->sortDesc()->take(15),
         ];
 
-        return view('home2', compact('sections', 'photos', 'events', 'memberStats'))
+        return view('home2', compact('sections', 'photos', 'events', 'memberStats', 'instructors', 'bureauMembers'))
             ->with('theme', ThemeService::settings());
     }
 

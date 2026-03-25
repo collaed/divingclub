@@ -1,4 +1,5 @@
 {{-- home2.blade.php — Modern single-page scrolling landing | ClubCEP.eu --}}
+@php use Illuminate\Support\Facades\Storage; @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
 <head>
@@ -181,6 +182,50 @@
                 <p class="text-center">
                     <a href="{{ route('article.show', 'history') }}" class="btn btn-outline-primary">{{ __('Read the full story') }} →</a>
                 </p>
+                @if($section->slug === 'bureau')
+                {{-- Dynamic bureau section --}}
+                <h2 class="h2-section-title">{{ __('The Bureau') }}</h2>
+                <div class="h2-section-divider"></div>
+                <p>{{ __('The bureau is the elected body of the club, responsible for day-to-day management, finances, and direction.') }}</p>
+                <div class="row g-3 mt-2">
+                    @foreach($bureauMembers as $bm)
+                        <div class="col-6 col-md-4 text-center">
+                            @if($bm->avatar_path && Storage::disk('public')->exists($bm->avatar_path))
+                                <img src="{{ asset('storage/'.$bm->avatar_path) }}" alt="{{ $bm->first_name }}" class="rounded-circle mb-2" style="width:80px;height:80px;object-fit:cover">
+                            @else
+                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center text-white fw-bold" style="width:80px;height:80px;background:var(--h2-primary);font-size:1.5rem">{{ substr($bm->first_name,0,1) }}{{ substr($bm->last_name,0,1) }}</div>
+                            @endif
+                            <div class="fw-semibold">{{ $bm->first_name }} {{ $bm->last_name }}</div>
+                        </div>
+                    @endforeach
+                </div>
+
+                @elseif($section->slug === 'instructors')
+                {{-- Dynamic instructors section --}}
+                <h2 class="h2-section-title">{{ __('Our Instructors') }}</h2>
+                <div class="h2-section-divider"></div>
+                @if($instructors->isNotEmpty())
+                    <div class="row g-4">
+                        @foreach($instructors as $inst)
+                            <div class="col-md-6">
+                                <div class="d-flex gap-3">
+                                    @if($inst->avatar_path && Storage::disk('public')->exists($inst->avatar_path))
+                                        <img src="{{ asset('storage/'.$inst->avatar_path) }}" alt="" class="rounded-circle" style="width:60px;height:60px;object-fit:cover">
+                                    @else
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width:60px;height:60px;background:var(--h2-primary)">{{ substr($inst->first_name,0,1) }}{{ substr($inst->last_name,0,1) }}</div>
+                                    @endif
+                                    <div>
+                                        <div class="fw-semibold">{{ $inst->first_name }} {{ $inst->last_name }}</div>
+                                        <p class="small text-muted mb-0">{{ $inst->instructor_bio }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-muted">{{ __('Instructor profiles will appear here once they complete their bio in My Profile → Diving tab.') }}</p>
+                @endif
+
                 @else
                 <h2 class="h2-section-title">{{ $section->title }}</h2>
                 <div class="h2-section-divider"></div>
