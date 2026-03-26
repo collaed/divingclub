@@ -56,7 +56,7 @@
                         <button class="btn btn-sm btn-outline-light dropdown-toggle py-0 px-2" data-bs-toggle="dropdown" aria-label="Language">
                             {{ strtoupper(app()->getLocale()) }}
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end" style="min-width:auto">
+                        <ul class="dropdown-menu dropdown-menu-end" style="min-width:auto;max-height:70vh;overflow-y:auto">
                             @foreach(\App\Http\Middleware\SetLocale::enabledLocalesWithLabels() as $code => $label)
                                 <li><a class="dropdown-item {{ app()->getLocale() === $code ? 'active' : '' }}" href="{{ url('locale/' . $code) }}">{{ $label }}</a></li>
                             @endforeach
