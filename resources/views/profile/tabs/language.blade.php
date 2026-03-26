@@ -2,6 +2,7 @@
 <form method="POST" action="{{ route('profile.update.language') }}">
     @csrf
     <input type="hidden" name="tab" value="language">
+    <input type="hidden" name="target_user_id" value="{{ $target->id }}">
     <div class="mb-3">
         <label class="form-label">{{ __('Preferred Communication Language') }}</label>
         <select name="preferred_language" class="form-select @error('preferred_language') is-invalid @enderror" style="max-width: 300px;">
