@@ -55,6 +55,7 @@ Route::get('newsletters/{newsletter}', [NewsletterController::class, 'show'])->n
 Route::post('newsletters/{newsletter}/submit', [NewsletterController::class, 'submit'])->name('newsletters.submit');
 Route::post('newsletters/{newsletter}/withdraw', [NewsletterController::class, 'withdraw'])->name('newsletters.withdraw');
 Route::post('newsletters/{newsletter}/send', [NewsletterController::class, 'send'])->name('newsletters.send');
+Route::get('newsletters/{newsletter}/preview-email', [NewsletterController::class, 'preview'])->name('newsletters.preview-email');
 
 // Document Library
 Route::get('/library', [LibraryController::class, 'index'])->name('library.index');

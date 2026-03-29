@@ -9,10 +9,10 @@ use App\Models\Newsletter;
 use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Services\ArticleTranslationService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class NewsletterController extends Controller
 {
@@ -228,69 +228,53 @@ class NewsletterController extends Controller
             ->with('success', __('Newsletter deleted.'));
     }
 
+    /** Render email preview in an iframe-friendly standalone page. */
+    public function preview(Newsletter $newsletter)
+    {
+        $data = $this->buildEmailData($newsletter, 'fr');
+
+        return view('admin.newsletters.themes.email', $data);
+    }
+
     private function renderEmailHtml(Newsletter $newsletter, array $slotArticles, string $locale, string $appUrl, string $clubName): string
     {
-        $isBulles = ($newsletter->background_image ?? 'default-bulles') === 'default-bulles';
-        $headerImg = $isBulles ? $appUrl.'/images/newsletter/bulles/header.jpg' : '';
+        $data = $this->buildEmailData($newsletter, $locale, $slotArticles);
 
-        $html = '<div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif">';
+        return view('admin.newsletters.themes.email', $data)->render();
+    }
 
-        // Header
-        if ($headerImg) {
-            $html .= '<img src="'.$headerImg.'" style="width:100%;display:block;border-radius:8px 8px 0 0" alt="'.e($newsletter->title).'">';
-        } else {
-            $html .= '<div style="background:#003366;padding:30px 20px;text-align:center;border-radius:8px 8px 0 0">';
-            $html .= '<h1 style="color:#d4a843;font-size:22px;margin:0;font-family:Georgia,serif">'.e($newsletter->title).'</h1>';
-            $html .= '</div>';
-        }
+    /** Build the data array for the email Blade template. */
+    private function buildEmailData(Newsletter $newsletter, string $locale, ?array $slotArticles = null): array
+    {
+        $slotArticles = $slotArticles ?? $newsletter->slotArticles();
+        $theme = $newsletter->background_image ?? 'default-bulles';
+        $themeFolder = match (true) {
+            str_contains($theme, 'bulles') => 'bulles',
+            str_contains($theme, 'abyss') => 'abyss',
+            str_contains($theme, 'coral') => 'coral',
+            str_contains($theme, 'arctic') => 'arctic',
+            default => 'bulles',
+        };
 
-        // Article slots in 2-column table
-        $html .= '<table width="100%" cellpadding="0" cellspacing="0" style="background:#1a6fa0"><tr>';
-        $col = 0;
-        foreach ([1, 2, 3, 4] as $pos) {
-            if ($col > 0 && $col % 2 === 0) {
-                $html .= '</tr><tr>';
+        $monthLabel = '';
+        if ($newsletter->month) {
+            try {
+                $monthLabel = Carbon::createFromFormat('Y-m', $newsletter->month)
+                    ->locale($locale)->isoFormat('MMMM YYYY');
+            } catch (\Throwable) {
+                $monthLabel = $newsletter->month;
             }
-            $slot = $slotArticles[$pos] ?? null;
-            $html .= '<td width="50%" style="padding:8px;vertical-align:top">';
-            if ($slot) {
-                $article = $slot['article'];
-                $t = $article->translated($locale);
-                $url = $appUrl.'/article/'.$article->slug;
-                $img = $article->featured_image
-                    ? '<img src="'.$appUrl.'/storage/'.$article->featured_image.'" style="width:100%;max-height:120px;object-fit:cover;border-radius:4px 4px 0 0" alt="">'
-                    : '';
-                $excerpt = Str::limit(strip_tags($t['body']), 120);
-
-                $html .= '<div style="background:#fff;border-radius:6px;overflow:hidden">';
-                $html .= $img;
-                $html .= '<div style="padding:10px">';
-                $html .= '<h3 style="margin:0 0 6px;font-size:14px;color:#003366">'.e($t['title']).'</h3>';
-                $html .= '<p style="margin:0 0 8px;font-size:12px;color:#555">'.$excerpt.'</p>';
-                $html .= '<a href="'.$url.'" style="color:#0077be;font-size:12px;text-decoration:none">'.($locale === 'fr' ? 'Lire la suite →' : __('Read more →')).'</a>';
-                $html .= '</div></div>';
-            }
-            $html .= '</td>';
-            $col++;
-        }
-        $html .= '</tr></table>';
-
-        // Slot 5 — centered bottom banner
-        if (isset($slotArticles[5])) {
-            $article = $slotArticles[5]['article'];
-            $t = $article->translated($locale);
-            $url = $appUrl.'/article/'.$article->slug;
-            $html .= '<div style="background:#1a6fa0;padding:12px;text-align:center">';
-            $html .= '<div style="display:inline-block;background:#fff;border-radius:6px;padding:8px 20px">';
-            $html .= '<a href="'.$url.'" style="color:#003366;font-weight:bold;text-decoration:none;font-size:13px">'.e($t['title']).'</a>';
-            $html .= '</div></div>';
         }
 
-        // Footer
-        $html .= '<div style="margin-top:20px;padding:15px;text-align:center;font-size:11px;color:#999">';
-        $html .= e($clubName).' — <a href="'.$appUrl.'" style="color:#999">'.$appUrl.'</a>';
-        $html .= '</div></div>';
-
-        return $html;
+        return [
+            'newsletter' => $newsletter,
+            'slotArticles' => $slotArticles,
+            'locale' => $locale,
+            'appUrl' => config('app.url'),
+            'clubName' => ThemeSetting::get('club_full_name', 'Diving Club'),
+            'theme' => $themeFolder,
+            'monthLabel' => $monthLabel,
+            'unsubscribeUrl' => null,
+        ];
     }
 }

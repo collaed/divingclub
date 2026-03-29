@@ -2,6 +2,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">📬 {{ $newsletter->title }}</h4>
         <div class="d-flex gap-2">
+            <a href="{{ route('admin.newsletters.preview-email', $newsletter) }}" target="_blank" class="btn btn-outline-info btn-sm">📧 {{ __('Preview Email') }}</a>
             @if($newsletter->status === 'draft')
                 <a href="{{ route('admin.newsletters.edit', $newsletter) }}" class="btn btn-outline-secondary btn-sm">{{ __('Edit') }}</a>
                 <form method="POST" action="{{ route('admin.newsletters.submit', $newsletter) }}">
