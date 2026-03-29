@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\HtmlSanitizer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -53,10 +54,12 @@ class Article extends Model
 
     /**
      * Render body with auto-embedded YouTube/Vimeo links.
+     * Sanitizes HTML first, then applies embed transformations.
      */
     public function renderedBody(): string
     {
-        $body = $this->body ?? '';
+        $body = HtmlSanitizer::clean($this->body ?? '');
+
         // YouTube: convert bare URLs to responsive embeds
         $body = preg_replace(
             '#(?:<a[^>]*>)?\s*(?:https?://)?(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)([\w-]+)[^\s<]*\s*(?:</a>)?#i',

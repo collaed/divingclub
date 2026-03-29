@@ -13,17 +13,23 @@ class HtmlSanitizer
         'comment' => 'p,br,strong,b,em,i,a[href]',
     ];
 
+    /** @var array<string, HTMLPurifier> */
+    private static array $instances = [];
+
     public static function clean(?string $html, string $preset = 'rich'): string
     {
         if (! $html) {
             return '';
         }
 
-        $config = HTMLPurifier_Config::createDefault();
-        $config->set('HTML.Allowed', self::PRESETS[$preset] ?? self::PRESETS['rich']);
-        $config->set('HTML.TargetBlank', true);
-        $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true]);
+        if (! isset(self::$instances[$preset])) {
+            $config = HTMLPurifier_Config::createDefault();
+            $config->set('HTML.Allowed', self::PRESETS[$preset] ?? self::PRESETS['rich']);
+            $config->set('HTML.TargetBlank', true);
+            $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true]);
+            self::$instances[$preset] = new HTMLPurifier($config);
+        }
 
-        return (new HTMLPurifier($config))->purify($html);
+        return self::$instances[$preset]->purify($html);
     }
 }

@@ -19,6 +19,7 @@ use App\Models\EventPhoto;
 use App\Models\MemberDetail;
 use App\Services\ArticleTranslationService;
 use App\Services\ThemeService;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
@@ -73,13 +74,7 @@ class HomeController extends Controller
             ->get();
 
         // Live member stats for the member-figures section
-        $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id'))->get();
-        $memberStats = [
-            'total' => $details->count(),
-            'gender' => $details->groupBy('sex')->map->count()->sortDesc(),
-            'nationality' => $details->filter(fn ($d) => $d->nationality)
-                ->groupBy('nationality')->map->count()->sortDesc()->take(15),
-        ];
+        $memberStats = self::memberStats();
 
         return view('home2', compact('sections', 'photos', 'events', 'memberStats', 'instructors', 'bureauMembers'))
             ->with('theme', ThemeService::settings());
@@ -106,22 +101,7 @@ class HomeController extends Controller
 
         // Live member statistics charts
         if ($slug === 'member-figures') {
-            $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id'))->get();
-
-            $extra['memberStats'] = [
-                'gender' => $details->groupBy('sex')->map->count()->sortDesc(),
-                'age' => $details->filter(fn ($d) => $d->date_of_birth)
-                    ->groupBy(fn ($d) => (int) floor($d->date_of_birth->age / 10) * 10)
-                    ->map->count()->sortKeys()
-                    ->mapWithKeys(fn ($v, $k) => [$k.'-'.($k + 9) => $v]),
-                'certification' => $details->filter(fn ($d) => $d->certification_level)
-                    ->groupBy('certification_level')->map->count()->sortDesc()->take(12),
-                'nationality' => $details->filter(fn ($d) => $d->nationality)
-                    ->groupBy('nationality')->map->count()->sortDesc()->take(15),
-                'language' => $details->filter(fn ($d) => $d->preferred_language)
-                    ->groupBy('preferred_language')->map->count()->sortDesc(),
-                'total' => $details->count(),
-            ];
+            $extra['memberStats'] = self::memberStats();
         }
 
         // Auto-translate: generate user's locale if missing, and refresh any stale translations
@@ -143,5 +123,28 @@ class HomeController extends Controller
         $extra['translatedLocales'] = $article->translations->pluck('locale')->toArray();
 
         return view('cms.article', compact('article') + $extra);
+    }
+
+    /** Cached member statistics used by index2() and member-figures article. */
+    private static function memberStats(): array
+    {
+        return Cache::remember('member_stats', 3600, function () {
+            $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id'))->get();
+
+            return [
+                'total' => $details->count(),
+                'gender' => $details->groupBy('sex')->map->count()->sortDesc(),
+                'age' => $details->filter(fn ($d) => $d->date_of_birth)
+                    ->groupBy(fn ($d) => (int) floor($d->date_of_birth->age / 10) * 10)
+                    ->map->count()->sortKeys()
+                    ->mapWithKeys(fn ($v, $k) => [$k.'-'.($k + 9) => $v]),
+                'certification' => $details->filter(fn ($d) => $d->certification_level)
+                    ->groupBy('certification_level')->map->count()->sortDesc()->take(12),
+                'nationality' => $details->filter(fn ($d) => $d->nationality)
+                    ->groupBy('nationality')->map->count()->sortDesc()->take(15),
+                'language' => $details->filter(fn ($d) => $d->preferred_language)
+                    ->groupBy('preferred_language')->map->count()->sortDesc(),
+            ];
+        });
     }
 }

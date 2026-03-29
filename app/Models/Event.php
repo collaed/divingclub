@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
@@ -31,64 +33,64 @@ class Event extends Model
         ];
     }
 
-    public function season()
+    public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class);
     }
 
-    public function responsible()
+    public function responsible(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_id');
     }
 
-    public function instructor()
+    public function instructor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'instructor_id');
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function registrations()
+    public function registrations(): HasMany
     {
         return $this->hasMany(EventRegistration::class);
     }
 
-    public function photos()
+    public function photos(): HasMany
     {
         return $this->hasMany(EventPhoto::class)->orderByDesc('quality_score');
     }
 
-    public function diveSite()
+    public function diveSite(): BelongsTo
     {
         return $this->belongsTo(DiveSite::class);
     }
 
-    public function diveGroups()
+    public function diveGroups(): HasMany
     {
         return $this->hasMany(DiveGroup::class);
     }
 
-    public function confirmedRegistrations()
+    public function confirmedRegistrations(): HasMany
     {
         return $this->registrations()->where('status', 'confirmed');
     }
 
-    public function waitingRegistrations()
+    public function waitingRegistrations(): HasMany
     {
         return $this->registrations()->where('status', 'waiting')->orderBy('waiting_list_position');
     }
 
-    public function externalRegistrations()
+    public function externalRegistrations(): HasMany
     {
         return $this->hasMany(ExternalRegistration::class);
     }
 
     public function confirmedCount(): int
     {
-        return $this->confirmedRegistrations()->count();
+        return $this->confirmed_count ?? $this->confirmedRegistrations()->count();
     }
 
     public function isFull(): bool

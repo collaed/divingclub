@@ -2,8 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 class EnsureInstalled
@@ -14,11 +16,17 @@ class EnsureInstalled
             return $next($request);
         }
 
-        try {
-            if (!Schema::hasTable('users') || \App\Models\User::count() === 0) {
-                return redirect()->route('install.index');
+        $installed = Cache::remember('app_installed', 3600, function () {
+            try {
+                return Schema::hasTable('users') && User::count() > 0;
+            } catch (\Exception) {
+                return false;
             }
-        } catch (\Exception $e) {
+        });
+
+        if (! $installed) {
+            Cache::forget('app_installed');
+
             return redirect()->route('install.index');
         }
 
