@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vote extends Model
@@ -22,22 +24,22 @@ class Vote extends Model
         ];
     }
 
-    public function options()
+    public function options(): HasMany
     {
         return $this->hasMany(VoteOption::class);
     }
 
-    public function tokens()
+    public function tokens(): HasMany
     {
         return $this->hasMany(VoteToken::class);
     }
 
-    public function ballots()
+    public function ballots(): HasMany
     {
         return $this->hasMany(VoteBallot::class);
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Helpers\HtmlSanitizer;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Article extends Model
@@ -88,27 +90,27 @@ class Article extends Model
         return false;
     }
 
-    public function author()
+    public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
     }
 
-    public function vote()
+    public function vote(): BelongsTo
     {
         return $this->belongsTo(Vote::class);
     }
 
-    public function images()
+    public function images(): HasMany
     {
         return $this->hasMany(ArticleImage::class)->orderBy('sort_order');
     }
 
-    public function comments()
+    public function comments(): HasMany
     {
         return $this->hasMany(ArticleComment::class);
     }
 
-    public function translations()
+    public function translations(): HasMany
     {
         return $this->hasMany(ArticleTranslation::class);
     }
@@ -129,7 +131,7 @@ class Article extends Model
         ];
     }
 
-    public function rootComments()
+    public function rootComments(): HasMany
     {
         return $this->hasMany(ArticleComment::class)->whereNull('parent_id')->orderBy('created_at');
     }

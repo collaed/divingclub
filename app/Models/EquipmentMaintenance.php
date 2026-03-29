@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EquipmentMaintenance extends Model
 {
@@ -15,12 +16,12 @@ class EquipmentMaintenance extends Model
         return ['due_date' => 'date', 'completed_at' => 'date', 'is_mandatory' => 'boolean'];
     }
 
-    public function equipment()
+    public function equipment(): BelongsTo
     {
         return $this->belongsTo(Equipment::class);
     }
 
-    public function completedByUser()
+    public function completedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'completed_by');
     }

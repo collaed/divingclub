@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Equipment extends Model
@@ -26,17 +28,17 @@ class Equipment extends Model
         ];
     }
 
-    public function maintenanceTasks()
+    public function maintenanceTasks(): HasMany
     {
         return $this->hasMany(EquipmentMaintenance::class);
     }
 
-    public function loans()
+    public function loans(): HasMany
     {
         return $this->hasMany(EquipmentLoan::class);
     }
 
-    public function currentLoan()
+    public function currentLoan(): HasOne
     {
         return $this->hasOne(EquipmentLoan::class)->whereNull('returned_at');
     }

@@ -12,6 +12,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class EventPhoto extends Model
 {
@@ -22,17 +24,17 @@ class EventPhoto extends Model
         return ['approved' => 'boolean', 'gdpr_consent' => 'boolean', 'has_faces' => 'boolean'];
     }
 
-    public function event()
+    public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
-    public function uploader()
+    public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
-    public function socialPublishLogs()
+    public function socialPublishLogs(): MorphMany
     {
         return $this->morphMany(SocialPublishLog::class, 'publishable');
     }

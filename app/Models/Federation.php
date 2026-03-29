@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Federation extends Model
 {
@@ -18,12 +19,12 @@ class Federation extends Model
         return $q->where('visibility', 'active');
     }
 
-    public function licences()
+    public function licences(): HasMany
     {
         return $this->hasMany(MemberLicence::class);
     }
 
-    public function certificationLevels()
+    public function certificationLevels(): HasMany
     {
         return $this->hasMany(CertificationLevel::class);
     }

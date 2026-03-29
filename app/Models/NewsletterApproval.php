@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NewsletterApproval extends Model
 {
@@ -13,12 +14,12 @@ class NewsletterApproval extends Model
         return ['approved' => 'boolean'];
     }
 
-    public function newsletter()
+    public function newsletter(): BelongsTo
     {
         return $this->belongsTo(Newsletter::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

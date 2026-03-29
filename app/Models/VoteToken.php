@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VoteToken extends Model
 {
@@ -13,12 +14,12 @@ class VoteToken extends Model
         return ['is_consumed' => 'boolean', 'consumed_at' => 'datetime'];
     }
 
-    public function vote()
+    public function vote(): BelongsTo
     {
         return $this->belongsTo(Vote::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

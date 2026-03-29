@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TrialRequest extends Model
 {
@@ -13,7 +14,7 @@ class TrialRequest extends Model
         return ['preferred_date' => 'date', 'confirmed_date' => 'date'];
     }
 
-    public function confirmedBy()
+    public function confirmedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');
     }

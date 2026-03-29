@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SeasonHoliday extends Model
 {
@@ -13,7 +14,7 @@ class SeasonHoliday extends Model
         return ['start_date' => 'date', 'end_date' => 'date', 'is_adhoc' => 'boolean'];
     }
 
-    public function season()
+    public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class);
     }

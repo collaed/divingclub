@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserSocialAccount extends Model
 {
@@ -13,7 +14,7 @@ class UserSocialAccount extends Model
         return ['token' => 'encrypted', 'refresh_token' => 'encrypted'];
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

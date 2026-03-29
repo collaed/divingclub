@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class ClubPartnership extends Model
@@ -22,7 +23,7 @@ class ClubPartnership extends Model
         ];
     }
 
-    public function externalRegistrations()
+    public function externalRegistrations(): HasMany
     {
         return $this->hasMany(ExternalRegistration::class, 'partnership_id');
     }

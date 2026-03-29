@@ -16,6 +16,7 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EventRegistration extends Model
 {
@@ -39,24 +40,24 @@ class EventRegistration extends Model
 
     // ─── Relationships ────────────────────────────────────────
 
-    public function event()
+    public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /** Who performed the registration (null = self-registration). */
-    public function registeredByUser()
+    public function registeredByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'registered_by');
     }
 
     /** Who cancelled the registration (null = self-cancellation). */
-    public function cancelledByUser()
+    public function cancelledByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
     }

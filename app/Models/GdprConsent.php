@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GdprConsent extends Model
 {
@@ -13,7 +14,7 @@ class GdprConsent extends Model
         return ['granted' => 'boolean', 'granted_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

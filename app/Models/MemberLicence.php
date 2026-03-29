@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MemberLicence extends Model
 {
@@ -13,12 +14,12 @@ class MemberLicence extends Model
         return ['licence_request_date' => 'date', 'licence_request_pending' => 'boolean', 'medical_cert_expiry' => 'date', 'registration_date' => 'date'];
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function federation()
+    public function federation(): BelongsTo
     {
         return $this->belongsTo(Federation::class);
     }

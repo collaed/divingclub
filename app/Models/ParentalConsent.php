@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ParentalConsent extends Model
 {
@@ -16,12 +17,12 @@ class ParentalConsent extends Model
         return ['granted' => 'boolean', 'granted_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 
-    public function minor()
+    public function minor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'minor_user_id');
     }
 
-    public function grantedBy()
+    public function grantedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'granted_by');
     }

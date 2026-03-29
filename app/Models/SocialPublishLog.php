@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class SocialPublishLog extends Model
 {
@@ -13,7 +14,7 @@ class SocialPublishLog extends Model
         return ['published_at' => 'datetime'];
     }
 
-    public function publishable()
+    public function publishable(): MorphTo
     {
         return $this->morphTo();
     }

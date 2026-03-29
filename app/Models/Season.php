@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Season extends Model
 {
@@ -13,17 +14,17 @@ class Season extends Model
         return ['start_date' => 'date', 'end_date' => 'date', 'is_active' => 'boolean'];
     }
 
-    public function holidays()
+    public function holidays(): HasMany
     {
         return $this->hasMany(SeasonHoliday::class);
     }
 
-    public function patterns()
+    public function patterns(): HasMany
     {
         return $this->hasMany(SeasonPattern::class);
     }
 
-    public function events()
+    public function events(): HasMany
     {
         return $this->hasMany(Event::class);
     }

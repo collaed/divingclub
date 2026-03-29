@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BuddyRequest extends Model
 {
@@ -13,17 +15,17 @@ class BuddyRequest extends Model
         return ['dive_date' => 'date', 'is_active' => 'boolean'];
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function diveSite()
+    public function diveSite(): BelongsTo
     {
         return $this->belongsTo(DiveSite::class);
     }
 
-    public function responses()
+    public function responses(): HasMany
     {
         return $this->hasMany(BuddyResponse::class);
     }

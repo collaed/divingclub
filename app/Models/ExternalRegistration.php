@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExternalRegistration extends Model
 {
@@ -12,12 +13,12 @@ class ExternalRegistration extends Model
         'external_medical_valid_until' => 'date',
     ];
 
-    public function event()
+    public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
-    public function partnership()
+    public function partnership(): BelongsTo
     {
         return $this->belongsTo(ClubPartnership::class, 'partnership_id');
     }

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Newsletter extends Model
 {
@@ -18,12 +20,12 @@ class Newsletter extends Model
         ];
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approvals()
+    public function approvals(): HasMany
     {
         return $this->hasMany(NewsletterApproval::class);
     }

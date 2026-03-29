@@ -9,6 +9,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LibraryFile extends Model
 {
@@ -17,7 +18,7 @@ class LibraryFile extends Model
     // Visibility levels ordered from most to least restrictive
     const VISIBILITY_OPTIONS = ['public', 'members', 'instructors', 'bureau'];
 
-    public function uploader()
+    public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }

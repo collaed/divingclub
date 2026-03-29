@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EquipmentLoan extends Model
 {
@@ -13,12 +14,12 @@ class EquipmentLoan extends Model
         return ['loaned_at' => 'date', 'returned_at' => 'date', 'expected_return_date' => 'date', 'reminder_sent_at' => 'date'];
     }
 
-    public function equipment()
+    public function equipment(): BelongsTo
     {
         return $this->belongsTo(Equipment::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
