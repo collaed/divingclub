@@ -1,7 +1,7 @@
 @php
     $d = $target->detail;
     $userCerts = $target->certificationLevels()->with('federation')->orderByPivot('display_priority', 'desc')->get();
-    $federations = \App\Models\Federation::with(['certificationLevels' => fn($q) => $q->orderBy('category')->orderBy('rank')])->orderBy('acronym')->get();
+    $federations = \App\Models\Federation::active()->with(['certificationLevels' => fn($q) => $q->orderBy('category')->orderBy('rank')])->orderBy('acronym')->get();
 @endphp
 
 <div class="row mb-4">

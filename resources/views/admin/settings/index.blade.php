@@ -23,7 +23,7 @@
             <div id="fedSection" class="accordion-collapse collapse show" data-bs-parent="#clubAccordion">
                 <div class="accordion-body">
                     <table class="table table-sm">
-                        <thead><tr><th>{{ __('Acronym') }}</th><th>{{ __('Full Name') }}</th><th></th></tr></thead>
+                        <thead><tr><th>{{ __('Acronym') }}</th><th>{{ __('Full Name') }}</th><th>{{ __('Visibility') }}</th><th></th></tr></thead>
                         <tbody>
                         @foreach($federations as $fed)
                             <tr>
@@ -31,6 +31,13 @@
                                     @csrf @method('PUT')
                                     <td><input type="text" name="acronym" class="form-control form-control-sm" value="{{ $fed->acronym }}" required></td>
                                     <td><input type="text" name="full_name" class="form-control form-control-sm" value="{{ $fed->full_name }}" required></td>
+                                    <td>
+                                        <select name="visibility" class="form-select form-select-sm">
+                                            <option value="active" @selected($fed->visibility === 'active')>{{ __('Active') }}</option>
+                                            <option value="recognized" @selected($fed->visibility === 'recognized')>{{ __('Recognized') }}</option>
+                                            <option value="invisible" @selected($fed->visibility === 'invisible')>{{ __('Invisible') }}</option>
+                                        </select>
+                                    </td>
                                     <td class="text-end text-nowrap">
                                         <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                                 </form>

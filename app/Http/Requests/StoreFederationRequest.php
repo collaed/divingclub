@@ -18,6 +18,7 @@ class StoreFederationRequest extends FormRequest
         return [
             'acronym' => 'required|string|max:20|unique:federations,acronym'.($this->route('federation') ? ','.$this->route('federation')->id : ''),
             'full_name' => 'required|string|max:255',
+            'visibility' => 'sometimes|in:active,recognized,invisible',
         ];
     }
 }
