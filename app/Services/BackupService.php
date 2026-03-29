@@ -180,37 +180,49 @@ class BackupService
             }
         } elseif ($driver === 'pgsql') {
             $dumpFile = "{$dir}/database.sql.gz";
-            $env = $conn['password'] ? 'PGPASSWORD='.escapeshellarg($conn['password']).' ' : '';
             $cmd = sprintf(
-                '%spg_dump -h %s -p %s -U %s %s | gzip > %s 2>&1',
-                $env,
+                'pg_dump -h %s -p %s -U %s %s | gzip > %s 2>&1',
                 escapeshellarg($conn['host'] ?? '127.0.0.1'),
                 escapeshellarg($conn['port'] ?? '5432'),
                 escapeshellarg($conn['username']),
                 escapeshellarg($conn['database']),
                 escapeshellarg($dumpFile)
             );
-            exec($cmd, $output, $code);
+            $env = $conn['password'] ? ['PGPASSWORD' => $conn['password']] : [];
+            $this->execWithEnv($cmd, $env, $code);
             if ($code !== 0) {
-                Log::error('PG dump failed: '.implode("\n", $output));
+                Log::error('PG dump failed');
                 throw new \RuntimeException('Database dump failed');
             }
         } else {
             $dumpFile = "{$dir}/database.sql.gz";
             $cmd = sprintf(
-                'mysqldump --no-tablespaces -h%s -P%s -u%s %s %s | gzip > %s 2>&1',
+                'mysqldump --no-tablespaces -h%s -P%s -u%s %s | gzip > %s 2>&1',
                 escapeshellarg($conn['host'] ?? '127.0.0.1'),
                 escapeshellarg($conn['port'] ?? '3306'),
                 escapeshellarg($conn['username']),
-                $conn['password'] ? '-p'.escapeshellarg($conn['password']) : '',
                 escapeshellarg($conn['database']),
                 escapeshellarg($dumpFile)
             );
-            exec($cmd, $output, $code);
+            $env = $conn['password'] ? ['MYSQL_PWD' => $conn['password']] : [];
+            $this->execWithEnv($cmd, $env, $code);
             if ($code !== 0) {
-                Log::error('DB dump failed: '.implode("\n", $output));
+                Log::error('DB dump failed');
                 throw new \RuntimeException('Database dump failed');
             }
+        }
+    }
+
+    /** Execute a shell command with additional environment variables (avoids leaking secrets in process list). */
+    protected function execWithEnv(string $cmd, array $env, int &$code): void
+    {
+        $process = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, array_merge($_ENV, $env));
+        if (is_resource($process)) {
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $code = proc_close($process);
+        } else {
+            $code = 1;
         }
     }
 

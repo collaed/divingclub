@@ -1,28 +1,7 @@
 <?php
 
-use App\Http\Controllers\Admin\AnnualReportController;
-use App\Http\Controllers\Admin\ArticleController;
-use App\Http\Controllers\Admin\AuditLogController;
-use App\Http\Controllers\Admin\BackupController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\DiveGroupRuleController;
-use App\Http\Controllers\Admin\DiveSiteController;
-use App\Http\Controllers\Admin\EmailController;
-use App\Http\Controllers\Admin\EquipmentController;
-use App\Http\Controllers\Admin\GuardianController;
-use App\Http\Controllers\Admin\GuideController;
-use App\Http\Controllers\Admin\LibraryController;
-use App\Http\Controllers\Admin\LinkController;
-use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
-use App\Http\Controllers\Admin\PartnershipController;
-use App\Http\Controllers\Admin\PaymentController;
-use App\Http\Controllers\Admin\SeasonController;
-use App\Http\Controllers\Admin\SettingsController;
-use App\Http\Controllers\Admin\ThumbnailController;
-use App\Http\Controllers\Admin\TrialRequestController;
-use App\Http\Controllers\Admin\VoteController;
 use App\Http\Controllers\Auth\EuLoginController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -39,11 +18,14 @@ use App\Http\Controllers\DocumentBrowserController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GdprController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\HomepageLayoutController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InstructorAvailabilityController;
 use App\Http\Controllers\MembersDirectoryController;
+use App\Http\Controllers\ProfileAvatarController;
+use App\Http\Controllers\ProfileCertificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileDocumentController;
+use App\Http\Controllers\ProfileEmailController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\StagingMailController;
@@ -176,18 +158,18 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/profile/diving', [ProfileController::class, 'updateDiving'])->name('profile.update.diving');
     Route::post('/profile/federation-key/{licence}', [ProfileController::class, 'updateFederationKey'])->name('profile.update.federation-key');
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage'])->name('profile.update.language');
-    Route::post('/profile/document', [ProfileController::class, 'uploadDocument'])->name('profile.document.upload');
-    Route::get('/profile/document/{document}', [ProfileController::class, 'downloadDocument'])->name('profile.document.download');
-    Route::post('/profile/document/{document}/verify', [ProfileController::class, 'verifyCertificate'])->name('profile.document.verify');
+    Route::post('/profile/document', [ProfileDocumentController::class, 'upload'])->name('profile.document.upload');
+    Route::get('/profile/document/{document}', [ProfileDocumentController::class, 'download'])->name('profile.document.download');
+    Route::post('/profile/document/{document}/verify', [ProfileDocumentController::class, 'verify'])->name('profile.document.verify');
 
-    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar.upload');
-    Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.delete');
+    Route::post('/profile/avatar', [ProfileAvatarController::class, 'upload'])->name('profile.avatar.upload');
+    Route::delete('/profile/avatar', [ProfileAvatarController::class, 'delete'])->name('profile.avatar.delete');
 
     // Certification levels
-    Route::post('/profile/cert', [ProfileController::class, 'addCertification'])->name('profile.cert.add');
-    Route::put('/profile/cert/{certLevel}', [ProfileController::class, 'updateCertification'])->name('profile.cert.update');
-    Route::post('/profile/cert/{certLevel}/primary', [ProfileController::class, 'setPrimaryCert'])->name('profile.cert.primary');
-    Route::delete('/profile/cert/{certLevel}', [ProfileController::class, 'removeCertification'])->name('profile.cert.remove');
+    Route::post('/profile/cert', [ProfileCertificationController::class, 'add'])->name('profile.cert.add');
+    Route::put('/profile/cert/{certLevel}', [ProfileCertificationController::class, 'update'])->name('profile.cert.update');
+    Route::post('/profile/cert/{certLevel}/primary', [ProfileCertificationController::class, 'setPrimary'])->name('profile.cert.primary');
+    Route::delete('/profile/cert/{certLevel}', [ProfileCertificationController::class, 'remove'])->name('profile.cert.remove');
 
     // Members directory (visible to all authenticated users)
     Route::get('/members', [MembersDirectoryController::class, 'directory'])->name('members.directory');
@@ -223,9 +205,9 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::get('/qr/federation/{licence}', [QrCodeController::class, 'federation'])->name('qr.federation');
 
     // Email management
-    Route::post('/profile/email', [ProfileController::class, 'addEmail'])->name('profile.email.add');
-    Route::post('/profile/email/{email}/primary', [ProfileController::class, 'setPrimaryEmail'])->name('profile.email.primary');
-    Route::delete('/profile/email/{email}', [ProfileController::class, 'deleteEmail'])->name('profile.email.delete');
+    Route::post('/profile/email', [ProfileEmailController::class, 'add'])->name('profile.email.add');
+    Route::post('/profile/email/{email}/primary', [ProfileEmailController::class, 'setPrimary'])->name('profile.email.primary');
+    Route::delete('/profile/email/{email}', [ProfileEmailController::class, 'delete'])->name('profile.email.delete');
 
     // Events (calendar visible to all authenticated users)
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
@@ -269,8 +251,8 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
     Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
-    Route::post('/events/{event}/register', [EventController::class, 'register'])->name('events.register');
-    Route::post('/events/{event}/cancel-registration', [EventController::class, 'cancelRegistration'])->name('events.cancel-registration');
+    Route::post('/events/{event}/register', [EventController::class, 'register'])->middleware('throttle:10,1')->name('events.register');
+    Route::post('/events/{event}/cancel-registration', [EventController::class, 'cancelRegistration'])->middleware('throttle:10,1')->name('events.cancel-registration');
     Route::post('/events/{event}/update-comment', [EventController::class, 'updateComment'])->name('events.update-comment');
     Route::post('/events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
     Route::post('/events/{event}/photos', [EventController::class, 'uploadPhoto'])->name('events.photo.upload');
@@ -283,7 +265,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::delete('/dive-group-members/{member}', [DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
     Route::post('/dive-group-members/{member}/toggle-leader', [DiveGroupController::class, 'toggleLeader'])->name('dive-groups.toggle-leader');
     Route::delete('/dive-groups/{group}', [DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
-    Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validate_groups'])->name('events.dive-groups.validate');
+    Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validateGroups'])->name('events.dive-groups.validate');
     Route::get('/events/{event}/dive-groups/propose', [DiveGroupController::class, 'propose'])->name('events.dive-groups.propose');
     Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
     Route::get('/events/{event}/dive-groups/suggest-swaps', [DiveGroupController::class, 'suggestSwaps'])->name('events.dive-groups.suggest-swaps');
@@ -293,191 +275,23 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::get('/admin/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('admin.stop-impersonation');
 
     // Admin routes (all bureau roles)
-    Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->prefix('admin')->name('admin.')->group(function () {
-        Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
-        Route::get('/export-dan', [DiveDataController::class, 'exportDan'])->name('export-dan');
-        Route::get('/members', [MemberController::class, 'index'])->name('members.index');
-        Route::get('/members/{user}/profile', [ProfileController::class, 'show'])->name('profile.show');
-        Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');
-        Route::post('/members/{user}/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
-        Route::post('/members/{user}/impersonate', [MemberController::class, 'impersonate'])->name('impersonate');
-        Route::post('/members/{user}/send-reset', function (User $user) {
-            Password::sendResetLink(['email' => $user->primary_email]);
-
-            return back()->with('success', __('Password reset link sent to :email', ['email' => $user->primary_email]));
-        })->name('send-reset');
-
-        Route::resource('articles', ArticleController::class)->except('show');
-        Route::post('articles/{article}/translate', [ArticleController::class, 'translate'])->name('articles.translate');
-        Route::resource('links', LinkController::class)->only(['index', 'store', 'destroy']);
-
-        // Newsletters (view & approve — all bureau roles)
-        Route::resource('newsletters', NewsletterController::class)->except('show');
-        Route::get('newsletters/{newsletter}', [NewsletterController::class, 'show'])->name('newsletters.show');
-        Route::post('newsletters/{newsletter}/submit', [NewsletterController::class, 'submit'])->name('newsletters.submit');
-        Route::post('newsletters/{newsletter}/withdraw', [NewsletterController::class, 'withdraw'])->name('newsletters.withdraw');
-        Route::post('newsletters/{newsletter}/send', [NewsletterController::class, 'send'])->name('newsletters.send');
-
-        // Document Library
-        Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
-        Route::post('/library/upload', [LibraryController::class, 'upload'])->name('library.upload');
-        Route::put('/library/{file}', [LibraryController::class, 'update'])->name('library.update');
-        Route::delete('/library/{file}', [LibraryController::class, 'destroy'])->name('library.destroy');
-        Route::get('/library/{file}/download', [LibraryController::class, 'download'])->name('library.download');
-        Route::get('/library/{file}/thumb', [ThumbnailController::class, 'show'])->name('library.thumb');
-        Route::post('/library/folder', [LibraryController::class, 'createFolder'])->name('library.create-folder');
-        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-        Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->name('audit-logs.export');
-        Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
-        Route::post('/audit-logs/purge', [AuditLogController::class, 'purge'])->name('audit-logs.purge');
-        Route::post('/audit-logs/retention', [AuditLogController::class, 'updateRetention'])->name('audit-logs.retention');
-
-        // Backups
-        Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
-        Route::post('/backups', [BackupController::class, 'create'])->name('backups.create');
-        Route::get('/backups/{filename}', [BackupController::class, 'show'])->name('backups.show')->where('filename', '.*\.tar\.gz');
-        Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download')->where('filename', '.*\.tar\.gz');
-        Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy')->where('filename', '.*\.tar\.gz');
-
-        // Trial requests
-        Route::get('/trial-requests', [TrialRequestController::class, 'index'])->name('trial-requests.index');
-        Route::put('/trial-requests/{trialRequest}', [TrialRequestController::class, 'update'])->name('trial-requests.update');
-
-        // Guardians & Parental Consent
-        Route::get('/guardians', [GuardianController::class, 'index'])->name('guardians.index');
-        Route::post('/guardians/link', [GuardianController::class, 'linkGuardian'])->name('guardians.link');
-        Route::delete('/guardians/{link}', [GuardianController::class, 'unlinkGuardian'])->name('guardians.unlink');
-        Route::post('/guardians/consent', [GuardianController::class, 'storeConsent'])->name('guardians.consent');
-        Route::delete('/guardians/consent/{consent}', [GuardianController::class, 'revokeConsent'])->name('guardians.consent.revoke');
-        Route::get('/guardians/consent/{consent}/download', [GuardianController::class, 'downloadConsent'])->name('guardians.consent.download');
-
-        // Dive Sites
-        Route::get('/dive-sites', [DiveSiteController::class, 'index'])->name('dive-sites.index');
-        Route::get('/dive-sites/create', [DiveSiteController::class, 'create'])->name('dive-sites.create');
-        Route::post('/dive-sites', [DiveSiteController::class, 'store'])->name('dive-sites.store');
-        Route::get('/dive-sites/{diveSite}/edit', [DiveSiteController::class, 'edit'])->name('dive-sites.edit');
-        Route::put('/dive-sites/{diveSite}', [DiveSiteController::class, 'update'])->name('dive-sites.update');
-        Route::delete('/dive-sites/{diveSite}', [DiveSiteController::class, 'destroy'])->name('dive-sites.destroy');
-
-        // Dive Group Rules
-        Route::get('/dive-group-rules', [DiveGroupRuleController::class, 'index'])->name('dive-group-rules.index');
-        Route::post('/dive-group-rules', [DiveGroupRuleController::class, 'store'])->name('dive-group-rules.store');
-        Route::put('/dive-group-rules/{rule}', [DiveGroupRuleController::class, 'update'])->name('dive-group-rules.update');
-        Route::delete('/dive-group-rules/{rule}', [DiveGroupRuleController::class, 'destroy'])->name('dive-group-rules.destroy');
-
-        // Annual Report
-        Route::get('/annual-report', [AnnualReportController::class, 'show'])->name('annual-report');
-
-        // Medical exports
-        Route::get('/medical-export', [MedicalExportController::class, 'exportList'])->name('medical-export');
-        Route::get('/medical-certificates', [MedicalExportController::class, 'downloadCertificates'])->name('medical-certificates');
-
-        // Seasons
-        Route::get('/seasons', [SeasonController::class, 'index'])->name('seasons.index');
-        Route::get('/seasons/create', [SeasonController::class, 'create'])->name('seasons.create');
-        Route::post('/seasons', [SeasonController::class, 'store'])->name('seasons.store');
-        Route::get('/seasons/{season}', [SeasonController::class, 'show'])->name('seasons.show');
-        Route::post('/seasons/{season}/activate', [SeasonController::class, 'activate'])->name('seasons.activate');
-        Route::post('/seasons/{season}/holidays', [SeasonController::class, 'storeHoliday'])->name('seasons.holiday.store');
-        Route::delete('/seasons/holidays/{holiday}', [SeasonController::class, 'destroyHoliday'])->name('seasons.holiday.destroy');
-        Route::post('/seasons/{season}/patterns', [SeasonController::class, 'storePattern'])->name('seasons.pattern.store');
-        Route::delete('/seasons/patterns/{pattern}', [SeasonController::class, 'destroyPattern'])->name('seasons.pattern.destroy');
-        Route::get('/seasons/{season}/preview', [SeasonController::class, 'previewGeneration'])->name('seasons.preview');
-        Route::post('/seasons/{season}/generate', [SeasonController::class, 'generateEvents'])->name('seasons.generate');
-
-        // Settings
-        Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
-        Route::post('/settings/federation', [SettingsController::class, 'storeFederation'])->name('settings.federation.store');
-        Route::put('/settings/federation/{federation}', [SettingsController::class, 'updateFederation'])->name('settings.federation.update');
-        Route::delete('/settings/federation/{federation}', [SettingsController::class, 'destroyFederation'])->name('settings.federation.destroy');
-        Route::post('/settings/status', [SettingsController::class, 'storeStatus'])->name('settings.status.store');
-        Route::put('/settings/status/{status}', [SettingsController::class, 'updateStatus'])->name('settings.status.update');
-        Route::post('/settings/medical-rule', [SettingsController::class, 'storeMedicalRule'])->name('settings.medical-rule.store');
-        Route::put('/settings/medical-rule/{rule}', [SettingsController::class, 'updateMedicalRule'])->name('settings.medical-rule.update');
-        Route::delete('/settings/medical-rule/{rule}', [SettingsController::class, 'destroyMedicalRule'])->name('settings.medical-rule.destroy');
-        Route::post('/settings/maintenance-rule', [SettingsController::class, 'storeMaintenanceRule'])->name('settings.maintenance-rule.store');
-        Route::put('/settings/maintenance-rule/{rule}', [SettingsController::class, 'updateMaintenanceRule'])->name('settings.maintenance-rule.update');
-        Route::delete('/settings/maintenance-rule/{rule}', [SettingsController::class, 'destroyMaintenanceRule'])->name('settings.maintenance-rule.destroy');
-        Route::post('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');
-        Route::post('/settings/theme/preset', [SettingsController::class, 'applyPreset'])->name('settings.theme.preset');
-        Route::post('/settings/theme/logo', [SettingsController::class, 'uploadLogo'])->name('settings.theme.logo');
-        Route::post('/settings/membership-fee', [SettingsController::class, 'storeMembershipFee'])->name('settings.membership-fee.store');
-        Route::delete('/settings/membership-fee/{fee}', [SettingsController::class, 'destroyMembershipFee'])->name('settings.membership-fee.destroy');
-
-        // Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-        Route::get('/dashboard/export', [DashboardController::class, 'exportCsv'])->name('dashboard.export');
-
-        // Admin Guide
-        Route::get('/guide', [GuideController::class, 'index'])->name('guide.index');
-        Route::get('/guide/{section}', [GuideController::class, 'show'])->name('guide.show');
-
-        // Payments
-        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
-        Route::get('/payments/components', [PaymentController::class, 'components'])->name('payments.components');
-        Route::post('/payments/components', [PaymentController::class, 'storeComponent'])->name('payments.component.store');
-        Route::delete('/payments/components/{component}', [PaymentController::class, 'destroyComponent'])->name('payments.component.destroy');
-        Route::post('/payments/{user}/calculate', [PaymentController::class, 'calculateFee'])->name('payments.calculate');
-        Route::post('/payments/{user}/generate', [PaymentController::class, 'generateFee'])->name('payments.generate');
-        Route::post('/payments/generate-bulk', [PaymentController::class, 'generateBulkFees'])->name('payments.generate-bulk');
-        Route::put('/payments/{payment}/adjust', [PaymentController::class, 'adjustComponents'])->name('payments.adjust');
-        Route::get('/payments/reconciliation', [PaymentController::class, 'reconciliation'])->name('payments.reconciliation');
-        Route::post('/payments/import-statement', [PaymentController::class, 'importStatement'])->name('payments.import-statement');
-        Route::post('/payments/suggest-matches', [PaymentController::class, 'suggestMatches'])->name('payments.suggest-matches');
-        Route::post('/payments/confirm/{transaction}', [PaymentController::class, 'confirmMatch'])->name('payments.confirm-match');
-        Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignoreTransaction'])->name('payments.ignore');
-
-        // Equipment
-        Route::get('/equipment', [EquipmentController::class, 'index'])->name('equipment.index');
-        Route::get('/equipment/create', [EquipmentController::class, 'create'])->name('equipment.create');
-        Route::post('/equipment', [EquipmentController::class, 'store'])->name('equipment.store');
-        Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('equipment.show');
-        Route::put('/equipment/{equipment}', [EquipmentController::class, 'update'])->name('equipment.update');
-        Route::post('/equipment/{equipment}/loan', [EquipmentController::class, 'loan'])->name('equipment.loan');
-        Route::post('/equipment/quick-loan', [EquipmentController::class, 'quickLoan'])->name('equipment.quick-loan');
-        Route::post('/equipment/return/{loan}', [EquipmentController::class, 'returnLoan'])->name('equipment.return');
-        Route::post('/equipment/maintenance/{maintenance}/complete', [EquipmentController::class, 'completeMaintenance'])->name('equipment.maintenance.complete');
-
-        // Email
-        Route::get('/email', [EmailController::class, 'index'])->name('email.index');
-        Route::post('/email/template', [EmailController::class, 'storeTemplate'])->name('email.template.store');
-        Route::put('/email/template/{template}', [EmailController::class, 'updateTemplate'])->name('email.template.update');
-        Route::delete('/email/template/{template}', [EmailController::class, 'destroyTemplate'])->name('email.template.destroy');
-        Route::post('/email/preview', [EmailController::class, 'preview'])->name('email.preview');
-        Route::post('/email/send', [EmailController::class, 'send'])->name('email.send');
-
-        // Votes
-        Route::get('/votes', [VoteController::class, 'index'])->name('votes.index');
-        Route::get('/votes/create', [VoteController::class, 'create'])->name('votes.create');
-        Route::post('/votes', [VoteController::class, 'store'])->name('votes.store');
-        Route::get('/votes/{vote}', [VoteController::class, 'show'])->name('votes.show');
-        Route::post('/votes/{vote}/tokens', [VoteController::class, 'generateTokens'])->name('votes.generate-tokens');
-        Route::post('/votes/{vote}/open', [VoteController::class, 'open'])->name('votes.open');
-        Route::post('/votes/{vote}/close', [VoteController::class, 'close'])->name('votes.close');
-        Route::post('/votes/{vote}/cancel', [VoteController::class, 'cancel'])->name('votes.cancel');
-
-        // Club Partnerships (inter-club federation)
-        Route::get('/partnerships', [PartnershipController::class, 'index'])->name('partnerships.index');
-        Route::get('/partnerships/create', [PartnershipController::class, 'create'])->name('partnerships.create');
-        Route::post('/partnerships', [PartnershipController::class, 'store'])->name('partnerships.store');
-        Route::delete('/partnerships/{partnership}', [PartnershipController::class, 'destroy'])->name('partnerships.destroy');
-        Route::get('/partnerships/{partnership}/remote-events', [PartnershipController::class, 'remoteEvents'])->name('partnerships.remote-events');
-        Route::get('/partnerships/registrations', [PartnershipController::class, 'registrations'])->name('partnerships.registrations');
-        Route::post('/partnerships/registrations/{registration}/approve', [PartnershipController::class, 'approveRegistration'])->name('partnerships.registrations.approve');
-        Route::post('/partnerships/registrations/{registration}/reject', [PartnershipController::class, 'rejectRegistration'])->name('partnerships.registrations.reject');
-    });
+    Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->prefix('admin')->name('admin.')->group(
+        base_path('routes/admin.php')
+    );
 });
 
 // Offline page for PWA
 Route::get('/offline', fn () => view('offline'))->name('offline');
 
-// Staging mail viewer (only active when STAGING_MODE=true)
-Route::prefix('staging-mail')->group(function () {
-    Route::get('/', [StagingMailController::class, 'index'])->name('staging.mail.index');
-    Route::get('/{mail}', [StagingMailController::class, 'show'])->name('staging.mail.show');
-    Route::get('/{mail}/raw', [StagingMailController::class, 'raw'])->name('staging.mail.raw');
-    Route::delete('/', [StagingMailController::class, 'clear'])->name('staging.mail.clear');
-});
+// Staging mail viewer (only active when APP_ENV is not production)
+if (app()->environment('local', 'staging', 'acceptance', 'testing')) {
+    Route::prefix('staging-mail')->middleware('auth')->group(function () {
+        Route::get('/', [StagingMailController::class, 'index'])->name('staging.mail.index');
+        Route::get('/{mail}', [StagingMailController::class, 'show'])->name('staging.mail.show');
+        Route::get('/{mail}/raw', [StagingMailController::class, 'raw'])->name('staging.mail.raw');
+        Route::delete('/', [StagingMailController::class, 'clear'])->name('staging.mail.clear');
+    });
+}
 
 // Public voting (token-based, no login required)
 Route::get('/vote/{token}', [VotePublicController::class, 'show'])->name('vote.show');

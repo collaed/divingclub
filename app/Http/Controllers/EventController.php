@@ -36,6 +36,7 @@ use App\Services\SocialPublishService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -86,7 +87,7 @@ class EventController extends Controller
         ]);
         $userReg = auth()->check() ? $event->registrations()->where('user_id', auth()->id())->first() : null;
         $emailHistory = EmailLog::where('event_id', $event->id)->orderByDesc('created_at')->get();
-        $members = auth()->check() ? User::with('detail')->whereHas('role', fn ($q) => $q->where('id', '>', 1))->orderBy('username')->get() : collect();
+        $members = auth()->user()?->isBureau() ? User::with('detail')->whereHas('role', fn ($q) => $q->where('id', '>', 1))->orderBy('username')->get() : collect();
 
         return view('events.show', compact('event', 'userReg', 'emailHistory', 'members'));
     }
@@ -194,13 +195,15 @@ class EventController extends Controller
             }
         }
 
+        // Check capacity before entering transaction
+        if ($event->isFull() && ! $event->waiting_list_enabled) {
+            return back()->with('error', __('Event is full.'));
+        }
+
         DB::transaction(function () use ($event, $targetUser, $actor, $comment) {
             $registeredBy = $targetUser->id !== $actor->id ? $actor->id : null;
 
             if ($event->isFull()) {
-                if (! $event->waiting_list_enabled) {
-                    return back()->with('error', __('Event is full.'));
-                }
                 $pos = ($event->waitingRegistrations()->max('waiting_list_position') ?? 0) + 1;
                 EventRegistration::create([
                     'event_id' => $event->id,
@@ -426,9 +429,9 @@ class EventController extends Controller
 
     private function topLocations(): array
     {
-        return Event::selectRaw('location, count(*) as cnt')
+        return Cache::remember('event_top_locations', 3600, fn () => Event::selectRaw('location, count(*) as cnt')
             ->whereNotNull('location')->where('location', '!=', '')
             ->groupBy('location')->orderByDesc('cnt')
-            ->pluck('location')->all();
+            ->pluck('location')->all());
     }
 }

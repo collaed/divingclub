@@ -4,96 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Helpers\IconHelper;
 use App\Http\Requests\UpdateProfileLanguageRequest;
-use App\Models\Document;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\User;
-use App\Models\UserEmail;
 use App\Services\MedicalComplianceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
-    public function uploadAvatar(Request $request, ?User $user = null)
-    {
-        $viewer = auth()->user();
-        $target = $user ?? $viewer;
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
-            abort(403);
-        }
-
-        $request->validate(['avatar' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120']);
-        $path = $request->file('avatar')->store('avatars/'.$target->id, 'public');
-
-        // Delete old avatar
-        $old = $target->detail?->avatar_path;
-        if ($old) {
-            Storage::disk('public')->delete($old);
-        }
-
-        $target->detail()->updateOrCreate(['user_id' => $target->id], ['avatar_path' => $path]);
-
-        return back()->with('success', __('Photo updated.'));
-    }
-
-    public function deleteAvatar(?User $user = null)
-    {
-        $viewer = auth()->user();
-        $target = $user ?? $viewer;
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
-            abort(403);
-        }
-
-        if ($target->detail?->avatar_path) {
-            Storage::disk('public')->delete($target->detail->avatar_path);
-            $target->detail->update(['avatar_path' => null]);
-        }
-
-        return back()->with('success', __('Photo removed.'));
-    }
-
-    public function addCertification(Request $request)
-    {
-        $request->validate(['certification_level_id' => 'required|exists:certification_levels,id', 'obtained_date' => 'nullable|date']);
-        $user = auth()->user();
-        $user->certificationLevels()->syncWithoutDetaching([
-            $request->certification_level_id => ['obtained_date' => $request->obtained_date, 'display_priority' => 0],
-        ]);
-
-        return back()->withInput(['tab' => 'diving'])->with('success', __('Certification added.'));
-    }
-
-    public function updateCertification(Request $request, int $certLevel)
-    {
-        $request->validate(['obtained_date' => 'nullable|date']);
-        \DB::table('user_certification_levels')
-            ->where('user_id', auth()->id())
-            ->where('certification_level_id', $certLevel)
-            ->update(['obtained_date' => $request->obtained_date, 'updated_at' => now()]);
-
-        return back()->withInput(['tab' => 'diving'])->with('success', __('Certification updated.'));
-    }
-
-    public function setPrimaryCert(int $certLevel)
-    {
-        $user = auth()->user();
-        \DB::table('user_certification_levels')->where('user_id', $user->id)->update(['is_primary' => false]);
-        \DB::table('user_certification_levels')->where('user_id', $user->id)->where('certification_level_id', $certLevel)->update(['is_primary' => true, 'display_priority' => \DB::raw('display_priority + 1')]);
-
-        return back()->withInput(['tab' => 'diving'])->with('success', __('Primary certification updated.'));
-    }
-
-    public function removeCertification(int $certLevel)
-    {
-        auth()->user()->certificationLevels()->detach($certLevel);
-
-        return back()->withInput(['tab' => 'diving'])->with('success', __('Certification removed.'));
-    }
-
     public function show(Request $request, ?User $user = null)
     {
         $viewer = auth()->user();
@@ -102,8 +21,6 @@ class ProfileController extends Controller
         $isBureau = $viewer->isBureau();
         $isInstructor = $viewer->hasAnyRole(['instructor', 'assistant']);
 
-        // Any logged-in member can view Batch 2 (Deck) data
-        // But only self/bureau can edit
         if (! $isSelf && ! $isBureau && ! auth()->check()) {
             abort(403);
         }
@@ -113,11 +30,9 @@ class ProfileController extends Controller
         $tab = $request->get('tab', 'info');
         $medicalStatus = app(MedicalComplianceService::class)->getStatus($target);
 
-        // GDPR tiers
         $canEdit = $isSelf || $isBureau;
-        $tierVault = $isSelf || $isBureau;                    // Batch 1: self + bureau
-        $tierManifest = $tierVault || $isInstructor;           // Batch 1.5: + instructors
-        // Batch 2 (Deck): all logged-in members — always true here
+        $tierVault = $isSelf || $isBureau;
+        $tierManifest = $tierVault || $isInstructor;
 
         return view('profile.show', compact('target', 'viewer', 'statuses', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierManifest'));
     }
@@ -143,12 +58,10 @@ class ProfileController extends Controller
             'club_email' => 'nullable|email|max:255',
         ];
 
-        // Members can change their own status; bureau_master can change anyone's
         if ($viewer->id === $target->id || $viewer->isBureauMaster()) {
             $rules['status_id'] = 'nullable|exists:member_statuses,id';
         }
 
-        // Only bureau_master can change these
         if ($viewer->isBureauMaster()) {
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
@@ -159,7 +72,6 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Block member from changing bureau-only fields
         if (! $viewer->isBureauMaster()) {
             if ($request->has('bureau_member') || $request->has('active_instructor')) {
                 abort(403);
@@ -171,7 +83,6 @@ class ProfileController extends Controller
                 'username' => $validated['username'] ?? null,
             ], fn ($v) => $v !== null));
 
-            // Status change — allowed for self or bureau_master
             if (isset($validated['status_id'])) {
                 $target->update(['status_id' => $validated['status_id']]);
             }
@@ -222,7 +133,6 @@ class ProfileController extends Controller
         return back()->with('success', __('Private info updated.'))->withInput(['tab' => 'private']);
     }
 
-    /** Set the FFESSM InfoLicencié verification key — member (own licence) or bureau. */
     public function updateFederationKey(Request $request, MemberLicence $licence)
     {
         $user = auth()->user();
@@ -244,7 +154,6 @@ class ProfileController extends Controller
             abort(403);
         }
 
-        // Instructor bio sub-form
         if ($request->input('tab') === 'instructor_bio') {
             $request->validate([
                 'instructor_bio' => 'nullable|string|max:2000',
@@ -291,7 +200,6 @@ class ProfileController extends Controller
 
         $validated = $request->validated();
 
-        // Convert empty string to null (use club default)
         $validated['show_icons'] = $validated['show_icons'] === '' || $validated['show_icons'] === null
             ? null : (int) $validated['show_icons'];
 
@@ -299,155 +207,5 @@ class ProfileController extends Controller
         IconHelper::flush();
 
         return back()->with('success', __('Language preference updated.'))->withInput(['tab' => 'language']);
-    }
-
-    public function uploadDocument(Request $request, ?User $user = null)
-    {
-        $viewer = auth()->user();
-        $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
-
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
-            abort(403);
-        }
-
-        $request->validate([
-            'file' => 'required|file|mimetypes:application/pdf,image/jpeg,image/png|max:10240',
-            'category' => 'required|string|in:certification,medical,insurance,other',
-            'date_established' => 'nullable|date',
-            'cert_type' => 'nullable|string|max:30',
-        ]);
-
-        $file = $request->file('file');
-        $path = $file->store('documents/'.$target->id, 'local');
-
-        $doc = Document::create([
-            'user_id' => $target->id,
-            'category' => $request->category,
-            'cert_type' => $request->cert_type,
-            'file_path' => $path,
-            'original_filename' => $file->getClientOriginalName(),
-            'mime_type' => $file->getMimeType(),
-            'size_bytes' => $file->getSize(),
-            'date_established' => $request->date_established,
-            'is_current' => true,
-        ]);
-
-        // Evaluate medical compliance rules
-        if ($request->category === 'medical') {
-            app(MedicalComplianceService::class)->evaluateCertificate($doc);
-        }
-
-        // Notify bureau when a medical cert is uploaded
-        if ($request->category === 'medical') {
-            $bureauUsers = User::whereHas('role', fn ($q) => $q->whereIn('slug', ['bureau_master', 'bureau_technical']))->get();
-            foreach ($bureauUsers as $admin) {
-                Mail::raw(
-                    __(':name uploaded a medical certificate (:type, :date).', [
-                        'name' => $target->detail?->first_name.' '.$target->detail?->last_name,
-                        'type' => $doc->cert_type ?? 'medical',
-                        'date' => $doc->date_established?->format('Y-m-d') ?? '—',
-                    ]),
-                    fn ($m) => $m->to($admin->primary_email)->subject(__('Medical certificate uploaded'))
-                );
-            }
-        }
-
-        return back()->with('success', __('Document uploaded.'));
-    }
-
-    public function downloadDocument(Document $document)
-    {
-        $viewer = auth()->user();
-        if ($document->user_id !== $viewer->id && ! $viewer->isBureauMaster()) {
-            abort(403);
-        }
-
-        return Storage::disk('local')->download($document->file_path, $document->original_filename);
-    }
-
-    // Email management
-    public function addEmail(Request $request)
-    {
-        $user = auth()->user();
-
-        if ($user->emails()->count() >= 5) {
-            return back()->with('error', __('Maximum of 5 email addresses allowed.'));
-        }
-
-        $validated = $request->validate([
-            'email' => 'required|email|unique:user_emails,email',
-            'label' => 'nullable|string|max:50',
-        ]);
-
-        UserEmail::create([
-            'user_id' => $user->id,
-            'email' => $validated['email'],
-            'is_primary' => false,
-            'is_verified' => false,
-            'label' => $validated['label'],
-            'verification_token' => Str::random(64),
-            'verification_sent_at' => now(),
-        ]);
-
-        // TODO: Send verification email in Phase 6
-
-        return back()->with('success', __('Email added. Please verify it.'));
-    }
-
-    public function setPrimaryEmail(UserEmail $email)
-    {
-        $user = auth()->user();
-        if ($email->user_id !== $user->id && ! $user->isBureauMaster()) {
-            abort(403);
-        }
-        if (! $email->is_verified) {
-            return back()->with('error', __('Only verified emails can be set as primary.'));
-        }
-
-        DB::transaction(function () use ($email) {
-            UserEmail::where('user_id', $email->user_id)->update(['is_primary' => false]);
-            $email->update(['is_primary' => true]);
-            User::where('id', $email->user_id)->update(['primary_email' => $email->email]);
-        });
-
-        return back()->with('success', __('Primary email updated.'));
-    }
-
-    public function deleteEmail(UserEmail $email)
-    {
-        $user = auth()->user();
-        if ($email->user_id !== $user->id && ! $user->isBureauMaster()) {
-            abort(403);
-        }
-        if ($email->is_primary) {
-            return back()->with('error', __('Cannot delete primary email. Set another as primary first.'));
-        }
-
-        $email->delete();
-
-        return back()->with('success', __('Email removed.'));
-    }
-
-    public function verifyCertificate(Request $request, Document $document)
-    {
-        abort_unless(auth()->user()->isBureauMaster(), 403);
-
-        $data = ['is_verified' => true, 'verified_by' => auth()->id(), 'verified_at' => now()];
-
-        if ($request->filled('date_established')) {
-            $data['date_established'] = $request->date('date_established');
-        }
-
-        if ($request->filled('cert_type')) {
-            $data['cert_type'] = $request->input('cert_type');
-        }
-
-        $document->update($data);
-
-        if ($document->category === 'medical') {
-            app(MedicalComplianceService::class)->evaluateCertificate($document);
-        }
-
-        return back()->with('success', __('Certificate verified.'));
     }
 }

@@ -146,7 +146,7 @@ class DiveGroupController extends Controller
     /**
      * Validate all groups for an event against rules. Returns JSON.
      */
-    public function validate_groups(Event $event)
+    public function validateGroups(Event $event)
     {
         $event->load(['diveGroups.members.user.certificationLevels', 'diveGroups.members.user.detail', 'diveSite']);
         $rules = DiveGroupRule::active()->get();

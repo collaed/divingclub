@@ -5,7 +5,10 @@ namespace App\Models;
 use App\Traits\Auditable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -29,7 +32,6 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    // Auth uses primary_email
     public function getEmailAttribute(): string
     {
         return $this->primary_email;
@@ -55,73 +57,73 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->username ?? $this->primary_email;
     }
 
-    public function role()
+    public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
 
-    public function status()
+    public function status(): BelongsTo
     {
         return $this->belongsTo(MemberStatus::class, 'status_id');
     }
 
-    public function emails()
+    public function emails(): HasMany
     {
         return $this->hasMany(UserEmail::class);
     }
 
-    public function primaryEmailRecord()
+    public function primaryEmailRecord(): HasOne
     {
         return $this->hasOne(UserEmail::class)->where('is_primary', true);
     }
 
-    public function socialAccounts()
+    public function socialAccounts(): HasMany
     {
         return $this->hasMany(UserSocialAccount::class);
     }
 
-    public function detail()
+    public function detail(): HasOne
     {
         return $this->hasOne(MemberDetail::class);
     }
 
-    public function licences()
+    public function licences(): HasMany
     {
         return $this->hasMany(MemberLicence::class);
     }
 
-    public function documents()
+    public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
     }
 
-    public function paymentsExpected()
+    public function paymentsExpected(): HasMany
     {
         return $this->hasMany(PaymentExpected::class);
     }
 
-    public function eventRegistrations()
+    public function eventRegistrations(): HasMany
     {
         return $this->hasMany(EventRegistration::class);
     }
 
-    public function equipmentLoans()
+    public function equipmentLoans(): HasMany
     {
         return $this->hasMany(EquipmentLoan::class);
     }
 
-    public function gdprConsents()
+    public function gdprConsents(): HasMany
     {
         return $this->hasMany(GdprConsent::class);
     }
 
-    public function certificationLevels()
+    public function certificationLevels(): BelongsToMany
     {
         return $this->belongsToMany(CertificationLevel::class, 'user_certification_levels')
             ->withPivot('obtained_date', 'is_primary', 'display_priority')->withTimestamps();
     }
 
-    public function primaryCertification()
+    public function primaryCertification(): ?CertificationLevel
     {
         return $this->certificationLevels()->wherePivot('is_primary', true)->first();
     }
@@ -146,14 +148,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasRole('bureau_master');
     }
 
-    // Guardian / minor relationships
-    public function guardians()
+    public function guardians(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'guardian_links', 'minor_user_id', 'guardian_user_id')
             ->withPivot('relationship')->withTimestamps();
     }
 
-    public function minors()
+    public function minors(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'guardian_links', 'guardian_user_id', 'minor_user_id')
             ->withPivot('relationship')->withTimestamps();
@@ -176,7 +177,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return (bool) ($this->detail?->public_photos_banned ?? false);
     }
 
-    public function parentalConsents()
+    public function parentalConsents(): HasMany
     {
         return $this->hasMany(ParentalConsent::class, 'minor_user_id');
     }
