@@ -4,6 +4,7 @@ use App\Http\Middleware\SetLocale;
 use App\Jobs\SendMedicalReminders;
 use App\Jobs\WeeklyBackup;
 use App\Models\Article;
+use App\Models\ArticleTranslation;
 use App\Models\AuditLog;
 use App\Models\EquipmentLoan;
 use App\Models\ThemeSetting;
@@ -17,13 +18,57 @@ use Illuminate\Support\Facades\Storage;
 Schedule::job(new SendMedicalReminders)->dailyAt('08:00');
 Schedule::job(new WeeklyBackup)->weeklyOn(0, '03:00'); // Sunday 3am
 
-// Auto-translate one untranslated article per hour
+// Auto-translate: new articles, stale translations, and quality checks
 Schedule::call(function () {
-    $article = Article::whereDoesntHave('translations')->where('is_published', true)->oldest()->first();
-    if ($article) {
-        $locales = SetLocale::enabledLocales();
-        app(ArticleTranslationService::class)->translateAll($article, $locales);
+    $locales = SetLocale::enabledLocales();
+    $svc = app(ArticleTranslationService::class);
+
+    // 1. Translate one untranslated article
+    $new = Article::whereDoesntHave('translations')->where('is_published', true)->oldest()->first();
+    if ($new) {
+        $svc->translateAll($new, $locales);
+        Log::info("Auto-translated new article: {$new->title}");
     }
+
+    // 2. Refresh stale translations (max 5 per run, skip flagged)
+    $stale = ArticleTranslation::where('stale', true)
+        ->where('retries', '<', 3)
+        ->whereNull('flagged_at')
+        ->with('article')
+        ->limit(5)->get();
+
+    foreach ($stale as $t) {
+        if (! $t->article) {
+            continue;
+        }
+        try {
+            $svc->translate($t->article, $t->locale);
+            Log::info("Refreshed stale translation: {$t->article->title} [{$t->locale}]");
+        } catch (Throwable $e) {
+            Log::warning("Translation refresh failed: {$t->article->title} [{$t->locale}] — {$e->getMessage()}");
+        }
+    }
+
+    // 3. Flag translations that failed 3+ times
+    ArticleTranslation::where('stale', true)
+        ->where('retries', '>=', 3)
+        ->whereNull('flagged_at')
+        ->update(['flagged_at' => now(), 'flag_reason' => 'Failed after 3 retries']);
+
+    // 4. Flag translations with suspicious word count (check 10 per run)
+    ArticleTranslation::where('stale', false)
+        ->whereNull('flagged_at')
+        ->whereNotNull('source_word_count')
+        ->whereNotNull('translated_word_count')
+        ->whereRaw('translated_word_count < source_word_count * 0.3 OR translated_word_count > source_word_count * 3')
+        ->limit(10)
+        ->each(function ($t) {
+            $t->update([
+                'flagged_at' => now(),
+                'flag_reason' => "Word count ratio: {$t->source_word_count} → {$t->translated_word_count}",
+                'stale' => true,
+            ]);
+        });
 })->hourly();
 
 // Auto-open/close votes

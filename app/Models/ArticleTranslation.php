@@ -7,10 +7,33 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ArticleTranslation extends Model
 {
-    protected $fillable = ['article_id', 'locale', 'title', 'body', 'auto_translated', 'stale'];
+    protected $fillable = [
+        'article_id', 'locale', 'title', 'body', 'auto_translated', 'stale',
+        'source_hash', 'source_word_count', 'translated_word_count', 'retries', 'flagged_at', 'flag_reason',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'auto_translated' => 'boolean',
+            'stale' => 'boolean',
+            'flagged_at' => 'datetime',
+        ];
+    }
 
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);
+    }
+
+    /** Check if word count ratio is plausible (translation shouldn't be <30% or >300% of source). */
+    public function hasPlausibleWordCount(): bool
+    {
+        if (! $this->source_word_count || ! $this->translated_word_count) {
+            return true;
+        }
+        $ratio = $this->translated_word_count / max($this->source_word_count, 1);
+
+        return $ratio >= 0.3 && $ratio <= 3.0;
     }
 }

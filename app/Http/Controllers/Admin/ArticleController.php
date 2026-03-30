@@ -120,7 +120,7 @@ class ArticleController extends Controller
         $this->storeGallery($request, $article);
 
         // Mark existing translations as stale (will be re-translated lazily on next access)
-        $article->translations()->where('auto_translated', true)->update(['stale' => true]);
+        ArticleTranslationService::markStaleIfChanged($article);
 
         return redirect()->route('admin.articles.edit', $article)->with('success', __('Article updated.'));
     }
