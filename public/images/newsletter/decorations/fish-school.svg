@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 32" fill="none">
+  <!-- School of tropical fish - inspired by original bottom fish group -->
+  <!-- Fish 1 - yellow tang -->
+  <ellipse cx="15" cy="16" rx="8" ry="5" fill="#ffc107"/>
+  <path d="M7 16 Q3 12 3 16 Q3 20 7 16Z" fill="#ffc107"/>
+  <circle cx="20" cy="14.5" r="1" fill="#333"/>
+  <!-- Fish 2 - blue -->
+  <ellipse cx="38" cy="12" rx="7" ry="4" fill="#0099cc"/>
+  <path d="M31 12 Q27 8 27 12 Q27 16 31 12Z" fill="#0099cc"/>
+  <circle cx="42" cy="10.5" r="0.8" fill="#333"/>
+  <!-- Fish 3 - orange striped -->
+  <ellipse cx="55" cy="20" rx="7" ry="4.5" fill="#ff8c42"/>
+  <path d="M48 20 Q44 16 44 20 Q44 24 48 20Z" fill="#ff8c42"/>
+  <line x1="53" y1="15.5" x2="53" y2="24.5" stroke="white" stroke-width="1.5"/>
+  <circle cx="59" cy="18.5" r="0.8" fill="#333"/>
+  <!-- Fish 4 - small yellow -->
+  <ellipse cx="75" cy="14" rx="6" ry="3.5" fill="#ffd54f"/>
+  <path d="M69 14 Q66 11 66 14 Q66 17 69 14Z" fill="#ffd54f"/>
+  <circle cx="78" cy="12.8" r="0.7" fill="#333"/>
+  <!-- Fish 5 - blue-green -->
+  <ellipse cx="95" cy="18" rx="7" ry="4" fill="#26a69a"/>
+  <path d="M88 18 Q84 14 84 18 Q84 22 88 18Z" fill="#26a69a"/>
+  <circle cx="99" cy="16.5" r="0.8" fill="#333"/>
+  <!-- Fish 6 - tiny -->
+  <ellipse cx="110" cy="10" rx="4" ry="2.5" fill="#ffc107" opacity="0.7"/>
+  <path d="M106 10 Q104 8 104 10 Q104 12 106 10Z" fill="#ffc107" opacity="0.7"/>
+</svg>

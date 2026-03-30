@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <!-- Diver with manta ray - inspired by bottom-left of original -->
+  <!-- Manta ray -->
+  <path d="M10 30 Q30 18 50 30 Q40 34 30 32 Q20 34 10 30Z" fill="#2a5a7a" opacity="0.8"/>
+  <path d="M50 30 Q56 32 58 36" stroke="#2a5a7a" stroke-width="1.5" fill="none"/>
+  <circle cx="18" cy="28" r="1" fill="#fff"/>
+  <circle cx="42" cy="28" r="1" fill="#fff"/>
+  <!-- Diver -->
+  <ellipse cx="40" cy="52" rx="5" ry="4" fill="#333"/>
+  <circle cx="40" cy="44" r="5" fill="#ffc107" opacity="0.9"/>
+  <rect x="38" y="42" width="4" height="3" rx="1" fill="#87ceeb" opacity="0.7"/>
+  <rect x="34" y="50" width="4" height="12" rx="1" fill="#333" transform="rotate(-10 36 56)"/>
+  <rect x="42" y="50" width="4" height="12" rx="1" fill="#333" transform="rotate(10 44 56)"/>
+  <!-- Tank on back -->
+  <rect x="43" y="46" width="3" height="10" rx="1.5" fill="#666"/>
+  <!-- Fins -->
+  <path d="M32 62 Q28 66 30 68" stroke="#0099cc" stroke-width="2" fill="none"/>
+  <path d="M48 62 Q52 66 50 68" stroke="#0099cc" stroke-width="2" fill="none"/>
+  <!-- Bubbles from regulator -->
+  <circle cx="44" cy="38" r="1.5" stroke="#7ec8e3" stroke-width="0.5" fill="#7ec8e320"/>
+  <circle cx="48" cy="34" r="1" stroke="#7ec8e3" stroke-width="0.5" fill="#7ec8e320"/>
+  <circle cx="46" cy="30" r="0.7" stroke="#7ec8e3" stroke-width="0.4" fill="#7ec8e310"/>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <!-- Galleon wreck with flag - inspired by original bottom-right -->
+  <!-- Hull -->
+  <path d="M15 65 Q20 55 30 52 L60 52 Q68 55 70 65Z" fill="#8B6914" stroke="#6b4f10" stroke-width="1"/>
+  <path d="M20 52 L20 65" stroke="#6b4f10" stroke-width="0.5"/>
+  <path d="M35 52 L35 65" stroke="#6b4f10" stroke-width="0.5"/>
+  <path d="M50 52 L50 65" stroke="#6b4f10" stroke-width="0.5"/>
+  <!-- Deck -->
+  <rect x="25" y="48" width="40" height="5" rx="1" fill="#a07828" stroke="#8B6914" stroke-width="0.5"/>
+  <!-- Masts -->
+  <line x1="35" y1="48" x2="35" y2="12" stroke="#6b4f10" stroke-width="2"/>
+  <line x1="55" y1="48" x2="55" y2="18" stroke="#6b4f10" stroke-width="1.8"/>
+  <!-- Sails (tattered) -->
+  <path d="M36 14 Q42 18 44 28 L36 28Z" fill="#f5deb3" opacity="0.6" stroke="#d4b896" stroke-width="0.5"/>
+  <path d="M56 20 Q60 24 62 32 L56 32Z" fill="#f5deb3" opacity="0.5" stroke="#d4b896" stroke-width="0.5"/>
+  <!-- CEP Flag -->
+  <rect x="32" y="8" width="14" height="9" rx="0.5" fill="#003366"/>
+  <polygon points="32,8 40,12.5 32,17" fill="white" opacity="0.8"/>
+  <text x="42" y="15" font-size="4" font-weight="bold" fill="#d4a843" font-family="serif">CEP</text>
+  <!-- Crow's nest -->
+  <rect x="32" y="14" width="6" height="2" rx="0.5" fill="#6b4f10"/>
+  <!-- Barnacles/coral on hull -->
+  <circle cx="25" cy="60" r="2" fill="#2d8659" opacity="0.5"/>
+  <circle cx="45" cy="62" r="1.5" fill="#e05070" opacity="0.4"/>
+  <circle cx="60" cy="58" r="2" fill="#2d8659" opacity="0.4"/>
+</svg>

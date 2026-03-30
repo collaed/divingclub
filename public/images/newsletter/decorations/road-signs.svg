@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" fill="none">
+  <!-- Wooden road sign post - inspired by "Saint Malo" / "Monopoli" signs -->
+  <!-- Post -->
+  <rect x="28" y="10" width="8" height="65" rx="2" fill="#8B6914" stroke="#6b4f10" stroke-width="1"/>
+  <!-- Top sign pointing right -->
+  <path d="M36 16 L58 16 L62 22 L58 28 L36 28Z" fill="#a07828" stroke="#6b4f10" stroke-width="0.8"/>
+  <text x="47" y="24" text-anchor="middle" font-size="6" fill="#3a2a0a" font-family="serif" font-weight="bold">Fréjus</text>
+  <!-- Middle sign pointing left -->
+  <path d="M28 34 L6 34 L2 40 L6 46 L28 46Z" fill="#96701e" stroke="#6b4f10" stroke-width="0.8"/>
+  <text x="16" y="42" text-anchor="middle" font-size="5.5" fill="#3a2a0a" font-family="serif" font-weight="bold">Zélande</text>
+  <!-- Bottom sign pointing right -->
+  <path d="M36 52 L56 52 L60 58 L56 64 L36 64Z" fill="#a07828" stroke="#6b4f10" stroke-width="0.8"/>
+  <text x="46" y="60" text-anchor="middle" font-size="5.5" fill="#3a2a0a" font-family="serif" font-weight="bold">Oman</text>
+  <!-- Wood grain -->
+  <line x1="30" y1="12" x2="30" y2="74" stroke="#7a5c10" stroke-width="0.3" opacity="0.4"/>
+  <line x1="34" y1="12" x2="34" y2="74" stroke="#7a5c10" stroke-width="0.3" opacity="0.4"/>
+</svg>

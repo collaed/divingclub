@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Newsletter extends Model
 {
     protected $fillable = [
-        'title', 'month', 'background_image', 'slots', 'status', 'created_by', 'sent_at',
+        'title', 'month', 'background_image', 'slots', 'decorations', 'status', 'created_by', 'sent_at',
     ];
 
     protected function casts(): array
     {
         return [
             'slots' => 'array',
+            'decorations' => 'array',
             'sent_at' => 'datetime',
         ];
     }

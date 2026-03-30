@@ -117,6 +117,8 @@
 
                 <div class="mt-3 d-flex gap-2">
                     <button type="submit" class="btn btn-primary">{{ $newsletter ? __('Update Draft') : __('Save Draft') }}</button>
+                    <button type="button" class="btn btn-outline-info" onclick="scatterDecorations()">🐠 {{ __('Scatter Decorations') }}</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="clearDecorations()" id="clearDecorBtn" style="display:none">✕ {{ __('Clear') }}</button>
                     <a href="{{ route('admin.newsletters.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
                 </div>
             </div>
@@ -317,5 +319,115 @@
             d.textContent = s;
             return d.innerHTML;
         }
+
+        // ─── Decoration Scatter System ─────────────────────────
+        const decorations = [
+            // From original background
+            {src: '/images/newsletter/decorations/diver-manta.svg', w: 70, zones: ['left']},
+            {src: '/images/newsletter/decorations/galleon-wreck.svg', w: 80, zones: ['right','bottom']},
+            {src: '/images/newsletter/decorations/shark.svg', w: 60, zones: ['right','top']},
+            {src: '/images/newsletter/decorations/fish-school.svg', w: 100, zones: ['bottom','middle']},
+            {src: '/images/newsletter/decorations/road-signs.svg', w: 50, zones: ['right','bottom']},
+            {src: '/images/newsletter/decorations/globe.svg', w: 80, zones: ['center']},
+            {src: '/images/newsletter/decorations/coral-reef-floor.svg', w: 120, zones: ['bottom']},
+            // Marine life
+            {src: '/images/newsletter/decorations/tropical-fish.svg', w: 40, zones: ['any']},
+            {src: '/images/newsletter/decorations/sea-turtle.svg', w: 45, zones: ['left','right']},
+            {src: '/images/newsletter/decorations/seahorse.svg', w: 35, zones: ['left','right']},
+            {src: '/images/newsletter/decorations/jellyfish.svg', w: 40, zones: ['top','left']},
+            {src: '/images/newsletter/decorations/starfish.svg', w: 30, zones: ['bottom']},
+            // Diving gear
+            {src: '/images/newsletter/decorations/bubbles.svg', w: 35, zones: ['any']},
+            {src: '/images/newsletter/decorations/mask-snorkel.svg', w: 40, zones: ['top','right']},
+            {src: '/images/newsletter/decorations/anchor.svg', w: 35, zones: ['bottom','left']},
+            {src: '/images/newsletter/decorations/compass.svg', w: 40, zones: ['top','right']},
+            // Scenery
+            {src: '/images/newsletter/decorations/coral.svg', w: 35, zones: ['bottom','left']},
+            {src: '/images/newsletter/decorations/seashell.svg', w: 30, zones: ['bottom']},
+            {src: '/images/newsletter/decorations/seaweed.svg', w: 60, zones: ['bottom']},
+            {src: '/images/newsletter/decorations/waves.svg', w: 80, zones: ['top']},
+            {src: '/images/newsletter/decorations/sun.svg', w: 40, zones: ['top']},
+            {src: '/images/newsletter/decorations/palm-tree.svg', w: 40, zones: ['left','right']},
+            {src: '/images/newsletter/decorations/dive-flag-cep.svg', w: 35, zones: ['top','right']},
+            {src: '/images/newsletter/decorations/fins.svg', w: 35, zones: ['any']},
+        ];
+
+        // Zone definitions as % of preview area
+        const zoneRanges = {
+            top:    {xMin: 5, xMax: 90, yMin: 0, yMax: 20},
+            bottom: {xMin: 5, xMax: 90, yMin: 75, yMax: 95},
+            left:   {xMin: 0, xMax: 15, yMin: 15, yMax: 85},
+            right:  {xMin: 80, xMax: 98, yMin: 15, yMax: 85},
+            center: {xMin: 30, xMax: 70, yMin: 25, yMax: 65},
+            middle: {xMin: 20, xMax: 80, yMin: 40, yMax: 60},
+            any:    {xMin: 5, xMax: 95, yMin: 5, yMax: 95},
+        };
+
+        function scatterDecorations() {
+            clearDecorations();
+            const area = document.getElementById('previewArea');
+            const shuffled = [...decorations].sort(() => Math.random() - 0.5);
+            const picked = shuffled.slice(0, 10 + Math.floor(Math.random() * 4)); // 10-13 items
+
+            picked.forEach((dec, i) => {
+                const zone = dec.zones[Math.floor(Math.random() * dec.zones.length)];
+                const r = zoneRanges[zone] || zoneRanges.any;
+                const x = r.xMin + Math.random() * (r.xMax - r.xMin);
+                const y = r.yMin + Math.random() * (r.yMax - r.yMin);
+                const rotation = (Math.random() - 0.5) * 30; // -15° to +15°
+                const opacity = 0.15 + Math.random() * 0.25; // 0.15 to 0.40
+                const flip = Math.random() > 0.5 ? 'scaleX(-1)' : '';
+
+                const img = document.createElement('img');
+                img.src = dec.src;
+                img.className = 'newsletter-decoration';
+                img.style.cssText = `position:absolute;left:${x}%;top:${y}%;width:${dec.w}px;opacity:${opacity};transform:rotate(${rotation}deg) ${flip};pointer-events:none;z-index:0;transition:opacity 0.3s`;
+                area.appendChild(img);
+            });
+
+            // Ensure slot cards stay above decorations
+            document.querySelectorAll('.slot-card').forEach(c => c.style.zIndex = '2');
+            document.getElementById('clearDecorBtn').style.display = '';
+
+            // Store decoration state in hidden input
+            const state = picked.map((dec, i) => {
+                const img = area.querySelectorAll('.newsletter-decoration')[i];
+                return {src: dec.src, style: img?.style.cssText || ''};
+            });
+            let inp = document.getElementById('decorationsInput');
+            if (!inp) {
+                inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'decorations';
+                inp.id = 'decorationsInput';
+                document.getElementById('composeForm').appendChild(inp);
+            }
+            inp.value = JSON.stringify(state);
+        }
+
+        function clearDecorations() {
+            document.querySelectorAll('.newsletter-decoration').forEach(el => el.remove());
+            document.getElementById('clearDecorBtn').style.display = 'none';
+            const inp = document.getElementById('decorationsInput');
+            if (inp) inp.value = '';
+        }
+
+        // Restore decorations on edit
+        @if($newsletter && $newsletter->decorations)
+            (function() {
+                const saved = @json($newsletter->decorations);
+                if (!Array.isArray(saved)) return;
+                const area = document.getElementById('previewArea');
+                saved.forEach(d => {
+                    const img = document.createElement('img');
+                    img.src = d.src;
+                    img.className = 'newsletter-decoration';
+                    img.style.cssText = d.style;
+                    area.appendChild(img);
+                });
+                document.querySelectorAll('.slot-card').forEach(c => c.style.zIndex = '2');
+                document.getElementById('clearDecorBtn').style.display = '';
+            })();
+        @endif
     </script>
 </x-layout>

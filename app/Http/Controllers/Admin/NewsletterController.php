@@ -58,6 +58,7 @@ class NewsletterController extends Controller
             'month' => $v['month'],
             'background_image' => $bg,
             'slots' => $v['slots'],
+            'decorations' => $request->input('decorations') ? json_decode($request->input('decorations'), true) : null,
             'status' => 'draft',
             'created_by' => auth()->id(),
         ]);
@@ -109,6 +110,7 @@ class NewsletterController extends Controller
             'month' => $v['month'],
             'background_image' => $bg,
             'slots' => $v['slots'],
+            'decorations' => $request->input('decorations') ? json_decode($request->input('decorations'), true) : null,
             'status' => 'draft',
         ]);
         $newsletter->approvals()->delete();
@@ -275,6 +277,7 @@ class NewsletterController extends Controller
             'theme' => $themeFolder,
             'monthLabel' => $monthLabel,
             'unsubscribeUrl' => null,
+            'decorations' => $newsletter->decorations ?? [],
         ];
     }
 }

@@ -161,6 +161,17 @@
         </td>
     </tr>
 
+    {{-- SCATTERED DECORATIONS (rendered as small accent images) --}}
+    @if(!empty($decorations))
+    <tr>
+        <td style="padding:4px 10px;text-align:center;font-size:0;line-height:0">
+            @foreach(collect($decorations)->take(8) as $dec)
+                <img src="{{ $appUrl }}{{ $dec['src'] }}" width="32" height="32" style="display:inline-block;width:32px;height:32px;margin:2px 6px;opacity:0.35" alt="">
+            @endforeach
+        </td>
+    </tr>
+    @endif
+
     {{-- FOOTER IMAGE --}}
     <tr>
         <td style="padding:0;font-size:0;line-height:0">
