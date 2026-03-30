@@ -18,8 +18,24 @@ class ArticleController extends Controller
 
     public function index(Request $request)
     {
-        $articles = Article::when($request->type, fn ($q, $t) => $q->where('article_type', $t))
-            ->orderByDesc('updated_at')->paginate($this->perPage(20));
+        $query = Article::when($request->type, fn ($q, $t) => $q->where('article_type', $t));
+
+        // Search across title, body, and all translation titles/bodies
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('body', 'like', "%{$search}%")
+                    ->orWhereHas('translations', fn ($tq) => $tq->where('title', 'like', "%{$search}%")
+                        ->orWhere('body', 'like', "%{$search}%"));
+            });
+        }
+
+        // Sortable columns
+        $sortable = ['title', 'article_type', 'is_published', 'is_public', 'expires_at', 'updated_at'];
+        $sort = in_array($request->input('sort'), $sortable) ? $request->input('sort') : 'updated_at';
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        $articles = $query->orderBy($sort, $dir)->paginate($this->perPage(20))->withQueryString();
 
         return view('admin.articles.index', compact('articles'));
     }
