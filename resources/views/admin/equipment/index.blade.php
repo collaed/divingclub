@@ -7,6 +7,9 @@
     @php $typeCounts = \App\Models\Equipment::query()->selectRaw('type, count(*) as cnt')->groupBy('type')->pluck('cnt', 'type'); @endphp
     <form method="GET" class="row g-2 mb-3">
         <div class="col-md-3">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search name, serial, #…') }}" value="{{ request('search') }}">
+        </div>
+        <div class="col-md-3">
             <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Types') }} ({{ $typeCounts->sum() }})</option>
                 @foreach(['bcd','regulator','tank','wetsuit','mask','fins','computer','other'] as $t)
@@ -24,16 +27,26 @@
                 @endforeach
             </select>
         </div>
+        <div class="col-md-2">
+            <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
+            @if(request('search'))
+                <a href="{{ route('admin.equipment.index', request()->except('search', 'page')) }}" class="btn btn-sm btn-outline-secondary">✕</a>
+            @endif
+        </div>
     </form>
 
     <div class="table-responsive">
         <table class="table table-sm table-hover">
-            @php
-                $s = request('sort'); $d = request('dir','asc');
-                $arrow = fn($col) => $s === $col ? ($d === 'asc' ? '↑' : '↓') : '';
-                $link = fn($col, $label) => '<a href="?sort='.$col.'&dir='.($s === $col && $d === 'asc' ? 'desc' : 'asc').'" class="text-decoration-none text-dark">'.$label.' '.$arrow($col).'</a>';
-            @endphp
-            <thead><tr><th>{!! $link('short_number', '#') !!}</th><th>{!! $link('name', __('Name')) !!}</th><th>{!! $link('type', __('Type')) !!}</th><th>{{ __('Serial') }}</th><th>{!! $link('location', __('Location')) !!}</th><th>{!! $link('status', __('Status')) !!}</th><th>{!! $link('loaned_to', __('Loaned To')) !!}</th><th></th></tr></thead>
+            <thead><tr>
+                <th><x-sortable-th column="short_number" :label="'#'" /></th>
+                <th><x-sortable-th column="name" :label="__('Name')" /></th>
+                <th><x-sortable-th column="type" :label="__('Type')" /></th>
+                <th>{{ __('Serial') }}</th>
+                <th><x-sortable-th column="location" :label="__('Location')" /></th>
+                <th><x-sortable-th column="status" :label="__('Status')" /></th>
+                <th>{{ __('Loaned To') }}</th>
+                <th></th>
+            </tr></thead>
             <tbody>
             @foreach($equipment as $e)
                 <tr>

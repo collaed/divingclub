@@ -18,9 +18,20 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $payments = PaymentExpected::with('user.detail')
+        $query = PaymentExpected::with('user.detail')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
-            ->orderByDesc('created_at')->paginate($this->perPage(30))->withQueryString();
+            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s) {
+                $w->where('communication', 'like', "%{$s}%")
+                    ->orWhereHas('user', fn ($uq) => $uq->where('primary_email', 'like', "%{$s}%")
+                        ->orWhereHas('detail', fn ($dq) => $dq->where('last_name', 'like', "%{$s}%")
+                            ->orWhere('first_name', 'like', "%{$s}%")));
+            }));
+
+        $sortable = ['created_at', 'amount_due', 'amount_paid', 'status', 'type'];
+        $sort = in_array($request->input('sort'), $sortable) ? $request->input('sort') : 'created_at';
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        $payments = $query->orderBy($sort, $dir)->paginate($this->perPage(30))->withQueryString();
         $components = MembershipFeeComponent::orderBy('sort_order')->get();
 
         return view('admin.payments.index', compact('payments', 'components'));

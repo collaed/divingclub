@@ -12,6 +12,9 @@
     </div>
 
     <form method="GET" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search member, communication…') }}" value="{{ request('search') }}">
+        </div>
         <div class="col-md-3">
             <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Statuses') }}</option>
@@ -20,11 +23,24 @@
                 @endforeach
             </select>
         </div>
+        <div class="col-md-3">
+            <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
+            @if(request('search'))
+                <a href="{{ route('admin.payments.index', request()->except('search', 'page')) }}" class="btn btn-sm btn-outline-secondary">✕</a>
+            @endif
+        </div>
     </form>
 
     <div class="table-responsive">
         <table class="table table-sm table-hover">
-            <thead><tr><th>{{ __('Member') }}</th><th>{{ __('Type') }}</th><th>{{ __('Due') }}</th><th>{{ __('Paid') }}</th><th>{{ __('Communication') }}</th><th>{{ __('Status') }}</th></tr></thead>
+            <thead><tr>
+                <th>{{ __('Member') }}</th>
+                <th><x-sortable-th column="type" :label="__('Type')" /></th>
+                <th><x-sortable-th column="amount_due" :label="__('Due')" /></th>
+                <th><x-sortable-th column="amount_paid" :label="__('Paid')" /></th>
+                <th>{{ __('Communication') }}</th>
+                <th><x-sortable-th column="status" :label="__('Status')" /></th>
+            </tr></thead>
             <tbody>
             @foreach($payments as $p)
                 <tr>

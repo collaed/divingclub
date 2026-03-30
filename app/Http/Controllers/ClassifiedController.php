@@ -12,12 +12,16 @@ class ClassifiedController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index()
+    public function index(Request $request)
     {
         $classifieds = Article::where('article_type', 'classified')
             ->active()->where('is_published', true)
             ->with('author.detail')
-            ->orderByDesc('created_at')->paginate($this->perPage(20));
+            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s) {
+                $w->where('title', 'like', "%{$s}%")
+                    ->orWhere('body', 'like', "%{$s}%");
+            }))
+            ->orderByDesc('created_at')->paginate($this->perPage(20))->withQueryString();
         $mine = Article::where('article_type', 'classified')
             ->where('author_id', auth()->id())
             ->orderByDesc('created_at')->get();

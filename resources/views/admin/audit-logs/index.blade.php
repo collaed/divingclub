@@ -59,7 +59,15 @@
 
     <div class="table-responsive">
         <table class="table table-sm table-hover">
-            <thead><tr><th>{{ __('Time') }}</th><th>{{ __('User') }}</th><th>{{ __('Action') }}</th><th>{{ __('Model') }}</th><th>{{ __('ID') }}</th><th>{{ __('Summary') }}</th><th></th></tr></thead>
+            <thead><tr>
+                <th><x-sortable-th column="created_at" :label="__('Time')" /></th>
+                <th>{{ __('User') }}</th>
+                <th><x-sortable-th column="action" :label="__('Action')" /></th>
+                <th><x-sortable-th column="model_type" :label="__('Model')" /></th>
+                <th>{{ __('ID') }}</th>
+                <th>{{ __('Summary') }}</th>
+                <th></th>
+            </tr></thead>
             <tbody>
                 @foreach($logs as $log)
                     <tr>

@@ -14,7 +14,7 @@ class AuditLogController extends Controller
 
     public function index(Request $request)
     {
-        $query = AuditLog::with('user')->orderByDesc('created_at');
+        $query = AuditLog::with('user');
 
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
@@ -32,7 +32,11 @@ class AuditLogController extends Controller
             $query->where('created_at', '<=', $request->to.' 23:59:59');
         }
 
-        $logs = $query->paginate($this->perPage(50))->withQueryString();
+        $sortable = ['created_at', 'action', 'model_type'];
+        $sort = in_array($request->input('sort'), $sortable) ? $request->input('sort') : 'created_at';
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        $logs = $query->orderBy($sort, $dir)->paginate($this->perPage(50))->withQueryString();
         $oldestLog = AuditLog::min('created_at');
         $retentionMonths = (int) ThemeSetting::get('audit_retention_months', 24);
 

@@ -4,6 +4,14 @@
         <a href="{{ route('classifieds.create') }}" class="btn btn-primary">{{ __('Post a Classified') }}</a>
     </div>
 
+    <form method="GET" action="{{ route('classifieds.index') }}" class="mb-4 d-flex gap-2" style="max-width:400px">
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search classifieds…') }}" value="{{ request('search') }}">
+        <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
+        @if(request('search'))
+            <a href="{{ route('classifieds.index') }}" class="btn btn-sm btn-outline-secondary">✕</a>
+        @endif
+    </form>
+
     {{-- My classifieds --}}
     @if($mine->count())
         <div class="card dc-card mb-4">

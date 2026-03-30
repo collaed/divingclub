@@ -5,23 +5,15 @@
         <button type="button" id="clearSearch" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted" style="display:none;font-size:1.2rem;text-decoration:none">&times;</button>
     </div>
 
-    @php
-        $sort = request('sort', 'last_name');
-        $dir = request('dir', 'asc');
-        $nextDir = fn($col) => $sort === $col && $dir === 'asc' ? 'desc' : 'asc';
-        $arrow = fn($col) => $sort === $col ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
-        $sortUrl = fn($col) => request()->fullUrlWithQuery(['sort' => $col, 'dir' => $nextDir($col)]);
-    @endphp
-
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
                 <tr>
                     <th></th>
-                    <th><a href="{{ $sortUrl('last_name') }}" class="text-decoration-none text-body">{{ __('Name') }}{!! $arrow('last_name') !!}</a></th>
-                    <th><a href="{{ $sortUrl('certification_level') }}" class="text-decoration-none text-body">{{ __('Level') }}{!! $arrow('certification_level') !!}</a></th>
+                    <th><x-sortable-th column="last_name" :label="__('Name')" /></th>
+                    <th><x-sortable-th column="certification_level" :label="__('Level')" /></th>
                     <th>{{ __('Status') }}</th>
-                    <th><a href="{{ $sortUrl('adhesion_year') }}" class="text-decoration-none text-body">{{ __('Member Since') }}{!! $arrow('adhesion_year') !!}</a></th>
+                    <th><x-sortable-th column="adhesion_year" :label="__('Member Since')" /></th>
                 </tr>
             </thead>
             <tbody id="memberRows">

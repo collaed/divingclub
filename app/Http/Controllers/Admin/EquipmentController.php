@@ -25,6 +25,12 @@ class EquipmentController extends Controller
         $equipment = Equipment::with(['currentLoan.user.detail'])
             ->when($request->type, fn ($q, $t) => $q->where('type', $t))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
+            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s) {
+                $w->where('name', 'like', "%{$s}%")
+                    ->orWhere('serial_number', 'like', "%{$s}%")
+                    ->orWhere('short_number', 'like', "%{$s}%")
+                    ->orWhere('club_id', 'like', "%{$s}%");
+            }))
             ->when($request->get('sort') === 'loaned_to', function ($q) use ($dir) {
                 return $q->orderByRaw("CASE WHEN status = 'on_loan' THEN 0 ELSE 1 END $dir");
             }, fn ($q) => $q->orderBy($sort, $dir))
