@@ -3,6 +3,18 @@
         <h4 class="mb-0">📬 {{ $newsletter->title }}</h4>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.newsletters.preview-email', $newsletter) }}" target="_blank" class="btn btn-outline-info btn-sm">📧 {{ __('Preview Email') }}</a>
+            @php
+                $mailtoSubject = rawurlencode('Re: ' . $newsletter->title . ' — ' . ($newsletter->month ?? ''));
+                $mailtoBody = rawurlencode(
+                    __('Comments on newsletter') . ": " . $newsletter->title . "\n"
+                    . __('Preview') . ": " . route('admin.newsletters.preview-email', $newsletter) . "\n\n"
+                    . __('Slot articles') . ":\n"
+                    . collect($newsletter->slotArticles())->map(fn($s, $pos) => "  {$pos}. " . $s['article']->title)->implode("\n")
+                    . "\n\n" . __('Your comments') . ":\n\n"
+                );
+                $bureauEmails = \App\Models\User::whereHas('role', fn($q) => $q->whereIn('slug', ['bureau_master', 'bureau_finance', 'bureau_technical']))->pluck('primary_email')->implode(',');
+            @endphp
+            <a href="mailto:{{ $bureauEmails }}?subject={{ $mailtoSubject }}&body={{ $mailtoBody }}" class="btn btn-outline-warning btn-sm">💬 {{ __('Send for Comments') }}</a>
             @if($newsletter->status === 'draft')
                 <a href="{{ route('admin.newsletters.edit', $newsletter) }}" class="btn btn-outline-secondary btn-sm">{{ __('Edit') }}</a>
                 <form method="POST" action="{{ route('admin.newsletters.submit', $newsletter) }}">

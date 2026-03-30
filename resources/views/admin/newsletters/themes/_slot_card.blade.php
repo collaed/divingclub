@@ -1,12 +1,12 @@
 {{--
     Reusable article card for newsletter email slots.
-    Variables: $pos, $slotArticles, $locale, $appUrl, $colors, $readMore
+    Variables: $pos, $slotArticles, $locale, $appUrl, $articleBaseUrl, $colors, $readMore
 --}}
 @if(isset($slotArticles[$pos]))
     @php
         $article = $slotArticles[$pos]['article'];
         $t = $article->translated($locale);
-        $url = $appUrl . '/article/' . $article->slug;
+        $url = ($articleBaseUrl ?? $appUrl) . '/article/' . $article->slug;
         $icon = \App\Models\Article::TYPES[$article->article_type]['icon'] ?? '📄';
         $hasImg = (bool) $article->featured_image;
         $excerpt = Str::limit(strip_tags($t['body']), $hasImg ? 100 : 180);

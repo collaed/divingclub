@@ -225,6 +225,21 @@
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Social Links') }}</button>
                     </form>
+
+                    <hr class="my-4">
+                    <h6>📬 {{ __('Newsletter Settings') }}</h6>
+                    <p class="text-muted small">{{ __('Override the base URL for article links in newsletters. Leave blank to use the current site URL.') }}</p>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                        @csrf
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">{{ __('Article Base URL') }}</label>
+                                <input type="url" name="newsletter_article_base_url" class="form-control form-control-sm" value="{{ $themeSettings['newsletter_article_base_url'] ?? '' }}" placeholder="https://www.clubcep.eu">
+                                <div class="form-text">{{ __('e.g. https://www.clubcep.eu — article links will become https://www.clubcep.eu/article/slug') }}</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Newsletter Settings') }}</button>
+                    </form>
                 </div>
             </div>
         </div>

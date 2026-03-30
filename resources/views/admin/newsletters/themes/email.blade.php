@@ -147,7 +147,7 @@
                 @php
                     $a5 = $slotArticles[5]['article'];
                     $t5 = $a5->translated($locale);
-                    $url5 = $appUrl . '/article/' . $a5->slug;
+                    $url5 = ($articleBaseUrl ?? $appUrl) . '/article/' . $a5->slug;
                     $icon5 = \App\Models\Article::TYPES[$a5->article_type]['icon'] ?? '📄';
                 @endphp
                 <table role="presentation" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.9);border-radius:6px">

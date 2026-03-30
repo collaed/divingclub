@@ -273,6 +273,7 @@ class NewsletterController extends Controller
             'slotArticles' => $slotArticles,
             'locale' => $locale,
             'appUrl' => config('app.url'),
+            'articleBaseUrl' => ThemeSetting::get('newsletter_article_base_url') ?: config('app.url'),
             'clubName' => ThemeSetting::get('club_full_name', 'Diving Club'),
             'theme' => $themeFolder,
             'monthLabel' => $monthLabel,
