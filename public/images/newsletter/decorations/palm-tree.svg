@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Palm tree -->
+  <path d="M30 58 Q32 40 34 30" stroke="#8B6914" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Fronds -->
+  <path d="M32 30 Q20 18 8 22" stroke="#228B22" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M32 30 Q22 14 14 12" stroke="#2ea02e" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M32 30 Q36 14 30 8" stroke="#228B22" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M32 30 Q44 14 50 12" stroke="#2ea02e" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M32 30 Q44 18 56 22" stroke="#228B22" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Coconuts -->
+  <circle cx="30" cy="30" r="2.5" fill="#8B6914"/>
+  <circle cx="35" cy="29" r="2.5" fill="#7a5c10"/>
+  <!-- Sand -->
+  <ellipse cx="32" cy="60" rx="18" ry="4" fill="#f5deb3" opacity="0.6"/>
+</svg>

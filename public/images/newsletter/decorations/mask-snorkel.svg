@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Scuba mask with snorkel -->
+  <rect x="10" y="22" width="36" height="22" rx="10" fill="#1a6fa0" opacity="0.8"/>
+  <rect x="14" y="26" width="12" height="14" rx="5" fill="#87ceeb" opacity="0.6"/>
+  <rect x="30" y="26" width="12" height="14" rx="5" fill="#87ceeb" opacity="0.6"/>
+  <rect x="26" y="30" width="4" height="6" rx="2" fill="#1a6fa0"/>
+  <!-- Strap -->
+  <path d="M10 33 Q4 33 4 28" stroke="#333" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M46 33 Q52 33 52 28" stroke="#333" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Snorkel -->
+  <path d="M48 28 L50 12 Q50 8 54 8" stroke="#ffc107" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <circle cx="56" cy="8" r="3" fill="#ffc107"/>
+</svg>

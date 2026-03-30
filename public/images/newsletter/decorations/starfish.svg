@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Starfish -->
+  <g transform="translate(32,32)">
+    <g fill="#e8734a" stroke="#c0522e" stroke-width="0.8">
+      <path d="M0,-20 Q4,-8 0,-6 Q-4,-8 0,-20Z"/>
+      <path d="M0,-20 Q4,-8 0,-6 Q-4,-8 0,-20Z" transform="rotate(72)"/>
+      <path d="M0,-20 Q4,-8 0,-6 Q-4,-8 0,-20Z" transform="rotate(144)"/>
+      <path d="M0,-20 Q4,-8 0,-6 Q-4,-8 0,-20Z" transform="rotate(216)"/>
+      <path d="M0,-20 Q4,-8 0,-6 Q-4,-8 0,-20Z" transform="rotate(288)"/>
+    </g>
+    <circle r="5" fill="#d4623a"/>
+    <!-- Dots -->
+    <circle cx="0" cy="-12" r="0.8" fill="#f0a080"/>
+    <circle cx="11" cy="-4" r="0.8" fill="#f0a080"/>
+    <circle cx="7" cy="10" r="0.8" fill="#f0a080"/>
+    <circle cx="-7" cy="10" r="0.8" fill="#f0a080"/>
+    <circle cx="-11" cy="-4" r="0.8" fill="#f0a080"/>
+  </g>
+</svg>

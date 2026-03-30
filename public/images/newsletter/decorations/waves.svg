@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Waves - repeating ocean surface -->
+  <path d="M0 32 Q8 24 16 32 Q24 40 32 32 Q40 24 48 32 Q56 40 64 32" stroke="#0077be" stroke-width="2" fill="none" opacity="0.8"/>
+  <path d="M0 40 Q8 32 16 40 Q24 48 32 40 Q40 32 48 40 Q56 48 64 40" stroke="#0077be" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <path d="M0 48 Q8 40 16 48 Q24 56 32 48 Q40 40 48 48 Q56 56 64 48" stroke="#0077be" stroke-width="1" fill="none" opacity="0.3"/>
+</svg>

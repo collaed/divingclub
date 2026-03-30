@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Tropical fish - clownfish style -->
+  <ellipse cx="30" cy="32" rx="18" ry="12" fill="#ff8c42"/>
+  <path d="M48 32 C56 24 58 32 56 32 C58 32 56 40 48 32Z" fill="#ff8c42"/>
+  <ellipse cx="30" cy="32" rx="18" ry="12" fill="none" stroke="#e06820" stroke-width="0.8"/>
+  <!-- White stripes -->
+  <path d="M22 20 Q22 32 22 44" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M34 21 Q34 32 34 43" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Eye -->
+  <circle cx="18" cy="30" r="3" fill="white"/>
+  <circle cx="17.5" cy="29.5" r="1.5" fill="#1a1a2e"/>
+  <!-- Fins -->
+  <path d="M26 20 Q30 14 34 20" fill="#ff6b20" opacity="0.7"/>
+  <path d="M26 44 Q30 50 34 44" fill="#ff6b20" opacity="0.7"/>
+</svg>

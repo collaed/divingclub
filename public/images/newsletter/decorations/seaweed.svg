@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 32" fill="none">
+  <!-- Seaweed / kelp strand -->
+  <path d="M10 32 Q8 24 12 18 Q16 12 12 6 Q10 2 14 0" stroke="#1a8a4a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M24 32 Q26 22 22 16 Q18 10 22 4" stroke="#22a05a" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M38 32 Q36 26 40 20 Q44 14 40 8 Q38 4 40 0" stroke="#1a8a4a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M52 32 Q54 24 50 18 Q46 12 50 6" stroke="#22a05a" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M66 32 Q64 26 68 20 Q72 14 68 8 Q66 4 68 0" stroke="#1a8a4a" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Small leaves -->
+  <path d="M12 18 Q16 16 14 14" stroke="#2ecc71" stroke-width="1" fill="none"/>
+  <path d="M40 20 Q44 18 42 16" stroke="#2ecc71" stroke-width="1" fill="none"/>
+  <path d="M68 20 Q72 18 70 16" stroke="#2ecc71" stroke-width="1" fill="none"/>
+</svg>
