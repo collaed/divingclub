@@ -46,6 +46,9 @@ class NewsletterController extends Controller
             'slots.*.position' => 'required|integer|between:1,5',
             'slots.*.article_id' => 'required|exists:articles,id',
             'slots.*.article_type' => 'nullable|string|max:30',
+            'slots.*.teaser' => 'nullable|string|max:500',
+            'slots.*.custom_url' => 'nullable|string|max:500',
+            'slots.*.slug' => 'nullable|string|max:255',
         ]);
 
         $bg = $request->input('background_preset', 'default-bulles');
@@ -98,6 +101,9 @@ class NewsletterController extends Controller
             'slots.*.position' => 'required|integer|between:1,5',
             'slots.*.article_id' => 'required|exists:articles,id',
             'slots.*.article_type' => 'nullable|string|max:30',
+            'slots.*.teaser' => 'nullable|string|max:500',
+            'slots.*.custom_url' => 'nullable|string|max:500',
+            'slots.*.slug' => 'nullable|string|max:255',
         ]);
 
         $bg = $request->input('background_preset') ?: $newsletter->background_image;
@@ -236,6 +242,18 @@ class NewsletterController extends Controller
         $data = $this->buildEmailData($newsletter, 'fr');
 
         return view('admin.newsletters.themes.email', $data);
+    }
+
+    /** Send a test email to the current user. */
+    public function testSend(Newsletter $newsletter)
+    {
+        $data = $this->buildEmailData($newsletter, 'fr');
+        $html = view('admin.newsletters.themes.email', $data)->render();
+        $to = auth()->user()->primary_email;
+
+        Mail::html($html, fn ($m) => $m->to($to)->subject('[TEST] '.$newsletter->title));
+
+        return back()->with('success', __('Test email sent to :email', ['email' => $to]));
     }
 
     private function renderEmailHtml(Newsletter $newsletter, array $slotArticles, string $locale, string $appUrl, string $clubName): string

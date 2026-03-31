@@ -5,11 +5,18 @@
 @if(isset($slotArticles[$pos]))
     @php
         $article = $slotArticles[$pos]['article'];
+        $slotMeta = $slotArticles[$pos];
         $t = $article->translated($locale);
-        $url = ($articleBaseUrl ?? $appUrl) . '/article/' . $article->slug;
+        $baseUrl = $articleBaseUrl ?? $appUrl;
+        $url = $slotMeta['custom_url'] ?? ($baseUrl . '/article/' . $article->slug);
         $icon = \App\Models\Article::TYPES[$article->article_type]['icon'] ?? '📄';
         $hasImg = (bool) $article->featured_image;
-        $excerpt = Str::limit(strip_tags($t['body']), $hasImg ? 100 : 180);
+        $teaser = $slotMeta['teaser'] ?? '';
+        if (!$teaser) {
+            $teaser = Str::limit(strip_tags($t['body']), $hasImg ? 100 : 180);
+        }
+        $enUrl = $baseUrl . '/article/' . $article->slug;
+        $hasEnTranslation = $article->translations->contains('locale', 'en');
     @endphp
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{{ $colors['card'] }};border-radius:6px;overflow:hidden">
         @if($hasImg)
@@ -26,8 +33,17 @@
                 <a href="{{ $url }}" style="text-decoration:none;color:{{ $colors['title'] }}">
                     <strong style="font-size:13px;line-height:1.3;display:block;margin-bottom:6px">{{ $icon }} {{ e($t['title']) }}</strong>
                 </a>
-                <p style="margin:0 0 8px;font-size:11px;color:{{ $colors['text'] }};line-height:1.4">{{ $excerpt }}</p>
-                <a href="{{ $url }}" style="color:#0077be;font-size:11px;text-decoration:none;font-weight:bold">{{ $readMore }}</a>
+                <p style="margin:0 0 8px;font-size:11px;color:{{ $colors['text'] }};line-height:1.4">{{ $teaser }}</p>
+                <table width="100%" cellpadding="0" cellspacing="0"><tr>
+                    <td align="left" style="padding:0">
+                        @if($hasEnTranslation)
+                            <a href="{{ $enUrl }}" style="color:#999;font-size:10px;text-decoration:none">EN ›</a>
+                        @endif
+                    </td>
+                    <td align="right" style="padding:0">
+                        <a href="{{ $url }}" style="color:#0077be;font-size:11px;text-decoration:none;font-weight:bold">{{ $readMore }}</a>
+                    </td>
+                </tr></table>
             </td>
         </tr>
     </table>

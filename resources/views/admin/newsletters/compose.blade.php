@@ -117,6 +117,9 @@
 
                 <div class="mt-3 d-flex gap-2">
                     <button type="submit" class="btn btn-primary">{{ $newsletter ? __('Update Draft') : __('Save Draft') }}</button>
+                    @if($newsletter)
+                        <a href="{{ route('admin.newsletters.test-send', $newsletter) }}" class="btn btn-outline-success" onclick="return confirm('{{ __('Send a test to your email?') }}')">📧 {{ __('Send test to me') }}</a>
+                    @endif
                     <button type="button" class="btn btn-outline-info" onclick="scatterDecorations()">🐠 {{ __('Scatter Decorations') }}</button>
                     <button type="button" class="btn btn-outline-secondary" onclick="clearDecorations()" id="clearDecorBtn" style="display:none">✕ {{ __('Clear') }}</button>
                     <a href="{{ route('admin.newsletters.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
@@ -139,6 +142,7 @@
                                      data-title="{{ e($article->title) }}"
                                      data-image="{{ $article->featured_image ? asset('storage/'.$article->featured_image) : '' }}"
                                      data-excerpt="{{ e(Str::limit(strip_tags($article->body), 80)) }}"
+                                     data-slug="{{ $article->slug }}"
                                      data-type="{{ $article->article_type }}"
                                      style="cursor:pointer;transition:background 0.15s;font-size:13px"
                                      onclick="assignArticle(this)">
@@ -202,7 +206,10 @@
                         title: @json($a->title),
                         image: @json($a->featured_image ? asset('storage/'.$a->featured_image) : ''),
                         excerpt: @json(Str::limit(strip_tags($a->body), 80)),
-                        type: @json($s['article_type'] ?? $a->article_type)
+                        slug: @json($a->slug),
+                        type: @json($s['article_type'] ?? $a->article_type),
+                        teaser: @json($s['teaser'] ?? ''),
+                        customUrl: @json($s['custom_url'] ?? '')
                     };
                     renderSlot({{ $s['position'] }});
                 @endif
@@ -238,7 +245,10 @@
                 title: el.dataset.title,
                 image: el.dataset.image,
                 excerpt: el.dataset.excerpt,
-                type: typeSelect.value || el.dataset.type
+                slug: el.dataset.slug,
+                type: typeSelect.value || el.dataset.type,
+                teaser: '',
+                customUrl: ''
             };
             renderSlot(activeSlot);
             syncInputs();
@@ -253,15 +263,19 @@
             const art = slots[slot];
             if (!art) return;
             const card = document.getElementById('slotContent' + slot);
-            const imgHtml = art.image ? '<img src="' + art.image + '" style="width:100%;max-height:100px;object-fit:cover;border-radius:4px" alt="">' : '';
+            const imgHtml = art.image ? '<img src="' + art.image + '" style="width:100%;max-height:80px;object-fit:cover;border-radius:4px" alt="">' : '';
             if (slot <= 4) {
                 card.innerHTML = imgHtml +
-                    '<div class="text-start mt-1"><strong class="small">' + escHtml(art.title) + '</strong>' +
-                    '<br><span class="text-muted" style="font-size:11px">' + escHtml(art.excerpt) + '</span></div>' +
-                    '<button type="button" class="btn btn-outline-danger btn-sm mt-1" onclick="clearSlot(' + slot + '); event.stopPropagation()">✕</button>';
+                    '<div class="text-start mt-1"><strong class="small">' + escHtml(art.title) + '</strong></div>' +
+                    '<textarea class="form-control form-control-sm mt-1" style="font-size:10px;height:50px" placeholder="{{ __("Custom teaser (leave blank for auto)") }}" onchange="slots[' + slot + '].teaser=this.value;syncInputs()" onclick="event.stopPropagation()">' + escHtml(art.teaser || '') + '</textarea>' +
+                    '<input type="text" class="form-control form-control-sm mt-1" style="font-size:10px" placeholder="{{ __("Custom URL (optional)") }}" value="' + escHtml(art.customUrl || '') + '" onchange="slots[' + slot + '].customUrl=this.value;syncInputs()" onclick="event.stopPropagation()">' +
+                    '<div class="d-flex justify-content-between mt-1">' +
+                    '<button type="button" class="btn btn-outline-danger btn-sm py-0" onclick="clearSlot(' + slot + ');event.stopPropagation()">✕</button>' +
+                    '</div>';
             } else {
                 card.innerHTML = '<strong class="small">' + escHtml(art.title) + '</strong>' +
-                    ' <button type="button" class="btn btn-outline-danger btn-sm btn-sm ms-2" onclick="clearSlot(5); event.stopPropagation()">✕</button>';
+                    '<input type="text" class="form-control form-control-sm mt-1" style="font-size:10px" placeholder="{{ __("Custom URL (optional)") }}" value="' + escHtml(art.customUrl || '') + '" onchange="slots[5].customUrl=this.value;syncInputs()" onclick="event.stopPropagation()">' +
+                    '<button type="button" class="btn btn-outline-danger btn-sm mt-1 py-0" onclick="clearSlot(5);event.stopPropagation()">✕</button>';
             }
         }
 
@@ -279,7 +293,10 @@
                 container.innerHTML +=
                     '<input type="hidden" name="slots[' + pos + '][position]" value="' + pos + '">' +
                     '<input type="hidden" name="slots[' + pos + '][article_id]" value="' + art.id + '">' +
-                    '<input type="hidden" name="slots[' + pos + '][article_type]" value="' + (art.type || '') + '">';
+                    '<input type="hidden" name="slots[' + pos + '][article_type]" value="' + (art.type || '') + '">' +
+                    '<input type="hidden" name="slots[' + pos + '][teaser]" value="' + escHtml(art.teaser || '') + '">' +
+                    '<input type="hidden" name="slots[' + pos + '][custom_url]" value="' + escHtml(art.customUrl || '') + '">' +
+                    '<input type="hidden" name="slots[' + pos + '][slug]" value="' + (art.slug || '') + '">';
             });
         }
 

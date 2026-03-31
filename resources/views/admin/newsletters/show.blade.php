@@ -3,6 +3,7 @@
         <h4 class="mb-0">📬 {{ $newsletter->title }}</h4>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.newsletters.preview-email', $newsletter) }}" target="_blank" class="btn btn-outline-info btn-sm">📧 {{ __('Preview Email') }}</a>
+            <a href="{{ route('admin.newsletters.test-send', $newsletter) }}" class="btn btn-outline-success btn-sm" onclick="return confirm('{{ __('Send a test to your email?') }}')">📨 {{ __('Send test to me') }}</a>
             @php
                 $mailtoSubject = rawurlencode('Re: ' . $newsletter->title . ' — ' . ($newsletter->month ?? ''));
                 $mailtoBody = rawurlencode(

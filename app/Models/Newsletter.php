@@ -50,6 +50,9 @@ class Newsletter extends Model
         return collect($this->slots ?? [])->map(fn ($s) => [
             'position' => $s['position'],
             'article' => $articles->get($s['article_id']),
+            'teaser' => $s['teaser'] ?? '',
+            'custom_url' => $s['custom_url'] ?? '',
+            'slug' => $s['slug'] ?? '',
         ])->filter(fn ($s) => $s['article'])->keyBy('position')->toArray();
     }
 }
