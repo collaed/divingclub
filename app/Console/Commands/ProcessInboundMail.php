@@ -11,18 +11,23 @@ use Illuminate\Support\Facades\Mail;
 /**
  * Process inbound email piped from Postfix.
  *
- * Postfix pipes to:
- *   /usr/bin/php /opt/deploy/apps/divingclub/artisan mail:inbound --to=${recipient} --from=${sender} --subject=${subject}
+ * Supports:
+ *   - Direct alias: mail to bureau@clubcep.eu, event-42@clubcep.eu, members.s1862@clubcep.eu
+ *   - Subject directive: (recipients: bureau, moniteurs, sortie=25, Michel B)
+ *   - Legacy SAS block in body (To:/Cc: lines)
+ *
+ * Postfix pipe:
+ *   /usr/bin/php /path/to/artisan mail:inbound --to=${recipient} --from=${sender}
  *
  * Test:
- *   echo "Test body" | php artisan mail:inbound --to=bureau@clubcep.eu --from=eddy@test.com --subject="Test"
+ *   echo "Test body" | php artisan mail:inbound --to=bureau@clubcep.eu --from=eddy@test.com
  */
 class ProcessInboundMail extends Command
 {
     protected $signature = 'mail:inbound
-        {--to= : Recipient alias (e.g. bureau@clubcep.eu)}
+        {--to= : Recipient alias}
         {--from= : Sender email}
-        {--subject= : Email subject}';
+        {--subject= : Email subject (optional, read from stdin if piped)}';
 
     protected $description = 'Process inbound email and forward to alias recipients';
 
@@ -30,90 +35,132 @@ class ProcessInboundMail extends Command
     {
         $to = $this->option('to') ?? '';
         $from = $this->option('from') ?? 'unknown@unknown';
-        $subject = $this->option('subject') ?? '(no subject)';
+        $subject = $this->option('subject') ?? '';
         $body = stream_get_contents(STDIN) ?: '';
 
-        $resolved = MailAliasService::resolve($to);
+        // Extract subject from raw email if not provided as option
+        if (! $subject && preg_match('/^Subject:\s*(.+)$/mi', $body, $m)) {
+            $subject = trim($m[1]);
+        }
+        if (! $subject) {
+            $subject = '(no subject)';
+        }
 
-        if ($resolved) {
-            // Known alias — check authorization
-            if (! MailAliasService::isAuthorized($from, $to)) {
-                $this->error("Unauthorized sender {$from} for alias {$to}");
+        // Check for (recipients: ...) directive in subject
+        $recipientDirective = null;
+        $simulate = false;
+        if (preg_match('/\(recipients?:\s*([^)]+)\)/i', $subject, $m)) {
+            $recipientDirective = $m[1];
+            $subject = trim(str_replace($m[0], '', $subject));
 
-                EmailLog::create([
-                    'event_id' => $this->extractEventId($to),
-                    'to_email' => $to,
-                    'alias' => $to,
-                    'from_email' => $from,
-                    'subject' => $subject,
-                    'body' => $body,
-                    'status' => 'rejected',
-                    'direction' => 'inbound',
-                    'authorized' => false,
-                    'error' => 'Unauthorized sender',
-                ]);
-
-                return self::FAILURE;
+            // Check for simulate flag
+            if (str_contains(strtolower($recipientDirective), 'simulate')) {
+                $simulate = true;
+                $recipientDirective = str_ireplace('simulate', '', $recipientDirective);
             }
+
+            // Map legacy directive names
+            $recipientDirective = str_ireplace(
+                ['sortie=', 'moniteurs', 'bureau'],
+                ['members.s', 'instructors', 'bureau'],
+                $recipientDirective
+            );
+        }
+
+        // Resolve recipients
+        if ($recipientDirective) {
+            $resolved = MailAliasService::resolveMultiple($recipientDirective);
         } else {
-            // Unknown alias — forward to bureau if sender is a known member
+            $resolved = MailAliasService::resolve($to);
+        }
+
+        if (! $resolved || empty($resolved['emails'])) {
+            // Unknown alias — forward to bureau
             $sender = User::where('primary_email', $from)->first();
             if (! $sender) {
                 $this->error("Unknown alias {$to} from unknown sender {$from}");
-
-                EmailLog::create([
-                    'to_email' => $to, 'alias' => $to, 'from_email' => $from,
-                    'subject' => $subject, 'body' => $body,
-                    'status' => 'rejected', 'direction' => 'inbound',
-                    'authorized' => false, 'error' => 'Unknown alias + unknown sender',
-                ]);
+                $this->logMail($to, $from, $subject, $body, 'rejected', 'Unknown alias + unknown sender');
 
                 return self::FAILURE;
             }
 
-            $resolved = MailAliasService::resolve('bureau@'.config('club.domain'));
-            if (! $resolved || empty($resolved['emails'])) {
-                $this->error('No bureau recipients configured.');
-
-                return self::FAILURE;
-            }
+            $resolved = MailAliasService::resolve('bureau');
             $subject = "[Unknown: {$to}] {$subject}";
+        }
+
+        // Authorization check
+        if (! MailAliasService::isAuthorized($from, $to) && ! $recipientDirective) {
+            // If using directive, check if sender is bureau/instructor
+            $sender = User::where('primary_email', $from)->first();
+            if (! $sender || (! $sender->isBureau() && ! $sender->hasRole('instructor'))) {
+                $this->error("Unauthorized sender {$from}");
+                $this->logMail($to, $from, $subject, $body, 'rejected', 'Unauthorized sender');
+
+                return self::FAILURE;
+            }
         }
 
         $count = count($resolved['emails']);
         $this->info("Alias '{$to}' → {$resolved['label']} ({$count} recipients)");
 
-        foreach ($resolved['emails'] as $email) {
-            Mail::raw($body, function ($message) use ($email, $from, $subject, $resolved) {
-                $message->to($email)
-                    ->replyTo($from)
-                    ->subject("[{$resolved['label']}] {$subject}");
-            });
+        if ($simulate) {
+            $this->warn('SIMULATE MODE — not sending');
+            foreach ($resolved['emails'] as $email) {
+                $this->line("  [sim] {$email}");
+            }
 
-            $this->line("  → {$email}");
+            // Send simulation report back to sender
+            Mail::raw(
+                "Simulation for: {$resolved['label']}\n\n{$count} recipients:\n".implode("\n", $resolved['emails']),
+                fn ($m) => $m->to($from)->subject("[SIMULATE] {$subject}")
+            );
+
+            $this->logMail($to, $from, $subject, $body, 'simulated', "{$count} recipients");
+
+            return self::SUCCESS;
         }
 
+        // Send to each recipient
+        $sent = 0;
+        foreach ($resolved['emails'] as $email) {
+            try {
+                Mail::html($body, function ($message) use ($email, $from, $subject, $resolved) {
+                    $message->to($email)
+                        ->replyTo($from)
+                        ->subject("[{$resolved['label']}] {$subject}");
+                });
+                $this->line("  → {$email}");
+                $sent++;
+            } catch (\Throwable $e) {
+                $this->error("  ✗ {$email}: {$e->getMessage()}");
+            }
+        }
+
+        $this->logMail($to, $from, $subject, $body, 'forwarded', "Sent to {$sent}/{$count}");
+
+        // Send confirmation to sender
+        Mail::raw(
+            "Your message '{$subject}' was sent to {$sent} recipients ({$resolved['label']}).",
+            fn ($m) => $m->to($from)->subject("[Sent] {$subject} → {$resolved['label']}")
+        );
+
+        $this->info("Forwarded to {$sent}/{$count} recipients.");
+
+        return self::SUCCESS;
+    }
+
+    private function logMail(string $to, string $from, string $subject, string $body, string $status, ?string $error = null): void
+    {
         EmailLog::create([
-            'event_id' => $this->extractEventId($to),
             'to_email' => $to,
             'alias' => $to,
             'from_email' => $from,
             'subject' => $subject,
             'body' => $body,
-            'status' => 'forwarded',
+            'status' => $status,
             'direction' => 'inbound',
-            'authorized' => true,
+            'authorized' => $status !== 'rejected',
+            'error' => $error,
         ]);
-
-        $this->info("Forwarded to {$count} recipients.");
-
-        return self::SUCCESS;
-    }
-
-    private function extractEventId(string $address): ?int
-    {
-        $local = strtolower(explode('@', $address)[0]);
-
-        return preg_match('/^event-(\d+)$/', $local, $m) ? (int) $m[1] : null;
     }
 }
