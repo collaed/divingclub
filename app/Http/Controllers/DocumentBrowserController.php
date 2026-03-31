@@ -92,11 +92,20 @@ class DocumentBrowserController extends Controller
         $user = auth()->user();
         $folder = $request->get('folder', '/');
 
-        $files = LibraryFile::visibleTo($user)->inFolder($folder)
-            ->where('original_name', '!=', '.folder')
-            ->orderBy('original_name')->get();
+        $query = LibraryFile::visibleTo($user);
 
-        // Build folder tree from all visible files
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('original_name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+            $folder = null;
+        } else {
+            $query->inFolder($folder)->where('original_name', '!=', '.folder');
+        }
+
+        $files = $query->orderBy('original_name')->get();
+
         $folders = LibraryFile::visibleTo($user)
             ->selectRaw('DISTINCT folder')->orderBy('folder')->pluck('folder')
             ->flatMap(fn ($f) => collect(explode('/', trim($f, '/')))->filter()->reduce(function ($carry, $part) {
@@ -111,9 +120,8 @@ class DocumentBrowserController extends Controller
 
         $canManage = LibraryFile::canManage($user);
 
-        // Subfolders of current folder (direct children only)
         $subfolders = $folders->filter(function ($f) use ($folder) {
-            if ($f === $folder) {
+            if (! $folder || $f === $folder) {
                 return false;
             }
             $parent = dirname($f) === '.' ? '/' : dirname($f);
@@ -121,7 +129,10 @@ class DocumentBrowserController extends Controller
             return $parent === rtrim($folder, '/') || ($folder === '/' && $parent === '');
         })->values();
 
-        return view('documents.index', compact('files', 'folder', 'folders', 'subfolders', 'canManage'));
+        // Personal documents (medical certs, certifications, etc.)
+        $myDocuments = $user ? $user->documents()->orderByDesc('created_at')->limit(20)->get() : collect();
+
+        return view('documents.index', compact('files', 'folder', 'folders', 'subfolders', 'canManage', 'search', 'myDocuments'));
     }
 
     public function upload(Request $request)

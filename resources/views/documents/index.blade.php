@@ -1,6 +1,6 @@
 {{-- Document browser with role-based visibility, upload & folder management | ClubCEP.eu --}}
 <x-layout :title="__('Documents')">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">@icon('📁') {{ __('Documents') }}</h4>
         @if($canManage)
             <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#uploadPanel">
@@ -8,6 +8,19 @@
             </button>
         @endif
     </div>
+
+    {{-- Search --}}
+    <form method="GET" action="{{ route('documents.index') }}" class="mb-3 d-flex gap-2" style="max-width:400px">
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search documents…') }}" value="{{ $search ?? '' }}">
+        <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
+        @if($search ?? false)
+            <a href="{{ route('documents.index') }}" class="btn btn-sm btn-outline-secondary">✕</a>
+        @endif
+    </form>
+
+    @if($search ?? false)
+        <div class="alert alert-info py-2 mb-3">{{ __('Results for') }} "<strong>{{ $search }}</strong>" — {{ $files->count() }} {{ __('found') }}</div>
+    @endif
 
     {{-- Upload panel (instructors/bureau) --}}
     @if($canManage)
@@ -233,5 +246,36 @@
         });
     })();
     </script>
+    @endif
+
+    {{-- My Personal Documents --}}
+    @if($myDocuments->isNotEmpty())
+    <div class="card dc-card mt-4">
+        <div class="card-header py-2 d-flex justify-content-between">
+            <span>@icon('🗂️') {{ __('My Documents') }}</span>
+            <a href="{{ route('profile.show') }}?tab=medical" class="btn btn-sm btn-outline-primary py-0">{{ __('Manage in Profile') }}</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Category') }}</th><th>{{ __('Date') }}</th><th>{{ __('Status') }}</th><th></th></tr></thead>
+                <tbody>
+                @foreach($myDocuments as $doc)
+                    <tr>
+                        <td>{{ $doc->original_filename }}</td>
+                        <td><span class="badge bg-{{ $doc->category === 'medical' ? 'danger' : ($doc->category === 'certification' ? 'primary' : 'secondary') }}">{{ ucfirst($doc->category) }}</span></td>
+                        <td class="small">{{ $doc->date_established?->format('d/m/Y') ?? '—' }}</td>
+                        <td>
+                            @if($doc->is_verified) <span class="badge bg-success">{{ __('Verified') }}</span>
+                            @else <span class="badge bg-warning text-dark">{{ __('Pending') }}</span>
+                            @endif
+                            @if($doc->isExpired()) <span class="badge bg-danger">{{ __('Expired') }}</span> @endif
+                        </td>
+                        <td><a href="{{ route('profile.document.download', $doc) }}" class="btn btn-sm btn-outline-primary py-0">📥</a></td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
     @endif
 </x-layout>
