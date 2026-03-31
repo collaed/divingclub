@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /horizon/
+Disallow: /staging-mail/
+Disallow: /privacy/
+Disallow: /install
+Disallow: /api/
+Allow: /
+
+Sitemap: /calendar.ics

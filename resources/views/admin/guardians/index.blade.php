@@ -15,7 +15,7 @@
                     <td>
                         @forelse($minor->guardians as $g)
                             <span class="badge bg-secondary">{{ $g->name }} ({{ $g->pivot->relationship }})</span>
-                            <form method="POST" action="{{ route('admin.guardians.unlink', $g->pivot->id) }}" class="d-inline" onsubmit="return confirm('{{ __('Remove guardian link?') }}')">
+                            <form method="POST" onsubmit="return confirm('Unlink?')" action="{{ route('admin.guardians.unlink', $g->pivot->id) }}" class="d-inline" onsubmit="return confirm('{{ __('Remove guardian link?') }}')">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-link text-danger p-0">✕</button>
                             </form>
@@ -90,7 +90,7 @@
                                         <small>{{ ucfirst($c->consent_type) }} — {{ __('by') }} {{ $c->grantedBy?->name }} · {{ $c->granted_at->format('d/m/Y') }}
                                             @if($c->document_path) <a href="{{ route('admin.guardians.consent.download', $c) }}">📎</a> @endif
                                         </small>
-                                        <form method="POST" action="{{ route('admin.guardians.consent.revoke', $c) }}" onsubmit="return confirm('{{ __('Revoke this consent?') }}')">
+                                        <form method="POST" onsubmit="return confirm('Revoke?')" action="{{ route('admin.guardians.consent.revoke', $c) }}" onsubmit="return confirm('{{ __('Revoke this consent?') }}')">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-sm btn-outline-danger py-0">{{ __('Revoke') }}</button>
                                         </form>

@@ -11,6 +11,7 @@
     <link rel="icon" href="/favicon.ico" sizes="32x32">
     <link rel="icon" href="/images/club-logo.png" type="image/png">
     <meta name="generator" content="DivingClub-Manager/1.0">
+    <meta name="description" content="{{ $metaDescription ?? __('Diving club management — events, certifications, equipment, and more.') }}">
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
     <style>{!! $themeCSS ?? '' !!}
     .dc-header{background:linear-gradient(135deg,var(--dc-header-start) 0%,var(--dc-primary) 40%,var(--dc-header-end) 100%) !important}

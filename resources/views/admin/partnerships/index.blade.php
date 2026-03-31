@@ -23,7 +23,7 @@
                 @if($p->their_api_key_id)
                 <a href="{{ route('admin.partnerships.remote-events', $p) }}" class="btn btn-outline-info btn-sm">Browse Events</a>
                 @endif
-                <form method="POST" action="{{ route('admin.partnerships.destroy', $p) }}" class="d-inline" onsubmit="return confirm('Remove partnership?')">
+                <form method="POST" onsubmit="return confirm('Delete?')" action="{{ route('admin.partnerships.destroy', $p) }}" class="d-inline" onsubmit="return confirm('Remove partnership?')">
                     @csrf @method('DELETE')
                     <button class="btn btn-outline-danger btn-sm">Remove</button>
                 </form>

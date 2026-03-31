@@ -21,7 +21,7 @@
                 <a href="{{ route('members.profile', $m) }}" class="text-decoration-none">
                 <div class="card dc-card text-center h-100">
                     <div class="card-body py-3 px-2">
-                        <img src="{{ asset('storage/' . $m->detail->avatar_path) }}" class="rounded-circle mb-2" style="width:80px;height:80px;object-fit:cover;">
+                        <img src="{{ asset('storage/' . $m->detail->avatar_path) }}" class="rounded-circle mb-2" style="width:80px;height:80px;object-fit:cover;" loading="lazy">
                         <div class="small fw-bold text-body">{{ $m->detail?->first_name }}</div>
                         <div class="small text-muted">{{ $m->detail?->last_name }}</div>
                         @php $cert = $m->primaryCertification(); @endphp
