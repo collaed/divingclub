@@ -246,7 +246,8 @@
                     <span>{{ __('Participants') }} ({{ $confirmed->count() }}{{ $event->max_participants ? '/'.$event->max_participants : '' }})</span>
                     <div class="d-flex gap-2 align-items-center">
                         @if($isPrivileged && $confirmed->count())
-                            <a href="mailto:event-{{ $event->id }}@{{ config('club.domain', 'clubcep.eu') }}?subject={{ rawurlencode($event->title) }}" class="btn btn-sm btn-outline-primary py-0">📧 {{ __('Email participants') }}</a>
+                            @php $mailtoUrl = 'mailto:event-'.$event->id.'@'.config('club.domain','clubcep.eu').'?subject='.rawurlencode($event->title); @endphp
+                            <a href="{{ $mailtoUrl }}" class="btn btn-sm btn-outline-primary py-0">📧 {{ __('Email participants') }}</a>
                         @endif
                         @if($cancelled->count() && $isPrivileged)
                             <a href="#" class="small" onclick="document.getElementById('cancelled-list').classList.toggle('d-none'); return false;">{{ __('show/hide cancelled') }}</a>
