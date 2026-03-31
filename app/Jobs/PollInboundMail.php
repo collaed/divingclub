@@ -225,7 +225,14 @@ class PollInboundMail implements ShouldQueue
             }
         }
 
+        // Extract event ID from alias for logging
+        $eventId = null;
+        if (preg_match('/^event-(\d+)@|^members\.s(\d+)@/', $to, $em)) {
+            $eventId = (int) ($em[1] ?: $em[2]);
+        }
+
         EmailLog::create([
+            'event_id' => $eventId,
             'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
             'body' => substr($body, 0, 5000), 'status' => 'forwarded',
             'direction' => 'inbound', 'error' => "Sent to {$sent}/".count($resolved['emails']),

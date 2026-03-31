@@ -86,7 +86,11 @@ class EventController extends Controller
             'diveGroups.members.user.certificationLevels',
         ]);
         $userReg = auth()->check() ? $event->registrations()->where('user_id', auth()->id())->first() : null;
-        $emailHistory = EmailLog::where('event_id', $event->id)->orderByDesc('created_at')->get();
+        $emailHistory = EmailLog::where(function ($q) use ($event) {
+            $q->where('event_id', $event->id)
+                ->orWhere('to_email', 'like', "event-{$event->id}@%")
+                ->orWhere('alias', 'like', "event-{$event->id}@%");
+        })->orderByDesc('created_at')->get();
         $members = auth()->user()?->isBureau() ? User::with('detail')->role(['member', 'instructor', 'bureau_finance', 'bureau_technical', 'bureau_master'])->orderBy('username')->get() : collect();
 
         return view('events.show', compact('event', 'userReg', 'emailHistory', 'members'));
