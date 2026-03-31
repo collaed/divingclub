@@ -44,7 +44,13 @@ class PollInboundMail implements ShouldQueue
         $pass = config('services.inbound_mail.imap_password');
         $encryption = config('services.inbound_mail.imap_encryption', 'ssl');
 
-        $mailbox = "{{$host}:{$port}/imap/{$encryption}}INBOX";
+        $flags = match ($encryption) {
+            'ssl' => '/imap/ssl',
+            'tls' => '/imap/tls',
+            'notls' => '/imap/notls/novalidate-cert',
+            default => '/imap/ssl',
+        };
+        $mailbox = "{{$host}:{$port}{$flags}}INBOX";
 
         $imap = @imap_open($mailbox, $user, $pass);
         if (! $imap) {
