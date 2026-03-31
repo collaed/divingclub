@@ -1,0 +1,18 @@
+clubcepe: clubcepe
+mail1:mail@clubcep.eu
+mail10:mail@clubcep.eu
+mail2:mail@clubcep.eu
+mail3:mail@clubcep.eu
+mail4:mail@clubcep.eu
+mail5:mail@clubcep.eu
+mail6:mail@clubcep.eu
+mail7:mail@clubcep.eu
+mail8:mail@clubcep.eu
+mail9:mail@clubcep.eu
+members:"|/opt/alt/php56/usr/bin/php -q /home/clubcepe/mailForward/mailerDA.php",all-sas@clubcep.eu
+members.b:"|/opt/alt/php56/usr/bin/php -q /home/clubcepe/mailForward/mailerDA.php",all-sas@clubcep.eu
+members.m:"|/opt/alt/php56/usr/bin/php -q /home/clubcepe/mailForward/mailerDA.php",all-sas@clubcep.eu
+sas.emmanuel:"|/opt/alt/php56/usr/bin/php -q /home/clubcepe/mailForward/mailerDA.php",all-sas@clubcep.eu
+sas.etienne:"|/opt/alt/php56/usr/bin/php -q /home/clubcepe/mailForward/mailerDA.php",all-sas@clubcep.eu
+sas.mariejo:"|/opt/alt/php56/usr/bin/php -q /home/clubcepe/mailForward/mailerDA.php",all-sas@clubcep.eu
+sas.pascale:"|/opt/alt/php56/usr/bin/php -q /home/clubcepe/mailForward/mailerDA.php",all-sas@clubcep.eu

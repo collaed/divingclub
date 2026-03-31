@@ -6,6 +6,16 @@ return [
     'ses' => ['key' => env('AWS_ACCESS_KEY_ID'), 'secret' => env('AWS_SECRET_ACCESS_KEY'), 'region' => env('AWS_DEFAULT_REGION', 'us-east-1')],
     'resend' => ['key' => env('RESEND_KEY')],
 
+    // Inbound mail processing (Option A: IMAP polling)
+    'inbound_mail' => [
+        'enabled' => env('INBOUND_MAIL_ENABLED', false),
+        'imap_host' => env('INBOUND_IMAP_HOST', 'localhost'),
+        'imap_port' => env('INBOUND_IMAP_PORT', 993),
+        'imap_user' => env('INBOUND_IMAP_USER'),
+        'imap_password' => env('INBOUND_IMAP_PASSWORD'),
+        'imap_encryption' => env('INBOUND_IMAP_ENCRYPTION', 'ssl'),
+    ],
+
     // OAuth Providers
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),

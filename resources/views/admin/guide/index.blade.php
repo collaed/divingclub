@@ -22,6 +22,7 @@
                                 @case('equipment') @icon('🤿') @break
                                 @case('content') @icon('📰') @break
                                 @case('email') @icon('✉️') @break
+                                @case('inbound-mail') @icon('📬') @break
                                 @case('voting') @icon('🗳️') @break
                                 @case('partnerships') @icon('🤝') @break
                                 @case('social-media') @icon('📱') @break

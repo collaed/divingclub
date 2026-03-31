@@ -18,6 +18,7 @@ class GuideController extends Controller
         'equipment' => 'Equipment Inventory',
         'content' => 'CMS, Classifieds & Documents',
         'email' => 'Email System',
+        'inbound-mail' => 'Inbound Mail Aliases',
         'voting' => 'Voting System',
         'partnerships' => 'Inter-Club Partnerships',
         'social-media' => 'Social Media Auto-Publish',
