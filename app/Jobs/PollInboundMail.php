@@ -13,14 +13,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
- * Option A (simplified): Watch a Maildir for new messages.
+ * Poll for inbound alias emails — two modes:
  *
- * Reads raw .eml files from Maildir/new/, processes them, moves to Maildir/cur/.
- * No IMAP/Dovecot needed — just Postfix delivering to a local user.
- *
- * Configure in .env:
- *   INBOUND_MAIL_ENABLED=true
- *   INBOUND_MAILDIR=/home/inbound/Maildir
+ * Maildir: INBOUND_MAIL_MODE=maildir  INBOUND_MAILDIR=/home/inbound/Maildir
+ * IMAP:    INBOUND_MAIL_MODE=imap     INBOUND_IMAP_HOST/PORT/USER/PASSWORD/ENCRYPTION
  */
 class PollInboundMail implements ShouldQueue
 {
@@ -34,56 +30,144 @@ class PollInboundMail implements ShouldQueue
             return;
         }
 
-        $maildir = config('services.inbound_mail.maildir', '/home/inbound/Maildir');
-        $newDir = rtrim($maildir, '/').'/new';
-        $curDir = rtrim($maildir, '/').'/cur';
+        $mode = config('services.inbound_mail.mode', 'maildir');
+        $messages = $mode === 'imap' ? $this->fetchImap() : $this->fetchMaildir();
 
-        if (! is_dir($newDir)) {
-            ScheduleHeartbeat::beat('inbound-mail', 'Maildir not found');
-
-            return;
-        }
-
-        $files = glob("{$newDir}/*");
-        if (empty($files)) {
+        if (empty($messages)) {
             ScheduleHeartbeat::beat('inbound-mail', '0 messages');
 
             return;
         }
 
         $processed = 0;
-
-        foreach ($files as $file) {
+        foreach ($messages as $msg) {
             try {
-                $raw = file_get_contents($file);
-                if (! $raw) {
-                    continue;
-                }
-
-                $headers = $this->parseHeaders($raw);
-                $body = $this->parseBody($raw);
-
-                $from = $this->extractEmail($headers['from'] ?? '');
-                $to = $this->extractEmail($headers['to'] ?? '');
-                $subject = $this->decodeHeader($headers['subject'] ?? '(no subject)');
-
-                $this->processMessage($from, $to, $subject, $body);
+                $this->processMessage($msg['from'], $msg['to'], $msg['subject'], $msg['body']);
                 $processed++;
-
-                // Move to cur/ (processed)
-                rename($file, $curDir.'/'.basename($file).':2,S');
             } catch (\Throwable $e) {
-                Log::error('Inbound mail error on '.basename($file).": {$e->getMessage()}");
-                // Move to cur/ anyway to avoid reprocessing
-                @rename($file, $curDir.'/'.basename($file).':2,S');
+                Log::error("Inbound mail error: {$e->getMessage()}");
             }
         }
 
         ScheduleHeartbeat::beat('inbound-mail', "{$processed} processed");
-        if ($processed) {
-            Log::info("Inbound mail: processed {$processed} messages");
-        }
     }
+
+    // ─── Maildir mode ──────────────────────────────────────
+
+    private function fetchMaildir(): array
+    {
+        $maildir = config('services.inbound_mail.maildir', '/home/inbound/Maildir');
+        $newDir = rtrim($maildir, '/').'/new';
+        $curDir = rtrim($maildir, '/').'/cur';
+
+        if (! is_dir($newDir)) {
+            return [];
+        }
+
+        $messages = [];
+        foreach (glob("{$newDir}/*") as $file) {
+            $raw = @file_get_contents($file);
+            if (! $raw) {
+                continue;
+            }
+
+            $headers = $this->parseRawHeaders($raw);
+            $messages[] = [
+                'from' => $this->extractEmail($headers['from'] ?? ''),
+                'to' => $this->extractEmail($headers['to'] ?? ''),
+                'subject' => $this->decodeMimeHeader($headers['subject'] ?? '(no subject)'),
+                'body' => $this->parseRawBody($raw),
+            ];
+
+            @rename($file, $curDir.'/'.basename($file).':2,S');
+        }
+
+        return $messages;
+    }
+
+    // ─── IMAP mode ─────────────────────────────────────────
+
+    private function fetchImap(): array
+    {
+        $host = config('services.inbound_mail.imap_host');
+        $port = config('services.inbound_mail.imap_port', 993);
+        $user = config('services.inbound_mail.imap_user');
+        $pass = config('services.inbound_mail.imap_password');
+        $enc = config('services.inbound_mail.imap_encryption', 'ssl');
+
+        $flags = match ($enc) {
+            'ssl' => '/imap/ssl',
+            'notls' => '/imap/notls/novalidate-cert',
+            default => '/imap/ssl',
+        };
+
+        $imap = @imap_open("{{$host}:{$port}{$flags}}INBOX", $user, $pass);
+        if (! $imap) {
+            Log::error('Inbound IMAP failed: '.imap_last_error());
+
+            return [];
+        }
+
+        $messages = [];
+        foreach (imap_search($imap, 'UNSEEN') ?: [] as $num) {
+            $hdr = imap_headerinfo($imap, $num);
+            $messages[] = [
+                'from' => strtolower($hdr->from[0]->mailbox.'@'.$hdr->from[0]->host),
+                'to' => strtolower($hdr->to[0]->mailbox.'@'.$hdr->to[0]->host),
+                'subject' => $this->decodeImapSubject($hdr->subject ?? ''),
+                'body' => $this->getImapBody($imap, $num),
+            ];
+            imap_setflag_full($imap, (string) $num, '\\Seen');
+        }
+
+        imap_close($imap);
+
+        return $messages;
+    }
+
+    private function decodeImapSubject(string $subject): string
+    {
+        $parts = imap_mime_header_decode($subject);
+        $decoded = '';
+        foreach ($parts as $part) {
+            $decoded .= $part->text;
+        }
+
+        return $decoded ?: $subject;
+    }
+
+    private function getImapBody($imap, int $num): string
+    {
+        $struct = imap_fetchstructure($imap, $num);
+
+        if (! isset($struct->parts)) {
+            return $this->decodeImapPart(imap_body($imap, $num), $struct->encoding ?? 0);
+        }
+
+        foreach ($struct->parts as $i => $part) {
+            if ($part->subtype === 'HTML') {
+                return $this->decodeImapPart(imap_fetchbody($imap, $num, (string) ($i + 1)), $part->encoding ?? 0);
+            }
+        }
+        foreach ($struct->parts as $i => $part) {
+            if ($part->subtype === 'PLAIN') {
+                return '<pre>'.e($this->decodeImapPart(imap_fetchbody($imap, $num, (string) ($i + 1)), $part->encoding ?? 0)).'</pre>';
+            }
+        }
+
+        return imap_body($imap, $num);
+    }
+
+    private function decodeImapPart(string $body, int $encoding): string
+    {
+        return match ($encoding) {
+            3 => base64_decode($body),
+            4 => quoted_printable_decode($body),
+            default => $body,
+        };
+    }
+
+    // ─── Message processing ────────────────────────────────
 
     private function processMessage(string $from, string $to, string $subject, string $body): void
     {
@@ -99,11 +183,7 @@ class PollInboundMail implements ShouldQueue
                 $recipientDirective = str_ireplace('simulate', '', $recipientDirective);
             }
 
-            $recipientDirective = str_ireplace(
-                ['sortie=', 'moniteurs'],
-                ['members.s', 'instructors'],
-                $recipientDirective
-            );
+            $recipientDirective = str_ireplace(['sortie=', 'moniteurs'], ['members.s', 'instructors'], $recipientDirective);
         }
 
         $resolved = $recipientDirective
@@ -115,7 +195,6 @@ class PollInboundMail implements ShouldQueue
             $subject = "[Unknown: {$to}] {$subject}";
         }
 
-        // Auth check
         $sender = User::where('primary_email', $from)->first();
         if (! $sender || (! $sender->isBureau() && ! $sender->hasRole('instructor'))) {
             EmailLog::create([
@@ -158,11 +237,12 @@ class PollInboundMail implements ShouldQueue
         );
     }
 
-    /** Parse email headers from raw message. */
-    private function parseHeaders(string $raw): array
+    // ─── Raw email parsing (Maildir mode) ──────────────────
+
+    private function parseRawHeaders(string $raw): array
     {
         $headerBlock = strstr($raw, "\r\n\r\n", true) ?: strstr($raw, "\n\n", true) ?: '';
-        $headerBlock = preg_replace('/\r?\n\s+/', ' ', $headerBlock); // unfold
+        $headerBlock = preg_replace('/\r?\n\s+/', ' ', $headerBlock);
 
         $headers = [];
         foreach (explode("\n", $headerBlock) as $line) {
@@ -174,43 +254,35 @@ class PollInboundMail implements ShouldQueue
         return $headers;
     }
 
-    /** Extract body (prefer HTML, fall back to plain text). */
-    private function parseBody(string $raw): string
+    private function parseRawBody(string $raw): string
     {
         $parts = preg_split('/\r?\n\r?\n/', $raw, 2);
         $body = $parts[1] ?? '';
 
-        // If multipart, try to find HTML part
         if (preg_match('/boundary="?([^"\s;]+)"?/i', $parts[0] ?? '', $m)) {
             $boundary = $m[1];
-            $sections = explode("--{$boundary}", $body);
-
-            foreach ($sections as $section) {
+            foreach (explode("--{$boundary}", $body) as $section) {
                 if (stripos($section, 'text/html') !== false) {
-                    $sectionParts = preg_split('/\r?\n\r?\n/', $section, 2);
+                    $sp = preg_split('/\r?\n\r?\n/', $section, 2);
 
-                    return $this->decodeBodyPart($sectionParts[1] ?? '', $section);
+                    return $this->decodeRawPart($sp[1] ?? '', $section);
                 }
             }
-            // Fall back to first text/plain
-            foreach ($sections as $section) {
+            foreach (explode("--{$boundary}", $body) as $section) {
                 if (stripos($section, 'text/plain') !== false) {
-                    $sectionParts = preg_split('/\r?\n\r?\n/', $section, 2);
+                    $sp = preg_split('/\r?\n\r?\n/', $section, 2);
 
-                    return '<pre>'.e($this->decodeBodyPart($sectionParts[1] ?? '', $section)).'</pre>';
+                    return '<pre>'.e($this->decodeRawPart($sp[1] ?? '', $section)).'</pre>';
                 }
             }
         }
 
-        // Simple message (not multipart)
-        if (stripos($parts[0] ?? '', 'text/html') !== false) {
-            return $this->decodeBodyPart($body, $parts[0] ?? '');
-        }
-
-        return '<pre>'.e($this->decodeBodyPart($body, $parts[0] ?? '')).'</pre>';
+        return stripos($parts[0] ?? '', 'text/html') !== false
+            ? $this->decodeRawPart($body, $parts[0] ?? '')
+            : '<pre>'.e($this->decodeRawPart($body, $parts[0] ?? '')).'</pre>';
     }
 
-    private function decodeBodyPart(string $body, string $headers): string
+    private function decodeRawPart(string $body, string $headers): string
     {
         if (stripos($headers, 'base64') !== false) {
             return base64_decode(trim($body));
@@ -224,14 +296,10 @@ class PollInboundMail implements ShouldQueue
 
     private function extractEmail(string $header): string
     {
-        if (preg_match('/<([^>]+)>/', $header, $m)) {
-            return strtolower($m[1]);
-        }
-
-        return strtolower(trim($header));
+        return strtolower(preg_match('/<([^>]+)>/', $header, $m) ? $m[1] : trim($header));
     }
 
-    private function decodeHeader(string $header): string
+    private function decodeMimeHeader(string $header): string
     {
         if (preg_match_all('/=\?([^?]+)\?([BQ])\?([^?]+)\?=/i', $header, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $m) {

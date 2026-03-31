@@ -6,10 +6,18 @@ return [
     'ses' => ['key' => env('AWS_ACCESS_KEY_ID'), 'secret' => env('AWS_SECRET_ACCESS_KEY'), 'region' => env('AWS_DEFAULT_REGION', 'us-east-1')],
     'resend' => ['key' => env('RESEND_KEY')],
 
-    // Inbound mail processing (watches Maildir for new messages)
+    // Inbound mail processing
+    // Mode 'maildir': reads from local Maildir (no extra services needed)
+    // Mode 'imap': connects to remote mailbox (when mail is on another server)
     'inbound_mail' => [
         'enabled' => env('INBOUND_MAIL_ENABLED', false),
+        'mode' => env('INBOUND_MAIL_MODE', 'maildir'),
         'maildir' => env('INBOUND_MAILDIR', '/home/inbound/Maildir'),
+        'imap_host' => env('INBOUND_IMAP_HOST'),
+        'imap_port' => env('INBOUND_IMAP_PORT', 993),
+        'imap_user' => env('INBOUND_IMAP_USER'),
+        'imap_password' => env('INBOUND_IMAP_PASSWORD'),
+        'imap_encryption' => env('INBOUND_IMAP_ENCRYPTION', 'ssl'),
     ],
 
     // OAuth Providers
