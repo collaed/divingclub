@@ -282,3 +282,49 @@ These are refactoring/architecture improvements, not functional requirements.
 - Code quality requirements (REQ-01 to REQ-14) are all unstarted — technical debt accumulated during rapid development
 - Test coverage is thin relative to the application's complexity (134 tests for 260 routes)
 - No formal acceptance criteria per requirement — status tracking was informal
+
+
+## v1.1.0 Additions
+
+### New Dependencies
+- **spatie/laravel-permission** v6 — Role & permission management with granular permissions
+- **laravel/horizon** v5 — Redis queue monitoring dashboard
+- **intervention/image** v4 — Image manipulation (thumbnails, avatar resize)
+- **resend/resend-laravel** v1 — Email delivery via Resend API (replaces SMTP)
+
+### Infrastructure
+- **Redis** required on staging/production for Horizon queue processing
+- **Supervisor** manages Horizon daemon (auto-restart on crash/reboot)
+- **Resend** API for outbound email (SPF/DKIM via Amazon SES infrastructure)
+
+### New Permissions (spatie/laravel-permission)
+- `manage members`, `manage events`, `manage equipment`, `manage articles`
+- `manage payments`, `manage settings`, `send newsletters`, `manage backups`
+- `view audit logs`, `manage dive sites`, `manage votes`, `impersonate users`
+
+### Newsletter System Enhancements
+- Per-slot editable teaser text (overrides auto-excerpt)
+- Per-slot custom URL (for linking to external pages)
+- "EN ›" link in email cards (bottom-left) when English translation exists
+- "Send test to me" button for one-click test delivery
+- Configurable article base URL in Admin → Settings
+- 25 SVG marine decorations with scatter button
+
+### Document Library Enhancements
+- Drag-and-drop upload zone
+- Search across all folders (file names + descriptions)
+- Bulk ZIP download (select files → download as archive)
+- Inline image/PDF preview (lightbox overlay)
+- "My Documents" section for members showing personal uploads with status
+
+### Translation Quality System
+- Source hash tracking (xxh3) for change detection
+- Word count validation (30%–300% ratio check)
+- Retry logic (max 3 attempts before flagging)
+- Auto-flagging for admin review with reason
+
+### Auto-Update System
+- GitHub API version check (cached 6h)
+- One-click update: git pull → composer → npm → migrate → cache clear
+- Bureau Master only, with confirmation dialog
+- Version displayed on dashboard with commit info

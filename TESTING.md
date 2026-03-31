@@ -368,3 +368,47 @@ The Gravière du Fort site (powered by VPDive) provides practical templates:
 - **Consignes de Sécurité** — Site-specific safety rules.
 - **Bathymétrie** — Site bathymetry map. Our dive sites feature could store similar maps.
 - **Règlement Intérieur** — Internal rules template for dive sites.
+
+
+## v1.1.0 Testing Notes
+
+### Spatie Permissions in Tests
+Tests using `RefreshDatabase` must create Spatie roles in `setUp()`:
+```php
+use Spatie\Permission\Models\Role as SpatieRole;
+
+protected function setUp(): void
+{
+    parent::setUp();
+    foreach (['public', 'member', 'instructor', 'bureau_finance', 'bureau_technical', 'bureau_master'] as $r) {
+        SpatieRole::findOrCreate($r, 'web');
+    }
+}
+```
+
+When creating test users, assign the Spatie role:
+```php
+$user = User::factory()->create(['role_id' => $legacyRole->id, 'status_id' => $status->id]);
+$user->assignRole('bureau_master');
+```
+
+### UserFactory
+The factory uses `username` and `primary_email` (not `name` and `email`):
+```php
+'username' => fake()->userName(),
+'primary_email' => fake()->unique()->safeEmail(),
+```
+
+### Federation Visibility Tests
+4 tests in `FederationVisibilityTest`:
+- `test_active_scope_filters_correctly`
+- `test_visible_scope_includes_active_and_recognized`
+- `test_admin_can_update_federation_visibility`
+- `test_new_federation_defaults_to_active`
+
+### Running Tests
+```bash
+php artisan test --compact                    # All 138 tests
+php artisan test --filter=FederationVisibility # Federation tests only
+php artisan test --filter=CriticalPath        # Critical path tests
+```

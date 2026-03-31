@@ -927,3 +927,35 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 7. Clicks **Clear** to purge the staging mailbox
 
 **Note:** Requires `STAGING_MODE=true` in `.env`. When `STAGING_USER` and `STAGING_PASS` are also set, the entire site is protected by HTTP Basic Auth (useful for real staging servers). Leave them empty for local dev.
+
+
+## New Features (v1.1.0)
+
+### Bureau (Admin)
+54. Control federation visibility (Active/Recognized/Invisible) to declutter certification dropdowns for members
+55. Search articles across all 15 language translations from the admin article list
+56. Sort any admin table by clicking column headers (articles, equipment, payments, audit logs, members)
+57. Compose newsletters with editable teaser text per slot and optional custom URLs
+58. Scatter decorative marine SVG elements across newsletter layout with one click
+59. Send test newsletter to own email before approval workflow
+60. Send newsletter for comments via mailto: link to all bureau members
+61. Monitor scheduled task health on the dashboard (heartbeat table with OK/Failed/Overdue status)
+62. Monitor queue processing via Horizon dashboard (Admin → Queue Monitor)
+63. Check for and apply GitHub updates from the admin dashboard (bureau_master only)
+64. Manage granular permissions per role using spatie/laravel-permission (12 permissions)
+65. Drag-and-drop file upload in the document library
+66. Bulk download selected files as ZIP from the document library
+67. Search documents by name or description across all folders
+68. Preview images and PDFs inline (lightbox overlay) in the document library
+
+### Members
+69. Search the club document library by file name or description
+70. View personal documents (medical certs, certifications) with verification status on the documents page
+71. See "EN ›" link on newsletter article cards to read the English version
+
+### System
+72. Resend API integration for reliable email delivery (no SMTP port 25 dependency)
+73. Avatars auto-resized to 400×400 JPEG on upload (Intervention Image)
+74. Translation quality tracking: source hash, word count validation, retry logic, auto-flagging
+75. All scheduled tasks extracted into dedicated Job classes (visible in Horizon)
+76. Supervisor manages Horizon for auto-restart on crash/reboot
