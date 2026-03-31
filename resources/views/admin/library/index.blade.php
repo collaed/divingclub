@@ -120,7 +120,7 @@
                                             </a>
                                         @else
                                             @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
-                                            @if(in_array($ext, ['pdf'])) 📄
+                                            @if(in_array($ext, ['pdf'])) <a href="{{ route('admin.library.download', $f) }}" class="preview-link text-decoration-none" data-type="application/pdf">📄</a>
                                             @elseif(in_array($ext, ['doc','docx'])) 📝
                                             @elseif(in_array($ext, ['xls','xlsx'])) 📊
                                             @elseif(in_array($ext, ['pptx','ppt'])) 📊
@@ -201,18 +201,20 @@ function downloadSelected() {
     if (ids) window.location = '{{ route("admin.library.download-zip") }}?ids=' + ids;
 }
 
-// Image preview (inline lightbox)
+// Image & PDF preview (inline lightbox)
 document.querySelectorAll('.preview-link').forEach(link => {
-    if (link.dataset.type?.startsWith('image/')) {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:20px';
+        if (this.dataset.type?.startsWith('image/')) {
             overlay.innerHTML = '<img src="' + this.href + '" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.5)">';
-            overlay.addEventListener('click', () => overlay.remove());
-            document.body.appendChild(overlay);
-        });
-    }
+        } else if (this.dataset.type === 'application/pdf') {
+            overlay.innerHTML = '<iframe src="' + this.href + '" style="width:90vw;height:90vh;border:none;border-radius:8px;background:white"></iframe>';
+        }
+        overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove(); });
+        document.body.appendChild(overlay);
+    });
 });
 </script>
 @endpush
