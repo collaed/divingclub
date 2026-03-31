@@ -166,6 +166,36 @@
         });
     </script>
 
+    {{-- System Update Check --}}
+    <div class="card dc-card mt-4">
+        <div class="card-header fw-bold d-flex justify-content-between">
+            <span>🔄 {{ __('System') }}</span>
+            <small class="text-muted fw-normal">v{{ \App\Services\UpdateService::VERSION }} · {{ $commitInfo['hash'] ?? '?' }} · {{ $commitInfo['branch'] ?? '' }}</small>
+        </div>
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">{{ __('Last commit') }}: {{ Str::limit($commitInfo['message'] ?? '', 60) }}</small>
+                    @if($updateInfo && $updateInfo['has_update'])
+                        <br><span class="badge bg-warning text-dark">{{ __('Update available') }}: v{{ $updateInfo['latest'] }}</span>
+                        <a href="{{ $updateInfo['url'] }}" target="_blank" class="small ms-2">{{ __('Release notes') }}</a>
+                    @elseif($updateInfo)
+                        <br><span class="badge bg-success">{{ __('Up to date') }}</span>
+                    @endif
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('admin.dashboard.index', ['check_update' => 1]) }}" class="btn btn-sm btn-outline-primary">🔍 {{ __('Check') }}</a>
+                    @if($updateInfo && $updateInfo['has_update'])
+                        <form method="POST" action="{{ route('admin.system.update') }}" onsubmit="return confirm('{{ __('This will pull the latest code from GitHub, run migrations, and clear caches. Continue?') }}')">
+                            @csrf
+                            <button class="btn btn-sm btn-warning">⬆️ {{ __('Update Now') }}</button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Scheduled Tasks Heartbeat --}}
     @if(!empty($heartbeats))
     <div class="card dc-card mt-4">

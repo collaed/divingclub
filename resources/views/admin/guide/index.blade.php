@@ -30,6 +30,8 @@
                                 @case('settings') @icon('⚙️') @break
                                 @case('api-keys') @icon('🔑') @break
                                 @case('backup') @icon('💾') @break
+                                @case('newsletters') @icon('📬') @break
+                                @case('system') @icon('🔄') @break
                                 @case('troubleshooting') @icon('🔧') @break
                             @endswitch
                         </div>

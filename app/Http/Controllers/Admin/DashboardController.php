@@ -16,7 +16,9 @@ use App\Models\PaymentExpected;
 use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Services\ScheduleHeartbeat;
+use App\Services\UpdateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -80,7 +82,13 @@ class DashboardController extends Controller
 
         $heartbeats = ScheduleHeartbeat::all();
 
-        return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats'));
+        if ($request->has('check_update')) {
+            Cache::forget('app_update_check');
+        }
+        $updateInfo = UpdateService::checkForUpdate();
+        $commitInfo = UpdateService::currentCommit();
+
+        return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats', 'updateInfo', 'commitInfo'));
     }
 
     public function exportCsv(Request $request)

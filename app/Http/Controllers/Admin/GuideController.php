@@ -26,6 +26,8 @@ class GuideController extends Controller
         'settings' => 'Settings & Configuration',
         'api-keys' => 'API Keys & OAuth Setup',
         'backup' => 'Backups & Maintenance',
+        'newsletters' => 'Newsletters',
+        'system' => 'System & Monitoring',
         'troubleshooting' => 'Troubleshooting',
     ];
 

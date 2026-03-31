@@ -27,6 +27,7 @@ use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\HomepageLayoutController;
 use App\Http\Controllers\ProfileController;
 use App\Models\User;
+use App\Services\UpdateService;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
@@ -150,6 +151,12 @@ Route::delete('/settings/membership-fee/{fee}', [SettingsController::class, 'des
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 Route::get('/dashboard/export', [DashboardController::class, 'exportCsv'])->name('dashboard.export');
+Route::post('/system/update', function () {
+    abort_unless(auth()->user()->isBureauMaster(), 403);
+    $result = UpdateService::applyUpdate();
+
+    return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+})->name('system.update');
 
 // Admin Guide
 Route::get('/guide', [GuideController::class, 'index'])->name('guide.index');
