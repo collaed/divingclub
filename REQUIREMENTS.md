@@ -328,3 +328,33 @@ These are refactoring/architecture improvements, not functional requirements.
 - One-click update: git pull → composer → npm → migrate → cache clear
 - Bureau Master only, with confirmation dialog
 - Version displayed on dashboard with commit info
+
+
+### Inbound Mail Alias System
+- **PollInboundMail** job: dual-mode (Maildir or IMAP), runs every minute
+- Maildir mode: reads `.eml` files from `Maildir/new/`, moves to `cur/` after processing
+- IMAP mode: connects to remote mailbox, reads UNSEEN, marks as Seen
+- Parses raw email headers (From, To, Subject) and body (multipart, base64, quoted-printable)
+- **MailAliasService** resolves aliases to email lists from the database:
+  - `bureau` → `detail.bureau_member = true`
+  - `instructors` / `moniteurs` → `detail.active_instructor = true`
+  - `members` → all active members with verified email
+  - `event-{id}` / `members.s{id}` → confirmed event registrations + instructor + responsible
+  - `members.pn1/pn2/pn3` → students enrolled in N1/N2/N3 training
+  - `year={YYYY}` → members with dues paid for that year
+  - Name lookup: `Michel B` → fuzzy match on first/last name
+- Subject directive: `(recipients: bureau, sortie=42, Michel B, simulate)`
+- **ProcessInboundMail** artisan command for Postfix pipe (Option B, instant)
+- Authorization: bureau can send to all, instructors to events, participants to own event
+
+### Resend Load-Balancing
+- Newsletter sends split across two Resend API keys (RESEND_KEY + RESEND_KEY_SECONDARY)
+- First 90 emails via primary key (clubcep.eu), overflow via secondary (ecb.pm)
+- Auto-switches on rate limit errors
+- Combined capacity: 200 emails/day on free tier
+
+### Infrastructure on test.clubcep.eu
+- **Postfix** for local mail delivery to `inbound` user Maildir
+- **Redis** for Horizon queue processing
+- **Supervisor** manages Horizon daemon (auto-restart)
+- **Dovecot** available but not required (Maildir mode doesn't need it)

@@ -959,3 +959,13 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 74. Translation quality tracking: source hash, word count validation, retry logic, auto-flagging
 75. All scheduled tasks extracted into dedicated Job classes (visible in Horizon)
 76. Supervisor manages Horizon for auto-restart on crash/reboot
+
+
+### Inbound Mail System
+77. Bureau/instructors can email event participants by sending to `event-{id}@domain` — the system resolves the alias and forwards to all confirmed registrations
+78. Dynamic mail aliases: `bureau`, `instructors`, `members`, `members.s{id}` (event participants), `members.pn1/pn2/pn3` (training levels), `year={YYYY}` (dues year)
+79. Subject directive `(recipients: bureau, sortie=42, Michel B)` for targeting multiple groups in one email
+80. Simulate mode: add `simulate` to directive to get a recipient report without actually sending
+81. Sender confirmation email after each forwarded message
+82. Two inbound modes: Maildir (local Postfix) or IMAP (remote mailbox) — configurable via .env
+83. Resend API load-balancing across two API keys (clubcep.eu + ecb.pm) for 200 emails/day on free tier

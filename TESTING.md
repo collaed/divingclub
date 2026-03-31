@@ -412,3 +412,19 @@ php artisan test --compact                    # All 138 tests
 php artisan test --filter=FederationVisibility # Federation tests only
 php artisan test --filter=CriticalPath        # Critical path tests
 ```
+
+
+### Inbound Mail Testing
+Test the full inbound flow on staging:
+```bash
+# Send to local inbound mailbox
+echo "Test body" | mail -s "Test (recipients: bureau)" inbound@localhost
+
+# Check processing (wait ~1 minute for Horizon to pick it up)
+php artisan tinker --execute="echo App\Models\EmailLog::where('direction','inbound')->latest()->first()?->status;"
+
+# Or test the artisan command directly
+echo "Test body" | php artisan mail:inbound --to=bureau@clubcep.eu --from=eddy.collart@gmail.com --subject="Test"
+```
+
+Note: staging mode (`STAGING_MODE=true`) redirects ALL outbound mail to `eddy.collart@gmail.com` via `Mail::alwaysTo()`. Real member emails are never contacted.

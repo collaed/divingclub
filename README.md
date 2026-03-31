@@ -35,12 +35,12 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **Multi-Club** | Dynamic club identity (name, address, IBAN, warehouse GPS, training locations), no hardcoded values |
 | **License** | RSA-signed license system, free tier up to 100 members, 13-month default expiry |
 | **PWA** | Installable, offline page, service worker, push notifications |
-| **Admin Guide** | 21-page in-app documentation |
+| **Admin Guide** | 24-page in-app documentation |
 
 ## Numbers
 
 - **71 database tables**
-- **315 routes**
+- **320 routes**
 - **15 languages**
 - **105 certification levels** across 11 federations
 - **13 article types**
@@ -48,7 +48,7 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 - **6 theme presets**
 - **56 Eloquent models**
 - **133 Blade templates**
-- **18 services**
+- **20 services**
 - **138 passing tests** (321 assertions)
 
 ---
@@ -238,7 +238,7 @@ lang/                       # 15 locale directories
 37. Impersonate any member to troubleshoot their experience
 38. View dashboard statistics with charts and export data as CSV
 39. Manage the license key for clubs exceeding 100 members
-40. Follow the 21-page in-app admin guide for setup and operations
+40. Follow the 24-page in-app admin guide for setup and operations
 41. Create, inspect, download, and delete backups (DB + files) from the admin UI
 42. View the bureau worklist showing pending actions (unverified certs, expiring medical, missing IBAN, minors without guardian, upcoming birthdays, next events)
 43. Configure homepage widget layout with drag-and-drop
