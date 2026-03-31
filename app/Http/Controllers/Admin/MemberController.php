@@ -6,9 +6,9 @@ use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\MemberStatus;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class MemberController extends Controller
 {
@@ -16,7 +16,7 @@ class MemberController extends Controller
 
     public function index(Request $request)
     {
-        $query = User::with(['detail', 'role', 'status']);
+        $query = User::with(['detail', 'roles', 'status']);
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -30,7 +30,10 @@ class MemberController extends Controller
             $query->where('status_id', $request->status_id);
         }
         if ($request->filled('role_id')) {
-            $query->where('role_id', $request->role_id);
+            $roleName = Role::find($request->role_id)?->name;
+            if ($roleName) {
+                $query->role($roleName);
+            }
         }
 
         $sortable = ['id' => 'users.id', 'email' => 'primary_email', 'name' => 'primary_email'];

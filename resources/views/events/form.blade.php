@@ -94,7 +94,7 @@
             <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('Assistants') }}</label>
                 <select name="assistant_ids[]" class="form-select" multiple size="4">
-                    @foreach(\App\Models\User::whereHas('role', fn($q) => $q->whereIn('slug', ['instructor','bureau_master','bureau_technical']))->with('detail')->orderBy('primary_email')->get() as $u)
+                    @foreach(\App\Models\User::role(['instructor','bureau_master','bureau_technical'])->with('detail')->orderBy('primary_email')->get() as $u)
                         <option value="{{ $u->id }}" {{ in_array($u->id, old('assistant_ids', $event->assistant_ids ?? [])) ? 'selected' : '' }}>
                             {{ $u->detail?->first_name }} {{ $u->detail?->last_name }}
                         </option>

@@ -13,7 +13,7 @@
                     . collect($newsletter->slotArticles())->map(fn($s, $pos) => "  {$pos}. " . $s['article']->title)->implode("\n")
                     . "\n\n" . __('Your comments') . ":\n\n"
                 );
-                $bureauEmails = \App\Models\User::whereHas('role', fn($q) => $q->whereIn('slug', ['bureau_master', 'bureau_finance', 'bureau_technical']))->pluck('primary_email')->implode(',');
+                $bureauEmails = \App\Models\User::role(['bureau_master', 'bureau_finance', 'bureau_technical'])->pluck('primary_email')->implode(',');
             @endphp
             <a href="mailto:{{ $bureauEmails }}?subject={{ $mailtoSubject }}&body={{ $mailtoBody }}" class="btn btn-outline-warning btn-sm">💬 {{ __('Send for Comments') }}</a>
             @if($newsletter->status === 'draft')

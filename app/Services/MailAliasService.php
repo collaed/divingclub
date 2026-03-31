@@ -69,7 +69,7 @@ class MailAliasService
     /** Instructors — bureau or instructors can send. */
     private static function instructors(): array
     {
-        $emails = User::whereHas('role', fn ($q) => $q->where('slug', 'instructor'))
+        $emails = User::role('instructor')
             ->pluck('primary_email')->toArray();
 
         return ['emails' => $emails, 'label' => 'Instructors', 'auth_level' => 'bureau_or_instructor'];

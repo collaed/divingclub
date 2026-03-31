@@ -12,7 +12,7 @@ class MembersDirectoryController extends Controller
 
     public function directory(Request $request)
     {
-        $query = User::with(['detail', 'role', 'status'])
+        $query = User::with(['detail', 'roles', 'status'])
             ->whereHas('detail', fn ($q) => $q->whereNotNull('first_name'));
 
         if ($request->filled('search')) {

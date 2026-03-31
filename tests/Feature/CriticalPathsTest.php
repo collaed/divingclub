@@ -3,15 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\Event;
-use App\Models\EventRegistration;
-use App\Models\GdprConsent;
 use App\Models\MemberDetail;
 use App\Models\MemberStatus;
-use App\Models\PaymentExpected;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
 class CriticalPathsTest extends TestCase
@@ -31,6 +29,10 @@ class CriticalPathsTest extends TestCase
             ['id' => 2, 'name' => 'Member', 'slug' => 'member'],
             ['id' => 6, 'name' => 'Bureau Master', 'slug' => 'bureau_master'],
         ], ['id']);
+        // Create Spatie roles
+        foreach (['public', 'member', 'instructor', 'bureau_finance', 'bureau_technical', 'bureau_master'] as $r) {
+            SpatieRole::findOrCreate($r, 'web');
+        }
         MemberStatus::upsert([
             ['id' => 1, 'name' => 'Active', 'slug' => 'active'],
         ], ['id']);
@@ -47,7 +49,9 @@ class CriticalPathsTest extends TestCase
             'status_id' => 1,
             'email_verified_at' => $verified ? now() : null,
         ]);
+        $u->assignRole($role);
         MemberDetail::create(['user_id' => $u->id, 'first_name' => 'Test', 'last_name' => 'User']);
+
         return $u;
     }
 

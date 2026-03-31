@@ -94,9 +94,9 @@ class DashboardController extends Controller
 
             if ($type === 'members') {
                 fputcsv($out, ['ID', 'First Name', 'Last Name', 'Email', 'Status', 'Role', 'Cert Level', 'Member Since']);
-                User::with(['detail', 'status', 'role'])->chunk(100, function ($users) use ($out) {
+                User::with(['detail', 'status', 'roles'])->chunk(100, function ($users) use ($out) {
                     foreach ($users as $u) {
-                        fputcsv($out, [$u->id, $u->detail?->first_name, $u->detail?->last_name, $u->primary_email, $u->status?->name, $u->role?->name, $u->detail?->certification_level, $u->detail?->adhesion_year]);
+                        fputcsv($out, [$u->id, $u->detail?->first_name, $u->detail?->last_name, $u->primary_email, $u->status?->name, $u->roles->first()?->name ?? '—', $u->detail?->certification_level, $u->detail?->adhesion_year]);
                     }
                 });
             } elseif ($type === 'payments') {

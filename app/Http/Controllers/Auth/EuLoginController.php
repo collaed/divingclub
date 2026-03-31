@@ -94,6 +94,8 @@ class EuLoginController extends Controller
                 'email_verified_at' => now(),
             ]);
 
+            $user->assignRole('member');
+
             UserEmail::create([
                 'user_id' => $user->id,
                 'email' => $email,

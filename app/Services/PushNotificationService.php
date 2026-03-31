@@ -82,7 +82,7 @@ class PushNotificationService
      */
     public function sendToBureau(string $title, string $body, ?string $url = null): void
     {
-        $users = User::whereHas('role', fn ($q) => $q->whereIn('slug', ['bureau_master', 'bureau_member']))->get();
+        $users = User::role(['bureau_master', 'bureau_finance', 'bureau_technical'])->get();
         $this->sendToUsers($users, $title, $body, $url);
     }
 

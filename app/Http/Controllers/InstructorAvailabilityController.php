@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\InstructorAvailability;
-use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -48,8 +47,7 @@ class InstructorAvailabilityController extends Controller
             ->get()
             ->groupBy(fn ($e) => $e->event_date->format('Y-m-d'));
 
-        $instructorRoleIds = Role::whereIn('slug', ['instructor', 'bureau_master', 'bureau_technical', 'assistant'])->pluck('id');
-        $instructors = User::whereIn('role_id', $instructorRoleIds)->with('detail')->get()
+        $instructors = User::role(['instructor', 'bureau_master', 'bureau_technical'])->with('detail')->get()
             ->sortBy(fn ($u) => $u->detail?->first_name);
 
         $colors = self::ACTIVITY_COLORS;

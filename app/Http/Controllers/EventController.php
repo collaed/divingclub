@@ -87,7 +87,7 @@ class EventController extends Controller
         ]);
         $userReg = auth()->check() ? $event->registrations()->where('user_id', auth()->id())->first() : null;
         $emailHistory = EmailLog::where('event_id', $event->id)->orderByDesc('created_at')->get();
-        $members = auth()->user()?->isBureau() ? User::with('detail')->whereHas('role', fn ($q) => $q->where('id', '>', 1))->orderBy('username')->get() : collect();
+        $members = auth()->user()?->isBureau() ? User::with('detail')->role(['member', 'instructor', 'bureau_finance', 'bureau_technical', 'bureau_master'])->orderBy('username')->get() : collect();
 
         return view('events.show', compact('event', 'userReg', 'emailHistory', 'members'));
     }
@@ -98,7 +98,7 @@ class EventController extends Controller
     {
         $this->authorizeBureau();
         $seasons = Season::orderByDesc('year')->get();
-        $instructors = User::whereHas('role', fn ($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
+        $instructors = User::role(['instructor', 'bureau_master'])->with('detail')->get();
         $diveSites = DiveSite::active()->orderBy('name')->get();
         $locationSuggestions = $this->topLocations();
 
@@ -133,7 +133,7 @@ class EventController extends Controller
     {
         $this->authorizeEventEdit($event);
         $seasons = Season::orderByDesc('year')->get();
-        $instructors = User::whereHas('role', fn ($q) => $q->whereIn('slug', ['instructor', 'bureau_master']))->with('detail')->get();
+        $instructors = User::role(['instructor', 'bureau_master'])->with('detail')->get();
         $diveSites = DiveSite::active()->orderBy('name')->get();
         $locationSuggestions = $this->topLocations();
 

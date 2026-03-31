@@ -22,7 +22,7 @@ class MedicalExportController extends Controller
 
         $query = User::with(['detail', 'documents' => fn ($q) => $q->where('category', 'medical')->where('is_current', true)])
             ->whereHas('detail')
-            ->whereHas('role', fn ($q) => $q->whereNotIn('slug', ['pending']))
+            ->role(['member', 'instructor', 'bureau_finance', 'bureau_technical', 'bureau_master'])
             ->orderBy('id');
 
         if ($federationId) {

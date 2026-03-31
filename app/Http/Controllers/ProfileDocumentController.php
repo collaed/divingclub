@@ -46,7 +46,7 @@ class ProfileDocumentController extends Controller
             app(MedicalComplianceService::class)->evaluateCertificate($doc);
 
             $memberName = $target->detail?->first_name.' '.$target->detail?->last_name;
-            $bureauEmails = User::whereHas('role', fn ($q) => $q->whereIn('slug', ['bureau_master', 'bureau_technical']))
+            $bureauEmails = User::role(['bureau_master', 'bureau_technical'])
                 ->pluck('primary_email');
 
             Mail::raw(

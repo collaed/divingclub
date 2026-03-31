@@ -20,8 +20,10 @@ class FederationVisibilityTest extends TestCase
         parent::setUp();
 
         $role = Role::create(['name' => 'Bureau Master', 'slug' => 'bureau_master']);
+        \Spatie\Permission\Models\Role::findOrCreate('bureau_master', 'web');
         $status = MemberStatus::create(['name' => 'Actif', 'slug' => 'actif']);
         $this->admin = User::factory()->create(['role_id' => $role->id, 'status_id' => $status->id]);
+        $this->admin->assignRole('bureau_master');
     }
 
     public function test_active_scope_filters_correctly(): void

@@ -165,8 +165,8 @@ class EmailController extends Controller
         return match ($group) {
             'all' => User::with('detail')->whereNotNull('email_verified_at')->get(),
             'active' => User::with('detail')->whereHas('status', fn ($q) => $q->where('slug', 'actif'))->get(),
-            'instructors' => User::with('detail')->whereHas('role', fn ($q) => $q->where('slug', 'instructor'))->get(),
-            'bureau' => User::with('detail')->whereHas('role', fn ($q) => $q->whereIn('slug', ['bureau_master', 'bureau_finance', 'bureau_technical']))->get(),
+            'instructors' => User::with('detail')->role('instructor')->get(),
+            'bureau' => User::with('detail')->role(['bureau_master', 'bureau_finance', 'bureau_technical'])->get(),
             'expiring_certs' => User::with('detail')->whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)]))->get(),
             'unpaid' => User::with('detail')->whereHas('paymentsExpected', fn ($q) => $q->where('status', 'pending'))->get(),
             'event' => $eventId ? User::with('detail')->whereHas('eventRegistrations', fn ($q) => $q->where('event_id', $eventId)->where('status', 'confirmed'))->get() : collect(),

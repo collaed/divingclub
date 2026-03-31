@@ -72,7 +72,7 @@
                         </td>
                         <td>{{ $m->detail?->first_name }} {{ $m->detail?->last_name }}</td>
                         <td>{{ $m->primary_email }}</td>
-                        <td><span class="badge bg-secondary">{{ $m->role?->name }}</span></td>
+                        <td><span class="badge bg-secondary">{{ $m->roles->first()?->name ?? '—' }}</span></td>
                         <td>{{ $m->status?->name ?? '—' }}</td>
                         <td>
                             @php $mMed = app(\App\Services\MedicalComplianceService::class)->getStatus($m); @endphp

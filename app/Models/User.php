@@ -12,10 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use Auditable, HasFactory, Notifiable;
+    use Auditable, HasFactory, HasRoles, Notifiable;
     use SoftDeletes;
 
     protected $fillable = [
@@ -57,9 +58,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->username ?? $this->primary_email;
     }
 
-    public function role(): BelongsTo
+    public function legacyRole(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     public function status(): BelongsTo
@@ -126,16 +127,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function primaryCertification(): ?CertificationLevel
     {
         return $this->certificationLevels()->wherePivot('is_primary', true)->first();
-    }
-
-    public function hasRole(string $slug): bool
-    {
-        return $this->role && $this->role->slug === $slug;
-    }
-
-    public function hasAnyRole(array $slugs): bool
-    {
-        return $this->role && in_array($this->role->slug, $slugs);
     }
 
     public function isBureau(): bool

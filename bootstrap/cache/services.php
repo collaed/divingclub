@@ -39,10 +39,11 @@
     35 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     36 => 'Termwind\\Laravel\\TermwindServiceProvider',
     37 => 'Resend\\Laravel\\ResendServiceProvider',
-    38 => 'App\\Providers\\AppServiceProvider',
-    39 => 'App\\Providers\\HorizonServiceProvider',
-    40 => 'App\\Providers\\StagingMailServiceProvider',
-    41 => 'App\\Providers\\ThemeServiceProvider',
+    38 => 'Spatie\\Permission\\PermissionServiceProvider',
+    39 => 'App\\Providers\\AppServiceProvider',
+    40 => 'App\\Providers\\HorizonServiceProvider',
+    41 => 'App\\Providers\\StagingMailServiceProvider',
+    42 => 'App\\Providers\\ThemeServiceProvider',
   ),
   'eager' => 
   array (
@@ -68,10 +69,11 @@
     19 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     20 => 'Termwind\\Laravel\\TermwindServiceProvider',
     21 => 'Resend\\Laravel\\ResendServiceProvider',
-    22 => 'App\\Providers\\AppServiceProvider',
-    23 => 'App\\Providers\\HorizonServiceProvider',
-    24 => 'App\\Providers\\StagingMailServiceProvider',
-    25 => 'App\\Providers\\ThemeServiceProvider',
+    22 => 'Spatie\\Permission\\PermissionServiceProvider',
+    23 => 'App\\Providers\\AppServiceProvider',
+    24 => 'App\\Providers\\HorizonServiceProvider',
+    25 => 'App\\Providers\\StagingMailServiceProvider',
+    26 => 'App\\Providers\\ThemeServiceProvider',
   ),
   'deferred' => 
   array (
