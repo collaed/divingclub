@@ -6,15 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Models\LibraryFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use ZipArchive;
 
 class LibraryController extends Controller
 {
     public function index(Request $request)
     {
         $folder = $request->get('folder', '/');
-        $files = LibraryFile::inFolder($folder)->orderBy('original_name')->get();
 
-        // Get distinct folders for navigation
+        $query = LibraryFile::query();
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('original_name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+            $folder = null; // search across all folders
+        } else {
+            $query->inFolder($folder);
+        }
+
+        $files = $query->orderBy('original_name')->get();
+
         $folders = LibraryFile::selectRaw('DISTINCT folder')->orderBy('folder')->pluck('folder')
             ->flatMap(fn ($f) => collect(explode('/', trim($f, '/')))->filter()->reduce(function ($carry, $part) {
                 $carry[] = ($carry->last() ?? '').'/'.$part;
@@ -26,7 +39,7 @@ class LibraryController extends Controller
             ->sort()
             ->values();
 
-        return view('admin.library.index', compact('files', 'folder', 'folders'));
+        return view('admin.library.index', compact('files', 'folder', 'folders', 'search'));
     }
 
     public function upload(Request $request)
@@ -85,11 +98,34 @@ class LibraryController extends Controller
         return Storage::disk('local')->download($file->path, $file->original_name);
     }
 
+    public function downloadZip(Request $request)
+    {
+        $ids = explode(',', $request->input('ids', ''));
+        $files = LibraryFile::whereIn('id', $ids)->get();
+
+        if ($files->isEmpty()) {
+            return back()->with('error', __('No files selected.'));
+        }
+
+        $zipPath = tempnam(sys_get_temp_dir(), 'lib_').'.zip';
+        $zip = new ZipArchive;
+        $zip->open($zipPath, ZipArchive::CREATE);
+
+        foreach ($files as $f) {
+            $diskPath = Storage::disk('local')->path($f->path);
+            if (file_exists($diskPath)) {
+                $zip->addFile($diskPath, $f->original_name);
+            }
+        }
+        $zip->close();
+
+        return response()->download($zipPath, 'library-export.zip')->deleteFileAfterSend();
+    }
+
     public function createFolder(Request $request)
     {
         $request->validate(['folder' => 'required|string|max:255']);
 
-        // Folders are implicit — just redirect to the new folder view
         return redirect()->route('admin.library.index', ['folder' => $request->input('folder')]);
     }
 }

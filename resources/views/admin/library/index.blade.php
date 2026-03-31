@@ -1,22 +1,38 @@
 <x-layout :title="__('Document Library')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">@icon('📁') {{ __('Document Library') }}</h4>
+        <span class="text-muted small">{{ \App\Models\LibraryFile::count() }} {{ __('files') }}</span>
     </div>
 
+    {{-- Search bar --}}
+    <form method="GET" action="{{ route('admin.library.index') }}" class="mb-3 d-flex gap-2" style="max-width:400px">
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search files by name or description…') }}" value="{{ $search ?? '' }}">
+        <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
+        @if($search)
+            <a href="{{ route('admin.library.index') }}" class="btn btn-sm btn-outline-secondary">✕</a>
+        @endif
+    </form>
+
+    @if($search)
+        <div class="alert alert-info py-2 mb-3">{{ __('Results for') }} "<strong>{{ $search }}</strong>" — {{ $files->count() }} {{ __('found across all folders') }}</div>
+    @endif
+
     <div class="row">
-        {{-- Folder sidebar --}}
+        {{-- Folder tree sidebar --}}
         <div class="col-md-3">
             <div class="card dc-card mb-3">
-                <div class="card-header">{{ __('Folders') }}</div>
-                <div class="list-group list-group-flush">
+                <div class="card-header py-2">{{ __('Folders') }}</div>
+                <div class="list-group list-group-flush" style="max-height:400px;overflow-y:auto">
                     @foreach($folders as $f)
-                        <a href="{{ route('admin.library.index', ['folder' => $f]) }}" class="list-group-item list-group-item-action {{ $folder === $f ? 'active' : '' }}">
-                            @icon('📁') {{ $f === '/' ? __('Root') : basename($f) }}
+                        @php $depth = substr_count(trim($f, '/'), '/'); @endphp
+                        <a href="{{ route('admin.library.index', ['folder' => $f]) }}"
+                           class="list-group-item list-group-item-action py-1 {{ $folder === $f ? 'active' : '' }}"
+                           style="padding-left:{{ 12 + $depth * 16 }}px;font-size:13px">
+                            {{ $f === '/' ? '📁 ' . __('Root') : '📂 ' . basename($f) }}
                         </a>
                     @endforeach
                 </div>
             </div>
-            {{-- New folder --}}
             <form method="POST" action="{{ route('admin.library.create-folder') }}" class="card dc-card p-2">
                 @csrf
                 <div class="input-group input-group-sm">
@@ -28,28 +44,30 @@
 
         {{-- File list + upload --}}
         <div class="col-md-9">
-            {{-- Upload --}}
+            {{-- Dropzone upload --}}
+            @if($folder)
             <div class="card dc-card mb-3">
-                <div class="card-body">
-                    <form method="POST" action="{{ route('admin.library.upload') }}" enctype="multipart/form-data">
+                <div class="card-body py-2">
+                    <form method="POST" action="{{ route('admin.library.upload') }}" enctype="multipart/form-data" id="uploadForm">
                         @csrf
                         <input type="hidden" name="folder" value="{{ $folder }}">
                         <div class="row g-2 align-items-end">
                             <div class="col-md-5">
-                                <label class="form-label">{{ __('Files') }}</label>
-                                <input type="file" name="files[]" class="form-control form-control-sm" multiple required>
+                                <div id="dropArea" style="border:2px dashed #ccc;border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s" onclick="document.getElementById('fileInput').click()">
+                                    <span style="font-size:24px">📎</span><br>
+                                    <small class="text-muted">{{ __('Drop files here or click to browse') }}</small>
+                                    <input type="file" name="files[]" id="fileInput" multiple required style="display:none" onchange="updateDropLabel(this)">
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Description') }}</label>
-                                <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Optional') }}">
+                                <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description (optional)') }}">
                             </div>
                             <div class="col-md-2">
-                                <label class="form-label">{{ __('Visible to') }}</label>
                                 <select name="visibility" class="form-select form-select-sm">
-                                    <option value="public">@icon('🌍') {{ __('Public') }}</option>
-                                    <option value="members" selected>@icon('👥') {{ __('Members') }}</option>
-                                    <option value="instructors">@icon('🎓') {{ __('Instructors') }}</option>
-                                    <option value="bureau">@icon('🔒') {{ __('Bureau') }}</option>
+                                    <option value="public">🌍 {{ __('Public') }}</option>
+                                    <option value="members" selected>👥 {{ __('Members') }}</option>
+                                    <option value="instructors">🎓 {{ __('Instructors') }}</option>
+                                    <option value="bureau">🔒 {{ __('Bureau') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -59,39 +77,71 @@
                     </form>
                 </div>
             </div>
+            @endif
 
-            {{-- Current folder --}}
+            {{-- Bulk actions --}}
+            <div class="d-flex justify-content-between align-items-center mb-2" id="bulkBar" style="display:none!important">
+                <small class="text-muted"><span id="selectedCount">0</span> {{ __('selected') }}</small>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="downloadSelected()">📥 {{ __('Download ZIP') }}</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false)">{{ __('Deselect all') }}</button>
+                </div>
+            </div>
+
+            {{-- File table --}}
             <div class="card dc-card">
-                <div class="card-header">@icon('📂') {{ $folder }}</div>
+                <div class="card-header py-2 d-flex justify-content-between">
+                    <span>@icon('📂') {{ $folder ?? __('All folders') }}</span>
+                    <small class="text-muted">{{ $files->count() }} {{ __('files') }}</small>
+                </div>
                 @if($files->isEmpty())
-                    <div class="card-body text-muted">{{ __('No files in this folder.') }}</div>
+                    <div class="card-body text-muted text-center py-4">{{ __('No files in this folder.') }}</div>
                 @else
                     <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead><tr><th style="width:50px"></th><th>{{ __('Name') }}</th><th>{{ __('Size') }}</th><th>{{ __('Visibility') }}</th><th>{{ __('Uploaded') }}</th><th></th></tr></thead>
+                        <table class="table table-sm table-hover mb-0">
+                            <thead><tr>
+                                <th style="width:30px"><input type="checkbox" onchange="toggleAll(this.checked)" title="{{ __('Select all') }}"></th>
+                                <th style="width:44px"></th>
+                                <th>{{ __('Name') }}</th>
+                                @if($search)<th>{{ __('Folder') }}</th>@endif
+                                <th>{{ __('Size') }}</th>
+                                <th>{{ __('Visibility') }}</th>
+                                <th>{{ __('Uploaded') }}</th>
+                                <th></th>
+                            </tr></thead>
                             <tbody>
                             @foreach($files as $f)
                                 <tr>
+                                    <td><input type="checkbox" class="file-check" value="{{ $f->id }}" onchange="updateBulkBar()"></td>
                                     <td>
                                         @if($f->hasThumb())
-                                            <img src="{{ route('admin.library.thumb', $f) }}" alt="" style="max-width:40px;max-height:40px;border-radius:3px" loading="lazy">
+                                            <a href="{{ route('admin.library.download', $f) }}" class="preview-link" data-type="{{ $f->mime_type }}" data-name="{{ $f->original_name }}">
+                                                <img src="{{ route('admin.library.thumb', $f) }}" alt="" style="max-width:40px;max-height:40px;border-radius:3px;cursor:pointer" loading="lazy">
+                                            </a>
                                         @else
                                             @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
-                                            @if(in_array($ext, ['pdf'])) @icon('📄')                                             @elseif(in_array($ext, ['doc','docx'])) @icon('📝')                                             @elseif(in_array($ext, ['xls','xlsx'])) @icon('📊')                                             @else @icon('📎')                                             @endif
+                                            @if(in_array($ext, ['pdf'])) 📄
+                                            @elseif(in_array($ext, ['doc','docx'])) 📝
+                                            @elseif(in_array($ext, ['xls','xlsx'])) 📊
+                                            @elseif(in_array($ext, ['pptx','ppt'])) 📊
+                                            @elseif(in_array($ext, ['mp4','mov'])) 🎬
+                                            @else 📎
+                                            @endif
                                         @endif
                                     </td>
                                     <td>
                                         <a href="{{ route('admin.library.download', $f) }}">{{ $f->original_name }}</a>
                                         @if($f->description) <br><small class="text-muted">{{ $f->description }}</small> @endif
                                     </td>
-                                    <td class="text-nowrap">{{ $f->humanSize() }}</td>
+                                    @if($search)<td class="small text-muted">{{ $f->folder }}</td>@endif
+                                    <td class="text-nowrap small">{{ $f->humanSize() }}</td>
                                     <td>
                                         <form method="POST" action="{{ route('admin.library.update', $f) }}" class="d-inline">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="folder" value="{{ $f->folder }}">
-                                            <select name="visibility" class="form-select form-select-sm py-0" style="font-size:0.75rem;width:auto" onchange="this.form.submit()">
+                                            <select name="visibility" class="form-select form-select-sm py-0" style="font-size:0.7rem;width:auto" onchange="this.form.submit()">
                                                 @foreach(['public' => '🌍', 'members' => '👥', 'instructors' => '🎓', 'bureau' => '🔒'] as $v => $icon)
-                                                    <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>{{ \App\Helpers\IconHelper::render($icon) }}{{ ucfirst($v) }}</option>
+                                                    <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>{{ $icon }} {{ ucfirst($v) }}</option>
                                                 @endforeach
                                             </select>
                                         </form>
@@ -100,7 +150,7 @@
                                     <td class="text-end">
                                         <form method="POST" action="{{ route('admin.library.destroy', $f) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete?') }}')">
                                             @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">✕</button>
+                                            <button class="btn btn-sm btn-outline-danger py-0">✕</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -112,4 +162,58 @@
             </div>
         </div>
     </div>
+
+@push('scripts')
+<script>
+// Drag-and-drop upload
+const dropArea = document.getElementById('dropArea');
+if (dropArea) {
+    ['dragenter','dragover'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); dropArea.style.borderColor = '#0077be'; }));
+    ['dragleave','drop'].forEach(e => dropArea.addEventListener(e, ev => { ev.preventDefault(); dropArea.style.borderColor = '#ccc'; }));
+    dropArea.addEventListener('drop', ev => {
+        document.getElementById('fileInput').files = ev.dataTransfer.files;
+        updateDropLabel(document.getElementById('fileInput'));
+    });
+}
+
+function updateDropLabel(input) {
+    const n = input.files.length;
+    dropArea.querySelector('small').textContent = n + ' {{ __("file(s) selected") }}';
+    dropArea.style.borderColor = '#28a745';
+}
+
+// Bulk select
+function toggleAll(checked) {
+    document.querySelectorAll('.file-check').forEach(cb => cb.checked = checked);
+    updateBulkBar();
+}
+
+function updateBulkBar() {
+    const checked = document.querySelectorAll('.file-check:checked').length;
+    const bar = document.getElementById('bulkBar');
+    bar.style.display = checked > 0 ? 'flex' : 'none';
+    bar.style.setProperty('display', checked > 0 ? 'flex' : 'none', 'important');
+    document.getElementById('selectedCount').textContent = checked;
+}
+
+function downloadSelected() {
+    const ids = [...document.querySelectorAll('.file-check:checked')].map(cb => cb.value).join(',');
+    if (ids) window.location = '{{ route("admin.library.download-zip") }}?ids=' + ids;
+}
+
+// Image preview (inline lightbox)
+document.querySelectorAll('.preview-link').forEach(link => {
+    if (link.dataset.type?.startsWith('image/')) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+            overlay.innerHTML = '<img src="' + this.href + '" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.5)">';
+            overlay.addEventListener('click', () => overlay.remove());
+            document.body.appendChild(overlay);
+        });
+    }
+});
+</script>
+@endpush
 </x-layout>

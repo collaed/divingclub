@@ -64,6 +64,7 @@ Route::post('/library/upload', [LibraryController::class, 'upload'])->name('libr
 Route::put('/library/{file}', [LibraryController::class, 'update'])->name('library.update');
 Route::delete('/library/{file}', [LibraryController::class, 'destroy'])->name('library.destroy');
 Route::get('/library/{file}/download', [LibraryController::class, 'download'])->name('library.download');
+Route::get('/library/download-zip', [LibraryController::class, 'downloadZip'])->name('library.download-zip');
 Route::get('/library/{file}/thumb', [ThumbnailController::class, 'show'])->name('library.thumb');
 Route::post('/library/folder', [LibraryController::class, 'createFolder'])->name('library.create-folder');
 
