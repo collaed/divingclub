@@ -11,12 +11,13 @@ use App\Models\ThemeSetting;
 use App\Models\Vote;
 use App\Services\ArticleTranslationService;
 use App\Services\PushNotificationService;
+use App\Services\ScheduleHeartbeat;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
 
-Schedule::job(new SendMedicalReminders)->dailyAt('08:00');
-Schedule::job(new WeeklyBackup)->weeklyOn(0, '03:00'); // Sunday 3am
+Schedule::job(new SendMedicalReminders)->dailyAt('08:00')->after(fn () => ScheduleHeartbeat::beat('medical-reminders'));
+Schedule::job(new WeeklyBackup)->weeklyOn(0, '03:00')->after(fn () => ScheduleHeartbeat::beat('weekly-backup'));
 
 // Auto-translate: new articles, stale translations, and quality checks
 Schedule::call(function () {
@@ -69,6 +70,7 @@ Schedule::call(function () {
                 'stale' => true,
             ]);
         });
+    ScheduleHeartbeat::beat('translations');
 })->hourly();
 
 // Auto-open/close votes
@@ -79,10 +81,11 @@ Schedule::call(function () {
         app(PushNotificationService::class)->sendToAll(
             __('Vote Open'),
             $vote->title,
-            route('vote.show', ['token' => 'check']) // members use their token
+            route('vote.show', ['token' => 'check'])
         );
     }
     Vote::where('status', 'open')->where('closes_at', '<=', now())->update(['status' => 'closed']);
+    ScheduleHeartbeat::beat('vote-auto', $opened->count() ? "Opened {$opened->count()} vote(s)" : null);
 })->everyMinute();
 
 // Auto-purge audit logs per retention policy (monthly)
@@ -91,6 +94,7 @@ Schedule::call(function () {
     if ($months > 0) {
         AuditLog::where('created_at', '<', now()->subMonths($months))->delete();
     }
+    ScheduleHeartbeat::beat('audit-purge');
 })->monthlyOn(1, '04:00');
 
 // Expired classifieds: unpublish monthly, delete after 3 months inactive
@@ -115,6 +119,7 @@ Schedule::call(function () {
     if ($stale->count()) {
         Log::info("Classifieds cleanup: deleted {$stale->count()} ads expired >3 months.");
     }
+    ScheduleHeartbeat::beat('classifieds-cleanup', $stale->count() ? "Deleted {$stale->count()}" : null);
 })->monthlyOn(1, '05:00');
 
 // Overdue equipment loan reminders
@@ -160,4 +165,5 @@ Schedule::call(function () {
             );
             $loan->update(['reminder_sent_at' => now()]);
         });
+    ScheduleHeartbeat::beat('equipment-reminders', $overdueLoans->count() ? "{$overdueLoans->count()} overdue" : null);
 })->dailyAt('09:00');

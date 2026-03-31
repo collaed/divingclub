@@ -15,6 +15,7 @@ use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
 use App\Models\ThemeSetting;
 use App\Models\User;
+use App\Services\ScheduleHeartbeat;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -77,7 +78,9 @@ class DashboardController extends Controller
                 ->whereDoesntHave('guardians')->count(),
         ];
 
-        return view('admin.dashboard.index', compact('stats', 'season', 'worklist'));
+        $heartbeats = ScheduleHeartbeat::all();
+
+        return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats'));
     }
 
     public function exportCsv(Request $request)

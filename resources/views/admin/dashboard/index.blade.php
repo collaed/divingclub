@@ -165,4 +165,40 @@
             options: {scales: {y: {beginAtZero: true}}}
         });
     </script>
+
+    {{-- Scheduled Tasks Heartbeat --}}
+    @if(!empty($heartbeats))
+    <div class="card dc-card mt-4">
+        <div class="card-header fw-bold">⏱️ {{ __('Scheduled Tasks') }}</div>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>{{ __('Task') }}</th><th>{{ __('Last Run') }}</th><th>{{ __('Status') }}</th><th>{{ __('Message') }}</th></tr></thead>
+                <tbody>
+                @foreach($heartbeats as $hb)
+                    @php
+                        $ago = $hb->last_run_at ? \Carbon\Carbon::parse($hb->last_run_at)->diffForHumans() : '—';
+                        $stale = $hb->last_run_at && \Carbon\Carbon::parse($hb->last_run_at)->lt(now()->subHours(25));
+                    @endphp
+                    <tr class="{{ $stale ? 'table-warning' : '' }}">
+                        <td><code>{{ $hb->task }}</code></td>
+                        <td>{{ $ago }}</td>
+                        <td>
+                            @if(!$hb->last_run_at)
+                                <span class="badge bg-secondary">{{ __('Never') }}</span>
+                            @elseif($stale)
+                                <span class="badge bg-warning text-dark">{{ __('Overdue') }}</span>
+                            @elseif($hb->success)
+                                <span class="badge bg-success">{{ __('OK') }}</span>
+                            @else
+                                <span class="badge bg-danger">{{ __('Failed') }}</span>
+                            @endif
+                        </td>
+                        <td class="small text-muted">{{ Str::limit($hb->message, 60) }}</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
 </x-layout>
