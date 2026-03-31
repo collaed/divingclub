@@ -6,14 +6,10 @@ return [
     'ses' => ['key' => env('AWS_ACCESS_KEY_ID'), 'secret' => env('AWS_SECRET_ACCESS_KEY'), 'region' => env('AWS_DEFAULT_REGION', 'us-east-1')],
     'resend' => ['key' => env('RESEND_KEY')],
 
-    // Inbound mail processing (Option A: IMAP polling)
+    // Inbound mail processing (watches Maildir for new messages)
     'inbound_mail' => [
         'enabled' => env('INBOUND_MAIL_ENABLED', false),
-        'imap_host' => env('INBOUND_IMAP_HOST', 'localhost'),
-        'imap_port' => env('INBOUND_IMAP_PORT', 993),
-        'imap_user' => env('INBOUND_IMAP_USER'),
-        'imap_password' => env('INBOUND_IMAP_PASSWORD'),
-        'imap_encryption' => env('INBOUND_IMAP_ENCRYPTION', 'ssl'),
+        'maildir' => env('INBOUND_MAILDIR', '/home/inbound/Maildir'),
     ],
 
     // OAuth Providers

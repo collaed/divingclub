@@ -13,18 +13,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
- * Option A: Poll an IMAP mailbox for inbound alias emails.
+ * Option A (simplified): Watch a Maildir for new messages.
  *
- * Checks a dedicated mailbox (e.g. sas@clubcep.eu or members@ecb.pm)
- * for unread messages, resolves aliases from the To/Subject, and forwards.
+ * Reads raw .eml files from Maildir/new/, processes them, moves to Maildir/cur/.
+ * No IMAP/Dovecot needed — just Postfix delivering to a local user.
  *
  * Configure in .env:
  *   INBOUND_MAIL_ENABLED=true
- *   INBOUND_IMAP_HOST=mail.ecb.pm
- *   INBOUND_IMAP_PORT=993
- *   INBOUND_IMAP_USER=members@ecb.pm
- *   INBOUND_IMAP_PASSWORD=secret
- *   INBOUND_IMAP_ENCRYPTION=ssl
+ *   INBOUND_MAILDIR=/home/inbound/Maildir
  */
 class PollInboundMail implements ShouldQueue
 {
@@ -38,31 +34,18 @@ class PollInboundMail implements ShouldQueue
             return;
         }
 
-        $host = config('services.inbound_mail.imap_host');
-        $port = config('services.inbound_mail.imap_port', 993);
-        $user = config('services.inbound_mail.imap_user');
-        $pass = config('services.inbound_mail.imap_password');
-        $encryption = config('services.inbound_mail.imap_encryption', 'ssl');
+        $maildir = config('services.inbound_mail.maildir', '/home/inbound/Maildir');
+        $newDir = rtrim($maildir, '/').'/new';
+        $curDir = rtrim($maildir, '/').'/cur';
 
-        $flags = match ($encryption) {
-            'ssl' => '/imap/ssl',
-            'tls' => '/imap/tls',
-            'notls' => '/imap/notls/novalidate-cert',
-            default => '/imap/ssl',
-        };
-        $mailbox = "{{$host}:{$port}{$flags}}INBOX";
-
-        $imap = @imap_open($mailbox, $user, $pass);
-        if (! $imap) {
-            Log::error('Inbound mail: IMAP connection failed — '.imap_last_error());
-            ScheduleHeartbeat::fail('inbound-mail', 'IMAP connection failed');
+        if (! is_dir($newDir)) {
+            ScheduleHeartbeat::beat('inbound-mail', 'Maildir not found');
 
             return;
         }
 
-        $emails = imap_search($imap, 'UNSEEN');
-        if (! $emails) {
-            imap_close($imap);
+        $files = glob("{$newDir}/*");
+        if (empty($files)) {
             ScheduleHeartbeat::beat('inbound-mail', '0 messages');
 
             return;
@@ -70,33 +53,40 @@ class PollInboundMail implements ShouldQueue
 
         $processed = 0;
 
-        foreach ($emails as $msgNum) {
+        foreach ($files as $file) {
             try {
-                $header = imap_headerinfo($imap, $msgNum);
-                $from = $header->from[0]->mailbox.'@'.$header->from[0]->host;
-                $subject = $this->decodeSubject($header->subject ?? '');
-                $toAddress = $header->to[0]->mailbox.'@'.$header->to[0]->host;
-                $body = $this->getBody($imap, $msgNum);
+                $raw = file_get_contents($file);
+                if (! $raw) {
+                    continue;
+                }
 
-                $this->processMessage($from, $toAddress, $subject, $body);
+                $headers = $this->parseHeaders($raw);
+                $body = $this->parseBody($raw);
+
+                $from = $this->extractEmail($headers['from'] ?? '');
+                $to = $this->extractEmail($headers['to'] ?? '');
+                $subject = $this->decodeHeader($headers['subject'] ?? '(no subject)');
+
+                $this->processMessage($from, $to, $subject, $body);
                 $processed++;
 
-                // Mark as read
-                imap_setflag_full($imap, (string) $msgNum, '\\Seen');
+                // Move to cur/ (processed)
+                rename($file, $curDir.'/'.basename($file).':2,S');
             } catch (\Throwable $e) {
-                Log::error("Inbound mail error on msg #{$msgNum}: {$e->getMessage()}");
-                imap_setflag_full($imap, (string) $msgNum, '\\Seen');
+                Log::error('Inbound mail error on '.basename($file).": {$e->getMessage()}");
+                // Move to cur/ anyway to avoid reprocessing
+                @rename($file, $curDir.'/'.basename($file).':2,S');
             }
         }
 
-        imap_close($imap);
         ScheduleHeartbeat::beat('inbound-mail', "{$processed} processed");
-        Log::info("Inbound mail: processed {$processed} messages");
+        if ($processed) {
+            Log::info("Inbound mail: processed {$processed} messages");
+        }
     }
 
     private function processMessage(string $from, string $to, string $subject, string $body): void
     {
-        // Check for (recipients: ...) directive in subject
         $recipientDirective = null;
         $simulate = false;
 
@@ -116,7 +106,6 @@ class PollInboundMail implements ShouldQueue
             );
         }
 
-        // Resolve
         $resolved = $recipientDirective
             ? MailAliasService::resolveMultiple($recipientDirective)
             : MailAliasService::resolve($to);
@@ -131,8 +120,8 @@ class PollInboundMail implements ShouldQueue
         if (! $sender || (! $sender->isBureau() && ! $sender->hasRole('instructor'))) {
             EmailLog::create([
                 'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
-                'body' => $body, 'status' => 'rejected', 'direction' => 'inbound',
-                'error' => 'Unauthorized sender',
+                'body' => substr($body, 0, 5000), 'status' => 'rejected',
+                'direction' => 'inbound', 'error' => 'Unauthorized sender',
             ]);
 
             return;
@@ -147,7 +136,6 @@ class PollInboundMail implements ShouldQueue
             return;
         }
 
-        // Forward
         $sent = 0;
         foreach ($resolved['emails'] as $email) {
             try {
@@ -160,63 +148,98 @@ class PollInboundMail implements ShouldQueue
 
         EmailLog::create([
             'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
-            'body' => $body, 'status' => 'forwarded', 'direction' => 'inbound',
-            'error' => "Sent to {$sent}/".count($resolved['emails']),
+            'body' => substr($body, 0, 5000), 'status' => 'forwarded',
+            'direction' => 'inbound', 'error' => "Sent to {$sent}/".count($resolved['emails']),
         ]);
 
-        // Confirmation to sender
         Mail::raw(
             "Your message '{$subject}' was sent to {$sent} recipients ({$resolved['label']}).",
             fn ($m) => $m->to($from)->subject("[Sent] {$subject} → {$resolved['label']}")
         );
     }
 
-    private function decodeSubject(string $subject): string
+    /** Parse email headers from raw message. */
+    private function parseHeaders(string $raw): array
     {
-        $parts = imap_mime_header_decode($subject);
-        $decoded = '';
-        foreach ($parts as $part) {
-            $decoded .= $part->text;
-        }
+        $headerBlock = strstr($raw, "\r\n\r\n", true) ?: strstr($raw, "\n\n", true) ?: '';
+        $headerBlock = preg_replace('/\r?\n\s+/', ' ', $headerBlock); // unfold
 
-        return $decoded ?: $subject;
-    }
-
-    private function getBody($imap, int $msgNum): string
-    {
-        $structure = imap_fetchstructure($imap, $msgNum);
-
-        // Simple message
-        if (! isset($structure->parts)) {
-            $body = imap_body($imap, $msgNum);
-
-            return $this->decodeBody($body, $structure->encoding ?? 0);
-        }
-
-        // Multipart — find HTML or plain text
-        $html = '';
-        $plain = '';
-
-        foreach ($structure->parts as $i => $part) {
-            $partBody = imap_fetchbody($imap, $msgNum, (string) ($i + 1));
-            $decoded = $this->decodeBody($partBody, $part->encoding ?? 0);
-
-            if ($part->subtype === 'HTML') {
-                $html = $decoded;
-            } elseif ($part->subtype === 'PLAIN') {
-                $plain = $decoded;
+        $headers = [];
+        foreach (explode("\n", $headerBlock) as $line) {
+            if (preg_match('/^([A-Za-z-]+):\s*(.+)$/', trim($line), $m)) {
+                $headers[strtolower($m[1])] = trim($m[2]);
             }
         }
 
-        return $html ?: nl2br(e($plain));
+        return $headers;
     }
 
-    private function decodeBody(string $body, int $encoding): string
+    /** Extract body (prefer HTML, fall back to plain text). */
+    private function parseBody(string $raw): string
     {
-        return match ($encoding) {
-            3 => base64_decode($body),
-            4 => quoted_printable_decode($body),
-            default => $body,
-        };
+        $parts = preg_split('/\r?\n\r?\n/', $raw, 2);
+        $body = $parts[1] ?? '';
+
+        // If multipart, try to find HTML part
+        if (preg_match('/boundary="?([^"\s;]+)"?/i', $parts[0] ?? '', $m)) {
+            $boundary = $m[1];
+            $sections = explode("--{$boundary}", $body);
+
+            foreach ($sections as $section) {
+                if (stripos($section, 'text/html') !== false) {
+                    $sectionParts = preg_split('/\r?\n\r?\n/', $section, 2);
+
+                    return $this->decodeBodyPart($sectionParts[1] ?? '', $section);
+                }
+            }
+            // Fall back to first text/plain
+            foreach ($sections as $section) {
+                if (stripos($section, 'text/plain') !== false) {
+                    $sectionParts = preg_split('/\r?\n\r?\n/', $section, 2);
+
+                    return '<pre>'.e($this->decodeBodyPart($sectionParts[1] ?? '', $section)).'</pre>';
+                }
+            }
+        }
+
+        // Simple message (not multipart)
+        if (stripos($parts[0] ?? '', 'text/html') !== false) {
+            return $this->decodeBodyPart($body, $parts[0] ?? '');
+        }
+
+        return '<pre>'.e($this->decodeBodyPart($body, $parts[0] ?? '')).'</pre>';
+    }
+
+    private function decodeBodyPart(string $body, string $headers): string
+    {
+        if (stripos($headers, 'base64') !== false) {
+            return base64_decode(trim($body));
+        }
+        if (stripos($headers, 'quoted-printable') !== false) {
+            return quoted_printable_decode($body);
+        }
+
+        return $body;
+    }
+
+    private function extractEmail(string $header): string
+    {
+        if (preg_match('/<([^>]+)>/', $header, $m)) {
+            return strtolower($m[1]);
+        }
+
+        return strtolower(trim($header));
+    }
+
+    private function decodeHeader(string $header): string
+    {
+        if (preg_match_all('/=\?([^?]+)\?([BQ])\?([^?]+)\?=/i', $header, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $m) {
+                $decoded = strtoupper($m[2]) === 'B' ? base64_decode($m[3]) : quoted_printable_decode(str_replace('_', ' ', $m[3]));
+                $header = str_replace($m[0], $decoded, $header);
+            }
+        }
+
+        return $header;
     }
 }

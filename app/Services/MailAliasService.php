@@ -31,6 +31,7 @@ class MailAliasService
             str_starts_with($local, 'event-') => static::eventParticipants($local),
             str_starts_with($local, 'members.s') => static::eventParticipantsLegacy($local),
             str_starts_with($local, 'year=') => static::membersByYear($local),
+            str_starts_with($local, 'members.pn') => static::trainingLevel($local),
             default => null,
         };
     }
@@ -194,7 +195,7 @@ class MailAliasService
         ];
     }
 
-    /** Members filtered by dues year (cotisation_years contains YYYY). */
+    /** Members filtered by dues year. */
     private static function membersByYear(string $local): ?array
     {
         if (! preg_match('/^year=(\d{4})$/', $local, $m)) {
@@ -207,6 +208,21 @@ class MailAliasService
             ->pluck('primary_email')->toArray();
 
         return ['emails' => $emails, 'label' => "Members {$year}", 'auth_level' => 'bureau'];
+    }
+
+    /** Members enrolled in a specific training level (pn1, pn2, pn3). */
+    private static function trainingLevel(string $local): ?array
+    {
+        if (! preg_match('/^members\.pn(\d)$/', $local, $m)) {
+            return null;
+        }
+
+        $level = 'N'.$m[1];
+        $emails = User::whereHas('detail', fn ($q) => $q->whereJsonContains('training_enrollments', $level))
+            ->whereNotNull('email_verified_at')
+            ->pluck('primary_email')->toArray();
+
+        return ['emails' => $emails, 'label' => "Training {$level}", 'auth_level' => 'bureau_or_instructor'];
     }
 
     /** Find members by partial name match (first + last). */
@@ -271,6 +287,9 @@ class MailAliasService
             'event-{id}' => 'Confirmed participants of event #{id}',
             'members.s{id}' => 'Event participants (legacy alias)',
             'year={YYYY}' => 'Members with dues paid for year YYYY',
+            'members.pn1' => 'Students enrolled in N1 training',
+            'members.pn2' => 'Students enrolled in N2 training',
+            'members.pn3' => 'Students enrolled in N3 training',
         ];
     }
 }
