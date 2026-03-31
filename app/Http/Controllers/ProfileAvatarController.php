@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ProfileAvatarController extends Controller
 {
@@ -17,10 +18,18 @@ class ProfileAvatarController extends Controller
         }
 
         $request->validate(['avatar' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120']);
-        $path = $request->file('avatar')->store('avatars/'.$target->id, 'public');
+
+        // Resize to max 400x400 and save as JPEG
+        $filename = 'avatar_'.$target->id.'.jpg';
+        $path = 'avatars/'.$filename;
+
+        Image::read($request->file('avatar'))
+            ->scaleDown(400, 400)
+            ->toJpeg(85)
+            ->save(Storage::disk('public')->path($path));
 
         $old = $target->detail?->avatar_path;
-        if ($old) {
+        if ($old && $old !== $path) {
             Storage::disk('public')->delete($old);
         }
 

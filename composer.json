@@ -11,7 +11,9 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "endroid/qr-code": "^5.0",
         "ezyang/htmlpurifier": "^4.19",
+        "intervention/image": "^4.0",
         "laravel/framework": "^11.31",
+        "laravel/horizon": "^5.45",
         "laravel/tinker": "^2.9",
         "minishlink/web-push": "^10.0",
         "resend/resend-laravel": "^1.3"
