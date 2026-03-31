@@ -73,7 +73,7 @@ class UpdateService
     public static function applyUpdate(): array
     {
         $steps = [];
-        $basePath = base_path();
+        $basePath = escapeshellarg(base_path());
 
         // 1. Git pull
         $output = self::run("cd {$basePath} && git pull origin main 2>&1");
@@ -114,10 +114,10 @@ class UpdateService
         $basePath = base_path();
 
         return [
-            'hash' => trim(shell_exec("cd {$basePath} && git rev-parse --short HEAD 2>/dev/null") ?? ''),
-            'date' => trim(shell_exec("cd {$basePath} && git log -1 --format=%ci 2>/dev/null") ?? ''),
-            'message' => trim(shell_exec("cd {$basePath} && git log -1 --format=%s 2>/dev/null") ?? ''),
-            'branch' => trim(shell_exec("cd {$basePath} && git rev-parse --abbrev-ref HEAD 2>/dev/null") ?? ''),
+            'hash' => trim(shell_exec('cd '.escapeshellarg($basePath).' && git rev-parse --short HEAD 2>/dev/null') ?? ''),
+            'date' => trim(shell_exec('cd '.escapeshellarg($basePath).' && git log -1 --format=%ci 2>/dev/null') ?? ''),
+            'message' => trim(shell_exec('cd '.escapeshellarg($basePath).' && git log -1 --format=%s 2>/dev/null') ?? ''),
+            'branch' => trim(shell_exec('cd '.escapeshellarg($basePath).' && git rev-parse --abbrev-ref HEAD 2>/dev/null') ?? ''),
         ];
     }
 

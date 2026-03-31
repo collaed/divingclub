@@ -229,7 +229,7 @@
                 @else
                 <h2 class="h2-section-title">{{ $section->title }}</h2>
                 <div class="h2-section-divider"></div>
-                <div class="h2-section-body">{!! $section->body !!}</div>
+                <div class="h2-section-body">{!! $section->renderedBody() !!}</div>
                 @endif
 
                 @if($section->slug === 'member-figures')
