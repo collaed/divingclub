@@ -54,8 +54,8 @@ return [
 
     'staging_mode' => (bool) env('STAGING_MODE', false),
     'staging_use_smtp' => (bool) env('STAGING_USE_SMTP', false),
-    'staging_user' => env('STAGING_USER', 'staging'),
-    'staging_pass' => env('STAGING_PASS', 'staging'),
+    'staging_user' => env('STAGING_USER', ''),
+    'staging_pass' => env('STAGING_PASS', ''),
 
     /*
     |--------------------------------------------------------------------------
