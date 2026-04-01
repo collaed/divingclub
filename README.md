@@ -35,20 +35,22 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **Multi-Club** | Dynamic club identity (name, address, IBAN, warehouse GPS, training locations), no hardcoded values |
 | **License** | RSA-signed license system, free tier up to 100 members, 13-month default expiry |
 | **PWA** | Installable, offline page, service worker, push notifications |
-| **Admin Guide** | 24-page in-app documentation |
+| **Admin Guide** | 24-page in-app admin guide |
+| **Queue Monitor** | Laravel Horizon dashboard, scheduled task heartbeats, auto-update from GitHub |
+| **Inbound Mail** | Plus-addressing aliases, subject directives, Maildir/IMAP modes, auto-forwarding to groups |
 
 ## Numbers
 
-- **71 database tables**
-- **320 routes**
+- **72 database tables**
+- **325 routes**
 - **15 languages**
 - **105 certification levels** across 11 federations
 - **13 article types**
 - **10 instructor activity types**
 - **6 theme presets**
 - **56 Eloquent models**
-- **133 Blade templates**
-- **20 services**
+- **131 Blade templates**
+- **18 services**
 - **138 passing tests** (321 assertions)
 
 ---

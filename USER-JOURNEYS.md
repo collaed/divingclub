@@ -715,7 +715,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 2. Filters by model type "User", action "updated", date range last 7 days.
 3. Sees a list of changes with summaries (which fields changed).
 4. Clicks **View** on a suspicious entry → opens the **detail page**.
-5. Sees a field-by-field diff: `status_id` changed from 3 to 1, `role_id` from 5 to 2.
+5. Sees a field-by-field diff: `status_id` changed from 3 to 1, role changed from instructor to member.
 6. Notes the IP address and user agent — confirms it was a legitimate admin action.
 7. Clicks **📥 Export** to download filtered results as CSV for the bureau meeting.
 8. Sets **retention policy** to 24 months → system auto-purges older entries monthly.
