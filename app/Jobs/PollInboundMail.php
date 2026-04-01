@@ -227,8 +227,8 @@ class PollInboundMail implements ShouldQueue
 
         // Extract event ID from alias for logging
         $eventId = null;
-        if (preg_match('/^event-(\d+)@|^members\.s(\d+)@/', $to, $em)) {
-            $eventId = (int) ($em[1] ?: $em[2]);
+        if (preg_match('/event[.\-](\d+)/', $to, $em)) {
+            $eventId = (int) $em[1];
         }
 
         EmailLog::create([

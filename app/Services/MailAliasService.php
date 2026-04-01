@@ -10,20 +10,24 @@ class MailAliasService
     /**
      * Resolve an alias to a list of email addresses.
      *
-     * Supported aliases:
-     *   bureau, members.b          → bureau members (detail.bureau_member = true)
-     *   instructors, members.m     → active instructors (detail.active_instructor = true)
-     *   members, all               → all active members with current dues
-     *   event-{id}, members.s{id}  → confirmed participants of event #{id}
-     *   year={YYYY}                → members with dues paid for that year
+     * Accepts both formats:
+     *   - Legacy: bureau@domain, event-42@domain, members.s42@domain
+     *   - Plus-addressing: cep+bureau@domain, cep+event.42@domain, cep+instructors@domain
      *
      * @return array{emails: string[], label: string, auth_level: string}|null
      */
     public static function resolve(string $alias): ?array
     {
+        // Extract the routing part from the address
         $local = strtolower(trim(explode('@', $alias)[0]));
 
-        // Static aliases
+        // Plus-addressing: extract tag after +
+        if (str_contains($local, '+')) {
+            $local = substr($local, strpos($local, '+') + 1);
+            // Normalize: event.42 → event-42, members.s42 stays
+            $local = preg_replace('/^event\.(\d+)$/', 'event-$1', $local);
+        }
+
         return match (true) {
             in_array($local, ['bureau', 'members.b']) => static::bureau(),
             in_array($local, ['all', 'members']) => static::allActive(),
@@ -34,6 +38,27 @@ class MailAliasService
             str_starts_with($local, 'members.pn') => static::trainingLevel($local),
             default => null,
         };
+    }
+
+    /**
+     * Generate a mailto address for a given alias tag.
+     * e.g. mailtoAddress('event.42') → 'cep+event.42@clubcep.eu'
+     */
+    public static function mailtoAddress(string $tag): string
+    {
+        $base = config('club.mail_address', 'club@example.com');
+        [$mailbox, $domain] = explode('@', $base, 2);
+
+        return "{$mailbox}+{$tag}@{$domain}";
+    }
+
+    /**
+     * Generate a mailto address for an event.
+     * e.g. eventMailto(42) → 'cep+event.42@clubcep.eu'
+     */
+    public static function eventMailto(int $eventId): string
+    {
+        return static::mailtoAddress("event.{$eventId}");
     }
 
     /**
@@ -276,20 +301,17 @@ class MailAliasService
     /** List all known static aliases for the admin guide. */
     public static function staticAliases(): array
     {
+        $ex = fn ($tag) => static::mailtoAddress($tag);
+
         return [
-            'bureau' => 'Bureau members (bureau_member flag in profile)',
-            'members.b' => 'Bureau members (legacy alias)',
-            'all' => 'All active members (bureau only)',
-            'members' => 'All active members (legacy alias)',
-            'instructors' => 'Active instructors (active_instructor flag)',
-            'moniteurs' => 'Active instructors (French alias)',
-            'members.m' => 'Active instructors (legacy alias)',
-            'event-{id}' => 'Confirmed participants of event #{id}',
-            'members.s{id}' => 'Event participants (legacy alias)',
-            'year={YYYY}' => 'Members with dues paid for year YYYY',
-            'members.pn1' => 'Students enrolled in N1 training',
-            'members.pn2' => 'Students enrolled in N2 training',
-            'members.pn3' => 'Students enrolled in N3 training',
+            'bureau' => 'Bureau members — '.$ex('bureau'),
+            'instructors' => 'Active instructors — '.$ex('instructors'),
+            'members' => 'All active members — '.$ex('members'),
+            'event.{id}' => 'Event participants — '.$ex('event.{id}'),
+            'members.pn1' => 'N1 students — '.$ex('members.pn1'),
+            'members.pn2' => 'N2 students — '.$ex('members.pn2'),
+            'members.pn3' => 'N3 students — '.$ex('members.pn3'),
+            'year={YYYY}' => 'Members by dues year — '.$ex('year={YYYY}'),
         ];
     }
 }

@@ -246,7 +246,7 @@
                     <span>{{ __('Participants') }} ({{ $confirmed->count() }}{{ $event->max_participants ? '/'.$event->max_participants : '' }})</span>
                     <div class="d-flex gap-2 align-items-center">
                         @if($isPrivileged && $confirmed->count())
-                            @php $mailtoUrl = 'mailto:event-'.$event->id.'@'.config('club.domain','clubcep.eu').'?subject='.rawurlencode($event->title); @endphp
+                            @php $mailtoUrl = 'mailto:' . \App\Services\MailAliasService::eventMailto($event->id) . '?subject=' . rawurlencode($event->title); @endphp
                             <a href="{{ $mailtoUrl }}" class="btn btn-sm btn-outline-primary py-0">📧 {{ __('Email participants') }}</a>
                         @endif
                         @if($cancelled->count() && $isPrivileged)
