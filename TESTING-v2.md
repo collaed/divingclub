@@ -53,6 +53,48 @@ docker run -d -p 8025:8025 -p 1025:1025 mailhog/mailhog
 ```
 Same `.env` as Mailpit.
 
+### Option E: Staging Mode (production-safe)
+In `.env`:
+```
+STAGING_MODE=true
+STAGING_USE_SMTP=true
+MAIL_MAILER=resend
+MAIL_ALWAYS_TO=your-email@gmail.com
+```
+All emails are sent via real providers but redirected to a single address. The MailBalancer rotates across Resend (×2) + Mailjet automatically.
+
+### Testing the MailBalancer
+```bash
+# Check current quota status
+php artisan tinker --execute "print_r(App\Services\MailBalancer::status());"
+
+# Check Resend live quotas
+php artisan tinker --execute "print_r(App\Services\MailBalancer::resendQuotas());"
+
+# Check Mailjet monthly usage
+php artisan tinker --execute "print_r(App\Services\MailBalancer::mailjetMonthlyUsage());"
+
+# Send a test and verify provider rotation
+php artisan tinker --execute "
+Mail::raw('Test', fn(\$m) => \$m->to('test@example.com')->subject('Balance test'));
+print_r(App\Services\MailBalancer::todayCounts());
+"
+```
+
+### Testing Inbound Mail
+```bash
+# Send to a plus-addressed alias
+echo "Test body" | mail -s "Test inbound" clubcep+bureau@test.clubcep.eu
+
+# Check Maildir
+ls ~/Maildir/new/
+
+# Trigger processing
+php artisan schedule:run
+# or
+php artisan tinker --execute "dispatch(new App\Jobs\PollInboundMail);"
+```
+
 ## 3. Multi-Instance Federation Testing (VirtualBox)
 
 ### Setup: Two VMs Simulating Two Clubs

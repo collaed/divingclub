@@ -221,23 +221,24 @@ These are refactoring/architecture improvements, not functional requirements.
 | Hetzner VPS (204.168.168.60) | ✅ Running | Ubuntu 24.04, Caddy, PHP 8.3, PostgreSQL 16 |
 | UFW firewall + fail2ban | ✅ Configured | 8 rules, SSH key-only |
 | Caddy security headers | ✅ Configured | CSP, X-Frame-Options, Permissions-Policy |
-| DNS (laravel.clubcep.eu) | ❌ Not propagated | A record needed at Namecheap → 204.168.168.60 |
-| HTTPS | ❌ Blocked | Waiting on DNS |
-| Google OAuth | ❌ Blocked | Needs HTTPS callback URL on domain |
-| X OAuth | ❌ Blocked | Needs callback URL update in X developer portal |
-| Postfix mail aliases | ✅ Working | bureau@, members@, instructors@, all@, event-{id}@ |
+| DNS (test.clubcep.eu) | ✅ Working | A record → 204.168.168.60, HTTPS via Caddy |
+| Resend API (primary) | ✅ Working | clubcep.eu domain, 100/day |
+| Resend API (secondary) | ✅ Working | ecb.pm domain, 100/day |
+| Mailjet SMTP relay | ✅ Working | Postfix relayhost, 6,000/month |
+| MailBalancer | ✅ Working | Auto-rotates across 3 providers, live quota on dashboard |
+| Postfix inbound | ✅ Working | Plus-addressing, Maildir, PollInboundMail |
+| Redis + Horizon | ✅ Running | Queue processing, bureau-only dashboard |
 | Data seeded on staging | ✅ Done | 100 users, 1215 events, 537 photos, 44 equipment, 13 dive sites |
-| Wasmer Edge | ✅ Decommissioned | Both apps deleted, config files removed |
+| Acceptance env (ecb.pm) | ✅ Running | Docker: Caddy + PostgreSQL + mailserver + Roundcube |
 
 ---
 
 ## Remaining Work
 
 ### Blockers (External)
-1. DNS propagation for `laravel.clubcep.eu`
-2. Switch Caddy to HTTPS once DNS works
-3. Update Google OAuth callback to `https://laravel.clubcep.eu/auth/google/callback`
-4. Update X OAuth callback in developer portal
+1. DNS migration for `clubcep.eu` (considering Cloudflare, currently on Internet.bs/TopDNS)
+2. Hetzner port 25 unblock request (both servers) for direct SMTP delivery
+3. Mailjet sender validation for `*@test.clubcep.eu` (or use `*@clubcep.eu` wildcard)
 
 ### Functional
 5. Extend sortable headers to events, articles, payments lists

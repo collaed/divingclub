@@ -471,6 +471,36 @@ Sélectionner un groupe de destinataires lors de l'envoi :
 
 Tous les emails envoyés sont journalisés avec : destinataire, sujet, statut (en file/envoyé/échoué), message d'erreur, horodatage.
 
+### 9.5 Newsletters
+
+Administration → Newsletters. Créer et envoyer des newsletters HTML riches.
+
+**Création :**
+1. Cliquer « Nouvelle newsletter »
+2. Remplir le titre et sélectionner le mois
+3. Glisser des articles dans les 5 emplacements (4 cartes + 1 bannière)
+4. Pour chaque emplacement : modifier le teaser, ajouter une URL personnalisée si nécessaire
+5. Cliquer « Scatter » pour ajouter des décorations aléatoires (25 SVG disponibles)
+6. Sauvegarder le brouillon
+
+**Envoi :**
+1. Cliquer « Prévisualiser l'email » pour voir le rendu HTML
+2. Cliquer « Envoyer un test » pour recevoir la newsletter sur votre email
+3. Cliquer « Envoyer pour commentaires » pour envoyer au bureau via mailto
+4. Cliquer « Envoyer » pour distribuer à tous les membres
+
+L'envoi utilise le MailBalancer (3 fournisseurs, rotation automatique).
+
+**Images :**
+Les images d'en-tête et de pied de page peuvent être générées par IA (Gemini, DALL-E). Fichiers attendus dans `public/images/newsletter/{theme}/` :
+- `header.jpg` (1200×400px) — bannière avec titre du club
+- `footer.jpg` (1200×400px) — scène sous-marine
+- `left.jpg` (90×1000px) — bordure gauche
+- `right.jpg` (90×1000px) — bordure droite
+- `separator.jpg` (1200×60px) — séparateur entre les rangées
+
+**Désabonnement :** les destinataires peuvent répondre avec « désabonner » — le système lit la boîte aux lettres et traite la demande.
+
 
 ---
 
@@ -660,14 +690,24 @@ Pour l'analyse intelligente de documents, la catégorisation automatique et les 
 
 ### 14.6 SMTP / Email
 
-| Service | Coût | Notes |
-|---------|------|-------|
-| **Brevo (ex-Sendinblue)** | 🆓 Gratuit : 300 emails/jour | Bon pour les petits clubs |
-| **Mailgun** | Gratuit : 100 emails/jour (plan Flex) | mailgun.com |
-| Amazon SES | $0.10/1K emails | Le moins cher à grande échelle |
-| Postmark | $15/mois pour 10K | Meilleure délivrabilité |
+Le système utilise un **load-balancer** (`MailBalancer`) qui répartit automatiquement les envois sur 3 fournisseurs :
 
-> **Recommandation pour un petit club :** Commencez avec Google OAuth (gratuit), Tesseract OCR (gratuit, local), LibreTranslate (gratuit, Docker), Ollama (gratuit, local) et Brevo SMTP (gratuit, 300/jour). Coût total : 0€.
+| Fournisseur | Capacité | Configuration |
+|-------------|----------|---------------|
+| **Resend** (primaire) | 100/jour | `RESEND_KEY` dans `.env` |
+| **Resend** (secondaire) | 100/jour | `RESEND_KEY_SECONDARY` dans `.env` |
+| **Mailjet** (via Postfix) | 6 000/mois (~200/jour) | `MAILJET_KEY` + `MAILJET_SECRET` dans `.env` |
+
+**Total : ~380 emails/jour**, rotation automatique quand un fournisseur atteint sa limite.
+
+Le tableau de bord affiche en temps réel :
+- Barres de progression par fournisseur (quota journalier)
+- Consommation mensuelle Mailjet (via API)
+- Consommation mensuelle Resend (via headers `x-resend-daily-quota`)
+
+**Postfix** est configuré comme relais SMTP via Mailjet pour tout le courrier système (bounces, cron, notifications). L'adresse d'expédition est réécrite en `Club Européen de Plongée <clubcep@clubcep.eu>` via `smtp_header_checks`.
+
+> **Pour un nouveau club :** Créez un compte gratuit sur resend.com et mailjet.com. Ajoutez les clés API dans `.env`. Le load-balancer s'occupe du reste.
 
 
 ---

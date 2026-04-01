@@ -19,8 +19,8 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **Medical** | Per-federation rules, age brackets, automated expiry reminders (30/15/7/0 days), event registration gate |
 | **Payments** | Fee calculator (base × status × age discount + optionals), assisted bank statement reconciliation with fuzzy matching, SEPA QR codes |
 | **Equipment** | Inventory tracking with short numbers, loan management, quick-loan by type, BCD size matching, maintenance scheduling with auto-next, location tracking |
-| **Email** | Templates with variables, 6 target groups, queue with retry, full send log |
-| **Newsletters** | Rich HTML newsletters with approval workflow |
+| **Email** | Templates with variables, 6 target groups, queue with retry, full send log, load-balanced across 3 providers |
+| **Newsletters** | Rich HTML newsletters, themed templates, AI-generated artwork, approval workflow, test send |
 | **Voting** | Simple (changeable) and election (anonymous, irreversible) modes, multi-select, live results, token-based, embeddable in trip proposals |
 | **CMS** | 13 article types, image galleries, threaded comments, prev/next navigation, classifieds with 30-day auto-expiry |
 | **Article Translations** | Auto-translate articles to all 15 languages, stored for instant display, tabbed reader UI matching user's preferred language |

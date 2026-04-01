@@ -206,6 +206,10 @@ Checked via `CheckRole` middleware and `User::isBureau()`, `User::isBureauMaster
 | `LicenseService` | Verifies RSA-signed license keys, enforces member limits |
 | `ArticleTranslationService` | Auto-translates articles via Google Translate API, caches results |
 | `PushNotificationService` | Sends Web Push notifications via VAPID protocol |
+| `MailBalancer` | Load-balances outgoing email across Resend (×2) + Mailjet |
+| `MailAliasService` | Resolves plus-addressed inbound aliases to recipient lists |
+| `UpdateService` | GitHub version check + one-click update from dashboard |
+| `ScheduleHeartbeat` | Tracks scheduled task execution for dashboard monitoring |
 | `DiveGroupProposalService` | Auto-generates buddy pair proposals based on 14 configurable rules |
 | `SocialPublishService` | Auto-publishes events/articles to social media |
 | `ImageQualityService` | Scores uploaded photos for quality (resolution, blur, exposure) |
@@ -290,20 +294,22 @@ Defined in `routes/console.php`:
 ```php
 Schedule::job(new SendMedicalReminders)->dailyAt('08:00');
 Schedule::job(new WeeklyBackup)->weeklyOn(0, '03:00');  // Sunday 3am
+Schedule::job(new PollInboundMail)->everyMinute();
 // Vote auto-open/close — every minute
 // Classified expiry — monthly 1st at 04:00
 // Audit log retention — monthly 1st at 05:00
+// Equipment maintenance reminders — hourly
 // Push queue processing — hourly
 // Social auto-publish — daily at 09:00
 ```
 
-Requires cron entry: `* * * * * cd /path && php artisan schedule:run >> /dev/null 2>&1`
+All tasks report heartbeats to `schedule_heartbeats` table for dashboard monitoring.
 
 ---
 
 ## 10. Testing
 
-- **134 tests, 311 assertions** — all PHPUnit feature tests
+- **138 tests, 321 assertions** — all PHPUnit feature tests
 - Run: `php artisan test --compact`
 - Tests use SQLite in-memory database with factories
 - Key test areas: authentication, registration, events, payments, medical compliance, equipment loans, voting, GDPR

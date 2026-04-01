@@ -19,8 +19,8 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **Medical** | Per-federation rules, age brackets, automated expiry reminders (30/15/7/0 days), event registration gate |
 | **Payments** | Fee calculator (base × status × age discount + optionals), assisted bank statement reconciliation with fuzzy matching, SEPA QR codes |
 | **Equipment** | Inventory tracking with short numbers, loan management, quick-loan by type, BCD size matching, maintenance scheduling with auto-next, location tracking |
-| **Email** | Templates with variables, 6 target groups, queue with retry, full send log |
-| **Newsletters** | Rich HTML newsletters with approval workflow |
+| **Email** | Templates with variables, 6 target groups, queue with retry, full send log, load-balanced across 3 providers |
+| **Newsletters** | Rich HTML newsletters, themed templates, AI-generated artwork, approval workflow, test send |
 | **Voting** | Simple (changeable) and election (anonymous, irreversible) modes, multi-select, live results, token-based, embeddable in trip proposals |
 | **CMS** | 13 article types, image galleries, threaded comments, prev/next navigation, classifieds with 30-day auto-expiry |
 | **Article Translations** | Auto-translate articles to all 15 languages, stored for instant display, tabbed reader UI matching user's preferred language |
@@ -47,8 +47,9 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 - **10 instructor activity types**
 - **6 theme presets**
 - **56 Eloquent models**
-- **131 Blade templates**
-- **18 services**
+- **133 Blade templates**
+- **21 services**
+- **3 email providers** (load-balanced)
 - **138 passing tests** (321 assertions)
 
 ---
@@ -118,8 +119,17 @@ php artisan storage:link
 APP_URL=https://your-domain.lu
 DB_CONNECTION=mysql
 DB_DATABASE=divingclub
-MAIL_MAILER=smtp
-QUEUE_CONNECTION=database
+MAIL_MAILER=resend
+QUEUE_CONNECTION=redis
+```
+
+### Email Providers (load-balanced)
+```env
+RESEND_KEY=re_xxx                  # Primary Resend API key (100/day)
+RESEND_KEY_SECONDARY=re_yyy        # Secondary Resend key (100/day)
+MAILJET_KEY=xxx                    # Mailjet API key (6000/month)
+MAILJET_SECRET=xxx                 # Mailjet secret key
+MAIL_FROM_ADDRESS=clubcep@clubcep.eu
 ```
 
 ### Club Identity (also configurable via Admin → Settings)
@@ -163,6 +173,10 @@ app/
 │   ├── LicenseService       # RSA license verification
 │   ├── ArticleTranslationService
 │   ├── PushNotificationService
+│   ├── MailBalancer          # Load-balanced sending across Resend + Mailjet
+│   ├── MailAliasService      # Plus-addressed inbound mail routing
+│   ├── UpdateService         # GitHub version check + one-click update
+│   ├── ScheduleHeartbeat    # Task monitoring
 │   └── 8 more...
 ├── Jobs/                   # WeeklyBackup, SendMedicalReminders
 ├── Middleware/             # CheckLicense, SetLocale, CheckRole, etc.
@@ -182,11 +196,15 @@ lang/                       # 15 locale directories
 |----------|------|
 | Daily 08:00 | Medical certificate expiry reminders |
 | Every minute | Vote auto-open/close |
+| Every minute | Poll inbound mail (Maildir) |
 | Sunday 03:00 | Weekly full backup — DB + files (last 4 retained) |
 | Monthly 1st 04:00 | Classified ads auto-expiry cleanup |
 | Monthly 1st 05:00 | Audit log retention cleanup |
 | Hourly | Push notification queue processing |
+| Hourly | Equipment maintenance reminders |
 | Daily 09:00 | Social media auto-publish |
+
+All tasks report heartbeats to the admin dashboard.
 
 ---
 
