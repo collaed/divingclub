@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 /**
  * Load-balanced email sending across multiple providers.
@@ -54,7 +55,7 @@ class MailBalancer
         return $counts;
     }
 
-    /** Get status for dashboard display. */
+    /** Get status for dashboard display, including live Mailjet stats. */
     public static function status(): array
     {
         $counts = static::todayCounts();
@@ -77,6 +78,49 @@ class MailBalancer
     public static function totalRemaining(): int
     {
         return collect(static::status())->sum('remaining');
+    }
+
+    /** Query Mailjet API for this month's usage (cached 15 min). */
+    public static function mailjetMonthlyUsage(): ?array
+    {
+        return Cache::remember('mailjet_monthly_usage', 900, function () {
+            $key = env('MAILJET_KEY', env('RESEND_KEY', ''));
+            $secret = env('MAILJET_SECRET', '');
+
+            // Use the credentials from config if available
+            if (! $key || ! $secret) {
+                return null;
+            }
+
+            try {
+                $from = now()->startOfMonth()->format('Y-m-d\TH:i:s');
+                $response = Http::withBasicAuth($key, $secret)
+                    ->timeout(5)
+                    ->get('https://api.mailjet.com/v3/REST/statcounters', [
+                        'CounterSource' => 'APIKey',
+                        'CounterResolution' => 'Month',
+                        'CounterTiming' => 'Message',
+                        'FromTS' => $from,
+                        'Limit' => 1,
+                    ]);
+
+                if (! $response->ok()) {
+                    return null;
+                }
+
+                $data = $response->json('Data.0');
+
+                return $data ? [
+                    'sent' => $data['MessageSentCount'] ?? 0,
+                    'month_limit' => 6000,
+                    'remaining' => max(0, 6000 - ($data['MessageSentCount'] ?? 0)),
+                    'opened' => $data['MessageOpenedCount'] ?? 0,
+                    'blocked' => $data['MessageBlockedCount'] ?? 0,
+                ] : null;
+            } catch (\Throwable) {
+                return null;
+            }
+        });
     }
 
     /**
