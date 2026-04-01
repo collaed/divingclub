@@ -133,16 +133,45 @@ class JoomlaMemberImportSeeder extends Seeder
             if ($m->cb_datcertif && $m->cb_datcertif !== '0000-00-00') {
                 $existing = $user->documents()->where('category', 'medical')->where('is_current', true)->first();
                 if (! $existing) {
+                    // Find the scanned file from VisitesMed
+                    $certFile = $this->findMedicalCertFile($m->id);
+                    $storedPath = '';
+                    $mime = '';
+                    $size = 0;
+                    $originalName = 'imported_from_joomla';
+
+                    if ($certFile) {
+                        $ext = pathinfo($certFile, PATHINFO_EXTENSION);
+                        $storedName = 'medical_'.Str::slug($m->firstname.'-'.$m->lastname).'-'.$m->id.'.'.$ext;
+                        $storedPath = 'documents/'.$user->id.'/'.$storedName;
+                        $sourcePath = $this->medicalDir().'/'.$certFile;
+
+                        $destDir = storage_path('app/public/documents/'.$user->id);
+                        if (! is_dir($destDir)) {
+                            mkdir($destDir, 0755, true);
+                        }
+                        copy($sourcePath, $destDir.'/'.$storedName);
+
+                        $mime = match (strtolower($ext)) {
+                            'pdf' => 'application/pdf',
+                            'jpg', 'jpeg' => 'image/jpeg',
+                            'png' => 'image/png',
+                            default => 'application/octet-stream',
+                        };
+                        $size = filesize($sourcePath);
+                        $originalName = $certFile;
+                    }
+
                     $user->documents()->create([
                         'category' => 'medical',
                         'cert_type' => 'medical_general',
+                        'file_path' => $storedPath,
+                        'original_filename' => $originalName,
+                        'mime_type' => $mime,
+                        'size_bytes' => $size,
                         'expiry_date' => $m->cb_datcertif,
                         'is_current' => true,
                         'is_verified' => true,
-                        'original_filename' => 'imported_from_joomla',
-                        'file_path' => '',
-                        'mime_type' => '',
-                        'size_bytes' => 0,
                     ]);
                 }
             }
@@ -169,5 +198,42 @@ class JoomlaMemberImportSeeder extends Seeder
         }
 
         return $codes;
+    }
+
+    /** Get the VisitesMed directory path. */
+    private function medicalDir(): string
+    {
+        return env('JOOMLA_VISMED_PATH', base_path('../tmp/domains/clubcep.eu/public_html/VisitesMed'));
+    }
+
+    /** Find the best medical cert file for a Joomla user ID (prefer PDF, largest). */
+    private function findMedicalCertFile(int $joomlaId): ?string
+    {
+        $dir = $this->medicalDir();
+        if (! is_dir($dir)) {
+            return null;
+        }
+
+        $matches = [];
+        foreach (scandir($dir) as $f) {
+            if (preg_match('/\s+'.$joomlaId.'\.(pdf|jpe?g|png)$/i', $f, $m)) {
+                $matches[] = ['file' => $f, 'ext' => strtolower($m[1]), 'size' => filesize($dir.'/'.$f)];
+            }
+        }
+
+        if (! $matches) {
+            return null;
+        }
+
+        // Prefer PDF, then largest
+        $pdfs = array_filter($matches, fn ($m) => $m['ext'] === 'pdf');
+        $pick = $pdfs ? $pdfs[array_key_first($pdfs)] : $matches[0];
+        foreach (($pdfs ?: $matches) as $m) {
+            if ($m['size'] > $pick['size']) {
+                $pick = $m;
+            }
+        }
+
+        return $pick['file'];
     }
 }
