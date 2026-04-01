@@ -39,16 +39,16 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 
 ## Numbers
 
-- **71 database tables**
-- **320 routes**
+- **72 database tables**
+- **325 routes**
 - **15 languages**
 - **105 certification levels** across 11 federations
 - **13 article types**
 - **10 instructor activity types**
 - **6 theme presets**
 - **56 Eloquent models**
-- **133 Blade templates**
-- **20 services**
+- **131 Blade templates**
+- **18 services**
 - **138 passing tests** (321 assertions)
 
 ---
