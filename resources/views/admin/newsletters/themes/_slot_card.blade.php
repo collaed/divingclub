@@ -29,11 +29,11 @@
         </tr>
         @endif
         <tr>
-            <td style="padding:10px">
+            <td style="padding:12px;{{ $pos <= 4 ? 'height:150px;' : '' }}" valign="top">
                 <a href="{{ $url }}" style="text-decoration:none;color:{{ $colors['title'] }}">
-                    <strong style="font-size:13px;line-height:1.3;display:block;margin-bottom:6px">{{ $icon }} {{ e($t['title']) }}</strong>
+                    <strong style="font-size:14px;line-height:1.3;display:block;margin-bottom:6px">{{ $icon }} {{ e($t['title']) }}</strong>
                 </a>
-                <p style="margin:0 0 8px;font-size:11px;color:{{ $colors['text'] }};line-height:1.4">{{ $teaser }}</p>
+                <p style="margin:0 0 8px;font-size:12px;color:{{ $colors['text'] }};line-height:1.5">{{ $teaser }}</p>
                 <table width="100%" cellpadding="0" cellspacing="0"><tr>
                     <td align="left" style="padding:0">
                         @if($hasEnTranslation)

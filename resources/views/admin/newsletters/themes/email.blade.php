@@ -15,7 +15,7 @@
         'abyss'    => ['bg' => '#0a0a2e', 'card' => '#1a1a4e', 'title' => '#7eb8da', 'text' => '#ccc'],
         'coral'    => ['bg' => '#1a3a5c', 'card' => '#0e4d6e', 'title' => '#f5c77e', 'text' => '#ddd'],
         'arctic'   => ['bg' => '#37474f', 'card' => '#455a64', 'title' => '#e0e0e0', 'text' => '#ccc'],
-        default    => ['bg' => '#1a6fa0', 'card' => '#ffffff', 'title' => '#003366', 'text' => '#555'],
+        default    => ['bg' => '#003366', 'card' => '#ffffff', 'title' => '#003366', 'text' => '#555'],
     };
 @endphp
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -45,8 +45,8 @@
         </td>
     </tr>
 
-    {{-- MONTH LABEL --}}
-    @if($monthLabel)
+    {{-- MONTH LABEL (skip for bulles theme — header image already contains it) --}}
+    @if($monthLabel && !$isBulles)
     <tr>
         <td align="center" style="padding:8px 0 4px;background:{{ $colors['bg'] }}">
             <span style="font-family:Georgia,serif;font-size:18px;color:#d4a843;font-style:italic">{{ ucfirst($monthLabel) }}</span>
@@ -189,6 +189,8 @@
         {{ e($clubName) }} — <a href="{{ $appUrl }}" style="color:#999">{{ $appUrl }}</a><br>
         @if($unsubscribeUrl ?? false)
             <a href="{{ $unsubscribeUrl }}" style="color:#999;text-decoration:underline">{{ $locale === 'fr' ? 'Se désabonner' : __('Unsubscribe') }}</a>
+        @else
+            <span style="font-size:10px;color:#bbb">{{ $locale === 'fr' ? 'Pour ne plus recevoir cette newsletter, répondez avec "désabonner".' : 'To unsubscribe, reply with "unsubscribe".' }}</span>
         @endif
     </td>
 </tr>
