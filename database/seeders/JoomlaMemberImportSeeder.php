@@ -80,10 +80,14 @@ class JoomlaMemberImportSeeder extends Seeder
                 ]);
                 $user->syncRoles([$role]);
             } else {
+                $legacyRoleId = DB::table('legacy_roles')->where('slug', $role)->value('id')
+                    ?? DB::table('legacy_roles')->where('slug', 'member')->value('id');
+
                 $user = User::create([
                     'username' => Str::slug($m->firstname.' '.$m->lastname, '.'),
                     'primary_email' => $m->email,
                     'password' => Hash::make(Str::random(32)),
+                    'role_id' => $legacyRoleId,
                     'status_id' => $statuses[$statusSlug] ?? $statuses['actif'],
                     'preferred_locale' => 'fr',
                     'email_verified_at' => now(),
