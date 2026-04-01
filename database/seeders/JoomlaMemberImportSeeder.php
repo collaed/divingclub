@@ -206,7 +206,7 @@ class JoomlaMemberImportSeeder extends Seeder
         return env('JOOMLA_VISMED_PATH', base_path('../tmp/domains/clubcep.eu/public_html/VisitesMed'));
     }
 
-    /** Find the best medical cert file for a Joomla user ID (prefer PDF, largest). */
+    /** Find the best medical cert file for a Joomla user ID (prefer recent, then PDF, largest). */
     private function findMedicalCertFile(int $joomlaId): ?string
     {
         $dir = $this->medicalDir();
@@ -214,10 +214,18 @@ class JoomlaMemberImportSeeder extends Seeder
             return null;
         }
 
+        $cutoff = strtotime('2024-09-01');
         $matches = [];
+
         foreach (scandir($dir) as $f) {
             if (preg_match('/\s+'.$joomlaId.'\.(pdf|jpe?g|png)$/i', $f, $m)) {
-                $matches[] = ['file' => $f, 'ext' => strtolower($m[1]), 'size' => filesize($dir.'/'.$f)];
+                $path = $dir.'/'.$f;
+                $matches[] = [
+                    'file' => $f,
+                    'ext' => strtolower($m[1]),
+                    'size' => filesize($path),
+                    'mtime' => filemtime($path),
+                ];
             }
         }
 
@@ -225,12 +233,23 @@ class JoomlaMemberImportSeeder extends Seeder
             return null;
         }
 
-        // Prefer PDF, then largest
-        $pdfs = array_filter($matches, fn ($m) => $m['ext'] === 'pdf');
-        $pick = $pdfs ? $pdfs[array_key_first($pdfs)] : $matches[0];
-        foreach (($pdfs ?: $matches) as $m) {
-            if ($m['size'] > $pick['size']) {
-                $pick = $m;
+        // Prefer files newer than cutoff
+        $recent = array_filter($matches, fn ($m) => $m['mtime'] >= $cutoff);
+        $pool = $recent ?: $matches;
+
+        // If only old files exist, skip entirely
+        if (! $recent) {
+            return null;
+        }
+
+        // From recent files: prefer PDF, then newest
+        $pdfs = array_filter($pool, fn ($m) => $m['ext'] === 'pdf');
+        $candidates = $pdfs ?: $pool;
+
+        $pick = null;
+        foreach ($candidates as $c) {
+            if (! $pick || $c['mtime'] > $pick['mtime']) {
+                $pick = $c;
             }
         }
 
