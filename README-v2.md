@@ -170,7 +170,7 @@ database/
 ├── migrations/             # 59 migration files
 ├── seeders/                # Database, Sample, Certification, Equipment
 resources/
-├── views/                  # 126 Blade templates
+├── views/                  # 131 Blade templates
 ├── scss/                   # Bootstrap 5 custom theme
 ├── js/                     # Bootstrap + Chart.js via Vite
 lang/                       # 15 locale directories
