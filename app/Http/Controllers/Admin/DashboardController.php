@@ -15,6 +15,7 @@ use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
 use App\Models\ThemeSetting;
 use App\Models\User;
+use App\Services\MailBalancer;
 use App\Services\ScheduleHeartbeat;
 use App\Services\UpdateService;
 use Illuminate\Http\Request;
@@ -87,8 +88,9 @@ class DashboardController extends Controller
         }
         $updateInfo = UpdateService::checkForUpdate();
         $commitInfo = UpdateService::currentCommit();
+        $mailBalance = MailBalancer::status();
 
-        return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats', 'updateInfo', 'commitInfo'));
+        return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats', 'updateInfo', 'commitInfo', 'mailBalance'));
     }
 
     public function exportCsv(Request $request)

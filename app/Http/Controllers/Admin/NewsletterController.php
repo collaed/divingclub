@@ -199,35 +199,20 @@ class NewsletterController extends Controller
             ]);
         }
 
-        // Dispatch sending with load-balancing across Resend API keys
+        // Dispatch sending
         dispatch(function () {
             $queued = EmailLog::where('status', 'queued')->get();
-            $primaryKey = config('services.resend.key');
-            $secondaryKey = env('RESEND_KEY_SECONDARY');
-            $splitAt = 90; // switch key after 90 emails
-            $sent = 0;
 
             foreach ($queued as $log) {
-                if (config('app.staging_mode')) {
+                if (config('app.staging_mode') && ! config('app.staging_use_smtp')) {
                     $log->update(['status' => 'staging_captured']);
 
                     continue;
                 }
                 try {
-                    // Switch to secondary Resend key after $splitAt emails
-                    if ($sent >= $splitAt && $secondaryKey) {
-                        config(['services.resend.key' => $secondaryKey]);
-                    }
-
                     Mail::html($log->body, fn ($m) => $m->to($log->to_email)->subject($log->subject));
                     $log->update(['status' => 'sent', 'attempts' => $log->attempts + 1]);
-                    $sent++;
                 } catch (\Exception $e) {
-                    // If rate limited, try switching key
-                    if ($secondaryKey && str_contains($e->getMessage(), 'rate') && $sent < $splitAt) {
-                        config(['services.resend.key' => $secondaryKey]);
-                        $splitAt = 0; // force secondary for remaining
-                    }
                     $log->update([
                         'status' => $log->attempts >= 2 ? 'failed' : 'queued',
                         'attempts' => $log->attempts + 1,
@@ -235,9 +220,6 @@ class NewsletterController extends Controller
                     ]);
                 }
             }
-
-            // Restore primary key
-            config(['services.resend.key' => $primaryKey]);
         })->afterResponse();
 
         $newsletter->update(['status' => 'sent', 'sent_at' => now()]);

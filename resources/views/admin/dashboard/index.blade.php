@@ -166,6 +166,29 @@
         });
     </script>
 
+    {{-- Mail Balance --}}
+    @if(!empty($mailBalance))
+    <div class="card dc-card mt-4">
+        <div class="card-header fw-bold">📧 {{ __('Email Sending Quota (today)') }}</div>
+        <div class="card-body py-2">
+            <div class="row g-2">
+                @foreach($mailBalance as $mb)
+                    <div class="col-md-4">
+                        <div class="d-flex justify-content-between small">
+                            <span>{{ str_replace('_', ' ', ucfirst($mb['provider'])) }}</span>
+                            <span>{{ $mb['used'] }}/{{ $mb['limit'] }}</span>
+                        </div>
+                        <div class="progress" style="height:6px">
+                            <div class="progress-bar {{ $mb['pct'] > 90 ? 'bg-danger' : ($mb['pct'] > 70 ? 'bg-warning' : 'bg-success') }}" style="width:{{ $mb['pct'] }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <small class="text-muted">{{ __('Total remaining') }}: {{ collect($mailBalance)->sum('remaining') }}</small>
+        </div>
+    </div>
+    @endif
+
     {{-- System Update Check --}}
     <div class="card dc-card mt-4">
         <div class="card-header fw-bold d-flex justify-content-between">

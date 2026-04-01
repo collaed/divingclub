@@ -4,9 +4,12 @@ namespace App\Providers;
 
 use App\Auth\DivingClubUserProvider;
 use App\Services\LicenseService;
+use App\Services\MailBalancer;
+use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -48,6 +51,12 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.staging_mode') && $to = config('mail.always_to')) {
             Mail::alwaysTo($to);
         }
+
+        // Load-balance outgoing mail across providers
+        Event::listen(MessageSending::class, function () {
+            $provider = MailBalancer::configureForNext();
+            MailBalancer::recordSend($provider);
+        });
 
         // @icon('🤿') — outputs emoji only when icons are enabled for current user
         Blade::directive('icon', function (string $expression) {
