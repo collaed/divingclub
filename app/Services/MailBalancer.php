@@ -59,19 +59,75 @@ class MailBalancer
     public static function status(): array
     {
         $counts = static::todayCounts();
+        $resendQuotas = static::resendQuotas();
         $status = [];
+
         foreach (self::LIMITS as $provider => $limit) {
             $used = $counts[$provider] ?? 0;
+
+            // Override with live Resend quota if available
+            if ($provider === 'resend_primary' && isset($resendQuotas['primary'])) {
+                $used = $resendQuotas['primary']['daily'];
+                $limit = 100;
+            } elseif ($provider === 'resend_secondary' && isset($resendQuotas['secondary'])) {
+                $used = $resendQuotas['secondary']['daily'];
+                $limit = 100;
+            }
+
             $status[] = [
                 'provider' => $provider,
                 'used' => $used,
                 'limit' => $limit,
                 'remaining' => max(0, $limit - $used),
-                'pct' => $limit > 0 ? round($used / $limit * 100) : 0,
+                'pct' => $limit > 0 ? round(min(100, $used / $limit * 100)) : 0,
             ];
         }
 
         return $status;
+    }
+
+    /** Query Resend API for live daily/monthly quotas (cached 5 min). */
+    public static function resendQuotas(): array
+    {
+        return Cache::remember('resend_quotas', 300, function () {
+            $quotas = [];
+
+            foreach (['primary' => env('RESEND_KEY'), 'secondary' => env('RESEND_KEY_SECONDARY')] as $label => $key) {
+                if (! $key) {
+                    continue;
+                }
+                try {
+                    // Send a minimal request to get quota headers
+                    // Use the batch endpoint with empty array — returns 400 but still includes headers
+                    $ch = curl_init('https://api.resend.com/emails/batch');
+                    curl_setopt_array($ch, [
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_HEADER => true,
+                        CURLOPT_POST => true,
+                        CURLOPT_POSTFIELDS => '[]',
+                        CURLOPT_HTTPHEADER => [
+                            "Authorization: Bearer {$key}",
+                            'Content-Type: application/json',
+                        ],
+                        CURLOPT_TIMEOUT => 5,
+                    ]);
+                    $response = curl_exec($ch);
+                    curl_close($ch);
+
+                    if (preg_match('/x-resend-daily-quota:\s*(\d+)/i', $response, $d) &&
+                        preg_match('/x-resend-monthly-quota:\s*(\d+)/i', $response, $m)) {
+                        $quotas[$label] = [
+                            'daily' => (int) $d[1],
+                            'monthly' => (int) $m[1],
+                        ];
+                    }
+                } catch (\Throwable) {
+                    // Skip
+                }
+            }
+
+            return $quotas;
+        });
     }
 
     /** Total remaining sends across all providers. */

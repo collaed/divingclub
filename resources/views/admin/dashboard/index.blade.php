@@ -168,13 +168,17 @@
 
     {{-- Mail Balance --}}
     @if(!empty($mailBalance))
-    @php $mailjetMonthly = \App\Services\MailBalancer::mailjetMonthlyUsage(); @endphp
+    @php
+        $mailjetMonthly = \App\Services\MailBalancer::mailjetMonthlyUsage();
+        $resendQuotas = \App\Services\MailBalancer::resendQuotas();
+    @endphp
     <div class="card dc-card mt-4">
         <div class="card-header fw-bold d-flex justify-content-between">
             <span>📧 {{ __('Email Sending Quota') }}</span>
-            @if($mailjetMonthly)
-                <small class="text-muted fw-normal">Mailjet this month: {{ number_format($mailjetMonthly['sent']) }}/6,000 ({{ $mailjetMonthly['remaining'] }} remaining)</small>
-            @endif
+            <small class="text-muted fw-normal">
+                @if($resendQuotas) Resend: {{ ($resendQuotas['primary']['monthly'] ?? 0) + ($resendQuotas['secondary']['monthly'] ?? 0) }} sent this month @endif
+                @if($mailjetMonthly) · Mailjet: {{ number_format($mailjetMonthly['sent']) }}/6,000 @endif
+            </small>
         </div>
         <div class="card-body py-2">
             <div class="row g-2">
