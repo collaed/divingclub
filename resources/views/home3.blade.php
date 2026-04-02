@@ -186,6 +186,9 @@
         <div class="row g-3 justify-content-center">
             @foreach($events as $ev)
                 <div class="col-md-3 col-6 h3-reveal">
+                    <div style="text-align:center;margin-bottom:.4rem;font-size:.7rem;text-transform:uppercase;letter-spacing:1px;opacity:.5">
+                        {{ __('Next') }} {{ ucfirst($ev->event_type) }}
+                    </div>
                     <a href="{{ route('events.show', $ev) }}" class="h3-ev-card" style="flex-direction:column;text-align:center;gap:.5rem">
                         <div>
                             <div class="h3-ev-date">{{ $ev->event_date->format('d') }}</div>
@@ -194,7 +197,6 @@
                         <div>
                             <div style="font-weight:600;font-size:.95rem">{{ $ev->title }}</div>
                             @if($ev->location)<div style="font-size:.8rem;opacity:.6">📍 {{ Str::limit($ev->location, 25) }}</div>@endif
-                            <div style="margin-top:.3rem"><span class="badge" style="background:{{ $ev->defaultColor() }};font-size:.65rem">{{ ucfirst($ev->event_type) }}</span></div>
                         </div>
                     </a>
                 </div>
