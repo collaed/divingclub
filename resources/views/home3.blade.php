@@ -58,13 +58,18 @@
     .h3-num-label { font-size: .85rem; opacity: .6; margin-top: .3rem; }
 
     /* ── Photo mosaic ── */
-    .h3-mosaic { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 200px 200px; gap: 4px; }
-    .h3-mosaic a { overflow: hidden; display: block; }
+    .h3-mosaic { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 250px 250px; gap: 4px; }
+    .h3-mosaic a { overflow: hidden; display: block; cursor: zoom-in; }
     .h3-mosaic img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
     .h3-mosaic a:hover img { transform: scale(1.08); }
     .h3-mosaic a:nth-child(1) { grid-row: 1 / 3; grid-column: 1; }
     .h3-mosaic a:nth-child(6) { grid-row: 1 / 3; grid-column: 4; }
-    @media (max-width: 768px) { .h3-mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, 150px); } .h3-mosaic a:nth-child(1), .h3-mosaic a:nth-child(6) { grid-row: auto; grid-column: auto; } }
+    @media (max-width: 768px) { .h3-mosaic { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, 180px); } .h3-mosaic a:nth-child(1), .h3-mosaic a:nth-child(6) { grid-row: auto; grid-column: auto; } }
+
+    /* ── Lightbox ── */
+    .h3-lightbox { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,.9); display: none; align-items: center; justify-content: center; cursor: zoom-out; }
+    .h3-lightbox.open { display: flex; }
+    .h3-lightbox img { max-width: 92vw; max-height: 92vh; object-fit: contain; border-radius: 4px; }
 
     /* ── Events ── */
     .h3-events { background: var(--h3-primary); padding: 4rem 1rem; color: #fff; }
@@ -140,7 +145,7 @@
     <div class="h3-hero-content">
         <img src="/images/club-logo.png" alt="" height="90" style="filter:drop-shadow(0 4px 15px rgba(0,0,0,.5));margin-bottom:1rem">
         <h1>{{ $clubName }}</h1>
-        <p>{{ __('Dive with us in Luxembourg') }} 🤿</p>
+        <p>{{ __('Dive with us in Luxembourg') }} 🤿<br><span style="font-size:.85em;opacity:.7">{{ $pctWomen }}% {{ __('women') }} · {{ $nationalities }} {{ __('nationalities') }}</span></p>
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
             @auth
                 <a href="{{ route('events.index') }}" class="h3-btn h3-btn-accent">{{ __('Events') }}</a>
@@ -168,7 +173,7 @@
 @if($photos->count() >= 6)
 <div class="h3-mosaic h3-reveal">
     @foreach($photos->take(6) as $p)
-        <a href="#"><img src="{{ asset('storage/'.$p) }}" alt="" loading="lazy"></a>
+        <a href="{{ asset('storage/'.$p) }}" onclick="openLightbox(this.href);return false"><img src="{{ asset('storage/'.$p) }}" alt="" loading="lazy"></a>
     @endforeach
 </div>
 @endif
@@ -243,7 +248,18 @@
 </section>
 @endif
 
-{{-- ⑦ CTA --}}
+{{-- ⑦ Extra photo strip --}}
+@if($photos->count() >= 8)
+<div style="display:flex;gap:0;height:180px;overflow:hidden" class="h3-reveal">
+    @foreach($photos->slice(4, 4) as $p)
+        <a href="{{ asset('storage/'.$p) }}" onclick="openLightbox(this.href);return false" style="flex:1;overflow:hidden;cursor:zoom-in">
+            <img src="{{ asset('storage/'.$p) }}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;filter:brightness(.85);transition:filter .3s" onmouseover="this.style.filter='brightness(1)'" onmouseout="this.style.filter='brightness(.85)'">
+        </a>
+    @endforeach
+</div>
+@endif
+
+{{-- ⑧ CTA --}}
 <section class="h3-cta h3-reveal">
     <h2>{{ __('Ready to dive?') }}</h2>
     <a href="{{ route('trial.show') }}" class="h3-btn h3-btn-accent" style="font-size:1.1rem;padding:1rem 3rem">{{ __('Book a Trial') }} →</a>
@@ -295,6 +311,9 @@
     </div>
 </div>
 
+{{-- Lightbox --}}
+<div class="h3-lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" src="" alt=""></div>
+
 @if($errors->any())
 <script>document.addEventListener('DOMContentLoaded', () => openLogin());</script>
 @endif
@@ -303,7 +322,10 @@
 // Login panel
 function openLogin() { document.getElementById('loginBackdrop').classList.add('open'); document.getElementById('loginPanel').classList.add('open'); document.body.style.overflow = 'hidden'; }
 function closeLogin() { document.getElementById('loginBackdrop').classList.remove('open'); document.getElementById('loginPanel').classList.remove('open'); document.body.style.overflow = ''; }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogin(); });
+// Lightbox
+function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); document.body.style.overflow = ''; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLogin(); closeLightbox(); } });
 
 // Sticky nav
 const nav = document.getElementById('stickyNav');

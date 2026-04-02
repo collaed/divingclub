@@ -131,7 +131,9 @@ class HomeController extends Controller
         $events = Event::where('event_date', '>=', now())->orderBy('event_date')->limit(3)->get();
         $stats = self::memberStats();
         $faces = MemberDetail::where(fn ($q) => $q->where('bureau_member', true)->orWhere('active_instructor', true))
-            ->where('show_on_public_site', true)->with('user')->get();
+            ->where('show_on_public_site', true)
+            ->whereHas('user.documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
+            ->with('user')->get();
 
         return view('home3', compact('photos', 'events', 'stats', 'faces'))
             ->with('theme', ThemeService::settings());
