@@ -185,15 +185,16 @@
         <div class="h3-stitle h3-reveal"><h2 style="color:#fff">📅 {{ __('Upcoming') }}</h2><div class="h3-stitle-bar"></div></div>
         <div class="row g-3 justify-content-center">
             @foreach($events as $ev)
-                <div class="col-md-4 h3-reveal">
-                    <a href="{{ route('events.show', $ev) }}" class="h3-ev-card">
+                <div class="col-md-3 col-6 h3-reveal">
+                    <a href="{{ route('events.show', $ev) }}" class="h3-ev-card" style="flex-direction:column;text-align:center;gap:.5rem">
                         <div>
                             <div class="h3-ev-date">{{ $ev->event_date->format('d') }}</div>
                             <div class="h3-ev-month">{{ $ev->event_date->translatedFormat('M') }}</div>
                         </div>
                         <div>
-                            <div style="font-weight:600">{{ $ev->title }}</div>
-                            @if($ev->location)<div style="font-size:.85rem;opacity:.7">📍 {{ $ev->location }}</div>@endif
+                            <div style="font-weight:600;font-size:.95rem">{{ $ev->title }}</div>
+                            @if($ev->location)<div style="font-size:.8rem;opacity:.6">📍 {{ Str::limit($ev->location, 25) }}</div>@endif
+                            <div style="margin-top:.3rem"><span class="badge" style="background:{{ $ev->defaultColor() }};font-size:.65rem">{{ ucfirst($ev->event_type) }}</span></div>
                         </div>
                     </a>
                 </div>
