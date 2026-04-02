@@ -135,9 +135,8 @@ class HomeController extends Controller
             ->take(4)->values();
         $stats = self::memberStats();
         $faces = MemberDetail::where(fn ($q) => $q->where('bureau_member', true)->orWhere('active_instructor', true))
-            ->where('show_on_public_site', true)
             ->whereHas('user.documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
-            ->with('user')->get();
+            ->with('user')->get()->unique('user_id');
 
         return view('home3', compact('photos', 'events', 'stats', 'faces'))
             ->with('theme', ThemeService::settings());
