@@ -125,6 +125,18 @@ class HomeController extends Controller
         return view('cms.article', compact('article') + $extra);
     }
 
+    public function index3()
+    {
+        $photos = EventPhoto::randomPublic(8)->pluck('path');
+        $events = Event::where('event_date', '>=', now())->orderBy('event_date')->limit(3)->get();
+        $stats = self::memberStats();
+        $faces = MemberDetail::where(fn ($q) => $q->where('bureau_member', true)->orWhere('active_instructor', true))
+            ->where('show_on_public_site', true)->with('user')->get();
+
+        return view('home3', compact('photos', 'events', 'stats', 'faces'))
+            ->with('theme', ThemeService::settings());
+    }
+
     /** Cached member statistics used by index2() and member-figures article. */
     private static function memberStats(): array
     {
