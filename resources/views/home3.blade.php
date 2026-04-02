@@ -187,7 +187,7 @@
             @foreach($events as $ev)
                 <div class="col-md-3 col-6 h3-reveal">
                     <div style="text-align:center;margin-bottom:.4rem;font-size:.7rem;text-transform:uppercase;letter-spacing:1px;opacity:.5">
-                        {{ __('Next') }} {{ ucfirst($ev->event_type) }}
+                        {{ __('Next') }}: {{ $ev->title }}
                     </div>
                     <a href="{{ route('events.show', $ev) }}" class="h3-ev-card" style="flex-direction:column;text-align:center;gap:.5rem">
                         <div>

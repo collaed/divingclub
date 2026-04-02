@@ -128,23 +128,11 @@ class HomeController extends Controller
     public function index3()
     {
         $photos = EventPhoto::randomPublic(8)->pluck('path');
-        // One upcoming event per category for variety
-        $eventTypes = ['pool', 'dive', 'social', 'trip'];
-        $events = collect();
-        foreach ($eventTypes as $type) {
-            $ev = Event::where('event_date', '>=', now())->where('event_type', $type)->orderBy('event_date')->first();
-            if ($ev) {
-                $events->push($ev);
-            }
-        }
-        if ($events->count() < 4) {
-            // Fill remaining slots with next upcoming of any type not already shown
-            $ids = $events->pluck('id');
-            Event::where('event_date', '>=', now())->whereNotIn('id', $ids)
-                ->orderBy('event_date')->limit(4 - $events->count())->get()
-                ->each(fn ($e) => $events->push($e));
-        }
-        $events = $events->sortBy('event_date')->take(4)->values();
+        // One upcoming event per distinct activity title for variety
+        $events = Event::where('event_date', '>=', now())
+            ->orderBy('event_date')->limit(50)->get()
+            ->unique(fn ($e) => mb_strtolower($e->title))
+            ->take(4)->values();
         $stats = self::memberStats();
         $faces = MemberDetail::where(fn ($q) => $q->where('bureau_member', true)->orWhere('active_instructor', true))
             ->where('show_on_public_site', true)
