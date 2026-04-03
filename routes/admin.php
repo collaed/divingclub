@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
 use App\Http\Controllers\Admin\EmailController;
+use App\Http\Controllers\Admin\EmailStatsController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
@@ -58,6 +59,7 @@ Route::post('newsletters/{newsletter}/withdraw', [NewsletterController::class, '
 Route::post('newsletters/{newsletter}/send', [NewsletterController::class, 'send'])->name('newsletters.send');
 Route::get('newsletters/{newsletter}/preview-email', [NewsletterController::class, 'preview'])->name('newsletters.preview-email');
 Route::get('newsletters/{newsletter}/test-send', [NewsletterController::class, 'testSend'])->name('newsletters.test-send');
+Route::get('email-stats', [EmailStatsController::class, 'index'])->name('email-stats');
 
 // Document Library
 Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
