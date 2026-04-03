@@ -20,7 +20,10 @@ class EmailStatsService
      */
     public static function forDate(string $date): array
     {
-        $messages = static::fetchMailjetMessages($date);
+        $messages = array_merge(
+            static::fetchMailjetMessages($date),
+            static::fetchResendMessages($date),
+        );
         $members = static::memberLookup();
 
         // Group by subject, track best status per recipient
@@ -104,6 +107,52 @@ class EmailStatsService
                 $all = array_merge($all, $data);
                 $offset += 1000;
             } while (count($data) === 1000);
+
+            return $all;
+        });
+    }
+
+    /** Fetch messages from Resend for a given date. Cached 5 min. */
+    private static function fetchResendMessages(string $date): array
+    {
+        // Use the full-access key (secondary)
+        $key = env('RESEND_KEY_SECONDARY');
+        if (! $key) {
+            return [];
+        }
+
+        return Cache::remember("resend_msgs_{$date}", 300, function () use ($key, $date) {
+            $response = Http::withToken($key)->timeout(10)
+                ->get('https://api.resend.com/emails');
+
+            if (! $response->ok()) {
+                return [];
+            }
+
+            $all = [];
+            foreach ($response->json('data', []) as $email) {
+                $created = substr($email['created_at'] ?? '', 0, 10);
+                if ($created !== $date) {
+                    continue;
+                }
+
+                $status = match ($email['last_event'] ?? '') {
+                    'clicked' => 'clicked',
+                    'opened' => 'opened',
+                    'delivered', 'sent' => 'sent',
+                    default => 'failed',
+                };
+
+                foreach ($email['to'] ?? [] as $to) {
+                    $all[] = [
+                        'ContactAlt' => $to,
+                        'Subject' => $email['subject'] ?? '(no subject)',
+                        'Status' => $status,
+                        'ArrivedAt' => $email['created_at'] ?? '',
+                        '_provider' => 'resend',
+                    ];
+                }
+            }
 
             return $all;
         });
