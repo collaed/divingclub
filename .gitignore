@@ -36,3 +36,4 @@ fulldata_clubcep.txt
 # Wasmer deployment
 .env.wasmer
 license-private.pem
+inpro
