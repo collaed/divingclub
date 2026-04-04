@@ -115,42 +115,43 @@ class EmailStatsService
     /** Fetch messages from Resend for a given date. Cached 5 min. */
     private static function fetchResendMessages(string $date): array
     {
-        // Use the full-access key (secondary)
-        $key = env('RESEND_KEY_SECONDARY');
-        if (! $key) {
+        $keys = array_filter([env('RESEND_KEY'), env('RESEND_KEY_SECONDARY')]);
+        if (! $keys) {
             return [];
         }
 
-        return Cache::remember("resend_msgs_{$date}", 300, function () use ($key, $date) {
-            $response = Http::withToken($key)->timeout(10)
-                ->get('https://api.resend.com/emails');
-
-            if (! $response->ok()) {
-                return [];
-            }
-
+        return Cache::remember("resend_msgs_{$date}", 300, function () use ($keys, $date) {
             $all = [];
-            foreach ($response->json('data', []) as $email) {
-                $created = substr($email['created_at'] ?? '', 0, 10);
-                if ($created !== $date) {
+
+            foreach ($keys as $key) {
+                $response = Http::withToken($key)->timeout(10)
+                    ->get('https://api.resend.com/emails');
+
+                if (! $response->ok()) {
                     continue;
                 }
 
-                $status = match ($email['last_event'] ?? '') {
-                    'clicked' => 'clicked',
-                    'opened' => 'opened',
-                    'delivered', 'sent' => 'sent',
-                    default => 'failed',
-                };
+                foreach ($response->json('data', []) as $email) {
+                    $created = substr($email['created_at'] ?? '', 0, 10);
+                    if ($created !== $date) {
+                        continue;
+                    }
 
-                foreach ($email['to'] ?? [] as $to) {
-                    $all[] = [
-                        'ContactAlt' => $to,
-                        'Subject' => $email['subject'] ?? '(no subject)',
-                        'Status' => $status,
-                        'ArrivedAt' => $email['created_at'] ?? '',
-                        '_provider' => 'resend',
-                    ];
+                    $status = match ($email['last_event'] ?? '') {
+                        'clicked' => 'clicked',
+                        'opened' => 'opened',
+                        'delivered', 'sent' => 'sent',
+                        default => 'failed',
+                    };
+
+                    foreach ($email['to'] ?? [] as $to) {
+                        $all[] = [
+                            'ContactAlt' => $to,
+                            'Subject' => $email['subject'] ?? '(no subject)',
+                            'Status' => $status,
+                            'ArrivedAt' => $email['created_at'] ?? '',
+                        ];
+                    }
                 }
             }
 
