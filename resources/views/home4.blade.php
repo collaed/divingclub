@@ -66,7 +66,7 @@
 
         {{-- Bureau only --}}
         @if($isBureau)
-            <a href="{{ route('admin.dashboard') }}" class="h4-tile" style="background:#fff8e1">
+            <a href="{{ route('admin.dashboard.index') }}" class="h4-tile" style="background:#fff8e1">
                 <span class="h4-tile-icon">📋</span>
                 <span class="h4-tile-label">{{ __('Worklist') }}</span>
                 @if(($worklist['certs'] ?? 0) + ($worklist['ext_regs'] ?? 0) > 0)
