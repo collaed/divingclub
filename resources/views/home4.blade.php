@@ -51,10 +51,6 @@
             <span class="h4-tile-icon">🏊</span>
             <span class="h4-tile-label">{{ __('Instructor Calendar') }}</span>
         </a>
-        <a href="{{ route('dive-sites.index') }}" class="h4-tile">
-            <span class="h4-tile-icon">🤿</span>
-            <span class="h4-tile-label">{{ __('Dive Sites') }}</span>
-        </a>
         <a href="{{ route('documents.index') }}" class="h4-tile">
             <span class="h4-tile-icon">📄</span>
             <span class="h4-tile-label">{{ __('Documents') }}</span>
@@ -62,10 +58,6 @@
         <a href="{{ route('dues.show') }}" class="h4-tile">
             <span class="h4-tile-icon">💰</span>
             <span class="h4-tile-label">{{ __('Payments') }}</span>
-        </a>
-        <a href="{{ route('equipment.index') }}" class="h4-tile">
-            <span class="h4-tile-icon">🔧</span>
-            <span class="h4-tile-label">{{ __('Equipment') }}</span>
         </a>
         <a href="{{ route('classifieds.index') }}" class="h4-tile">
             <span class="h4-tile-icon">📢</span>
@@ -84,6 +76,14 @@
             <a href="{{ route('admin.members.index') }}" class="h4-tile" style="background:#fff8e1">
                 <span class="h4-tile-icon">👥</span>
                 <span class="h4-tile-label">{{ __('Members') }}</span>
+            </a>
+            <a href="{{ route('admin.dive-sites.index') }}" class="h4-tile" style="background:#fff8e1">
+                <span class="h4-tile-icon">🤿</span>
+                <span class="h4-tile-label">{{ __('Dive Sites') }}</span>
+            </a>
+            <a href="{{ route('admin.equipment.index') }}" class="h4-tile" style="background:#fff8e1">
+                <span class="h4-tile-icon">🔧</span>
+                <span class="h4-tile-label">{{ __('Equipment') }}</span>
             </a>
             <a href="{{ route('admin.email.index') }}" class="h4-tile" style="background:#fff8e1">
                 <span class="h4-tile-icon">📧</span>
