@@ -468,7 +468,55 @@ A 24-page in-app guide accessible at **Admin → Guide** covers all setup and op
 
 ---
 
-## Chapter 27: Audit Log
+## Chapter 27: License Management
+
+### 27.1 Free Tier
+
+The system works for free up to **100 members**. Beyond that, a license key is required. Without a valid key:
+- New member registrations are blocked
+- An "Unlicensed" warning appears on the dashboard
+- PDF exports carry a watermark
+
+### 27.2 Checking License Status
+
+```bash
+php artisan tinker --execute "
+echo 'Members: ' . App\Models\User::count();
+echo ' | Needs license: ' . (App\Services\LicenseService::needsLicense() ? 'yes' : 'no');
+echo ' | License valid: ' . (App\Services\LicenseService::isValid() ? 'YES ✅' : 'NO ❌');
+"
+```
+
+### 27.3 Installing a License Key
+
+1. Go to **Admin → Settings → License**
+2. Paste the license key (long base64 string with a dot in the middle)
+3. Click **Save**
+4. The system immediately verifies the RSA signature, domain binding, and expiry
+
+### 27.4 Generating a License Key (maintainer only)
+
+The RSA private key is kept offline by the maintainer. To generate:
+
+```bash
+php scripts/generate-license.php scripts/license-private.pem clubcep.eu 500 2027-07-31
+```
+
+Parameters: **domain** (must match site URL), **max_members**, **expires** (YYYY-MM-DD, default +13 months).
+
+### 27.5 Renewal
+
+The dashboard shows a warning 30 days before expiry. To renew: the maintainer generates a new key, the club admin pastes it in Settings.
+
+### 27.6 Security
+
+- The private key (`license-private.pem`) must **never** be shared or committed to Git
+- Only the public key is embedded in the source code
+- If compromised, regenerate the key pair and redistribute all licenses
+
+---
+
+## Chapter 28: Audit Log
 
 **Admin → Audit Log** records all actions with old/new values, user, IP address, and timestamp. Filterable by action, user, and date. Exportable as CSV.
 

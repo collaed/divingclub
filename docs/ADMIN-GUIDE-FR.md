@@ -920,16 +920,64 @@ Administration → Export DAN → télécharge un fichier `.dl7` uploadable sur 
 
 ### 21.1 Palier gratuit
 
-Le système fonctionne gratuitement jusqu'à 100 membres. Au-delà, une clé de licence est nécessaire.
+Le système fonctionne gratuitement jusqu'à **100 membres**. Au-delà, une clé de licence est nécessaire. Sans clé valide :
+- Les nouvelles inscriptions de membres sont bloquées
+- Un avertissement « Unlicensed » apparaît dans le tableau de bord
+- Les exports PDF portent un filigrane
 
-### 21.2 Installation
+### 21.2 Vérification de la licence
 
-1. Obtenir une clé auprès du mainteneur du projet
-2. Administration → Paramètres → Licence
-3. Coller la clé → Enregistrer
-4. Vérification : signature RSA, domaine, nombre de membres, date d'expiration
+La licence est vérifiée automatiquement à chaque requête :
+- **Signature RSA-2048** — impossible à falsifier sans la clé privée
+- **Domaine** — la clé est liée au domaine du site (ex. `clubcep.eu`)
+- **Nombre de membres** — la clé autorise un maximum (ex. 500)
+- **Date d'expiration** — la clé a une durée de validité (ex. 13 mois)
 
-Voir `docs/LICENSE-PROCEDURE.md` pour la procédure complète de génération de clés.
+Vérifier l'état actuel :
+```bash
+php artisan tinker --execute "
+echo 'Membres: ' . App\Models\User::count();
+echo ' | Licence nécessaire: ' . (App\Services\LicenseService::needsLicense() ? 'oui' : 'non');
+echo ' | Licence valide: ' . (App\Services\LicenseService::isValid() ? 'OUI ✅' : 'NON ❌');
+"
+```
+
+### 21.3 Installation d'une clé
+
+1. **Admin → Paramètres → Licence**
+2. Coller la clé de licence (longue chaîne base64 avec un point au milieu)
+3. Cliquer **Enregistrer**
+4. Le système vérifie immédiatement la signature, le domaine et l'expiration
+
+### 21.4 Génération d'une clé (mainteneur uniquement)
+
+La clé privée RSA est conservée hors ligne par le mainteneur. Pour générer une nouvelle clé :
+
+```bash
+# Générer une clé pour un club
+php scripts/generate-license.php scripts/license-private.pem clubcep.eu 500 2027-07-31
+
+# Résultat :
+# License Key: eyJkb21haW4iOi...  (à coller dans Admin → Paramètres)
+# Payload: {"domain":"clubcep.eu","max_members":500,"expires":"2027-07-31"}
+```
+
+Paramètres :
+- **domaine** — doit correspondre exactement à l'URL du site
+- **max_members** — nombre maximum de membres autorisés
+- **expires** — date d'expiration (format YYYY-MM-DD, par défaut +13 mois)
+
+### 21.5 Renouvellement
+
+La clé expire à la date indiquée. Le tableau de bord affiche un avertissement 30 jours avant l'expiration. Pour renouveler :
+1. Le mainteneur génère une nouvelle clé avec une date d'expiration ultérieure
+2. L'administrateur du club colle la nouvelle clé dans Admin → Paramètres → Licence
+
+### 21.6 Sécurité de la clé privée
+
+- La clé privée (`license-private.pem`) ne doit **jamais** être partagée ni commitée dans Git
+- Seule la clé publique est embarquée dans le code source
+- En cas de compromission, régénérer la paire de clés et redistribuer les licences
 
 ---
 

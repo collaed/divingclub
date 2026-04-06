@@ -432,7 +432,52 @@ Un guide intégré de 24 pages accessible dans **Admin → Guide** couvre toutes
 
 ---
 
-## Chapitre 27 : Journal d'audit
+## Chapitre 27 : Gestion de la licence
+
+### 27.1 Palier gratuit
+
+Le système fonctionne gratuitement jusqu'à **100 membres**. Au-delà, une clé de licence est nécessaire. Sans clé valide :
+- Les nouvelles inscriptions sont bloquées
+- Un avertissement « Unlicensed » apparaît sur le tableau de bord
+- Les exports PDF portent un filigrane
+
+### 27.2 Vérifier l'état de la licence
+
+```bash
+php artisan tinker --execute "
+echo 'Membres: ' . App\Models\User::count();
+echo ' | Licence nécessaire: ' . (App\Services\LicenseService::needsLicense() ? 'oui' : 'non');
+echo ' | Licence valide: ' . (App\Services\LicenseService::isValid() ? 'OUI ✅' : 'NON ❌');
+"
+```
+
+### 27.3 Installer une clé de licence
+
+1. Aller dans **Admin → Paramètres → Licence**
+2. Coller la clé (longue chaîne base64 avec un point au milieu)
+3. Cliquer **Enregistrer**
+4. Le système vérifie immédiatement la signature RSA, le domaine et l'expiration
+
+### 27.4 Générer une clé (mainteneur uniquement)
+
+```bash
+php scripts/generate-license.php scripts/license-private.pem clubcep.eu 500 2027-07-31
+```
+
+Paramètres : **domaine** (doit correspondre à l'URL), **max_members**, **expires** (AAAA-MM-JJ, défaut +13 mois).
+
+### 27.5 Renouvellement
+
+Le tableau de bord affiche un avertissement 30 jours avant l'expiration. Le mainteneur génère une nouvelle clé, l'administrateur la colle dans les Paramètres.
+
+### 27.6 Sécurité
+
+- La clé privée ne doit **jamais** être partagée ni commitée dans Git
+- Seule la clé publique est embarquée dans le code source
+
+---
+
+## Chapitre 28 : Journal d'audit
 
 **Admin → Journal d'audit** enregistre toutes les actions avec les anciennes/nouvelles valeurs, l'utilisateur, l'adresse IP et l'horodatage. Filtrable et exportable en CSV.
 
