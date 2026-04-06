@@ -60,6 +60,7 @@ Route::post('/install', [InstallController::class, 'run'])->name('install.run');
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/home2', [HomeController::class, 'index2'])->name('home2');
 Route::get('/home3', [HomeController::class, 'index3'])->name('home3');
+Route::get('/home4', [HomeController::class, 'index4'])->name('home4');
 Route::get('/article/{slug}', [HomeController::class, 'showArticle'])->name('article.show');
 Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
 Route::post('/trial', [TrialController::class, 'store'])->middleware('throttle:3,1')->name('trial.store');
@@ -226,9 +227,9 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/dive-data/import-uddf', [DiveDataController::class, 'importUddf'])->name('dive-data.import-uddf');
     Route::get('/dive-data/export-uddf', [DiveDataController::class, 'exportUddf'])->name('dive-data.export-uddf');
 
-    // Instructor Availability (bureau & instructors only)
+    // Instructor Availability (read-only for all members, editable for instructors/bureau)
+    Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');
     Route::middleware('role:bureau_master,bureau_finance,bureau_technical,instructor')->group(function () {
-        Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/availability/toggle', [InstructorAvailabilityController::class, 'toggle'])->name('availability.toggle');
     });
 

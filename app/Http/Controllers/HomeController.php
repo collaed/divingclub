@@ -14,8 +14,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Document;
 use App\Models\Event;
 use App\Models\EventPhoto;
+use App\Models\ExternalRegistration;
 use App\Models\MemberDetail;
 use App\Services\ArticleTranslationService;
 use App\Services\ThemeService;
@@ -139,6 +141,31 @@ class HomeController extends Controller
             ->with('user')->get()->unique('user_id');
 
         return view('home3', compact('photos', 'events', 'stats', 'faces'))
+            ->with('theme', ThemeService::settings());
+    }
+
+    public function index4()
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect()->route('home3');
+        }
+
+        $isBureau = $user->isBureau();
+        $isInstructor = $user->hasRole('instructor');
+
+        $myRegs = $user->eventRegistrations()->where('status', 'registered')
+            ->whereHas('event', fn ($q) => $q->where('event_date', '>=', now()))
+            ->with('event')->limit(3)->get()->pluck('event');
+        $nextEvents = Event::where('event_date', '>=', now())->orderBy('event_date')->limit(3)->get();
+        $articles = Article::where('is_published', true)->latest()->limit(2)->get();
+
+        $worklist = $isBureau ? [
+            'certs' => Document::where('category', 'medical')->where('is_verified', false)->count(),
+            'ext_regs' => ExternalRegistration::where('status', 'pending')->count(),
+        ] : [];
+
+        return view('home4', compact('user', 'isBureau', 'isInstructor', 'myRegs', 'nextEvents', 'articles', 'worklist'))
             ->with('theme', ThemeService::settings());
     }
 

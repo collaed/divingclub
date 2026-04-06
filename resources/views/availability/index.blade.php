@@ -1,27 +1,45 @@
-<x-layout :title="__('Instructor Availability')">
+<x-layout :title="__('Instructor Calendar')">
     @php
         $actColors = $colors;
         $dow = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 7 => 'Sun'];
     @endphp
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">@icon('📅') {{ __('Instructor Planning') }}</h4>
-        <div class="d-flex gap-2">
-            <a href="{{ route('availability.index', ['month' => $start->copy()->subMonth()->format('Y-m')]) }}" class="btn btn-sm btn-outline-secondary">←</a>
-            <span class="btn btn-sm btn-primary disabled">{{ $start->translatedFormat('F Y') }}</span>
-            <a href="{{ route('availability.index', ['month' => $start->copy()->addMonth()->format('Y-m')]) }}" class="btn btn-sm btn-outline-secondary">→</a>
+    <style>
+    .ic-header { background: linear-gradient(135deg, #00695c, #004d40); color: #fff; padding: 1rem 1.5rem; border-radius: 10px 10px 0 0; margin-bottom: 0; }
+    .ic-header h4 { margin: 0; }
+    .ic-header a, .ic-header .btn { color: #fff; border-color: rgba(255,255,255,.4); }
+    .ic-header a:hover { background: rgba(255,255,255,.15); }
+    .ic-table thead { background: #00695c; color: #fff; }
+    .ic-table thead th { border-color: #00796b; font-weight: 600; }
+    .ic-table td { vertical-align: top; min-width: 100px; height: 60px; }
+    .ic-today { outline: 2px solid #00bfa5; outline-offset: -2px; background: #e0f2f1 !important; }
+    .ic-legend { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .ic-legend-item { display: inline-flex; align-items: center; gap: .3rem; font-size: .75rem; padding: .2rem .5rem; border-radius: 4px; }
+    .ic-avatar { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .5rem; font-weight: 700; color: #fff; }
+    </style>
+
+    <div class="ic-header d-flex justify-content-between align-items-center">
+        <h4>🏊 {{ __('Instructor Planning') }}</h4>
+        <div class="d-flex gap-2 align-items-center">
+            <a href="{{ route('availability.index', ['month' => $start->copy()->subMonth()->format('Y-m')]) }}" class="btn btn-sm btn-outline-light">←</a>
+            <span class="fw-bold">{{ $start->translatedFormat('F Y') }}</span>
+            <a href="{{ route('availability.index', ['month' => $start->copy()->addMonth()->format('Y-m')]) }}" class="btn btn-sm btn-outline-light">→</a>
         </div>
     </div>
 
     @if($isInstructor)
-        <div class="alert alert-info small py-2 mb-3">
-            @icon('💡') {{ __('Click an event to mark yourself available. Your initial will appear. Click again to remove.') }}
+        <div class="alert alert-info small py-2 mb-0 rounded-0" style="background:#e0f2f1;border-color:#b2dfdb;color:#004d40">
+            💡 {{ __('Click ➕ on an event to mark yourself available. Click ✅ to remove.') }}
+        </div>
+    @else
+        <div class="alert alert-light small py-2 mb-0 rounded-0 border-0 text-muted">
+            👁 {{ __('Read-only view — see which instructors are available for each session.') }}
         </div>
     @endif
 
     <div class="table-responsive">
-        <table class="table table-bordered table-sm text-center align-middle" style="font-size:.85rem">
-            <thead class="table-dark">
+        <table class="table table-bordered table-sm text-center align-middle ic-table" style="font-size:.85rem">
+            <thead>
                 <tr>
                     <th style="width:30px">{{ __('Wk') }}</th>
                     @foreach($dow as $d)
@@ -55,7 +73,7 @@
                                 $dayEvents = $events[$dateStr] ?? collect();
                                 $isWeekend = $day->isWeekend();
                             @endphp
-                            <td class="{{ !$inMonth ? 'text-muted bg-light' : '' }} {{ $isWeekend && $inMonth ? 'bg-light' : '' }} {{ $day->isToday() ? 'border-primary border-2' : '' }}" style="vertical-align:top;min-width:100px;height:60px">
+                            <td class="{{ !$inMonth ? 'text-muted bg-light' : '' }} {{ $isWeekend && $inMonth ? 'bg-light' : '' }} {{ $day->isToday() ? 'ic-today' : '' }}" style="vertical-align:top;min-width:100px;height:60px">
                                 @if($inMonth)
                                     <div class="fw-bold small {{ $isPast ? 'text-muted' : '' }}">{{ $day->format('d') }}</div>
                                     @foreach($dayEvents as $ev)
@@ -73,8 +91,8 @@
                                             @if($evAvails->isNotEmpty())
                                                 <span class="d-block" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
                                                     $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
-                                                    $ic = $av->user->detail?->instructor_color ?? '#6c757d';
-                                                @endphp<span class="badge fw-bold px-1" style="background:{{ $ic }};color:#fff;font-size:.55rem" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
+                                                    $ic = $av->user->detail?->instructor_color ?? '#00695c';
+                                                @endphp<span class="ic-avatar" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
                                             @endif
                                         </div>
                                     @endforeach
@@ -89,6 +107,16 @@
                 @endwhile
             </tbody>
         </table>
+    </div>
+
+    {{-- Activity type legend --}}
+    <div class="mt-3 mb-2">
+        <strong class="small text-muted">{{ __('Activity Types') }}:</strong>
+        <div class="ic-legend mt-1">
+            @foreach($actColors as $key => $ac)
+                <span class="ic-legend-item" style="background:{{ $ac['color'] }};color:{{ $ac['text'] }}">{{ $ac['icon'] }} {{ __($ac['label']) }}</span>
+            @endforeach
+        </div>
     </div>
 
     {{-- Instructor initials legend --}}
