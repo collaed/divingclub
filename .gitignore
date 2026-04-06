@@ -37,3 +37,4 @@ fulldata_clubcep.txt
 .env.wasmer
 license-private.pem
 inpro
+scripts/license-private.pem
