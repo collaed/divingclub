@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class ClubPartnership extends Model
 {
-    protected $fillable = ['name', 'base_url', 'api_key_id', 'is_active', 'last_sync_at'];
+    protected $fillable = ['name', 'base_url', 'api_key_id', 'api_secret_hash', 'their_api_key_id', 'their_api_secret', 'is_active', 'last_sync_at'];
 
     protected $casts = [
         'is_active' => 'boolean',
