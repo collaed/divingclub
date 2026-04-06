@@ -158,13 +158,13 @@ foreach ($upcomingEvents as $ev) {
     if (rand(1, 100) <= 80) {
         $inst = $instructors->random(rand(1, min(3, $instructors->count())));
         foreach ($inst as $i) {
-            InstructorAvailability::firstOrCreate([
+            InstructorAvailability::updateOrCreate([
                 'user_id' => $i->id,
-                'event_id' => $ev->id,
                 'date' => $ev->event_date,
-            ], [
                 'slot' => 'evening',
                 'activity_type' => $ev->event_type,
+            ], [
+                'event_id' => $ev->id,
             ]);
         }
         $withInstructor++;
