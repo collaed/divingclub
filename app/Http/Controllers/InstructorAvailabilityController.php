@@ -31,7 +31,7 @@ class InstructorAvailabilityController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $isInstructor = $user->hasAnyRole(['instructor', 'bureau_master', 'bureau_technical', 'assistant']);
+        $isInstructor = $user->hasAnyRole(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical', 'assistant']);
 
         $month = $request->query('month', now()->format('Y-m'));
         $start = Carbon::parse($month.'-01')->startOfMonth();
@@ -47,7 +47,7 @@ class InstructorAvailabilityController extends Controller
             ->get()
             ->groupBy(fn ($e) => $e->event_date->format('Y-m-d'));
 
-        $instructors = User::role(['instructor', 'bureau_master', 'bureau_technical'])->with('detail')->get()
+        $instructors = User::role(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical'])->with('detail')->get()
             ->sortBy(fn ($u) => $u->detail?->first_name);
 
         $colors = self::ACTIVITY_COLORS;
@@ -58,7 +58,7 @@ class InstructorAvailabilityController extends Controller
     public function toggle(Request $request)
     {
         $user = auth()->user();
-        if (! $user->hasAnyRole(['instructor', 'bureau_master', 'bureau_technical', 'assistant'])) {
+        if (! $user->hasAnyRole(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical', 'assistant'])) {
             abort(403);
         }
 

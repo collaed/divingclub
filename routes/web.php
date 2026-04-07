@@ -229,7 +229,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Instructor Availability (read-only for all members, editable for instructors/bureau)
     Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');
-    Route::middleware('role:bureau_master,bureau_finance,bureau_technical,instructor')->group(function () {
+    Route::middleware('role:bureau_master,bureau_finance,bureau_technical,instructor,instructor_apnea')->group(function () {
         Route::post('/availability/toggle', [InstructorAvailabilityController::class, 'toggle'])->name('availability.toggle');
     });
 
