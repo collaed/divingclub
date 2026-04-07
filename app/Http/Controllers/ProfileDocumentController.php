@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\OcrMedicalCert;
 use App\Models\Document;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
@@ -44,6 +45,11 @@ class ProfileDocumentController extends Controller
 
         if ($request->category === 'medical') {
             app(MedicalComplianceService::class)->evaluateCertificate($doc);
+
+            // OCR the cert in background to detect establishment date
+            if (! $doc->date_established) {
+                OcrMedicalCert::dispatch($doc->id);
+            }
 
             $memberName = $target->detail?->first_name.' '.$target->detail?->last_name;
             $bureauEmails = User::role(['bureau_master', 'bureau_technical'])
