@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
 use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\SeasonController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ThumbnailController;
@@ -217,3 +218,7 @@ Route::get('/partnerships/{partnership}/remote-events', [PartnershipController::
 Route::get('/partnerships/registrations', [PartnershipController::class, 'registrations'])->name('partnerships.registrations');
 Route::post('/partnerships/registrations/{registration}/approve', [PartnershipController::class, 'approveRegistration'])->name('partnerships.registrations.approve');
 Route::post('/partnerships/registrations/{registration}/reject', [PartnershipController::class, 'rejectRegistration'])->name('partnerships.registrations.reject');
+
+// Roles & Permissions
+Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles.index');
+Route::put('/roles', [RolePermissionController::class, 'update'])->name('roles.update');
