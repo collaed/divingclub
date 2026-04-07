@@ -14,6 +14,7 @@
 namespace App\Services;
 
 use App\Models\Document;
+use App\Models\Federation;
 use App\Models\MedicalComplianceRule;
 use App\Models\User;
 use Carbon\Carbon;
@@ -63,6 +64,24 @@ class MedicalComplianceService
             $expiryDate = $issueDate->month >= 9
                 ? Carbon::create($year + 2, 1, 31)
                 : Carbon::create($year + 1, 1, 31);
+        }
+
+        // FLASSA calendar-based rule:
+        // Age 18-45: cert Jan-Aug → valid until Dec 31 of Y+1; cert Sep-Dec → valid until Dec 31 of Y+2
+        // Age <18 or >45: cert Jan-Aug → valid until Dec 31 of Y; cert Sep-Dec → valid until Dec 31 of Y+1
+        $flassaId = Federation::where('acronym', 'FLASSA')->value('id');
+        if ($flassaId && $rules->contains('federation_id', $flassaId) && $age !== null) {
+            $year = $issueDate->year;
+            $beforeSep = $issueDate->month < 9;
+            if ($age >= 18 && $age <= 45) {
+                $expiryDate = $beforeSep
+                    ? Carbon::create($year + 1, 12, 31)
+                    : Carbon::create($year + 2, 12, 31);
+            } else {
+                $expiryDate = $beforeSep
+                    ? Carbon::create($year, 12, 31)
+                    : Carbon::create($year + 1, 12, 31);
+            }
         }
 
         $document->update([
