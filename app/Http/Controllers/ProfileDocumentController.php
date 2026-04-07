@@ -17,7 +17,7 @@ class ProfileDocumentController extends Controller
         $viewer = auth()->user();
         $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
 
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureau()) {
             abort(403);
         }
 
@@ -71,7 +71,7 @@ class ProfileDocumentController extends Controller
     public function download(Document $document)
     {
         $viewer = auth()->user();
-        if ($document->user_id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        if ($document->user_id !== $viewer->id && ! $viewer->isBureau()) {
             abort(403);
         }
 
@@ -80,7 +80,7 @@ class ProfileDocumentController extends Controller
 
     public function verify(Request $request, Document $document)
     {
-        abort_unless(auth()->user()->isBureauMaster(), 403);
+        abort_unless(auth()->user()->isBureau(), 403);
 
         $data = ['is_verified' => true, 'verified_by' => auth()->id(), 'verified_at' => now()];
 
