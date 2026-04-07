@@ -1,12 +1,13 @@
 <x-layout :title="__('Profile') . ' — ' . $target->name">
     @php
         $isSelf = $viewer->id === $target->id;
-        $canEdit = $canEdit ?? ($isSelf || $viewer->isBureau());
-        $tierVault = $tierVault ?? ($isSelf || $viewer->isBureau());
+        $canEdit = $canEdit ?? ($isSelf || $viewer->can('manage members'));
+        $tierVault = $tierVault ?? ($isSelf || $viewer->can('view private profiles'));
 
-        // Instructors see limited info ONLY for members on their events (upcoming or last 2 weeks)
+        // 'view event participants' permission: sees cert, medical, emergency
+        // but ONLY for members on events they're responsible for (upcoming or last 2 weeks)
         $tierManifest = $tierVault;
-        if (! $tierManifest && $viewer->hasAnyRole(['instructor', 'assistant'])) {
+        if (! $tierManifest && $viewer->can('view event participants')) {
             $tierManifest = \App\Models\EventRegistration::where('user_id', $target->id)
                 ->whereHas('event', fn ($q) => $q
                     ->where('event_date', '>=', now()->subDays(14))
