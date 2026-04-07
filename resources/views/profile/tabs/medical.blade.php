@@ -27,7 +27,7 @@
                 @if($doc->compliance_notes) <br><small class="text-muted">{{ $doc->compliance_notes }}</small> @endif
             </div>
             <div>
-                @if($viewer->isBureauMaster() && !$doc->is_verified)
+                @if($viewer->can('verify documents') && !$doc->is_verified)
                     <form method="POST" action="{{ route('profile.document.verify', $doc) }}" class="d-flex align-items-center gap-2">
                         @csrf
                         <select name="cert_type" class="form-select form-select-sm" style="width:auto">

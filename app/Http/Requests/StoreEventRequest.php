@@ -9,7 +9,7 @@ class StoreEventRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isBureau() || auth()->user()?->hasRole('instructor');
+        return auth()->user()?->can('manage events');
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */

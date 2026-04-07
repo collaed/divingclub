@@ -23,7 +23,7 @@ class CommentController extends Controller
 
     public function destroy(ArticleComment $comment)
     {
-        abort_unless($comment->user_id === auth()->id() || auth()->user()->isBureauMaster(), 403);
+        abort_unless($comment->user_id === auth()->id() || auth()->user()->can('manage articles'), 403);
         $comment->delete();
 
         return back()->with('success', __('Comment deleted.'));

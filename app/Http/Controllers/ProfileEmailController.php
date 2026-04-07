@@ -39,7 +39,7 @@ class ProfileEmailController extends Controller
     public function setPrimary(UserEmail $email)
     {
         $user = auth()->user();
-        if ($email->user_id !== $user->id && ! $user->isBureauMaster()) {
+        if ($email->user_id !== $user->id && ! $user->can('manage members')) {
             abort(403);
         }
         if (! $email->is_verified) {
@@ -58,7 +58,7 @@ class ProfileEmailController extends Controller
     public function delete(UserEmail $email)
     {
         $user = auth()->user();
-        if ($email->user_id !== $user->id && ! $user->isBureauMaster()) {
+        if ($email->user_id !== $user->id && ! $user->can('manage members')) {
             abort(403);
         }
         if ($email->is_primary) {

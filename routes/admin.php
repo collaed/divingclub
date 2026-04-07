@@ -155,7 +155,7 @@ Route::delete('/settings/membership-fee/{fee}', [SettingsController::class, 'des
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 Route::get('/dashboard/export', [DashboardController::class, 'exportCsv'])->name('dashboard.export');
 Route::post('/system/update', function () {
-    abort_unless(auth()->user()->isBureauMaster(), 403);
+    abort_unless(auth()->user()->can('manage settings'), 403);
     $result = UpdateService::applyUpdate();
 
     return back()->with($result['success'] ? 'success' : 'error', $result['message']);

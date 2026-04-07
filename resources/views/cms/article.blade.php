@@ -73,7 +73,7 @@
                 @endif
 
                 {{-- Admin: trigger translation --}}
-                @if(auth()->user()?->isBureauMaster())
+                @if(auth()->user()?->can('manage articles'))
                     <form method="POST" action="{{ route('admin.articles.translate', $article) }}" class="mt-2">
                         @csrf
                         <button class="btn btn-sm btn-outline-secondary">@icon('🌐') {{ __('Generate translations') }}</button>

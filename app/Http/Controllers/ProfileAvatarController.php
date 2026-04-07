@@ -13,7 +13,7 @@ class ProfileAvatarController extends Controller
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->can('manage members')) {
             abort(403);
         }
 
@@ -42,7 +42,7 @@ class ProfileAvatarController extends Controller
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->can('manage members')) {
             abort(403);
         }
 

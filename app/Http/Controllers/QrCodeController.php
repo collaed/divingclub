@@ -132,7 +132,7 @@ class QrCodeController extends Controller
     public function sepa(PaymentExpected $payment)
     {
         $user = auth()->user();
-        if ($payment->user_id !== $user->id && ! $user->isBureauMaster()) {
+        if ($payment->user_id !== $user->id && ! $user->can('manage payments')) {
             abort(403);
         }
 

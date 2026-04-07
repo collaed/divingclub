@@ -17,7 +17,7 @@
             @if($lic->federation->acronym === 'FFESSM' && $lic->licence_number)
                 @php
                     $ffessmNumber = preg_replace('/^[A-Z]-\d{2}-/', '', $lic->licence_number);
-                    $canEdit = $viewer->isBureauMaster() || $viewer->id === $target->id;
+                    $canEdit = $viewer->can('manage members') || $viewer->id === $target->id;
                     $canSeeQr = $viewer->id === $target->id || $viewer->isBureau() || $viewer->detail?->active_instructor;
                 @endphp
                 @if($lic->federation_key && $canSeeQr)

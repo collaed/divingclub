@@ -143,6 +143,11 @@ class ArticleModelTest extends TestCase
         {
             public function __construct(private bool $bureauMaster, public int $id) {}
 
+            public function can(string $ability): bool
+            {
+                return $this->bureauMaster;
+            }
+
             public function isBureauMaster(): bool
             {
                 return $this->bureauMaster;

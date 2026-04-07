@@ -10,7 +10,7 @@ class StoreDiveSiteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isBureauMaster();
+        return auth()->user()?->can('manage dive sites');
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */

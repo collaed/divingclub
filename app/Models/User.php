@@ -134,7 +134,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasAnyRole(['bureau_master', 'bureau_finance', 'bureau_technical']);
     }
 
-    /** @deprecated Use isBureau() — kept for backward compatibility. All bureau roles have full access. */
+    /** @deprecated Use isBureau() or $user->can('permission') for granular checks. */
     public function isBureauMaster(): bool
     {
         return $this->isBureau();

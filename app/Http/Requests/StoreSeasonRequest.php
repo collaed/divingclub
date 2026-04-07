@@ -9,7 +9,7 @@ class StoreSeasonRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isBureauMaster();
+        return auth()->user()?->can('manage seasons');
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */

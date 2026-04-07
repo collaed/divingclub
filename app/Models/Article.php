@@ -80,7 +80,7 @@ class Article extends Model
 
     public function canBeEditedBy($user): bool
     {
-        if ($user->isBureauMaster()) {
+        if ($user->can('manage articles')) {
             return true;
         }
         if (in_array($this->article_type, self::MEMBER_TYPES) && $this->author_id === $user->id) {

@@ -7,7 +7,7 @@
         $d = $target->detail;
     @endphp
 
-    @if($viewer->isBureauMaster() && !$isSelf)
+    @if($viewer->can('manage members') && !$isSelf)
         <div class="alert alert-warning py-2 mb-3">@icon('⚠️') {{ __('Editing as Bureau Master') }}: {{ $target->name }}</div>
     @endif
 

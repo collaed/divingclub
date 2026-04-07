@@ -46,7 +46,7 @@ class HomeController extends Controller
             return $w;
         });
 
-        $isAdmin = $user?->isBureauMaster();
+        $isAdmin = $user?->can('manage settings');
 
         return view('home', compact('widgets', 'widgetTypes', 'isAdmin'));
     }

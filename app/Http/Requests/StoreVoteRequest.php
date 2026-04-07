@@ -9,7 +9,7 @@ class StoreVoteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isBureauMaster();
+        return auth()->user()?->can('manage votes');
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */

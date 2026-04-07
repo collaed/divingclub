@@ -70,7 +70,7 @@ class HomepageLayoutController extends Controller
     /** Save layout via AJAX. */
     public function saveLayout(Request $request)
     {
-        abort_unless(auth()->user()?->isBureauMaster(), 403);
+        abort_unless(auth()->user()?->can('manage settings'), 403);
 
         $layout = $request->input('layout');
         if (! is_array($layout)) {

@@ -9,7 +9,7 @@ class StoreFederationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isBureauMaster();
+        return auth()->user()?->can('manage settings');
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */

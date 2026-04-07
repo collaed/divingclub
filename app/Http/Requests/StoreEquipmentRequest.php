@@ -9,7 +9,7 @@ class StoreEquipmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isBureau();
+        return auth()->user()?->can('manage equipment');
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */

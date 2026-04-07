@@ -1,4 +1,4 @@
-@php $d = $target->detail; $isSelf = $viewer->id === $target->id; $isBM = $viewer->isBureauMaster(); $canEdit = $canEdit ?? ($isSelf || $isBM); @endphp
+@php $d = $target->detail; $isSelf = $viewer->id === $target->id; $isBM = $viewer->can('manage members'); $canEdit = $canEdit ?? ($isSelf || $isBM); @endphp
 @if($canEdit)
 <form method="POST" action="{{ $isBM && !$isSelf ? route('admin.profile.update.info', $target) : route('profile.update.info') }}">
     @csrf

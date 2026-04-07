@@ -9,7 +9,7 @@ class SendEmailRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->isBureauMaster();
+        return auth()->user()?->can('send email');
     }
 
     /** @return array<string, ValidationRule|array<mixed>|string> */

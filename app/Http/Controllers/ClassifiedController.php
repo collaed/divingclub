@@ -98,7 +98,7 @@ class ClassifiedController extends Controller
     public function destroy(Article $article)
     {
         abort_unless(
-            $article->article_type === 'classified' && ($article->author_id === auth()->id() || auth()->user()->isBureauMaster()),
+            $article->article_type === 'classified' && ($article->author_id === auth()->id() || auth()->user()->can('manage articles')),
             403
         );
         $article->delete();
