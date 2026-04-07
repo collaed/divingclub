@@ -79,6 +79,10 @@ class DashboardController extends Controller
             'minors_no_guardian' => User::whereHas('detail', fn ($q) => $q->whereNotNull('date_of_birth')
                 ->where('date_of_birth', '>', now()->subYears(18)))
                 ->whereDoesntHave('guardians')->count(),
+            'pending_flassa' => User::whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
+                ->whereHas('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FFESSM')))
+                ->whereDoesntHave('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FLASSA')))
+                ->count(),
         ];
 
         $heartbeats = ScheduleHeartbeat::all();

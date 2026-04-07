@@ -62,7 +62,9 @@
             @if($worklist['minors_no_guardian'] > 0)
                 <a href="{{ route('admin.guardians.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('👨‍👧') {{ __('Minors without guardian') }} <span class="badge bg-danger">{{ $worklist['minors_no_guardian'] }}</span></a>
             @endif
-            @if($worklist['birthdays_14d']->count() > 0)
+            @if($worklist['pending_flassa'] > 0)
+                <a href="{{ route('admin.members.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">🏊 {{ __('Members pending FLASSA enrolment') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_flassa'] }}</span></a>
+            @endif            @if($worklist['birthdays_14d']->count() > 0)
                 <div class="list-group-item">
                     @icon('🎂') {{ __('Birthdays next 2 weeks') }}
                     <ul class="mb-0 mt-1 small">
