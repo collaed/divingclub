@@ -1,5 +1,5 @@
 @php $d = $target->detail; $isSelf = $viewer->id === $target->id; @endphp
-<form method="POST" action="{{ $viewer->isBureauMaster() && !$isSelf ? route('admin.profile.update.private', $target) : route('profile.update.private') }}">
+<form method="POST" action="{{ $viewer->isBureau() && !$isSelf ? route('admin.profile.update.private', $target) : route('profile.update.private') }}">
     @csrf
     <input type="hidden" name="tab" value="private">
     <div class="row">

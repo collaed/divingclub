@@ -42,7 +42,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? $viewer;
 
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureau()) {
             abort(403);
         }
 
@@ -58,11 +58,11 @@ class ProfileController extends Controller
             'club_email' => 'nullable|email|max:255',
         ];
 
-        if ($viewer->id === $target->id || $viewer->isBureauMaster()) {
+        if ($viewer->id === $target->id || $viewer->isBureau()) {
             $rules['status_id'] = 'nullable|exists:member_statuses,id';
         }
 
-        if ($viewer->isBureauMaster()) {
+        if ($viewer->isBureau()) {
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
             $rules['adhesion_year'] = 'nullable|integer|min:1900|max:'.date('Y');
@@ -72,7 +72,7 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
-        if (! $viewer->isBureauMaster()) {
+        if (! $viewer->isBureau()) {
             if ($request->has('bureau_member') || $request->has('active_instructor')) {
                 abort(403);
             }
@@ -89,7 +89,7 @@ class ProfileController extends Controller
 
             $detailData = collect($validated)->except(['username', 'status_id', 'cotisation_years'])->toArray();
 
-            if ($viewer->isBureauMaster()) {
+            if ($viewer->isBureau()) {
                 $detailData['bureau_member'] = $validated['bureau_member'] ?? false;
                 $detailData['active_instructor'] = $validated['active_instructor'] ?? false;
                 $detailData['adhesion_year'] = $validated['adhesion_year'] ?? null;
@@ -109,7 +109,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? $viewer;
 
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureau()) {
             abort(403);
         }
 
@@ -136,7 +136,7 @@ class ProfileController extends Controller
     public function updateFederationKey(Request $request, MemberLicence $licence)
     {
         $user = auth()->user();
-        if ($licence->user_id !== $user->id && ! $user->isBureauMaster()) {
+        if ($licence->user_id !== $user->id && ! $user->isBureau()) {
             abort(403);
         }
         $request->validate(['federation_key' => 'nullable|string|max:20']);
@@ -150,7 +150,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
 
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureau()) {
             abort(403);
         }
 
@@ -194,7 +194,7 @@ class ProfileController extends Controller
         $viewer = auth()->user();
         $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
 
-        if ($target->id !== $viewer->id && ! $viewer->isBureauMaster()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureau()) {
             abort(403);
         }
 
