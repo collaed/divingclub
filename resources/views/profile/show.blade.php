@@ -3,7 +3,18 @@
         $isSelf = $viewer->id === $target->id;
         $canEdit = $canEdit ?? ($isSelf || $viewer->isBureau());
         $tierVault = $tierVault ?? ($isSelf || $viewer->isBureau());
-        $tierManifest = $tierManifest ?? ($tierVault || $viewer->hasAnyRole(['instructor', 'assistant']));
+
+        // Instructors see limited info ONLY for members on their events (upcoming or last 2 weeks)
+        $tierManifest = $tierVault;
+        if (! $tierManifest && $viewer->hasAnyRole(['instructor', 'assistant'])) {
+            $tierManifest = \App\Models\EventRegistration::where('user_id', $target->id)
+                ->whereHas('event', fn ($q) => $q
+                    ->where('event_date', '>=', now()->subDays(14))
+                    ->where(fn ($e) => $e->where('responsible_id', $viewer->id)
+                        ->orWhere('instructor_id', $viewer->id)))
+                ->exists();
+        }
+
         $d = $target->detail;
     @endphp
 
