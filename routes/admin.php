@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AnnualReportController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\AuditorController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveGroupRuleController;
@@ -222,3 +223,6 @@ Route::post('/partnerships/registrations/{registration}/reject', [PartnershipCon
 // Roles & Permissions
 Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles.index');
 Route::put('/roles', [RolePermissionController::class, 'update'])->name('roles.update');
+
+// Financial Audit (réviseur aux comptes) — read-only
+Route::get('/audit-finances', [AuditorController::class, 'index'])->name('audit-finances');
