@@ -172,10 +172,16 @@
 {{-- ③ Photo mosaic --}}
 @if($photos->count() >= 6)
 <div class="h3-mosaic h3-reveal">
-    @foreach($photos->take(6) as $p)
-        <a href="{{ asset('storage/'.$p) }}" onclick="openLightbox(this.href);return false"><img src="{{ asset('storage/'.$p) }}" alt="" loading="lazy"></a>
+    @foreach($photos->take(6) as $i => $p)
+        <a href="{{ asset('storage/'.$p) }}" onclick="openGallery('h3m',{{ $i }});return false"><img src="{{ asset('storage/'.$p) }}" alt="" loading="lazy"></a>
     @endforeach
 </div>
+@include('components.photo-gallery', ['galleryId' => 'h3m'])
+<script>
+document.getElementById('pg-h3m').dataset.photos=@json($photos->map(fn($p) => asset('storage/'.$p))->values());
+// Load more photos for browsing
+fetch('{{ route("photos.browse") }}').then(r=>r.json()).then(d=>{document.getElementById('pg-h3m').dataset.photos=JSON.stringify(d);});
+</script>
 @endif
 
 {{-- ④ Upcoming events --}}
@@ -254,8 +260,8 @@
 {{-- ⑦ Extra photo strip --}}
 @if($photos->count() >= 8)
 <div style="display:flex;gap:0;height:180px;overflow:hidden" class="h3-reveal">
-    @foreach($photos->slice(4, 4) as $p)
-        <a href="{{ asset('storage/'.$p) }}" onclick="openLightbox(this.href);return false" style="flex:1;overflow:hidden;cursor:zoom-in">
+    @foreach($photos->slice(4, 4) as $i => $p)
+        <a href="{{ asset('storage/'.$p) }}" onclick="openGallery('h3m',{{ $i + 4 }});return false" style="flex:1;overflow:hidden;cursor:zoom-in">
             <img src="{{ asset('storage/'.$p) }}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;filter:brightness(.85);transition:filter .3s" onmouseover="this.style.filter='brightness(1)'" onmouseout="this.style.filter='brightness(.85)'">
         </a>
     @endforeach

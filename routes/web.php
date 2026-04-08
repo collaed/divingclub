@@ -32,6 +32,7 @@ use App\Http\Controllers\StagingMailController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\VotePublicController;
 use App\Http\Middleware\CheckLicense;
+use App\Models\EventPhoto;
 use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -187,6 +188,26 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Document browser (role-based visibility, upload for instructors/bureau)
     Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');
+    Route::get('/photos/browse', function () {
+        $user = auth()->user();
+        $query = EventPhoto::where('approved', true)->where('gdpr_consent', true);
+
+        if (! $user) {
+            // Public: no faces only
+            $query->where(fn ($q) => $q->where('has_faces', false)->orWhereNull('has_faces'));
+        } else {
+            // Authenticated: include own photos regardless of face detection
+            $query->where(fn ($q) => $q
+                ->where(fn ($q2) => $q2->where('has_faces', false)->orWhereNull('has_faces'))
+                ->orWhere('uploaded_by', $user->id)
+            );
+        }
+
+        $photos = $query->orderByDesc('quality_score')->limit(100)
+            ->get()->map(fn ($p) => asset('storage/'.$p->path));
+
+        return response()->json($photos);
+    })->name('photos.browse');
     Route::get('/gallery/{event}', [DocumentBrowserController::class, 'galleryEvent'])->name('gallery.event');
     Route::post('/gallery/{event}/upload', [DocumentBrowserController::class, 'galleryUpload'])->name('gallery.upload');
     Route::get('/documents', [DocumentBrowserController::class, 'index'])->name('documents.index');
