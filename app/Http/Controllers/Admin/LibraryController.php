@@ -18,8 +18,8 @@ class LibraryController extends Controller
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('original_name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+                $q->where('original_name', $op, "%{$search}%")
+                    ->orWhere('description', $op, "%{$search}%");
             });
             $folder = null; // search across all folders
         } else {

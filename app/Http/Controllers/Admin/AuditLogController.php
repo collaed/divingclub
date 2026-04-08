@@ -20,7 +20,7 @@ class AuditLogController extends Controller
             $query->where('user_id', $request->user_id);
         }
         if ($request->filled('model_type')) {
-            $query->where('model_type', 'like', '%'.$request->model_type.'%');
+            $query->where('model_type', $op, '%'.$request->model_type.'%');
         }
         if ($request->filled('action')) {
             $query->where('action', $request->action);

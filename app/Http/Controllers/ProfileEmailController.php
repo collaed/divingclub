@@ -15,7 +15,7 @@ class ProfileEmailController extends Controller
         $user = auth()->user();
 
         if ($user->emails()->count() >= 5) {
-            return back()->with('error', __('Maximum of 5 email addresses allowed.'));
+            return back()->with('error', __('Maximum of 5 email addresses allowed.'))->withInput(['tab' => 'info']);
         }
 
         $validated = $request->validate([
@@ -33,7 +33,7 @@ class ProfileEmailController extends Controller
             'verification_sent_at' => now(),
         ]);
 
-        return back()->with('success', __('Email added. Please verify it.'));
+        return back()->with('success', __('Email added. Please verify it.'))->withInput(['tab' => 'info']);
     }
 
     public function setPrimary(UserEmail $email)
@@ -43,7 +43,7 @@ class ProfileEmailController extends Controller
             abort(403);
         }
         if (! $email->is_verified) {
-            return back()->with('error', __('Only verified emails can be set as primary.'));
+            return back()->with('error', __('Only verified emails can be set as primary.'))->withInput(['tab' => 'info']);
         }
 
         DB::transaction(function () use ($email) {
@@ -52,7 +52,7 @@ class ProfileEmailController extends Controller
             User::where('id', $email->user_id)->update(['primary_email' => $email->email]);
         });
 
-        return back()->with('success', __('Primary email updated.'));
+        return back()->with('success', __('Primary email updated.'))->withInput(['tab' => 'info']);
     }
 
     public function delete(UserEmail $email)
@@ -62,11 +62,11 @@ class ProfileEmailController extends Controller
             abort(403);
         }
         if ($email->is_primary) {
-            return back()->with('error', __('Cannot delete primary email. Set another as primary first.'));
+            return back()->with('error', __('Cannot delete primary email. Set another as primary first.'))->withInput(['tab' => 'info']);
         }
 
         $email->delete();
 
-        return back()->with('success', __('Email removed.'));
+        return back()->with('success', __('Email removed.'))->withInput(['tab' => 'info']);
     }
 }

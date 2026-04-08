@@ -32,11 +32,11 @@ class MedicalComplianceService
         $age = $user->detail?->date_of_birth?->age;
         $issueDate = $document->date_established ?? $document->created_at;
 
-        // Find all matching rules (by federation membership + age bracket)
-        $userFederationIds = $user->licences()->pluck('federation_id')->toArray();
+        // Find rules for ALL active federations (club-wide enforcement)
+        $activeFederationIds = Federation::where('visibility', 'active')->pluck('id')->toArray();
 
         $rules = MedicalComplianceRule::query()
-            ->when($userFederationIds, fn ($q) => $q->whereIn('federation_id', $userFederationIds))
+            ->whereIn('federation_id', $activeFederationIds)
             ->when($age !== null, fn ($q) => $q->where('age_bracket_low', '<=', $age)->where('age_bracket_high', '>=', $age))
             ->get();
 

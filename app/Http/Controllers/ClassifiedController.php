@@ -18,8 +18,8 @@ class ClassifiedController extends Controller
             ->active()->where('is_published', true)
             ->with('author.detail')
             ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s) {
-                $w->where('title', 'like', "%{$s}%")
-                    ->orWhere('body', 'like', "%{$s}%");
+                $w->where('title', $op, "%{$s}%")
+                    ->orWhere('body', $op, "%{$s}%");
             }))
             ->orderByDesc('created_at')->paginate($this->perPage(20))->withQueryString();
         $mine = Article::where('article_type', 'classified')
