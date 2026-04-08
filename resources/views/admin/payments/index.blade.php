@@ -13,7 +13,7 @@
 
     <form method="GET" class="row g-2 mb-3">
         <div class="col-md-4">
-            <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search member, communication…') }}" value="{{ request('search') }}">
+            <input type="text" name="search" data-instant-search="table-payments" class="form-control form-control-sm" placeholder="{{ __('Search member, communication…') }}" value="{{ request('search') }}">
         </div>
         <div class="col-md-3">
             <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -32,7 +32,7 @@
     </form>
 
     <div class="table-responsive">
-        <table class="table table-sm table-hover">
+        <table id="table-payments" class="table table-sm table-hover">
             <thead><tr>
                 <th>{{ __('Member') }}</th>
                 <th><x-sortable-th column="type" :label="__('Type')" /></th>

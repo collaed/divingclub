@@ -3,7 +3,7 @@
 
     <form method="GET" class="row g-2 mb-4">
         <div class="col-md-3">
-            <input type="text" name="search" class="form-control" placeholder="{{ __('Search name or email...') }}" value="{{ request('search') }}">
+            <input type="text" name="search" data-instant-search="table-members" class="form-control" placeholder="{{ __('Search name or email...') }}" value="{{ request('search') }}">
         </div>
         <div class="col-md-2">
             <select name="status_id" class="form-select">
@@ -45,7 +45,7 @@
     </form>
 
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table id="table-members" class="table table-hover">
             <thead>
                 <tr>
                     <th></th>

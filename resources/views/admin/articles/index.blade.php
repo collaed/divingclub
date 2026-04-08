@@ -8,7 +8,7 @@
     <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <form method="GET" action="{{ route('admin.articles.index') }}" class="d-flex gap-2 flex-grow-1" style="max-width:400px">
             @if(request('type'))<input type="hidden" name="type" value="{{ request('type') }}">@endif
-            <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search articles in all languages…') }}" value="{{ request('search') }}">
+            <input type="text" name="search" data-instant-search="table-articles" class="form-control form-control-sm" placeholder="{{ __('Search articles in all languages…') }}" value="{{ request('search') }}">
             <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
             @if(request('search'))
                 <a href="{{ route('admin.articles.index', request()->only('type')) }}" class="btn btn-sm btn-outline-secondary">✕</a>
@@ -32,7 +32,7 @@
     @endif
 
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table id="table-articles" class="table table-hover">
             <thead>
                 <tr>
                     <th><x-sortable-th column="article_type" :label="__('Type')" /></th>

@@ -7,7 +7,7 @@
     @php $typeCounts = \App\Models\Equipment::query()->selectRaw('type, count(*) as cnt')->groupBy('type')->pluck('cnt', 'type'); @endphp
     <form method="GET" class="row g-2 mb-3">
         <div class="col-md-3">
-            <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search name, serial, #…') }}" value="{{ request('search') }}">
+            <input type="text" name="search" data-instant-search="table-equipment" class="form-control form-control-sm" placeholder="{{ __('Search name, serial, #…') }}" value="{{ request('search') }}">
         </div>
         <div class="col-md-3">
             <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -36,7 +36,7 @@
     </form>
 
     <div class="table-responsive">
-        <table class="table table-sm table-hover">
+        <table id="table-equipment" class="table table-sm table-hover">
             <thead><tr>
                 <th><x-sortable-th column="short_number" :label="'#'" /></th>
                 <th><x-sortable-th column="name" :label="__('Name')" /></th>

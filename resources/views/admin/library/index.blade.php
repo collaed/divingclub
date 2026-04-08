@@ -6,7 +6,7 @@
 
     {{-- Search bar --}}
     <form method="GET" action="{{ route('admin.library.index') }}" class="mb-3 d-flex gap-2" style="max-width:400px">
-        <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search files by name or description…') }}" value="{{ $search ?? '' }}">
+        <input type="text" name="search" data-instant-search="table-library" class="form-control form-control-sm" placeholder="{{ __('Search files by name or description…') }}" value="{{ $search ?? '' }}">
         <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
         @if($search)
             <a href="{{ route('admin.library.index') }}" class="btn btn-sm btn-outline-secondary">✕</a>
@@ -98,7 +98,7 @@
                     <div class="card-body text-muted text-center py-4">{{ __('No files in this folder.') }}</div>
                 @else
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
+                        <table id="table-library" class="table table-sm table-hover mb-0">
                             <thead><tr>
                                 <th style="width:30px"><input type="checkbox" onchange="toggleAll(this.checked)" title="{{ __('Select all') }}"></th>
                                 <th style="width:44px"></th>
