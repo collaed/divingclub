@@ -74,7 +74,49 @@ class BackupService
         $size = filesize($tarPath);
         Log::info("Backup created: {$filename} (".$this->humanSize($size).')');
 
+        // Offsite upload via SFTP if configured
+        $this->offsiteUpload($tarPath, $filename);
+
         return ['filename' => $filename, 'path' => $tarPath, 'size' => $size, 'manifest' => $manifest];
+    }
+
+    /** Upload backup to offsite SFTP server if configured. */
+    protected function offsiteUpload(string $localPath, string $filename): void
+    {
+        $host = config('backup.offsite_host');
+        if (! $host) {
+            return;
+        }
+
+        $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: 'unknown';
+        $date = now()->format('Y-m-d');
+        $remoteName = "dcms-bkp-{$domain}-{$date}.tar.gz";
+
+        $key = config('backup.offsite_key', '/home/clubcep/.ssh/backup_key');
+        $user = config('backup.offsite_user', 'dcms-backup');
+        $dir = config('backup.offsite_dir', 'backups');
+
+        $cmd = sprintf(
+            'sftp -i %s -o StrictHostKeyChecking=no -b - %s@%s << EOF
+cd %s
+put %s %s
+bye
+EOF',
+            escapeshellarg($key),
+            escapeshellarg($user),
+            escapeshellarg($host),
+            escapeshellarg($dir),
+            escapeshellarg($localPath),
+            escapeshellarg($remoteName)
+        );
+
+        exec($cmd.' 2>&1', $output, $code);
+
+        if ($code === 0) {
+            Log::info("Backup uploaded offsite: {$remoteName} → {$user}@{$host}");
+        } else {
+            Log::warning('Offsite backup upload failed: '.implode("\n", $output));
+        }
     }
 
     /** List all existing backups with parsed manifests. */
