@@ -9,6 +9,7 @@ use App\Services\MedicalComplianceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProfileDocumentController extends Controller
 {
@@ -29,7 +30,11 @@ class ProfileDocumentController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('documents/'.$target->id, 'local');
+        $ext = $file->getClientOriginalExtension() ?: 'pdf';
+        $detail = $target->detail;
+        $datePart = $request->date_established ? date('Y-m-d', strtotime($request->date_established)) : date('Y-m-d');
+        $storedName = Str::slug($detail?->last_name.' '.$detail?->first_name.' '.($request->cert_type ?? $request->category).' '.$datePart).'.'.$ext;
+        $path = $file->storeAs('documents/'.$target->id, $storedName, 'local');
 
         $doc = Document::create([
             'user_id' => $target->id,
