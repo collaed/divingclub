@@ -482,10 +482,11 @@
                 {{-- Upload form (only for confirmed participants with GDPR consent) --}}
                 @auth
                     @php
-                        $isParticipant = $event->registrations()->where('user_id', auth()->id())->where('status', 'confirmed')->exists();
+                        $isParticipant = $event->registrations()->where('user_id', auth()->id())->whereIn('status', ['registered', 'confirmed'])->exists();
+                        $canUpload = $isParticipant || auth()->user()->isBureau() || auth()->user()->hasAnyRole(['instructor', 'instructor_apnea']);
                         $hasConsent = \App\Models\GdprConsent::where('user_id', auth()->id())->where('consent_type', 'photo_publication')->where('granted', true)->exists();
                     @endphp
-                    @if($isParticipant)
+                    @if($canUpload)
                         @if($hasConsent)
                             <form method="POST" action="{{ route('events.photo.upload', $event) }}" enctype="multipart/form-data" class="mt-3">
                                 @csrf
