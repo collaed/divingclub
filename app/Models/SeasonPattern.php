@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SeasonPattern extends Model
 {
-    protected $fillable = ['season_id', 'day_of_week', 'start_time', 'end_time', 'event_type', 'title', 'location', 'max_participants', 'registration_opens_days_before', 'color_hex'];
+    protected $fillable = [
+        'season_id', 'day_of_week', 'start_time', 'end_time', 'event_type',
+        'title', 'location', 'description', 'max_participants', 'estimated_cost',
+        'registration_opens_days_before', 'registration_closes_days_before',
+        'color_hex', 'whatsapp_group_url', 'dive_site_id',
+    ];
 
     public function season(): BelongsTo
     {

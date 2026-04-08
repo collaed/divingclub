@@ -53,7 +53,12 @@ class SeasonController extends Controller
                     ]);
                 }
                 foreach ($source->patterns as $p) {
-                    SeasonPattern::create(array_merge($p->only(['day_of_week', 'start_time', 'end_time', 'event_type', 'title', 'location', 'max_participants', 'color_hex']), ['season_id' => $season->id]));
+                    SeasonPattern::create(array_merge($p->only([
+                        'day_of_week', 'start_time', 'end_time', 'event_type', 'title',
+                        'location', 'description', 'max_participants', 'estimated_cost',
+                        'registration_opens_days_before', 'registration_closes_days_before',
+                        'color_hex', 'whatsapp_group_url', 'dive_site_id',
+                    ]), ['season_id' => $season->id]));
                 }
             }
         }
@@ -181,15 +186,19 @@ class SeasonController extends Controller
                     'event_time' => $pattern->start_time,
                     'end_time' => $pattern->end_time,
                     'location' => $pattern->location,
+                    'description' => $pattern->description,
                     'max_participants' => $pattern->max_participants,
+                    'estimated_cost' => $pattern->estimated_cost,
                     'waiting_list_enabled' => true,
                     'inscription_open_at' => $pattern->registration_opens_days_before
                         ? $entry['date']->copy()->subDays($pattern->registration_opens_days_before)->startOfDay()
                         : null,
-                    'status' => 'scheduled',
+                    'inscriptions_closed' => false,
+                    'status' => 'published',
                     'season_id' => $season->id,
                     'created_by' => auth()->id(),
                     'whatsapp_group_url' => $pattern->whatsapp_group_url,
+                    'dive_site_id' => $pattern->dive_site_id,
                 ]);
                 $created++;
             }
