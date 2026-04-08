@@ -133,6 +133,20 @@ class ProfileController extends Controller
         return back()->with('success', __('Private info updated.'))->withInput(['tab' => 'private']);
     }
 
+    public function updateLicence(Request $request, MemberLicence $licence)
+    {
+        abort_unless(auth()->user()->can('manage members'), 403);
+
+        $licence->update($request->validate([
+            'licence_number' => 'nullable|string|max:50',
+            'licence_request_date' => 'nullable|date',
+            'licence_request_pending' => 'boolean',
+            'season' => 'nullable|string|max:20',
+        ]));
+
+        return back()->with('success', __('Licence updated.'))->withInput(['tab' => 'renewal']);
+    }
+
     public function updateFederationKey(Request $request, MemberLicence $licence)
     {
         $user = auth()->user();

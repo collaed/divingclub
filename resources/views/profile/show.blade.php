@@ -20,7 +20,22 @@
     @endphp
 
     @if($viewer->can('manage members') && !$isSelf)
-        <div class="alert alert-warning py-2 mb-3">@icon('⚠️') {{ __('Editing as Bureau Master') }}: {{ $target->name }}</div>
+        <div class="alert alert-warning py-2 mb-3 d-flex justify-content-between align-items-center">
+            <span>@icon('⚠️') {{ __('Editing as Bureau') }}: {{ $target->name }}</span>
+            @if(session('profile_list'))
+                @php
+                    $list = session('profile_list');
+                    $idx = array_search($target->id, $list);
+                    $prev = $idx > 0 ? $list[$idx - 1] : null;
+                    $next = $idx !== false && $idx < count($list) - 1 ? $list[$idx + 1] : null;
+                @endphp
+                <div class="d-flex gap-2">
+                    @if($prev) <a href="{{ route('admin.profile.show', $prev) }}" class="btn btn-sm btn-outline-secondary">← {{ __('Prev') }}</a> @endif
+                    <span class="small text-muted align-self-center">{{ ($idx ?? 0) + 1 }}/{{ count($list) }}</span>
+                    @if($next) <a href="{{ route('admin.profile.show', $next) }}" class="btn btn-sm btn-outline-secondary">{{ __('Next') }} →</a> @endif
+                </div>
+            @endif
+        </div>
     @endif
 
     {{-- Profile header --}}

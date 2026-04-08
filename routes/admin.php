@@ -30,6 +30,7 @@ use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\HomepageLayoutController;
 use App\Http\Controllers\ProfileController;
 use App\Models\EmailLog;
+use App\Models\MemberDetail;
 use App\Models\User;
 use App\Services\UpdateService;
 use Illuminate\Support\Facades\Password;
@@ -249,3 +250,29 @@ Route::delete('/email/{emailLog}', function (EmailLog $emailLog) {
 
     return back()->with('success', __('Communication deleted.'));
 })->name('email.destroy');
+
+// Worklist browse — stores member IDs in session for prev/next navigation
+Route::get('/worklist-browse/{type}', function (string $type) {
+    $ids = match ($type) {
+        'flassa' => User::whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
+            ->whereHas('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FFESSM')))
+            ->whereDoesntHave('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FLASSA')))
+            ->pluck('id')->toArray(),
+        'birthdays' => MemberDetail::whereNotNull('date_of_birth')
+            ->get()->filter(fn ($d) => $d->date_of_birth->isBirthday() || ($d->date_of_birth->copy()->year(now()->year)->between(now(), now()->addDays(14))))
+            ->pluck('user_id')->toArray(),
+        'no_medical' => User::whereDoesntHave('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true))
+            ->whereHas('detail')->pluck('id')->toArray(),
+        'unverified' => User::whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->whereNull('verified_at'))
+            ->pluck('id')->toArray(),
+        default => [],
+    };
+
+    if (empty($ids)) {
+        return redirect()->route('admin.members.index')->with('info', __('No members in this list.'));
+    }
+
+    session(['profile_list' => $ids]);
+
+    return redirect()->route('admin.profile.show', $ids[0]);
+})->name('worklist-browse');

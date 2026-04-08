@@ -1,17 +1,48 @@
 {{-- ClubCEP.eu — Membership renewal tab: licence info, FFESSM InfoLicencié QR + scanner --}}
-@php $licences = $target->licences()->with('federation')->get(); @endphp
+@php $licences = $target->licences()->with('federation')->get(); $canEditLic = $viewer->can('manage members'); @endphp
 <h6>{{ __('Membership Renewal') }}</h6>
-<p class="text-muted small">{{ __('This tab is read-only for members. Bureau can edit licence details.') }}</p>
 
 @foreach($licences as $lic)
     <div class="card dc-card mb-3">
         <div class="card-body">
             <h6>{{ $lic->federation->acronym }} — {{ $lic->federation->full_name }}</h6>
+
+            @if($canEditLic)
+            <form method="POST" action="{{ route('profile.update.licence', $lic) }}" class="row g-2 mb-2">
+                @csrf
+                <div class="col-md-3">
+                    <label class="form-label small">{{ __('Licence Number') }}</label>
+                    <input type="text" name="licence_number" class="form-control form-control-sm" value="{{ $lic->licence_number }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">{{ __('Request Date') }}</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" name="licence_request_date" class="form-control" value="{{ $lic->licence_request_date?->format('Y-m-d') }}">
+                        <button type="button" class="btn btn-outline-secondary" onclick="this.previousElementSibling.value='{{ date('Y-m-d') }}'">{{ __('Today') }}</button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">{{ __('Season') }}</label>
+                    <input type="text" name="season" class="form-control form-control-sm" value="{{ $lic->season }}" placeholder="2025-2026">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">{{ __('Pending') }}</label>
+                    <select name="licence_request_pending" class="form-select form-select-sm">
+                        <option value="0" {{ !$lic->licence_request_pending ? 'selected' : '' }}>{{ __('No') }}</option>
+                        <option value="1" {{ $lic->licence_request_pending ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-sm btn-primary">{{ __('Save') }}</button>
+                </div>
+            </form>
+            @else
             <div class="row">
                 <div class="col-md-4"><strong>{{ __('Licence Number') }}:</strong> {{ $lic->licence_number ?? '—' }}</div>
                 <div class="col-md-4"><strong>{{ __('Request Date') }}:</strong> {{ $lic->licence_request_date?->format('d/m/Y') ?? '—' }}</div>
                 <div class="col-md-4"><strong>{{ __('Pending') }}:</strong> {{ $lic->licence_request_pending ? __('Yes') : __('No') }}</div>
             </div>
+            @endif
 
             {{-- FFESSM InfoLicencié --}}
             @if($lic->federation->acronym === 'FFESSM' && $lic->licence_number)
