@@ -85,13 +85,86 @@ class SocialAuthController extends Controller
             );
         }
 
-        // 3. New user — create account
-        $user = DB::transaction(function () use ($provider, $socialUser) {
+        // 3. No email match — ask user if they have an existing account or are new
+        session([
+            'pending_social_new' => [
+                'provider' => $provider,
+                'provider_user_id' => $socialUser->getId(),
+                'email' => $email,
+                'name' => $socialUser->getName() ?? '',
+                'token' => encrypt($socialUser->token),
+                'refresh_token' => encrypt($socialUser->refreshToken ?? ''),
+            ],
+        ]);
+
+        return redirect()->route('auth.social.choose');
+    }
+
+    /** Show the "link existing or register new" choice page. */
+    public function choose()
+    {
+        $pending = session('pending_social_new');
+        if (! $pending) {
+            return redirect()->route('login');
+        }
+
+        return view('auth.social-choose', [
+            'provider' => ucfirst($pending['provider']),
+            'email' => $pending['email'],
+            'name' => $pending['name'],
+        ]);
+    }
+
+    /** User chose "I have an existing account" — log in to link. */
+    public function linkExisting(Request $request)
+    {
+        $pending = session('pending_social_new');
+        if (! $pending) {
+            return redirect()->route('login');
+        }
+
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (! Auth::attempt($request->only('email', 'password'), true)) {
+            return back()->withErrors(['email' => __('Invalid credentials.')])->withInput();
+        }
+
+        // Link the social account to the authenticated user
+        DB::transaction(function () use ($pending) {
+            UserSocialAccount::create([
+                'user_id' => auth()->id(),
+                'provider' => $pending['provider'],
+                'provider_user_id' => $pending['provider_user_id'],
+                'email' => $pending['email'],
+                'token' => decrypt($pending['token']),
+                'refresh_token' => decrypt($pending['refresh_token']),
+            ]);
+        });
+
+        session()->forget('pending_social_new');
+
+        return redirect()->route('profile.show')->with('success',
+            __(':provider account linked to your existing account.', ['provider' => ucfirst($pending['provider'])])
+        );
+    }
+
+    /** User chose "I'm new" — create account. */
+    public function createNew()
+    {
+        $pending = session('pending_social_new');
+        if (! $pending) {
+            return redirect()->route('login');
+        }
+
+        $user = DB::transaction(function () use ($pending) {
             $memberRole = Role::where('slug', 'member')->first();
 
             $user = User::create([
-                'primary_email' => $socialUser->getEmail(),
-                'role_id' => $memberRole->id,
+                'primary_email' => $pending['email'],
+                'role_id' => $memberRole?->id,
                 'email_verified_at' => now(),
             ]);
 
@@ -99,23 +172,22 @@ class SocialAuthController extends Controller
 
             UserEmail::create([
                 'user_id' => $user->id,
-                'email' => $socialUser->getEmail(),
+                'email' => $pending['email'],
                 'is_primary' => true,
                 'is_verified' => true,
-                'label' => $provider,
+                'label' => $pending['provider'],
             ]);
 
             UserSocialAccount::create([
                 'user_id' => $user->id,
-                'provider' => $provider,
-                'provider_user_id' => $socialUser->getId(),
-                'email' => $socialUser->getEmail(),
-                'token' => $socialUser->token,
-                'refresh_token' => $socialUser->refreshToken,
+                'provider' => $pending['provider'],
+                'provider_user_id' => $pending['provider_user_id'],
+                'email' => $pending['email'],
+                'token' => decrypt($pending['token']),
+                'refresh_token' => decrypt($pending['refresh_token']),
             ]);
 
-            $name = $socialUser->getName() ?? '';
-            $parts = explode(' ', $name, 2);
+            $parts = explode(' ', $pending['name'], 2);
             MemberDetail::create([
                 'user_id' => $user->id,
                 'first_name' => $parts[0] ?? '',
@@ -125,6 +197,7 @@ class SocialAuthController extends Controller
             return $user;
         });
 
+        session()->forget('pending_social_new');
         Auth::login($user, true);
 
         return redirect()->route('profile.show')->with('success', __('Welcome! Please complete your profile.'));

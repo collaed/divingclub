@@ -117,6 +117,9 @@ Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('auth.social.callback');
 Route::post('/auth/social/confirm-link', [SocialAuthController::class, 'confirmLink'])->middleware('auth')->name('auth.social.confirm-link');
 Route::post('/auth/social/dismiss-link', [SocialAuthController::class, 'dismissLink'])->middleware('auth')->name('auth.social.dismiss-link');
+Route::get('/auth/social/choose', [SocialAuthController::class, 'choose'])->name('auth.social.choose');
+Route::post('/auth/social/link-existing', [SocialAuthController::class, 'linkExisting'])->name('auth.social.link-existing');
+Route::post('/auth/social/create-new', [SocialAuthController::class, 'createNew'])->name('auth.social.create-new');
 
 // Email verification
 Route::middleware('auth')->group(function () {
