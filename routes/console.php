@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::job(new SendMedicalReminders)->dailyAt('08:00')->after(fn () => ScheduleHeartbeat::beat('medical-reminders'));
 Schedule::job(new WeeklyBackup)->weeklyOn(0, '03:00')->after(fn () => ScheduleHeartbeat::beat('weekly-backup'));
-Schedule::job(new ProcessTranslations)->hourly();
-Schedule::job(new AutoOpenCloseVotes)->everyMinute();
-Schedule::job(new PollInboundMail)->everyMinute();
-Schedule::job(new PurgeAuditLogs)->monthlyOn(1, '04:00');
-Schedule::job(new CleanupClassifieds)->monthlyOn(1, '05:00');
-Schedule::job(new SendEquipmentReminders)->dailyAt('09:00');
+Schedule::job(new ProcessTranslations)->hourly()->after(fn () => ScheduleHeartbeat::beat('translations'));
+Schedule::job(new AutoOpenCloseVotes)->everyMinute()->after(fn () => ScheduleHeartbeat::beat('vote-auto'));
+Schedule::job(new PollInboundMail)->everyMinute()->after(fn () => ScheduleHeartbeat::beat('inbound-mail'));
+Schedule::job(new PurgeAuditLogs)->monthlyOn(1, '04:00')->after(fn () => ScheduleHeartbeat::beat('audit-cleanup'));
+Schedule::job(new CleanupClassifieds)->monthlyOn(1, '05:00')->after(fn () => ScheduleHeartbeat::beat('classifieds-cleanup'));
+Schedule::job(new SendEquipmentReminders)->dailyAt('09:00')->after(fn () => ScheduleHeartbeat::beat('equipment-reminders'));
