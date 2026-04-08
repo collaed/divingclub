@@ -84,10 +84,12 @@ class MedicalComplianceService
             }
         }
 
+        $ruleNames = $rules->map(fn ($r) => $r->federation->acronym)->unique()->implode(', ');
+
         $document->update([
             'expiry_date' => $expiryDate,
             'is_compliant' => $expiryDate->isFuture(),
-            'compliance_notes' => "Evaluated against {$rules->count()} rule(s). Validity: {$minMonths} months.",
+            'compliance_notes' => "Evaluated against {$rules->count()} rule(s) ({$ruleNames}). Expiry: {$expiryDate->format('d/m/Y')}.",
         ]);
 
         // Supersede previous current medical certs

@@ -65,7 +65,7 @@ class ProfileDocumentController extends Controller
             );
         }
 
-        return back()->with('success', __('Document uploaded.'));
+        return back()->with('success', __('Document uploaded.'))->withInput(['tab' => $request->category === 'medical' ? 'medical' : 'info']);
     }
 
     public function download(Document $document)
@@ -75,7 +75,16 @@ class ProfileDocumentController extends Controller
             abort(403);
         }
 
-        return Storage::disk('local')->download($document->file_path, $document->original_filename);
+        // Try local disk first, then public (Joomla imports stored in public)
+        if (Storage::disk('local')->exists($document->file_path)) {
+            return Storage::disk('local')->download($document->file_path, $document->original_filename);
+        }
+
+        if (Storage::disk('public')->exists($document->file_path)) {
+            return Storage::disk('public')->download($document->file_path, $document->original_filename);
+        }
+
+        abort(404, __('File not found.'));
     }
 
     public function verify(Request $request, Document $document)
@@ -98,6 +107,6 @@ class ProfileDocumentController extends Controller
             app(MedicalComplianceService::class)->evaluateCertificate($document);
         }
 
-        return back()->with('success', __('Certificate verified.'));
+        return back()->with('success', __('Certificate verified.'))->withInput(['tab' => 'medical']);
     }
 }
