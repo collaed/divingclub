@@ -235,19 +235,33 @@
 
     {{-- Scheduled Tasks Heartbeat --}}
     @if(!empty($heartbeats))
+    @php
+        $taskMeta = [
+            'vote-auto' => ['freq' => __('Every minute'), 'stale_hours' => 0.1],
+            'inbound-mail' => ['freq' => __('Every minute'), 'stale_hours' => 0.1],
+            'medical-reminders' => ['freq' => __('Daily 08:00'), 'stale_hours' => 25],
+            'equipment-reminders' => ['freq' => __('Daily 09:00'), 'stale_hours' => 25],
+            'translations' => ['freq' => __('Hourly'), 'stale_hours' => 2],
+            'weekly-backup' => ['freq' => __('Sunday 03:00'), 'stale_hours' => 170],
+            'audit-cleanup' => ['freq' => __('Monthly 1st'), 'stale_hours' => 750],
+            'classifieds-cleanup' => ['freq' => __('Monthly 1st'), 'stale_hours' => 750],
+        ];
+    @endphp
     <div class="card dc-card mt-4">
         <div class="card-header fw-bold">⏱️ {{ __('Scheduled Tasks') }}</div>
         <div class="table-responsive">
             <table class="table table-sm mb-0">
-                <thead><tr><th>{{ __('Task') }}</th><th>{{ __('Last Run') }}</th><th>{{ __('Status') }}</th><th>{{ __('Message') }}</th></tr></thead>
+                <thead><tr><th>{{ __('Task') }}</th><th>{{ __('Frequency') }}</th><th>{{ __('Last Run') }}</th><th>{{ __('Status') }}</th><th>{{ __('Message') }}</th></tr></thead>
                 <tbody>
                 @foreach($heartbeats as $hb)
                     @php
+                        $meta = $taskMeta[$hb->task] ?? ['freq' => '?', 'stale_hours' => 25];
                         $ago = $hb->last_run_at ? \Carbon\Carbon::parse($hb->last_run_at)->diffForHumans() : '—';
-                        $stale = $hb->last_run_at && \Carbon\Carbon::parse($hb->last_run_at)->lt(now()->subHours(25));
+                        $stale = $hb->last_run_at && \Carbon\Carbon::parse($hb->last_run_at)->lt(now()->subHours($meta['stale_hours']));
                     @endphp
                     <tr class="{{ $stale ? 'table-warning' : '' }}">
                         <td><code>{{ $hb->task }}</code></td>
+                        <td class="small text-muted">{{ $meta['freq'] }}</td>
                         <td>{{ $ago }}</td>
                         <td>
                             @if(!$hb->last_run_at)
