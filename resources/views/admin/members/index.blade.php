@@ -60,7 +60,7 @@
             </thead>
             <tbody>
                 @foreach($members as $m)
-                    <tr>
+                    <tr data-href="{{ route('admin.profile.show', $m) }}">
                         <td style="width:40px">
                             @if($m->detail?->avatar_path)
                                 <img src="{{ asset('storage/' . $m->detail->avatar_path) }}" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;">
@@ -100,3 +100,5 @@
         <div>{{ $members->links() }}</div>
     </div>
 </x-layout>
+
+@include("components.clickable-rows")

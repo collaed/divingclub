@@ -70,3 +70,5 @@
     </div>
     {{ $equipment->links() }}
 </x-layout>
+
+@include("components.clickable-rows")

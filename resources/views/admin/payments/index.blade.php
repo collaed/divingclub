@@ -61,3 +61,5 @@
         <a href="{{ route('admin.payments.reconciliation') }}" class="btn btn-primary">{{ __('Bank Reconciliation') }}</a>
     </div>
 </x-layout>
+
+@include("components.clickable-rows")
