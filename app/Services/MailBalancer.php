@@ -15,8 +15,8 @@ class MailBalancer
 {
     /** Daily limits per provider. */
     private const LIMITS = [
-        'resend_primary' => 90,
-        'resend_secondary' => 90,
+        'resend_primary' => 98,
+        'resend_secondary' => 98,
         'mailjet' => 200,  // 6000/month ≈ 200/day
     ];
 
