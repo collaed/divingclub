@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BankTransaction;
 use App\Models\Document;
+use App\Models\EmailLog;
 use App\Models\Equipment;
 use App\Models\EquipmentLoan;
 use App\Models\EquipmentMaintenance;
@@ -83,6 +84,7 @@ class DashboardController extends Controller
                 ->whereHas('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FFESSM')))
                 ->whereDoesntHave('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FLASSA')))
                 ->count(),
+            'pending_comms' => EmailLog::where('status', 'pending_review')->where('direction', 'inbound')->count(),
         ];
 
         $heartbeats = ScheduleHeartbeat::all();

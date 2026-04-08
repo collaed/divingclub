@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\EmailLog;
 use App\Models\User;
+use App\Services\InboundMailFilter;
 use App\Services\MailAliasService;
 use App\Services\ScheduleHeartbeat;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -231,11 +232,19 @@ class PollInboundMail implements ShouldQueue
             $eventId = (int) $em[1];
         }
 
+        // Filter inbound content before logging
+        $filtered = InboundMailFilter::filter($body, $eventId);
+
         EmailLog::create([
             'event_id' => $eventId,
             'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
-            'body' => substr($body, 0, 5000), 'status' => 'forwarded',
-            'direction' => 'inbound', 'error' => "Sent to {$sent}/".count($resolved['emails']),
+            'body' => substr($filtered['body'], 0, 5000),
+            'status' => $filtered['needs_review'] ? 'pending_review' : 'forwarded',
+            'direction' => 'inbound',
+            'authorized' => ! $filtered['needs_review'],
+            'error' => $filtered['needs_review']
+                ? "Needs review: {$filtered['review_reason']}"
+                : "Sent to {$sent}/".count($resolved['emails']),
         ]);
 
         Mail::raw(

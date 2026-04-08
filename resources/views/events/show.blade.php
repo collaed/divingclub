@@ -410,15 +410,29 @@
                             <div class="border-bottom p-2 small">
                                 <div class="d-flex justify-content-between text-muted" style="font-size:0.7rem">
                                     <span>{{ $mail->from_name ?? $mail->user?->name ?? __('System') }} @if($mail->from_email)<{{ $mail->from_email }}>@endif</span>
-                                    <span>{{ $mail->created_at->format('d/m/Y H:i') }}</span>
+                                    <span>
+                                        {{ $mail->created_at->format('d/m/Y H:i') }}
+                                        @if($mail->status === 'pending_review')
+                                            <span class="badge bg-warning text-dark ms-1">{{ __('Pending review') }}</span>
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="fw-bold">{{ $mail->subject }}</div>
                                 @if($mail->body)
-                                    <details class="mt-1">
+                                    <details class="mt-1" @if($mail->status === 'pending_review') open @endif>
                                         <summary class="text-muted" style="font-size:0.7rem; cursor:pointer">{{ __('Show message') }}</summary>
                                         <div class="mt-1 p-2 bg-light rounded" style="font-size:0.75rem; white-space:pre-wrap">{{ Str::limit($mail->body, 2000) }}</div>
                                     </details>
                                 @endif
+                                @can('send email')
+                                    <div class="mt-1 d-flex gap-1">
+                                        @if($mail->status === 'pending_review')
+                                            <form method="POST" action="{{ route('admin.email.approve', $mail) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-success py-0">✓ {{ __('Approve') }}</button></form>
+                                            <form method="POST" action="{{ route('admin.email.reject', $mail) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-warning py-0">✗ {{ __('Reject') }}</button></form>
+                                        @endif
+                                        <form method="POST" action="{{ route('admin.email.destroy', $mail) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete this communication?') }}')">@csrf @method('DELETE') <button class="btn btn-sm btn-outline-danger py-0">🗑</button></form>
+                                    </div>
+                                @endcan
                             </div>
                         @endforeach
                     </div>

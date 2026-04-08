@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\VoteController;
 use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\HomepageLayoutController;
 use App\Http\Controllers\ProfileController;
+use App\Models\EmailLog;
 use App\Models\User;
 use App\Services\UpdateService;
 use Illuminate\Support\Facades\Password;
@@ -226,3 +227,25 @@ Route::put('/roles', [RolePermissionController::class, 'update'])->name('roles.u
 
 // Financial Audit (réviseur aux comptes) — read-only
 Route::get('/audit-finances', [AuditorController::class, 'index'])->name('audit-finances');
+
+// Email log moderation
+Route::post('/email/{emailLog}/approve', function (EmailLog $emailLog) {
+    abort_unless(auth()->user()->can('send email'), 403);
+    $emailLog->update(['status' => 'forwarded', 'authorized' => true, 'error' => null]);
+
+    return back()->with('success', __('Communication approved.'));
+})->name('email.approve');
+
+Route::post('/email/{emailLog}/reject', function (EmailLog $emailLog) {
+    abort_unless(auth()->user()->can('send email'), 403);
+    $emailLog->update(['status' => 'rejected', 'authorized' => false]);
+
+    return back()->with('success', __('Communication rejected.'));
+})->name('email.reject');
+
+Route::delete('/email/{emailLog}', function (EmailLog $emailLog) {
+    abort_unless(auth()->user()->can('send email'), 403);
+    $emailLog->delete();
+
+    return back()->with('success', __('Communication deleted.'));
+})->name('email.destroy');
