@@ -125,7 +125,10 @@ class InboundMailFilter
      */
     private static function aiFilter(string $body, ?int $eventId): array
     {
-        $apiKey = config('services.openai.key') ?: env('OPENAI_API_KEY');
+        $oneMinKey = env('ONEMIN_AI_KEY');
+        $openAiKey = config('services.openai.key') ?: env('OPENAI_API_KEY');
+        $apiKey = $oneMinKey ?: $openAiKey;
+
         if (! $apiKey || mb_strlen(strip_tags($body)) < 30) {
             return ['needs_review' => false, 'reason' => null];
         }
@@ -138,23 +141,37 @@ class InboundMailFilter
             }
         }
 
-        try {
-            $response = Http::withToken($apiKey)->timeout(10)
-                ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4o-mini',
-                    'max_tokens' => 100,
-                    'messages' => [
-                        ['role' => 'system', 'content' => "You are a content moderator for a diving club's event communication board. {$eventContext} Respond with JSON: {\"ok\": true/false, \"reason\": \"...\"}. Return ok=false if the message contains: private workplace information, personal complaints not related to the event, content that should have been a private reply, or sensitive personal data (health details, financial info). Return ok=true if it's about event organization, logistics, participation, diving conditions, or general club matters."],
-                        ['role' => 'user', 'content' => mb_substr(strip_tags($body), 0, 500)],
-                    ],
-                ]);
+        $systemPrompt = "You are a content moderator for a diving club's event communication board. {$eventContext} Respond with JSON only: {\"ok\": true/false, \"reason\": \"...\"}. Return ok=false if the message contains: private workplace information, personal complaints not related to the event, content that should have been a private reply, or sensitive personal data. Return ok=true if it's about event organization, logistics, participation, diving conditions, or general club matters.";
+        $userContent = mb_substr(strip_tags($body), 0, 500);
 
-            $json = json_decode($response->json('choices.0.message.content', '{}'), true);
+        try {
+            if ($oneMinKey) {
+                $response = Http::withHeaders(['API-KEY' => $oneMinKey])->timeout(15)
+                    ->post('https://api.1min.ai/api/features', [
+                        'type' => 'CHAT_WITH_AI',
+                        'model' => 'gpt-4o-mini',
+                        'promptObject' => ['prompt' => "{$systemPrompt}\n\nMessage:\n{$userContent}", 'isMixed' => false],
+                    ]);
+                $result = $response->json('aiRecord.aiRecordDetail.resultObject.0', '');
+            } else {
+                $response = Http::withToken($openAiKey)->timeout(10)
+                    ->post('https://api.openai.com/v1/chat/completions', [
+                        'model' => 'gpt-4o-mini',
+                        'max_tokens' => 100,
+                        'messages' => [
+                            ['role' => 'system', 'content' => $systemPrompt],
+                            ['role' => 'user', 'content' => $userContent],
+                        ],
+                    ]);
+                $result = $response->json('choices.0.message.content', '');
+            }
+
+            $json = json_decode($result, true);
             if (isset($json['ok']) && $json['ok'] === false) {
                 return ['needs_review' => true, 'reason' => $json['reason'] ?? 'AI flagged as potentially private/irrelevant'];
             }
         } catch (\Throwable) {
-            // AI unavailable — don't block, just pass through
+            // AI unavailable — don't block
         }
 
         return ['needs_review' => false, 'reason' => null];
