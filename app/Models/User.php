@@ -152,6 +152,14 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withPivot('relationship')->withTimestamps();
     }
 
+    /** Member is active if cotisation covers the current season year. */
+    public function isActive(): bool
+    {
+        $currentYear = (int) (now()->month >= 9 ? now()->year + 1 : now()->year);
+
+        return in_array($currentYear, $this->detail?->cotisation_years ?? []);
+    }
+
     public function isMinor(): bool
     {
         $dob = $this->detail?->date_of_birth;
