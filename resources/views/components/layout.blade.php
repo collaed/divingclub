@@ -412,6 +412,93 @@
         });
     })();
     </script>
+
+    {{-- Unsaved changes warning (only on forms with tinymce, textarea[rows>2], or .dc-warn-unsaved) --}}
+    <script>
+    (function(){
+        var dirty=false;
+        function isWatched(el){
+            var f=el.closest('form');
+            if(!f||f.dataset.noWarn!==undefined||f.method==='get') return false;
+            return f.classList.contains('dc-warn-unsaved')||f.querySelector('textarea.tinymce,textarea[rows],.dc-warn-unsaved');
+        }
+        document.addEventListener('input',function(e){if(isWatched(e.target))dirty=true;},{capture:true});
+        document.addEventListener('change',function(e){if(isWatched(e.target))dirty=true;},{capture:true});
+        document.addEventListener('submit',function(){dirty=false;});
+        window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue='';}});
+    })();
+    </script>
+
+    {{-- Offline banner --}}
+    <div id="dcOffline" class="position-fixed top-0 start-0 end-0 text-center py-1 text-white small fw-semibold" style="z-index:1070;background:#dc3545;display:none;transition:transform .3s;transform:translateY(-100%)">
+        🔌 {{ __('You are offline — changes may not be saved') }}
+    </div>
+    <script>
+    (function(){
+        var b=document.getElementById('dcOffline');
+        function show(){b.style.display='block';setTimeout(function(){b.style.transform='translateY(0)'},10);}
+        function hide(){b.style.transform='translateY(-100%)';setTimeout(function(){b.style.display='none'},300);}
+        window.addEventListener('offline',show);
+        window.addEventListener('online',hide);
+        if(!navigator.onLine) show();
+    })();
+    </script>
+
+    {{-- Keyboard hints for photo gallery --}}
+    <script>
+    (function(){
+        var shown=localStorage.getItem('dc_kb_hint');
+        if(shown) return;
+        var obs=new MutationObserver(function(){
+            var g=document.querySelector('.pg-overlay.open');
+            if(!g) return;
+            obs.disconnect();
+            var h=document.createElement('div');
+            h.innerHTML='<kbd>←</kbd> <kbd>→</kbd> {{ __("navigate") }} · <kbd>Esc</kbd> {{ __("close") }}';
+            h.style.cssText='position:fixed;bottom:20%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:.5rem 1.2rem;border-radius:8px;z-index:9999;font-size:.85rem;pointer-events:none;transition:opacity 1s';
+            document.body.appendChild(h);
+            setTimeout(function(){h.style.opacity='0'},2500);
+            setTimeout(function(){h.remove()},3500);
+            localStorage.setItem('dc_kb_hint','1');
+        });
+        obs.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+    })();
+    </script>
+
+    {{-- Client-side table sorting --}}
+    <script>
+    (function(){
+        document.querySelectorAll('table[data-searchable] thead th, table.table thead th').forEach(function(th,ci){
+            var tbl=th.closest('table');
+            if(!tbl||th.dataset.noSort!==undefined) return;
+            th.style.cursor='pointer';
+            th.style.userSelect='none';
+            th.title='{{ __("Click to sort") }}';
+            var dir=0;
+            th.addEventListener('click',function(){
+                var tbody=tbl.querySelector('tbody');
+                if(!tbody) return;
+                var rows=Array.from(tbody.querySelectorAll('tr'));
+                // Reset siblings
+                th.parentElement.querySelectorAll('th').forEach(function(s){if(s!==th)s.dataset.sort='';});
+                dir=dir===1?-1:1;
+                th.dataset.sort=dir===1?'asc':'desc';
+                rows.sort(function(a,b){
+                    var ac=(a.children[ci]||{}).textContent||'';
+                    var bc=(b.children[ci]||{}).textContent||'';
+                    var an=parseFloat(ac.replace(/[^\d.,-]/g,'')),bn=parseFloat(bc.replace(/[^\d.,-]/g,''));
+                    if(!isNaN(an)&&!isNaN(bn)) return (an-bn)*dir;
+                    return ac.localeCompare(bc,'{{ app()->getLocale() }}',{sensitivity:'base'})*dir;
+                });
+                rows.forEach(function(r){tbody.appendChild(r);});
+            });
+        });
+        // Sort indicator CSS
+        var s=document.createElement('style');
+        s.textContent='th[data-sort=asc]::after{content:" ↑";opacity:.5}th[data-sort=desc]::after{content:" ↓";opacity:.5}';
+        document.head.appendChild(s);
+    })();
+    </script>
     @stack('scripts')
 </body>
 </html>
