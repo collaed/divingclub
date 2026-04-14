@@ -34,7 +34,12 @@ class InstructorAvailabilityController extends Controller
         $isInstructor = $user->hasAnyRole(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical', 'assistant']);
 
         $month = $request->query('month', now()->format('Y-m'));
-        $start = Carbon::parse($month.'-01')->startOfMonth();
+        try {
+            $start = Carbon::parse($month.'-01')->startOfMonth();
+        } catch (\Throwable) {
+            $start = now()->startOfMonth();
+            $month = $start->format('Y-m');
+        }
         $end = $start->copy()->endOfMonth();
 
         $availabilities = InstructorAvailability::with('user.detail')

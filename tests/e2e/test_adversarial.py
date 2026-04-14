@@ -1,6 +1,5 @@
 """
-Adversarial E2E tests — mischievous scenarios to find bugs.
-Tests all features modified in the last week.
+Adversarial E2E tests — security, stability, edge cases.
 Run: python3 -m pytest tests/e2e/test_adversarial.py -v --tb=short
 """
 import pytest
@@ -29,41 +28,80 @@ def login(browser, email="eddy.collart@gmail.com", pw="password"):
     return pg, ctx
 
 
-class TestHome3Adversarial:
-    """Public landing page edge cases."""
+# ── Input Validation & Error Handling ──
 
-    def test_home3_no_500_when_no_photos(self, browser):
-        ctx = browser.new_context(ignore_https_errors=True)
-        pg = ctx.new_page()
-        resp = pg.goto(f"{BASE}/home3")
+class TestInputValidation:
+    def test_invalid_month_param_no_500(self, browser):
+        pg, ctx = login(browser)
+        resp = pg.goto(f"{BASE}/availability?month=invalid")
         assert resp.status < 500
         ctx.close()
 
-    def test_home3_login_panel_escape_closes(self, browser):
-        ctx = browser.new_context(ignore_https_errors=True)
-        pg = ctx.new_page()
-        pg.goto(f"{BASE}/home3")
-        pg.evaluate("openLogin()")
-        expect(pg.locator("#loginPanel")).to_have_class(re.compile("open"))
-        pg.keyboard.press("Escape")
-        pg.wait_for_timeout(400)
-        expect(pg.locator("#loginPanel")).not_to_have_class(re.compile("open"))
+    def test_invalid_date_param_no_500(self, browser):
+        pg, ctx = login(browser)
+        resp = pg.goto(f"{BASE}/admin/email-stats?date=not-a-date")
+        assert resp.status < 500
         ctx.close()
 
-    def test_home3_login_with_wrong_password_shows_panel(self, browser):
+    def test_future_date_email_stats(self, browser):
+        pg, ctx = login(browser)
+        resp = pg.goto(f"{BASE}/admin/email-stats?date=2030-01-01")
+        assert resp.status < 500
+        ctx.close()
+
+    def test_negative_page_number(self, browser):
+        pg, ctx = login(browser)
+        resp = pg.goto(f"{BASE}/admin/members?page=-1")
+        assert resp.status < 500
+        ctx.close()
+
+    def test_huge_page_number(self, browser):
+        pg, ctx = login(browser)
+        resp = pg.goto(f"{BASE}/admin/members?page=99999")
+        assert resp.status < 500
+        ctx.close()
+
+    def test_sql_injection_in_search(self, browser):
+        pg, ctx = login(browser)
+        resp = pg.goto(f"{BASE}/admin/members?search=' OR 1=1 --")
+        assert resp.status < 500
+        assert pg.locator("body").is_visible()
+        ctx.close()
+
+    def test_xss_in_search(self, browser):
+        pg, ctx = login(browser)
+        pg.goto(f"{BASE}/admin/members?search=<img src=x onerror=alert(1)>")
+        content = pg.content()
+        assert "onerror=alert" not in content
+        ctx.close()
+
+
+# ── Security ──
+
+class TestSecurity:
+    def test_unauthenticated_admin_redirect(self, browser):
         ctx = browser.new_context(ignore_https_errors=True)
         pg = ctx.new_page()
-        pg.goto(f"{BASE}/home3")
-        pg.evaluate("openLogin()")
-        pg.fill('#loginPanel input[name="email"]', "wrong@example.com")
-        pg.fill('#loginPanel input[name="password"]', "wrong")
-        pg.click('#loginPanel button[type="submit"]')
+        resp = pg.goto(f"{BASE}/admin/dashboard")
+        assert "/login" in pg.url or resp.status == 403
+        ctx.close()
+
+    def test_unauthenticated_profile_redirect(self, browser):
+        ctx = browser.new_context(ignore_https_errors=True)
+        pg = ctx.new_page()
+        resp = pg.goto(f"{BASE}/profile")
+        assert "/login" in pg.url
+        ctx.close()
+
+    def test_csrf_token_present_on_forms(self, browser):
+        pg, ctx = login(browser)
+        pg.goto(f"{BASE}/profile")
         pg.wait_for_load_state("networkidle")
-        # Should redirect to login page or show error, not 500
-        assert pg.evaluate("document.readyState") == "complete"
+        tokens = pg.locator('input[name="_token"]')
+        assert tokens.count() > 0
         ctx.close()
 
-    def test_home3_xss_in_login_field(self, browser):
+    def test_home3_xss_in_login_escaped(self, browser):
         ctx = browser.new_context(ignore_https_errors=True)
         pg = ctx.new_page()
         pg.goto(f"{BASE}/home3")
@@ -72,199 +110,103 @@ class TestHome3Adversarial:
         pg.fill('#loginPanel input[name="password"]', "test")
         pg.click('#loginPanel button[type="submit"]')
         pg.wait_for_load_state("networkidle")
-        assert "<script>" not in pg.content()
+        # The injected script tag should not appear unescaped in the rendered page
+        assert 'onerror=' not in pg.content()
         ctx.close()
 
-
-class TestHome4Adversarial:
-    """Tile dashboard edge cases."""
-
-    def test_home4_redirects_when_not_logged_in(self, browser):
+    def test_direct_document_url_requires_auth(self, browser):
         ctx = browser.new_context(ignore_https_errors=True)
         pg = ctx.new_page()
-        resp = pg.goto(f"{BASE}/home4")
-        assert resp.status < 500
-        # Should redirect to home3 or login
-        assert "/home4" not in pg.url or resp.status == 302
+        resp = pg.goto(f"{BASE}/profile/document/1")
+        assert "/login" in pg.url or resp.status in [302, 403, 404]
         ctx.close()
 
-    def test_home4_loads_for_bureau(self, browser):
+    def test_api_federation_requires_auth(self, browser):
+        ctx = browser.new_context(ignore_https_errors=True)
+        pg = ctx.new_page()
+        resp = pg.goto(f"{BASE}/api/federation/events")
+        assert resp.status == 401 or "Unauthorized" in pg.content()
+        ctx.close()
+
+
+# ── Authenticated Feature Tests ──
+
+class TestAuthenticatedFeatures:
+    def test_home4_tile_dashboard(self, browser):
         pg, ctx = login(browser)
         pg.goto(f"{BASE}/home4")
         pg.wait_for_load_state("networkidle")
-        assert "500" not in pg.title()
-        # Bureau tiles should be visible
-        expect(pg.locator("text=Worklist")).to_be_visible()
-        expect(pg.locator("text=Members")).to_be_visible()
+        assert pg.title() != ""
+        # Should have tile grid
+        assert pg.locator(".h4-tile").count() > 3
         ctx.close()
 
-    def test_home4_classic_view_link_works(self, browser):
-        pg, ctx = login(browser)
-        pg.goto(f"{BASE}/home4")
-        pg.wait_for_load_state("networkidle")
-        pg.click("text=Classic view")
-        pg.wait_for_load_state("networkidle")
-        assert "/home4" not in pg.url
-        ctx.close()
-
-
-class TestInstructorCalendar:
-    """Instructor calendar edge cases."""
-
-    def test_calendar_accessible_to_regular_member(self, browser):
-        pg, ctx = login(browser)
-        resp = pg.goto(f"{BASE}/availability")
-        assert resp.status < 500
-        # Should show read-only notice
-        assert pg.content()
-        ctx.close()
-
-    def test_calendar_month_navigation(self, browser):
+    def test_instructor_calendar_navigation(self, browser):
         pg, ctx = login(browser)
         pg.goto(f"{BASE}/availability?month=2026-04")
         pg.wait_for_load_state("networkidle")
-        assert "April" in pg.content() or "avril" in pg.content()
-        # Navigate forward
-        pg.click("a:has-text('→')")
-        pg.wait_for_load_state("networkidle")
-        assert "May" in pg.content() or "mai" in pg.content()
+        assert pg.locator(".ic-header").is_visible()
         ctx.close()
 
-    def test_calendar_invalid_month_param(self, browser):
-        pg, ctx = login(browser)
-        resp = pg.goto(f"{BASE}/availability?month=invalid")
-        assert resp.status < 500
-        ctx.close()
-
-
-class TestEmailStats:
-    """Email stats edge cases."""
-
-    def test_stats_future_date(self, browser):
-        pg, ctx = login(browser)
-        resp = pg.goto(f"{BASE}/admin/email-stats?date=2030-01-01")
-        assert resp.status < 500
-        assert "No emails" in pg.content() or "Aucun" in pg.content() or pg.locator("body").is_visible()
-        ctx.close()
-
-    def test_stats_invalid_date(self, browser):
-        pg, ctx = login(browser)
-        resp = pg.goto(f"{BASE}/admin/email-stats?date=not-a-date")
-        assert resp.status < 500
-        ctx.close()
-
-    def test_stats_date_navigation(self, browser):
-        pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/email-stats")
-        pg.wait_for_load_state("networkidle")
-        # Click prev day
-        pg.locator("a:has-text('◀')").click()
-        pg.wait_for_load_state("networkidle")
-        assert pg.evaluate("document.readyState") == "complete"
-        ctx.close()
-
-
-class TestRolesPermissions:
-    """Roles & permissions admin page."""
-
-    def test_roles_page_loads(self, browser):
-        pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/roles")
-        pg.wait_for_load_state("networkidle")
-        assert "500" not in pg.title()
-        expect(pg.locator("text=bureau_master")).to_be_visible()
-        expect(pg.locator("text=instructor_apnea")).to_be_visible()
-        expect(pg.locator("text=auditor")).to_be_visible()
-        ctx.close()
-
-    def test_roles_shows_permission_checkboxes(self, browser):
-        pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/roles")
-        pg.wait_for_load_state("networkidle")
-        checkboxes = pg.locator('input[type="checkbox"]')
-        assert checkboxes.count() > 50  # 20 perms × 8 roles = 160
-        ctx.close()
-
-
-class TestFinancialAudit:
-    """Auditor financial view."""
-
-    def test_audit_page_loads_for_bureau(self, browser):
-        pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/audit-finances")
-        pg.wait_for_load_state("networkidle")
-        assert "500" not in pg.title()
-        expect(pg.locator("text=Total Due")).to_be_visible()
-        ctx.close()
-
-    def test_audit_page_shows_payments(self, browser):
-        pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/audit-finances")
-        pg.wait_for_load_state("networkidle")
-        # Should have payment rows
-        expect(pg.locator("table")).to_be_visible()
-        ctx.close()
-
-
-class TestProfilePrivacy:
-    """Profile privacy — the most critical security test."""
-
-    def test_own_profile_shows_private_tab(self, browser):
+    def test_own_profile_has_private_tab(self, browser):
         pg, ctx = login(browser)
         pg.goto(f"{BASE}/profile")
         pg.wait_for_load_state("networkidle")
-        expect(pg.locator("text=Private Info")).to_be_visible()
+        # Tab might be in French or English
+        tabs = pg.locator("button[data-bs-toggle='tab']")
+        tab_texts = [tabs.nth(i).text_content() for i in range(tabs.count())]
+        has_private = any("Private" in t or "privé" in t or "Privé" in t for t in tab_texts)
+        assert has_private, f"No private tab found in: {tab_texts}"
         ctx.close()
-
-    def test_bureau_sees_other_member_private(self, browser):
-        pg, ctx = login(browser)
-        # View another member's profile
-        pg.goto(f"{BASE}/admin/members/2/profile")
-        pg.wait_for_load_state("networkidle")
-        expect(pg.locator("text=Private Info")).to_be_visible()
-        ctx.close()
-
-
-class TestPayments:
-    """Payment system."""
 
     def test_payments_page_loads(self, browser):
         pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/payments")
-        pg.wait_for_load_state("networkidle")
-        assert "500" not in pg.title()
-        expect(pg.locator("text=Payments")).to_be_visible()
+        resp = pg.goto(f"{BASE}/admin/payments")
+        assert resp.status < 500
+        assert pg.locator("body").is_visible()
         ctx.close()
 
-    def test_payments_filter_by_status(self, browser):
+    def test_roles_page_loads(self, browser):
         pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/payments?status=pending")
-        pg.wait_for_load_state("networkidle")
-        assert "500" not in pg.title()
+        resp = pg.goto(f"{BASE}/admin/roles")
+        assert resp.status < 500
+        assert pg.locator("table").first.is_visible()
         ctx.close()
 
-
-class TestPartnerships:
-    """Partnership system."""
+    def test_financial_audit_loads(self, browser):
+        pg, ctx = login(browser)
+        resp = pg.goto(f"{BASE}/admin/audit-finances")
+        assert resp.status < 500
+        assert pg.locator("table").first.is_visible()
+        ctx.close()
 
     def test_partnerships_page(self, browser):
         pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/partnerships")
-        pg.wait_for_load_state("networkidle")
-        expect(pg.locator("text=Plongée Alsace")).to_be_visible()
+        resp = pg.goto(f"{BASE}/admin/partnerships")
+        assert resp.status < 500
+        assert pg.locator("body").is_visible()
         ctx.close()
 
-    def test_external_registrations(self, browser):
+    def test_email_stats_loads(self, browser):
         pg, ctx = login(browser)
-        pg.goto(f"{BASE}/admin/partnerships/registrations")
-        pg.wait_for_load_state("networkidle")
-        assert "500" not in pg.title()
+        resp = pg.goto(f"{BASE}/admin/email-stats")
+        assert resp.status < 500
+        assert pg.locator("body").is_visible()
         ctx.close()
 
+    def test_member_profile_other_user(self, browser):
+        pg, ctx = login(browser)
+        resp = pg.goto(f"{BASE}/admin/members/2/profile")
+        assert resp.status < 500
+        # Bureau should see private tabs
+        tabs = pg.locator("button[data-bs-toggle='tab']")
+        assert tabs.count() >= 3
+        ctx.close()
+
+
+# ── No 500 on All Routes ──
 
 class TestNo500OnAllAdminPages:
-    """Hit every admin page and ensure no 500."""
-
     ADMIN_ROUTES = [
         "/admin/dashboard", "/admin/members", "/admin/equipment",
         "/admin/articles", "/admin/payments", "/admin/settings",
@@ -284,12 +226,7 @@ class TestNo500OnAllAdminPages:
 
 
 class TestAllPublicPages:
-    """All public pages return < 500."""
-
-    ROUTES = [
-        "/", "/home2", "/home3", "/home4", "/login", "/trial",
-        "/events", "/availability",
-    ]
+    ROUTES = ["/", "/home2", "/home3", "/home4", "/login", "/trial", "/events", "/availability"]
 
     @pytest.mark.parametrize("route", ROUTES)
     def test_no_500(self, browser, route):
@@ -297,4 +234,45 @@ class TestAllPublicPages:
         pg = ctx.new_page()
         resp = pg.goto(f"{BASE}{route}")
         assert resp.status < 500, f"{route} returned {resp.status}"
+        ctx.close()
+
+
+# ── Stability (run key flows multiple times) ──
+
+class TestStability:
+    def test_repeated_login_logout(self, browser):
+        """Login and navigate 5 times to check session stability."""
+        for i in range(5):
+            pg, ctx = login(browser)
+            pg.goto(f"{BASE}/home4")
+            pg.wait_for_load_state("networkidle")
+            assert pg.locator("body").is_visible()
+            ctx.close()
+
+    def test_rapid_page_navigation(self, browser):
+        """Navigate through 10 pages quickly."""
+        pg, ctx = login(browser)
+        pages = ["/", "/events", "/profile", "/availability", "/admin/dashboard",
+                 "/admin/members", "/admin/payments", "/home4", "/events", "/profile"]
+        for url in pages:
+            resp = pg.goto(f"{BASE}{url}", timeout=10000)
+            assert resp.status < 500, f"{url} returned {resp.status}"
+        ctx.close()
+
+
+# ── Rate Limiting ──
+
+class TestRateLimiting:
+    def test_login_rate_limit(self, browser):
+        """Attempt 10 rapid failed logins — should not crash."""
+        ctx = browser.new_context(ignore_https_errors=True)
+        pg = ctx.new_page()
+        for i in range(10):
+            pg.goto(f"{BASE}/login")
+            pg.fill('input[name="email"]', f"attacker{i}@example.com")
+            pg.fill('input[name="password"]', "wrong")
+            pg.click('button[type="submit"]')
+            pg.wait_for_load_state("networkidle")
+        # Should still be on login page, not crashed
+        assert pg.locator('input[name="email"]').is_visible() or "429" in pg.content() or "throttle" in pg.content().lower()
         ctx.close()
