@@ -68,7 +68,7 @@
     {{-- Cancel button for any logged-in user --}}
     @auth
         @if(!$isCancelled && $isPrivileged && $reg->user_id !== auth()->id())
-            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" class="mt-1" onsubmit="return confirm('{{ __('Cancel :name?', ['name' => $reg->user->name]) }}')">
+            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" class="mt-1" data-confirm="{{ __('Cancel :name?', ['name' => \$reg->user->name]) }}" data-confirm-style="warning" data-confirm-btn="{{ __('Cancel') }}">
                 @csrf
                 <input type="hidden" name="user_id" value="{{ $reg->user_id }}">
                 <div class="input-group input-group-sm" style="max-width:300px">

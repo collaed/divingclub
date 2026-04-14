@@ -190,7 +190,7 @@
                                     <td class="text-end">
                                         <a href="{{ route('documents.download', $f) }}" class="btn btn-sm btn-outline-primary py-0">⬇</a>
                                         @if($canManage)
-                                            <form method="POST" action="{{ route('documents.destroy', $f) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete this file?') }}')">
+                                            <form method="POST" action="{{ route('documents.destroy', $f) }}" class="d-inline" data-confirm="{{ __('Delete this file?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
                                                 @csrf @method('DELETE')
                                                 <button class="btn btn-sm btn-outline-danger py-0">✕</button>
                                             </form>

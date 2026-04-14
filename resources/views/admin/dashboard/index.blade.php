@@ -223,7 +223,7 @@
                 <div class="d-flex gap-2">
                     <a href="{{ route('admin.dashboard.index', ['check_update' => 1]) }}" class="btn btn-sm btn-outline-primary">🔍 {{ __('Check') }}</a>
                     @if($updateInfo && $updateInfo['has_update'])
-                        <form method="POST" action="{{ route('admin.system.update') }}" onsubmit="return confirm('{{ __('This will pull the latest code from GitHub, run migrations, and clear caches. Continue?') }}')">
+                        <form method="POST" action="{{ route('admin.system.update') }}" data-confirm="{{ __('This will pull the latest code from GitHub, run migrations, and clear caches. Continue?') }}" data-confirm-style="warning" data-confirm-btn="{{ __('Update') }}">
                             @csrf
                             <button class="btn btn-sm btn-warning">⬆️ {{ __('Update Now') }}</button>
                         </form>

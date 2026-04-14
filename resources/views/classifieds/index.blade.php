@@ -37,7 +37,7 @@
                                     <form method="POST" action="{{ route('classifieds.extend', $a) }}" class="d-inline">@csrf<button class="btn btn-sm btn-outline-info">{{ __('Extend') }}</button></form>
                                 @endif
                                 <a href="{{ route('classifieds.edit', $a) }}" class="btn btn-sm btn-outline-primary">{{ __('Edit') }}</a>
-                                <form method="POST" action="{{ route('classifieds.destroy', $a) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete?') }}')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">{{ __('Delete') }}</button></form>
+                                <form method="POST" action="{{ route('classifieds.destroy', $a) }}" class="d-inline" data-confirm="{{ __('Delete?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">{{ __('Delete') }}</button></form>
                             </td>
                         </tr>
                     @endforeach

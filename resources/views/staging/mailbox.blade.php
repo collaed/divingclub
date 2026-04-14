@@ -6,7 +6,7 @@
             @if($mails->total() > 0)
                 <form action="{{ route('staging.mail.clear') }}" method="POST" class="d-inline">
                     @csrf @method('DELETE')
-                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Clear all?')">Clear all</button>
+                    <button class="btn btn-sm btn-outline-danger" data-confirm="Clear all?" data-confirm-style="primary" data-confirm-btn="{{ __('Confirm') }}">Clear all</button>
                 </form>
             @endif
         </div>

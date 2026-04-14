@@ -148,7 +148,7 @@
                                     </td>
                                     <td class="text-nowrap small">{{ $f->created_at->format('d/m/Y') }}<br>{{ $f->uploader?->name }}</td>
                                     <td class="text-end">
-                                        <form method="POST" action="{{ route('admin.library.destroy', $f) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete?') }}')">
+                                        <form method="POST" action="{{ route('admin.library.destroy', $f) }}" class="d-inline" data-confirm="{{ __('Delete?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-sm btn-outline-danger py-0">✕</button>
                                         </form>

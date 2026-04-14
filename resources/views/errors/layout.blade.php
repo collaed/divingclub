@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ $code }} — {{ $title }}</title>
+    @vite(['resources/scss/app.scss'])
+    <style>
+        body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#003366 0%,#004d80 50%,#006699 100%);color:#fff;font-family:system-ui,sans-serif;margin:0}
+        .err-card{text-align:center;max-width:480px;padding:3rem 2rem}
+        .err-code{font-size:6rem;font-weight:800;opacity:.3;line-height:1}
+        .err-icon{font-size:4rem;margin:.5rem 0}
+        .err-title{font-size:1.5rem;font-weight:600;margin:.5rem 0}
+        .err-msg{opacity:.8;margin-bottom:1.5rem}
+        .err-btn{display:inline-block;padding:.5rem 1.5rem;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:.5rem;text-decoration:none;transition:background .2s}
+        .err-btn:hover{background:rgba(255,255,255,.25);color:#fff}
+        .err-logo{opacity:.5;margin-top:2rem}
+    </style>
+</head>
+<body>
+    <div class="err-card">
+        <div class="err-code">{{ $code }}</div>
+        <div class="err-icon">{{ $icon }}</div>
+        <div class="err-title">{{ $title }}</div>
+        <div class="err-msg">{{ $message }}</div>
+        <a href="/" class="err-btn">{{ __('Back to Home') }}</a>
+        @auth
+            <a href="{{ url()->previous() }}" class="err-btn ms-2">{{ __('Go Back') }}</a>
+        @endauth
+        <div class="err-logo"><img src="/images/club-logo.png" alt="" height="32" style="opacity:.5"></div>
+    </div>
+</body>
+</html>

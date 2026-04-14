@@ -56,7 +56,7 @@
                         <td>{{ $a->updated_at->format('d/m/Y H:i') }}</td>
                         <td class="text-end">
                             <a href="{{ route('admin.articles.edit', $a) }}" class="btn btn-sm btn-outline-primary">{{ __('Edit') }}</a>
-                            <form method="POST" action="{{ route('admin.articles.destroy', $a) }}" class="d-inline" onsubmit="return confirm('Delete?')">
+                            <form method="POST" action="{{ route('admin.articles.destroy', $a) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger">{{ __('Delete') }}</button>
                             </form>

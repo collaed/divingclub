@@ -79,7 +79,7 @@
                             <td class="text-end text-nowrap">
                                 <button class="btn btn-sm btn-outline-primary">💾</button>
                         </form>
-                                <form method="POST" action="{{ route('admin.dive-group-rules.destroy', $rule) }}" class="d-inline" onsubmit="return confirm('Delete?')">
+                                <form method="POST" action="{{ route('admin.dive-group-rules.destroy', $rule) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
                                     @csrf @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger">✕</button>
                                 </form>

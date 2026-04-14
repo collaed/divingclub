@@ -3,7 +3,7 @@
         <h4 class="mb-0">{{ $season->name }} ({{ $season->year }}) @if($season->is_active) <span class="badge bg-success">{{ __('Active') }}</span> @endif</h4>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.seasons.preview', $season) }}" class="btn btn-sm btn-outline-info">{{ __('Preview Schedule') }}</a>
-            <form method="POST" action="{{ route('admin.seasons.generate', $season) }}" onsubmit="return confirm('{{ __('Generate all events from patterns?') }}')">
+            <form method="POST" action="{{ route('admin.seasons.generate', $season) }}" data-confirm="{{ __('Generate all events from patterns?') }}" data-confirm-style="primary" data-confirm-btn="{{ __('Generate') }}">
                 @csrf
                 <button class="btn btn-sm btn-primary">{{ __('Generate Events') }}</button>
             </form>
@@ -147,7 +147,8 @@
     // AJAX delete (delegated)
     document.addEventListener('click', async function(e) {
         const btn = e.target.closest('.btn-del-pattern,.btn-del-holiday');
-        if (!btn || !confirm('Delete?')) return;
+        if (!btn) return;
+        if (!await new Promise(r=>{dcConfirm('{{ __("Delete?") }}','{{ __("Delete") }}','danger',r)})) return;
         const res = await fetch(btn.dataset.url, {method:'DELETE', headers: {...headers, 'X-CSRF-TOKEN':csrf}});
         if (res.ok) btn.closest('[data-id]').remove();
     });

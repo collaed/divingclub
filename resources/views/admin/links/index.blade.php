@@ -10,7 +10,7 @@
                     <td><a href="{{ $link->url }}" target="_blank">{{ Str::limit($link->url, 50) }}</a></td>
                     <td>{!! $link->is_public ? '<span class="badge bg-info">Yes</span>' : '<span class="badge bg-secondary">No</span>' !!}</td>
                     <td class="text-end">
-                        <form method="POST" action="{{ route('admin.links.destroy', $link) }}" class="d-inline" onsubmit="return confirm('Delete?')">
+                        <form method="POST" action="{{ route('admin.links.destroy', $link) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger">{{ __('Delete') }}</button>
                         </form>

@@ -200,7 +200,7 @@
                         @endif
                     </div>
                     @if($canManage)
-                        <form method="POST" action="{{ route('dive-groups.destroy', $group) }}" onsubmit="return confirm('{{ __('Delete?') }}')">
+                        <form method="POST" action="{{ route('dive-groups.destroy', $group) }}" data-confirm="{{ __('Delete?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger py-0 px-1">✕</button>
                         </form>
@@ -512,8 +512,8 @@
     }
 
     // Apply reads the current DOM state, not the original proposal object
-    function applyProposal() {
-        if (!confirm('{{ __("Apply this proposal? Existing groups will be replaced.") }}')) return;
+    async function applyProposal() {
+        if (!await new Promise(r=>{dcConfirm('{{ __("Apply this proposal? Existing groups will be replaced.") }}','{{ __("Apply") }}','warning',r)})) return;
 
         const pBoard = document.getElementById('proposalBoard');
         const form = document.createElement('form');

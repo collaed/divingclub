@@ -24,7 +24,7 @@
                         <td><span class="badge bg-{{ $site->is_active ? 'success' : 'secondary' }}">{{ $site->is_active ? __('Active') : __('Inactive') }}</span></td>
                         <td class="text-end">
                             <a href="{{ route('admin.dive-sites.edit', $site) }}" class="btn btn-sm btn-outline-primary">{{ __('Edit') }}</a>
-                            <form method="POST" action="{{ route('admin.dive-sites.destroy', $site) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete this site?') }}')">
+                            <form method="POST" action="{{ route('admin.dive-sites.destroy', $site) }}" class="d-inline" data-confirm="{{ __('Delete this site?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger">{{ __('Delete') }}</button>
                             </form>

@@ -106,7 +106,7 @@
                                 <form method="POST" action="{{ route('profile.cert.primary', $cert->id) }}" class="d-inline">@csrf<button class="btn btn-sm btn-outline-secondary py-0 px-1">{{ __('Set') }}</button></form>
                             @endif
                         </td>
-                        <td><form method="POST" action="{{ route('profile.cert.remove', $cert->id) }}" class="d-inline" onsubmit="return confirm('{{ __('Remove this certification?') }}')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger py-0 px-1">✕</button></form></td>
+                        <td><form method="POST" action="{{ route('profile.cert.remove', $cert->id) }}" class="d-inline" data-confirm="{{ __('Remove this certification?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Remove') }}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger py-0 px-1">✕</button></form></td>
                     </tr>
                 @endforeach
                 </tbody>

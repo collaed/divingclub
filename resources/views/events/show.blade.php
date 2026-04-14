@@ -176,7 +176,7 @@
                             @if($userReg->status === 'waiting')
                                 <p class="small text-muted">{{ __('Position') }}: #{{ $userReg->waiting_list_position }}</p>
                             @endif
-                            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" onsubmit="return confirm('{{ __('Cancel registration?') }}')">
+                            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" data-confirm="{{ __('Cancel registration?') }}" data-confirm-style="warning" data-confirm-btn="{{ __('Cancel') }}">
                                 @csrf
                                 <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                                 <div class="mb-2">
@@ -430,7 +430,7 @@
                                             <form method="POST" action="{{ route('admin.email.approve', $mail) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-success py-0">✓ {{ __('Approve') }}</button></form>
                                             <form method="POST" action="{{ route('admin.email.reject', $mail) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-warning py-0">✗ {{ __('Reject') }}</button></form>
                                         @endif
-                                        <form method="POST" action="{{ route('admin.email.destroy', $mail) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete this communication?') }}')">@csrf @method('DELETE') <button class="btn btn-sm btn-outline-danger py-0">🗑</button></form>
+                                        <form method="POST" action="{{ route('admin.email.destroy', $mail) }}" class="d-inline" data-confirm="{{ __('Delete this communication?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">@csrf @method('DELETE') <button class="btn btn-sm btn-outline-danger py-0">🗑</button></form>
                                     </div>
                                 @endcan
                             </div>
@@ -469,7 +469,7 @@
                                     <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-1" title="{{ __('Contains faces — hidden from public') }}">👤</span>
                                 @endif
                                 @if(auth()->check() && (auth()->user()->isBureau() || $photo->uploaded_by === auth()->id()))
-                                    <form method="POST" action="{{ route('events.photo.delete', [$event, $photo]) }}" class="position-absolute bottom-0 end-0 m-1" onsubmit="return confirm('{{ __('Delete photo?') }}')">
+                                    <form method="POST" action="{{ route('events.photo.delete', [$event, $photo]) }}" class="position-absolute bottom-0 end-0 m-1" data-confirm="{{ __('Delete photo?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-sm btn-danger py-0 px-1" style="font-size:0.7rem">✕</button>
                                     </form>

@@ -41,7 +41,7 @@
                                     <td class="text-end text-nowrap">
                                         <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                                 </form>
-                                        <form method="POST" action="{{ route('admin.settings.federation.destroy', $fed) }}" class="d-inline" onsubmit="return confirm('Delete?')">
+                                        <form method="POST" action="{{ route('admin.settings.federation.destroy', $fed) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-sm btn-outline-danger">✕</button>
                                         </form>
@@ -109,7 +109,7 @@
                                 <td>€{{ number_format($mf->amount, 2) }}</td>
                                 <td>{{ $mf->label }}</td>
                                 <td class="small text-muted">{{ $mf->notes }}</td>
-                                <td><form method="POST" action="{{ route('admin.settings.membership-fee.destroy', $mf) }}" class="d-inline" onsubmit="return confirm('Delete?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">✕</button></form></td>
+                                <td><form method="POST" action="{{ route('admin.settings.membership-fee.destroy', $mf) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">✕</button></form></td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -313,7 +313,7 @@
                                     <td class="text-end text-nowrap">
                                         <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                                 </form>
-                                        <form method="POST" action="{{ route('admin.settings.medical-rule.destroy', $r) }}" class="d-inline" onsubmit="return confirm('Delete?')">
+                                        <form method="POST" action="{{ route('admin.settings.medical-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-sm btn-outline-danger">✕</button>
                                         </form>
@@ -368,7 +368,7 @@
                                     <td class="text-end text-nowrap">
                                         <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                                 </form>
-                                        <form method="POST" action="{{ route('admin.settings.maintenance-rule.destroy', $r) }}" class="d-inline" onsubmit="return confirm('Delete?')">
+                                        <form method="POST" action="{{ route('admin.settings.maintenance-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-sm btn-outline-danger">✕</button>
                                         </form>

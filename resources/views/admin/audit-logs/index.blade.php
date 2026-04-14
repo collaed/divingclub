@@ -45,7 +45,7 @@
                     <button class="btn btn-sm btn-outline-primary">{{ __('Set') }}</button>
                 </form>
                 {{-- Manual purge --}}
-                <form method="POST" action="{{ route('admin.audit-logs.purge') }}" class="d-flex gap-1 align-items-center" onsubmit="return confirm('{{ __('This will permanently delete old audit log entries. Continue?') }}')">
+                <form method="POST" action="{{ route('admin.audit-logs.purge') }}" class="d-flex gap-1 align-items-center" data-confirm="{{ __('This will permanently delete old audit log entries. Continue?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Purge') }}">
                     @csrf
                     <small class="text-nowrap">{{ __('Delete older than') }}</small>
                     <select name="years" class="form-select form-select-sm" style="width:80px">

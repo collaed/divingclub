@@ -64,7 +64,7 @@
                                 </td>
                                 <td class="text-end">
                                     <a href="{{ route('admin.backups.download', $b['filename']) }}" class="btn btn-sm btn-outline-primary">@icon('⬇') {{ __('Download') }}</a>
-                                    <form method="POST" action="{{ route('admin.backups.destroy', $b['filename']) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete this backup?') }}')">
+                                    <form method="POST" action="{{ route('admin.backups.destroy', $b['filename']) }}" class="d-inline" data-confirm="{{ __('Delete this backup?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger">🗑</button>
                                     </form>

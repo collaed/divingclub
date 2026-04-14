@@ -118,7 +118,7 @@
                 <div class="mt-3 d-flex gap-2">
                     <button type="submit" class="btn btn-primary">{{ $newsletter ? __('Update Draft') : __('Save Draft') }}</button>
                     @if($newsletter)
-                        <a href="{{ route('admin.newsletters.test-send', $newsletter) }}" class="btn btn-outline-success" onclick="return confirm('{{ __('Send a test to your email?') }}')">📧 {{ __('Send test to me') }}</a>
+                        <a href="{{ route('admin.newsletters.test-send', $newsletter) }}" class="btn btn-outline-success" data-confirm="{{ __('Send a test to your email?') }}" data-confirm-style="success" data-confirm-btn="{{ __('Send') }}">📧 {{ __('Send test to me') }}</a>
                     @endif
                     <button type="button" class="btn btn-outline-info" onclick="scatterDecorations()">🐠 {{ __('Scatter Decorations') }}</button>
                     <button type="button" class="btn btn-outline-secondary" onclick="clearDecorations()" id="clearDecorBtn" style="display:none">✕ {{ __('Clear') }}</button>

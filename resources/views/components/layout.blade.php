@@ -333,6 +333,85 @@
     </script>
     @endauth
     <x-form-enhancements />
+
+    {{-- Back to top --}}
+    <button id="backToTop" class="position-fixed bottom-0 end-0 m-4 btn btn-primary rounded-circle shadow" style="width:44px;height:44px;z-index:1050;display:none;opacity:.8" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="{{ __('Back to top') }}">↑</button>
+    <script>
+    (function(){var b=document.getElementById('backToTop');if(!b)return;window.addEventListener('scroll',function(){b.style.display=window.scrollY>300?'block':'none'},{passive:true})})();
+    </script>
+
+    {{-- Confirm modal --}}
+    <div class="modal fade" id="dcConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <p id="dcConfirmMsg" class="mb-3 fw-semibold"></p>
+                    <button type="button" class="btn btn-secondary btn-sm me-2" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                    <button type="button" id="dcConfirmBtn" class="btn btn-sm"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function(){
+        var pending=null, modal=null;
+        // Confirm modal for forms with data-confirm
+        document.addEventListener('submit', function(e){
+            var f=e.target;
+            if(!f.dataset.confirm || f._confirmed) return;
+            e.preventDefault();
+            pending=f;
+            var m=document.getElementById('dcConfirmModal');
+            document.getElementById('dcConfirmMsg').textContent=f.dataset.confirm;
+            var btn=document.getElementById('dcConfirmBtn');
+            btn.textContent=f.dataset.confirmBtn||'{{ __("Confirm") }}';
+            btn.className='btn btn-sm btn-'+(f.dataset.confirmStyle||'danger');
+            if(!modal) modal=new bootstrap.Modal(m);
+            modal.show();
+        });
+        document.getElementById('dcConfirmBtn').addEventListener('click', function(){
+            if(pending){pending._confirmed=true;pending.requestSubmit();pending=null;}
+            if(modal) modal.hide();
+        });
+        // Confirm for links with data-confirm
+        document.addEventListener('click', function(e){
+            var a=e.target.closest('a[data-confirm]');
+            if(!a) return;
+            e.preventDefault();
+            pending=null;
+            var m=document.getElementById('dcConfirmModal');
+            document.getElementById('dcConfirmMsg').textContent=a.dataset.confirm;
+            var btn=document.getElementById('dcConfirmBtn');
+            btn.textContent=a.dataset.confirmBtn||'{{ __("Confirm") }}';
+            btn.className='btn btn-sm btn-'+(a.dataset.confirmStyle||'primary');
+            if(!modal) modal=new bootstrap.Modal(m);
+            btn.onclick=function(){window.location=a.href;};
+            modal.show();
+        });
+        // Global confirm for inline JS: dcConfirm(msg, btnText, style, callback)
+        window.dcConfirm=function(msg,btnText,style,cb){
+            var m=document.getElementById('dcConfirmModal');
+            document.getElementById('dcConfirmMsg').textContent=msg;
+            var btn=document.getElementById('dcConfirmBtn');
+            btn.textContent=btnText;btn.className='btn btn-sm btn-'+style;
+            if(!modal) modal=new bootstrap.Modal(m);
+            btn.onclick=function(){if(modal)modal.hide();cb(true);};
+            m.addEventListener('hidden.bs.modal',function h(){m.removeEventListener('hidden.bs.modal',h);cb(false);},{once:true});
+            modal.show();
+        };
+        // Double-submit prevention
+        document.addEventListener('submit', function(e){
+            var f=e.target;
+            if(f.dataset.noGuard) return;
+            var b=f.querySelector('button[type="submit"]:not([formnovalidate]), input[type="submit"]');
+            if(!b||b.disabled) return;
+            b.disabled=true;
+            b.dataset.origText=b.innerHTML;
+            b.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>'+b.textContent;
+            setTimeout(function(){b.disabled=false;b.innerHTML=b.dataset.origText;},10000);
+        });
+    })();
+    </script>
     @stack('scripts')
 </body>
 </html>

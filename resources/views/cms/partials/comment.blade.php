@@ -9,7 +9,7 @@
             <strong>{{ $comment->user?->name ?? __('Deleted user') }}</strong>
             <span class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</span>
             @if($comment->user_id === auth()->id() || auth()->user()->can('manage articles'))
-                <form method="POST" action="{{ route('comments.destroy', $comment) }}" class="d-inline" onsubmit="return confirm('{{ __('Delete this comment?') }}')">
+                <form method="POST" action="{{ route('comments.destroy', $comment) }}" class="d-inline" data-confirm="{{ __('Delete this comment?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
                     @csrf @method('DELETE')
                     <button class="btn btn-link btn-sm text-danger p-0 ms-2">{{ __('Delete') }}</button>
                 </form>

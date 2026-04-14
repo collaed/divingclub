@@ -3,7 +3,7 @@
         <h4 class="mb-0">📬 {{ $newsletter->title }}</h4>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.newsletters.preview-email', $newsletter) }}" target="_blank" class="btn btn-outline-info btn-sm">📧 {{ __('Preview Email') }}</a>
-            <a href="{{ route('admin.newsletters.test-send', $newsletter) }}" class="btn btn-outline-success btn-sm" onclick="return confirm('{{ __('Send a test to your email?') }}')">📨 {{ __('Send test to me') }}</a>
+            <a href="{{ route('admin.newsletters.test-send', $newsletter) }}" class="btn btn-outline-success btn-sm" data-confirm="{{ __('Send a test to your email?') }}" data-confirm-style="success" data-confirm-btn="{{ __('Send') }}">📨 {{ __('Send test to me') }}</a>
             @php
                 $mailtoSubject = rawurlencode('Re: ' . $newsletter->title . ' — ' . ($newsletter->month ?? ''));
                 $mailtoBody = rawurlencode(
@@ -24,7 +24,7 @@
                 </form>
             @endif
             @if($newsletter->status !== 'sent')
-                <form method="POST" action="{{ route('admin.newsletters.destroy', $newsletter) }}" onsubmit="return confirm('{{ __('Delete this newsletter?') }}')">
+                <form method="POST" action="{{ route('admin.newsletters.destroy', $newsletter) }}" data-confirm="{{ __('Delete this newsletter?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
                     @csrf @method('DELETE')
                     <button class="btn btn-outline-danger btn-sm">{{ __('Delete') }}</button>
                 </form>
@@ -67,7 +67,7 @@
                 @if($newsletter->created_by === auth()->id())
                     <div class="alert alert-info py-2 mb-0 d-flex justify-content-between align-items-center">
                         {{ __('You cannot approve your own newsletter. Waiting for 3 other bureau members.') }}
-                        <form method="POST" action="{{ route('admin.newsletters.withdraw', $newsletter) }}" onsubmit="return confirm('{{ __('Withdraw and return to draft?') }}')">
+                        <form method="POST" action="{{ route('admin.newsletters.withdraw', $newsletter) }}" data-confirm="{{ __('Withdraw and return to draft?') }}" data-confirm-style="warning" data-confirm-btn="{{ __('Withdraw') }}">
                             @csrf
                             <button class="btn btn-outline-secondary btn-sm">✏️ {{ __('Back to Draft') }}</button>
                         </form>
@@ -91,7 +91,7 @@
     @if($newsletter->status === 'approved')
         <div class="alert alert-success d-flex justify-content-between align-items-center">
             <span>{{ __('Newsletter approved by 3 bureau members. Ready to send!') }}</span>
-            <form method="POST" action="{{ route('admin.newsletters.send', $newsletter) }}" onsubmit="return confirm('{{ __('Send to all verified members?') }}')">
+            <form method="POST" action="{{ route('admin.newsletters.send', $newsletter) }}" data-confirm="{{ __('Send to all verified members?') }}" data-confirm-style="warning" data-confirm-btn="{{ __('Send') }}">
                 @csrf
                 <button class="btn btn-primary">🚀 {{ __('Send Newsletter') }}</button>
             </form>
