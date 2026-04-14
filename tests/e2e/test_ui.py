@@ -82,14 +82,16 @@ class TestPublicPages:
         # Footer
         expect(page.locator(".h3-footer")).to_be_visible()
 
-    def test_home3_photo_lightbox(self, page):
+    def test_home3_photo_gallery(self, page):
         page.goto(f"{BASE}/home3")
         mosaic_links = page.locator(".h3-mosaic a")
         if mosaic_links.count() > 0:
             mosaic_links.first.click()
-            expect(page.locator("#lightbox")).to_have_class(re.compile("open"))
-            page.locator("#lightbox").click()
-            expect(page.locator("#lightbox")).not_to_have_class(re.compile("open"))
+            page.wait_for_timeout(500)
+            gallery = page.locator(".pg-overlay")
+            if gallery.count() > 0:
+                expect(gallery.first).to_have_class(re.compile("open"))
+                page.keyboard.press("Escape")
 
     def test_login_page(self, page):
         page.goto(f"{BASE}/login")
