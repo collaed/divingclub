@@ -1,4 +1,4 @@
-<x-layout :title="__('New Season')">
+<x-admin-layout :title="__('New Season')">
     <h4 class="mb-4">{{ __('Create Season') }}</h4>
     <form method="POST" action="{{ route('admin.seasons.store') }}">
         @csrf
@@ -43,4 +43,4 @@
     });
     </script>
     @endpush
-</x-layout>
+</x-admin-layout>

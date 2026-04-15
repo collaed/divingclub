@@ -1,4 +1,4 @@
-<x-layout :title="$vote->title">
+<x-admin-layout :title="$vote->title">
     <h4 class="mb-2">{{ $vote->title }}</h4>
     <p class="text-muted">{{ ucfirst($vote->mode) }} · <span class="badge bg-{{ $vote->status === 'open' ? 'success' : 'secondary' }}">{{ ucfirst($vote->status) }}</span></p>
 
@@ -51,4 +51,4 @@
             </div>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

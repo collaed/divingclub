@@ -1,4 +1,4 @@
-<x-layout :title="__('Schedule Preview')">
+<x-admin-layout :title="__('Schedule Preview')">
     <h4 class="mb-4">{{ __('Schedule Preview') }} — {{ $season->name }}</h4>
     <p class="text-muted">{{ __('Review the dates below before generating events. Skipped dates are shown in red.') }}</p>
 
@@ -41,4 +41,4 @@
         </form>
         <a href="{{ route('admin.seasons.show', $season) }}" class="btn btn-outline-secondary">{{ __('Back') }}</a>
     </div>
-</x-layout>
+</x-admin-layout>

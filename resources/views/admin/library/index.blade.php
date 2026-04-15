@@ -1,4 +1,4 @@
-<x-layout :title="__('Document Library')">
+<x-admin-layout :title="__('Document Library')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">@icon('📁') {{ __('Document Library') }}</h4>
         <span class="text-muted small">{{ \App\Models\LibraryFile::count() }} {{ __('files') }}</span>
@@ -218,4 +218,4 @@ document.querySelectorAll('.preview-link').forEach(link => {
 });
 </script>
 @endpush
-</x-layout>
+</x-admin-layout>

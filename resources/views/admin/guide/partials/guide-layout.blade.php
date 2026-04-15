@@ -1,5 +1,5 @@
 {{-- Guide page wrapper: @include with $guideContent variable --}}
-<x-layout :title="$title . ' — Admin Guide'">
+<x-admin-layout :title="$title . ' — Admin Guide'">
 <div class="row">
     <div class="col-lg-3 mb-4">
         <div class="card dc-card">
@@ -24,4 +24,4 @@
         </div>
     </div>
 </div>
-</x-layout>
+</x-admin-layout>

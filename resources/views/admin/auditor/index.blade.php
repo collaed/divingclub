@@ -1,4 +1,4 @@
-<x-layout :title="__('Financial Audit')">
+<x-admin-layout :title="__('Financial Audit')">
     <h4 class="mb-3">📋 {{ __('Financial Audit — Réviseur aux Comptes') }}</h4>
     <p class="text-muted small">{{ __('Read-only view of all financial flows. Payments expected, amounts received, and bank statement reconciliation.') }}</p>
 
@@ -83,4 +83,4 @@
             <div class="card-footer">{{ $transactions->links() }}</div>
         @endif
     </div>
-</x-layout>
+</x-admin-layout>

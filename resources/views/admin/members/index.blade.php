@@ -1,4 +1,4 @@
-<x-layout :title="__('Members')">
+<x-admin-layout :title="__('Members')">
     <h4 class="mb-4">{{ __('Member Management') }}</h4>
 
     <form method="GET" class="row g-2 mb-4">
@@ -99,6 +99,6 @@
         <x-per-page :current="request('per_page', 25)" />
         <div>{{ $members->links() }}</div>
     </div>
-</x-layout>
+</x-admin-layout>
 
 @include("components.clickable-rows")

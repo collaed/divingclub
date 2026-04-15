@@ -1,4 +1,4 @@
-<x-layout :title="__('Trial Dive Requests')">
+<x-admin-layout :title="__('Trial Dive Requests')">
     <h4>@icon('🐠') {{ __('Trial Dive Requests') }}</h4>
 
     <div class="card dc-card">
@@ -37,4 +37,4 @@
             </table>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

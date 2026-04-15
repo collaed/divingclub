@@ -1,4 +1,4 @@
-<x-layout :title="__('Audit Log Detail')">
+<x-admin-layout :title="__('Audit Log Detail')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">{{ __('Audit Log') }} #{{ $log->id }}</h4>
         <a href="{{ route('admin.audit-logs.index') }}" class="btn btn-sm btn-outline-secondary">← {{ __('Back') }}</a>
@@ -65,4 +65,4 @@
     @else
         <div class="alert alert-secondary">{{ __('No detailed data available for this entry.') }}</div>
     @endif
-</x-layout>
+</x-admin-layout>

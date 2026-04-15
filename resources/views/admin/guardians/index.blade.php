@@ -1,4 +1,4 @@
-<x-layout :title="__('Minors & Parental Consent')">
+<x-admin-layout :title="__('Minors & Parental Consent')">
     <h4 class="mb-4">{{ __('Minors & Parental Consent') }}</h4>
 
     @if($minors->isEmpty())
@@ -105,4 +105,4 @@
         </table>
     </div>
     @endif
-</x-layout>
+</x-admin-layout>

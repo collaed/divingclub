@@ -1,4 +1,4 @@
-<x-layout :title="$newsletter->title">
+<x-admin-layout :title="$newsletter->title">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">📬 {{ $newsletter->title }}</h4>
         <div class="d-flex gap-2">
@@ -144,4 +144,4 @@
         'slot4' => $slotHtml[4],
         'slot5' => $slotHtml[5],
     ])
-</x-layout>
+</x-admin-layout>

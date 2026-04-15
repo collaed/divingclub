@@ -1,4 +1,4 @@
-<x-layout :title="__('Backup') . ' — ' . $filename">
+<x-admin-layout :title="__('Backup') . ' — ' . $filename">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">@icon('📦') {{ $filename }}</h4>
         <div>
@@ -89,4 +89,4 @@
             </div>
         </div>
     @endif
-</x-layout>
+</x-admin-layout>

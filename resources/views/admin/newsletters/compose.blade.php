@@ -1,4 +1,4 @@
-<x-layout :title="$newsletter ? __('Edit Newsletter') : __('New Newsletter')">
+<x-admin-layout :title="$newsletter ? __('Edit Newsletter') : __('New Newsletter')">
     <h4 class="mb-4">📬 {{ $newsletter ? __('Edit Newsletter') : __('Compose Newsletter') }}</h4>
 
     <form method="POST"
@@ -447,4 +447,4 @@
             })();
         @endif
     </script>
-</x-layout>
+</x-admin-layout>

@@ -1,4 +1,4 @@
-<x-layout :title="__('System Settings')">
+<x-admin-layout :title="__('System Settings')">
     <h4 class="mb-4">{{ __('System Settings') }}</h4>
 
     {{-- Tab navigation --}}
@@ -709,4 +709,4 @@
     if (savedTab) { const t = document.querySelector('[data-bs-target="'+savedTab+'"]'); if (t) new bootstrap.Tab(t).show(); }
     if (savedSection) { const s = document.getElementById(savedSection); if (s) new bootstrap.Collapse(s, {toggle: true}); }
     </script>
-</x-layout>
+</x-admin-layout>

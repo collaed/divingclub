@@ -1,4 +1,4 @@
-<x-layout :title="__('New Vote')">
+<x-admin-layout :title="__('New Vote')">
     <h4 class="mb-4">{{ __('Create Vote') }}</h4>
     <div class="card dc-card"><div class="card-body">
         <form method="POST" action="{{ route('admin.votes.store') }}">
@@ -38,4 +38,4 @@
             <button class="btn btn-primary mt-3">{{ __('Create') }}</button>
         </form>
     </div></div>
-</x-layout>
+</x-admin-layout>

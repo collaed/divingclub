@@ -1,4 +1,4 @@
-<x-layout :title="__('Payments & Fees')">
+<x-admin-layout :title="__('Payments & Fees')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">{{ __('Payments & Fees') }}</h4>
         <a href="{{ route('admin.payments.components') }}" class="btn btn-sm btn-outline-primary">{{ __('Fee Components') }}</a>
@@ -60,6 +60,6 @@
     <div class="mt-4">
         <a href="{{ route('admin.payments.reconciliation') }}" class="btn btn-primary">{{ __('Bank Reconciliation') }}</a>
     </div>
-</x-layout>
+</x-admin-layout>
 
 @include("components.clickable-rows")

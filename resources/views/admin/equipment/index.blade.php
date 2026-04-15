@@ -1,4 +1,4 @@
-<x-layout :title="__('Equipment Inventory')">
+<x-admin-layout :title="__('Equipment Inventory')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">{{ __('Equipment Inventory') }}</h4>
         <a href="{{ route('admin.equipment.create') }}" class="btn btn-sm btn-primary">{{ __('Add Equipment') }}</a>
@@ -69,6 +69,6 @@
         </table>
     </div>
     {{ $equipment->links() }}
-</x-layout>
+</x-admin-layout>
 
 @include("components.clickable-rows")

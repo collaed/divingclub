@@ -1,4 +1,4 @@
-<x-layout :title="__('Dive Sites')">
+<x-admin-layout :title="__('Dive Sites')">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>@icon('🤿') {{ __('Dive Sites') }}</h4>
         <a href="{{ route('admin.dive-sites.create') }}" class="btn btn-primary btn-sm">+ {{ __('Add Site') }}</a>
@@ -43,4 +43,4 @@
         document.querySelectorAll('#sitesTable tbody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none');
     });
     </script>
-</x-layout>
+</x-admin-layout>

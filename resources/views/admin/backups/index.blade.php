@@ -1,4 +1,4 @@
-<x-layout :title="__('Backups')">
+<x-admin-layout :title="__('Backups')">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">@icon('💾') {{ __('Backups') }}</h4>
         <form method="POST" action="{{ route('admin.backups.create') }}" class="d-flex gap-2 align-items-center">
@@ -83,4 +83,4 @@
             <br>{{ __('Storage location') }}: <code>storage/app/backups/</code>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

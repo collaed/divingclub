@@ -1,4 +1,4 @@
-<x-layout :title="$equipment->name">
+<x-admin-layout :title="$equipment->name">
     <h4 class="mb-4">{{ $equipment->name }} <span class="badge bg-{{ $equipment->status === 'available' ? 'success' : ($equipment->status === 'on_loan' ? 'info' : 'danger') }}">{{ ucfirst(str_replace('_', ' ', $equipment->status)) }}</span></h4>
 
     <div class="row">
@@ -91,4 +91,4 @@
             </div>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

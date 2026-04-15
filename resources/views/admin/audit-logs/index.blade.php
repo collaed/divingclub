@@ -1,4 +1,4 @@
-<x-layout :title="__('Audit Log')">
+<x-admin-layout :title="__('Audit Log')">
     <h4 class="mb-4">{{ __('Audit Log') }}</h4>
 
     <form method="GET" class="row g-2 mb-4">
@@ -88,4 +88,4 @@
         </table>
     </div>
     {{ $logs->links() }}
-</x-layout>
+</x-admin-layout>

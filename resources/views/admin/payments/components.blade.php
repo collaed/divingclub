@@ -1,4 +1,4 @@
-<x-layout :title="__('Fee Components')">
+<x-admin-layout :title="__('Fee Components')">
     <h4 class="mb-4">{{ __('Fee Components') }}</h4>
 
     <div class="table-responsive mb-4">
@@ -34,4 +34,4 @@
             </form>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

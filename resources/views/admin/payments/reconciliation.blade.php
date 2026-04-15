@@ -1,4 +1,4 @@
-<x-layout :title="__('Bank Reconciliation')">
+<x-admin-layout :title="__('Bank Reconciliation')">
     <h4 class="mb-4">{{ __('Bank Reconciliation') }}</h4>
 
     <div class="row mb-4">
@@ -68,4 +68,4 @@
         </table>
     </div>
     {{ $transactions->links() }}
-</x-layout>
+</x-admin-layout>

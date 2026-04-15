@@ -1,4 +1,4 @@
-<x-layout :title="__('Email System')">
+<x-admin-layout :title="__('Email System')">
     <h4 class="mb-4">{{ __('Email System') }}</h4>
 
     <div class="row">
@@ -77,4 +77,4 @@
             </div>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

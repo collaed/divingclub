@@ -1,4 +1,4 @@
-<x-layout :title="__('Admin Guide')">
+<x-admin-layout :title="__('Admin Guide')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">@icon('📖') {{ __('Administration Guide') }}</h4>
         <a href="{{ route('admin.dashboard.index') }}" class="btn btn-sm btn-outline-primary">← {{ __('Dashboard') }}</a>
@@ -42,4 +42,4 @@
             </div>
         @endforeach
     </div>
-</x-layout>
+</x-admin-layout>

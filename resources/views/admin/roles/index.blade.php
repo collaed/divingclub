@@ -1,4 +1,4 @@
-<x-layout :title="__('Roles & Permissions')">
+<x-admin-layout :title="__('Roles & Permissions')">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">🔐 {{ __('Roles & Permissions') }}</h4>
     </div>
@@ -70,4 +70,4 @@
             </table>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

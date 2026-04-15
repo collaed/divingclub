@@ -1,4 +1,4 @@
-<x-layout :title="$article->exists ? __('Edit Article') : __('New Article')">
+<x-admin-layout :title="$article->exists ? __('Edit Article') : __('New Article')">
     <h4 class="mb-4">{{ $article->exists ? __('Edit Article') : __('New Article') }}</h4>
 
     <form method="POST" action="{{ $article->exists ? route('admin.articles.update', $article) : route('admin.articles.store') }}" enctype="multipart/form-data">
@@ -107,4 +107,4 @@
     </form>
 
     <x-rich-editor />
-</x-layout>
+</x-admin-layout>

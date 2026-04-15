@@ -1,4 +1,4 @@
-<x-layout :title="$season->name">
+<x-admin-layout :title="$season->name">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">{{ $season->name }} ({{ $season->year }}) @if($season->is_active) <span class="badge bg-success">{{ __('Active') }}</span> @endif</h4>
         <div class="d-flex gap-2">
@@ -154,4 +154,4 @@
     });
     </script>
     @endpush
-</x-layout>
+</x-admin-layout>

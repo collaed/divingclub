@@ -1,4 +1,4 @@
-<x-layout :title="__('Dive Group Rules')">
+<x-admin-layout :title="__('Dive Group Rules')">
     <h4>@icon('📋') {{ __('Dive Group Rules') }}</h4>
     <p class="text-muted small">{{ __('Rules that govern dive group (palanquée) composition. The planner validates groups against these rules.') }}</p>
 
@@ -99,4 +99,4 @@
         <code>any</code> = all divers.
         <strong>{{ __('Rank reference') }}:</strong> 10=basic, 20=1★, 40=2★, 60=3★, 70=GP/4★, 100=instr1, 110=instr2, 120=instr3
     </div>
-</x-layout>
+</x-admin-layout>

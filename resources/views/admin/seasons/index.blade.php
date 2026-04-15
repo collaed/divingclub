@@ -1,4 +1,4 @@
-<x-layout :title="__('Seasons')">
+<x-admin-layout :title="__('Seasons')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">{{ __('Season Management') }}</h4>
         <a href="{{ route('admin.seasons.create') }}" class="btn btn-primary btn-sm">{{ __('New Season') }}</a>
@@ -29,4 +29,4 @@
             </tbody>
         </table>
     </div>
-</x-layout>
+</x-admin-layout>

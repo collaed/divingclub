@@ -206,10 +206,18 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a></li>
                     @else
-                        <li class="nav-item">
+                        <li class="nav-item d-flex align-items-center gap-2">
+                            <a href="{{ route('profile.show') }}" class="dc-user-pill">
+                                @if(auth()->user()->detail?->avatar_path)
+                                    <img src="{{ asset('storage/' . auth()->user()->detail->avatar_path) }}" alt="" class="dc-user-avatar">
+                                @else
+                                    <span class="dc-user-initials">{{ strtoupper(substr(auth()->user()->detail?->first_name ?? '?', 0, 1) . substr(auth()->user()->detail?->last_name ?? '', 0, 1)) }}</span>
+                                @endif
+                                {{ auth()->user()->detail?->first_name ?? auth()->user()->username }}
+                            </a>
                             <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                 @csrf
-                                <button type="submit" class="nav-link btn btn-link">{{ __('Logout') }}</button>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2" title="{{ __('Logout') }}">@icon('🚪')</button>
                             </form>
                         </li>
                     @endguest

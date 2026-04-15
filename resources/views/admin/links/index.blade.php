@@ -1,4 +1,4 @@
-<x-layout :title="__('Links')">
+<x-admin-layout :title="__('Links')">
     <h4 class="mb-4">{{ __('Links Management') }}</h4>
 
     <table class="table table-hover mb-4">
@@ -52,4 +52,4 @@
             </form>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

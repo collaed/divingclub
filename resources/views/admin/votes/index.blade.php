@@ -1,4 +1,4 @@
-<x-layout :title="__('Votes')">
+<x-admin-layout :title="__('Votes')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">{{ __('Votes & Elections') }}</h4>
         <a href="{{ route('admin.votes.create') }}" class="btn btn-sm btn-primary">{{ __('New Vote') }}</a>
@@ -17,4 +17,4 @@
             </div>
         </div>
     @endforeach
-</x-layout>
+</x-admin-layout>

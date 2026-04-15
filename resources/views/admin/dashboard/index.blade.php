@@ -1,4 +1,4 @@
-<x-layout :title="__('Dashboard')">
+<x-admin-layout :title="__('Dashboard')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">{{ __('Statistics Dashboard') }}</h4>
         <div class="d-flex gap-2">
@@ -14,17 +14,17 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3>{{ $stats['total_members'] }}</h3><small class="text-muted">{{ __('Total Members') }}</small></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3>{{ $stats['new_members_this_year'] }}</h3><small class="text-muted">{{ __('New This Year') }}</small></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3>{{ $stats['events_count'] }}</h3><small class="text-muted">{{ __('Events') }}</small></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3>{{ $stats['avg_attendance'] }}</h3><small class="text-muted">{{ __('Avg Attendance') }}</small></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value">{{ $stats['total_members'] }}</div><div class="dc-stat-label">{{ __('Total Members') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value">{{ $stats['new_members_this_year'] }}</div><div class="dc-stat-label">{{ __('New This Year') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value">{{ $stats['events_count'] }}</div><div class="dc-stat-label">{{ __('Events') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value">{{ $stats['avg_attendance'] }}</div><div class="dc-stat-label">{{ __('Avg Attendance') }}</div></div></div>
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-success">€{{ number_format($stats['revenue'], 2) }}</h3><small class="text-muted">{{ __('Revenue') }}</small></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-warning">€{{ number_format($stats['outstanding'], 2) }}</h3><small class="text-muted">{{ __('Outstanding') }}</small></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-danger">{{ $stats['certs_expiring_30d'] }}</h3><small class="text-muted">{{ __('Certs Expiring 30d') }}</small></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3>{{ $stats['equipment_by_status']->sum() }}</h3><small class="text-muted">{{ __('Equipment Items') }}</small></div></div>
+        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-success">€{{ number_format($stats['revenue'], 2) }}</div><div class="dc-stat-label">{{ __('Revenue') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-warning">€{{ number_format($stats['outstanding'], 2) }}</div><div class="dc-stat-label">{{ __('Outstanding') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-danger">{{ $stats['certs_expiring_30d'] }}</div><div class="dc-stat-label">{{ __('Certs Expiring 30d') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value">{{ $stats['equipment_by_status']->sum() }}</div><div class="dc-stat-label">{{ __('Equipment Items') }}</div></div></div>
     </div>
 
     @php $worklistCount = collect($worklist)->reject(fn($v) => $v instanceof \Illuminate\Support\Collection || $v instanceof \Illuminate\Database\Eloquent\Collection)->sum() + ($worklist['birthdays_14d']->count()); @endphp
@@ -282,4 +282,4 @@
         </div>
     </div>
     @endif
-</x-layout>
+</x-admin-layout>

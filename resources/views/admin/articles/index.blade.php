@@ -1,4 +1,4 @@
-<x-layout :title="__('Articles')">
+<x-admin-layout :title="__('Articles')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">{{ __('Articles') }}</h4>
         <a href="{{ route('admin.articles.create') }}" class="btn btn-primary">{{ __('New Article') }}</a>
@@ -69,6 +69,6 @@
         </table>
     </div>
     {{ $articles->links() }}
-</x-layout>
+</x-admin-layout>
 
 @include("components.clickable-rows")

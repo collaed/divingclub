@@ -1,4 +1,4 @@
-<x-layout :title="__('Annual Report') . ' ' . $year">
+<x-admin-layout :title="__('Annual Report') . ' ' . $year">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">@icon('📊') {{ __('Annual Report') }} — {{ $year }}</h4>
         <form method="GET" class="d-flex gap-2">
@@ -129,4 +129,4 @@
         }
     });
     </script>
-</x-layout>
+</x-admin-layout>

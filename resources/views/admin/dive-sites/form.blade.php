@@ -1,4 +1,4 @@
-<x-layout :title="$site->exists ? __('Edit Dive Site') : __('New Dive Site')">
+<x-admin-layout :title="$site->exists ? __('Edit Dive Site') : __('New Dive Site')">
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('admin.dive-sites.index') }}">{{ __('Dive Sites') }}</a></li><li class="breadcrumb-item active">{{ $site->exists ? $site->name : __('New') }}</li></ol></nav>
 
     <div class="card dc-card">
@@ -128,4 +128,4 @@
             </form>
         </div>
     </div>
-</x-layout>
+</x-admin-layout>

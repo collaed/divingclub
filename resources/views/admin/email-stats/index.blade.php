@@ -1,4 +1,4 @@
-<x-layout :title="__('Email Delivery Stats')">
+<x-admin-layout :title="__('Email Delivery Stats')">
     <h4 class="mb-3">📊 {{ __('Email Delivery Stats') }}</h4>
 
     {{-- Date picker --}}
@@ -67,4 +67,4 @@
             @endif
         </div>
     @endforelse
-</x-layout>
+</x-admin-layout>
