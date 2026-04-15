@@ -36,14 +36,10 @@ class BackupServiceTest extends TestCase
         $this->assertSame('0 B', $this->invokeHumanSize(0));
     }
 
-    public function test_db_dump_filename_matches_driver(): void
+    public function test_backup_dir_is_created(): void
     {
         $service = new BackupService;
-        $method = new ReflectionMethod(BackupService::class, 'dbDumpFilename');
-
-        $result = $method->invoke($service);
-
-        $this->assertContains($result, ['database.sql.gz', 'database.sqlite']);
+        $this->assertDirectoryExists(storage_path('app/backups'));
     }
 
     private function invokeHumanSize(int $bytes): string

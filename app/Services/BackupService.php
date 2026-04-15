@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 
 class BackupService
 {
@@ -18,66 +18,40 @@ class BackupService
     }
 
     /**
-     * Create a full backup (DB + optional storage files).
+     * Create a full backup using spatie/laravel-backup.
      *
      * @return array{filename: string, path: string, size: int, manifest: array}
      */
     public function create(bool $includeFiles = true): array
     {
+        // Use spatie backup command
+        $options = $includeFiles ? '' : '--only-db';
+        Artisan::call("backup:run {$options} --disable-notifications");
+
+        // Find the latest backup created by spatie (stored in storage/app/<AppName>/)
+        $spatieDir = storage_path('app/'.str_replace(' ', '-', config('app.name', 'DivingClub')));
+        $zips = glob("{$spatieDir}/*.zip");
+
+        if (empty($zips)) {
+            throw new \RuntimeException('Spatie backup produced no output');
+        }
+
+        rsort($zips);
+        $latestZip = $zips[0];
+
+        // Move to our backups dir with our naming convention
         $timestamp = now()->format('Y-m-d-His');
-        $tmpDir = storage_path("app/backups/.tmp-{$timestamp}");
-        @mkdir($tmpDir, 0755, true);
+        $filename = "backup-{$timestamp}.zip";
+        $destPath = "{$this->backupDir}/{$filename}";
+        rename($latestZip, $destPath);
 
-        // 1. Database dump
-        $this->dumpDatabase($tmpDir);
-
-        // 2. Build manifest
-        $manifest = $this->buildManifest($includeFiles);
-        file_put_contents("{$tmpDir}/manifest.json", json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
-        // 3. Create tar.gz
-        $filename = "backup-{$timestamp}.tar.gz";
-        $tarPath = "{$this->backupDir}/{$filename}";
-
-        $parts = ['manifest.json', $this->dbDumpFilename()];
-
-        if ($includeFiles) {
-            foreach (['public', 'private'] as $disk) {
-                $src = storage_path("app/{$disk}");
-                if (is_dir($src) && is_readable($src)) {
-                    symlink($src, "{$tmpDir}/{$disk}");
-                    $parts[] = $disk;
-                }
-            }
-        }
-
-        $cmd = sprintf(
-            'tar czfh %s -C %s --ignore-failed-read %s 2>&1',
-            escapeshellarg($tarPath),
-            escapeshellarg($tmpDir),
-            implode(' ', array_map('escapeshellarg', $parts))
-        );
-        exec($cmd, $output, $code);
-
-        // Cleanup tmp
-        @unlink("{$tmpDir}/public");
-        @unlink("{$tmpDir}/private");
-        @unlink("{$tmpDir}/".$this->dbDumpFilename());
-        @unlink("{$tmpDir}/manifest.json");
-        @rmdir($tmpDir);
-
-        if ($code > 1) {
-            Log::error('Backup tar failed: '.implode("\n", $output));
-            throw new \RuntimeException('Backup creation failed');
-        }
-
-        $size = filesize($tarPath);
-        Log::info("Backup created: {$filename} (".$this->humanSize($size).')');
+        $size = filesize($destPath);
+        Log::info("Backup created via spatie: {$filename} (".$this->humanSize($size).')');
 
         // Offsite upload via SFTP if configured
-        $this->offsiteUpload($tarPath, $filename);
+        $this->offsiteUpload($destPath, $filename);
 
-        return ['filename' => $filename, 'path' => $tarPath, 'size' => $size, 'manifest' => $manifest];
+        return ['filename' => $filename, 'path' => $destPath, 'size' => $size, 'manifest' => null];
     }
 
     /** Upload backup to offsite SFTP server if configured. */
@@ -122,7 +96,7 @@ EOF',
     /** List all existing backups with parsed manifests. */
     public function list(): array
     {
-        $files = glob("{$this->backupDir}/backup-*.tar.gz");
+        $files = array_merge(glob("{$this->backupDir}/backup-*.tar.gz"), glob("{$this->backupDir}/backup-*.zip"));
         rsort($files);
 
         return array_map(function (string $path) {
@@ -137,9 +111,20 @@ EOF',
         }, $files);
     }
 
-    /** Read manifest.json from inside a tar.gz without full extraction. */
+    /** Read manifest.json from inside a backup archive. */
     public function readManifest(string $path): ?array
     {
+        if (str_ends_with($path, '.zip')) {
+            $zip = new \ZipArchive;
+            if ($zip->open($path) === true) {
+                $json = $zip->getFromName('manifest.json');
+                $zip->close();
+
+                return $json ? json_decode($json, true) : null;
+            }
+
+            return null;
+        }
         $json = shell_exec(sprintf('tar xzf %s manifest.json -O 2>/dev/null', escapeshellarg($path)));
 
         return $json ? json_decode($json, true) : null;
@@ -148,7 +133,20 @@ EOF',
     /** List files inside a backup's storage/ directory. */
     public function listFiles(string $path): array
     {
-        $output = shell_exec(sprintf('tar tzf %s 2>/dev/null', escapeshellarg($path)));
+        if (str_ends_with($path, '.zip')) {
+            $zip = new \ZipArchive;
+            if ($zip->open($path) !== true) {
+                return [];
+            }
+            $lines = [];
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $lines[] = $zip->getNameIndex($i);
+            }
+            $zip->close();
+            $output = implode("\n", $lines);
+        } else {
+            $output = shell_exec(sprintf('tar tzf %s 2>/dev/null', escapeshellarg($path)));
+        }
         if (! $output) {
             return [];
         }
@@ -175,6 +173,17 @@ EOF',
     /** Extract a single file from backup and return its contents. */
     public function extractFile(string $backupPath, string $filePath): ?string
     {
+        if (str_ends_with($backupPath, '.zip')) {
+            $zip = new \ZipArchive;
+            if ($zip->open($backupPath) === true) {
+                $content = $zip->getFromName($filePath);
+                $zip->close();
+
+                return $content ?: null;
+            }
+
+            return null;
+        }
         $content = shell_exec(sprintf(
             'tar xzf %s %s -O 2>/dev/null',
             escapeshellarg($backupPath),
@@ -198,7 +207,7 @@ EOF',
     /** Prune old backups, keeping $keep most recent. */
     public function prune(int $keep = 4): int
     {
-        $files = glob("{$this->backupDir}/backup-*.tar.gz");
+        $files = array_merge(glob("{$this->backupDir}/backup-*.tar.gz"), glob("{$this->backupDir}/backup-*.zip"));
         rsort($files);
         $deleted = 0;
         foreach (array_slice($files, $keep) as $old) {
@@ -210,69 +219,7 @@ EOF',
         return $deleted;
     }
 
-    protected function dumpDatabase(string $dir): void
-    {
-        $driver = config('database.default');
-        $conn = config("database.connections.{$driver}");
-
-        if ($driver === 'sqlite') {
-            $dbPath = $conn['database'];
-            if (file_exists($dbPath)) {
-                copy($dbPath, "{$dir}/database.sqlite");
-            }
-        } elseif ($driver === 'pgsql') {
-            $dumpFile = "{$dir}/database.sql.gz";
-            $cmd = sprintf(
-                'pg_dump -h %s -p %s -U %s %s | gzip > %s 2>&1',
-                escapeshellarg($conn['host'] ?? '127.0.0.1'),
-                escapeshellarg($conn['port'] ?? '5432'),
-                escapeshellarg($conn['username']),
-                escapeshellarg($conn['database']),
-                escapeshellarg($dumpFile)
-            );
-            $env = $conn['password'] ? ['PGPASSWORD' => $conn['password']] : [];
-            $this->execWithEnv($cmd, $env, $code);
-            if ($code !== 0) {
-                Log::error('PG dump failed');
-                throw new \RuntimeException('Database dump failed');
-            }
-        } else {
-            $dumpFile = "{$dir}/database.sql.gz";
-            $cmd = sprintf(
-                'mysqldump --no-tablespaces -h%s -P%s -u%s %s | gzip > %s 2>&1',
-                escapeshellarg($conn['host'] ?? '127.0.0.1'),
-                escapeshellarg($conn['port'] ?? '3306'),
-                escapeshellarg($conn['username']),
-                escapeshellarg($conn['database']),
-                escapeshellarg($dumpFile)
-            );
-            $env = $conn['password'] ? ['MYSQL_PWD' => $conn['password']] : [];
-            $this->execWithEnv($cmd, $env, $code);
-            if ($code !== 0) {
-                Log::error('DB dump failed');
-                throw new \RuntimeException('Database dump failed');
-            }
-        }
-    }
-
     /** Execute a shell command with additional environment variables (avoids leaking secrets in process list). */
-    protected function execWithEnv(string $cmd, array $env, int &$code): void
-    {
-        $process = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, array_merge($_ENV, $env));
-        if (is_resource($process)) {
-            fclose($pipes[1]);
-            fclose($pipes[2]);
-            $code = proc_close($process);
-        } else {
-            $code = 1;
-        }
-    }
-
-    protected function dbDumpFilename(): string
-    {
-        return config('database.default') === 'sqlite' ? 'database.sqlite' : 'database.sql.gz';
-    }
-
     protected function buildManifest(bool $includeFiles): array
     {
         $tables = [];

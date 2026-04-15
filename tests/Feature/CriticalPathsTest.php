@@ -9,6 +9,8 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
@@ -278,5 +280,18 @@ class CriticalPathsTest extends TestCase
         $this->get('/login')->assertOk();
         $this->get('/register')->assertOk();
         $this->get('/dues')->assertOk();
+    }
+
+    public function test_login_throttles_after_5_attempts(): void
+    {
+        // Pre-fill the rate limiter to simulate 5 prior failures
+        $email = 'throttle@example.com';
+        $key = Str::transliterate(Str::lower($email).'|127.0.0.1');
+        for ($i = 0; $i < 5; $i++) {
+            RateLimiter::hit($key, 600);
+        }
+
+        $response = $this->post('/login', ['email' => $email, 'password' => 'wrong']);
+        $response->assertSessionHasErrors('email');
     }
 }

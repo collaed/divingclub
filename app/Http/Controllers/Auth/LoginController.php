@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
@@ -21,31 +22,24 @@ class LoginController extends Controller
             'password' => 'required',
         ]);
 
-        // Check lockout
-        $recentFails = DB::table('failed_login_attempts')
-            ->where('email', $request->email)
-            ->where('attempted_at', '>=', now()->subMinutes(10))
-            ->count();
+        $throttleKey = Str::transliterate(Str::lower($request->email).'|'.$request->ip());
 
-        if ($recentFails >= 5) {
-            return back()->withErrors(['email' => __('Account locked. Try again in 15 minutes.')]);
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()->withErrors([
+                'email' => __('Too many login attempts. Please try again in :seconds seconds.', ['seconds' => $seconds]),
+            ]);
         }
 
         if (Auth::attempt(['primary_email' => $request->email, 'password' => $request->password], $request->boolean('remember'))) {
+            RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
-
-            // Clear failed attempts
-            DB::table('failed_login_attempts')->where('email', $request->email)->delete();
 
             return redirect()->intended(route('profile.show'));
         }
 
-        // Record failed attempt
-        DB::table('failed_login_attempts')->insert([
-            'email' => $request->email,
-            'ip_address' => $request->ip(),
-            'attempted_at' => now(),
-        ]);
+        RateLimiter::hit($throttleKey, 600); // 10 minute decay
 
         return back()->withErrors(['email' => __('Invalid credentials.')]);
     }

@@ -85,9 +85,9 @@ Route::post('/audit-logs/retention', [AuditLogController::class, 'updateRetentio
 // Backups
 Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
 Route::post('/backups', [BackupController::class, 'create'])->name('backups.create');
-Route::get('/backups/{filename}', [BackupController::class, 'show'])->name('backups.show')->where('filename', '.*\.tar\.gz');
-Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download')->where('filename', '.*\.tar\.gz');
-Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy')->where('filename', '.*\.tar\.gz');
+Route::get('/backups/{filename}', [BackupController::class, 'show'])->name('backups.show')->where('filename', '.*\.(tar.gz|zip)');
+Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download')->where('filename', '.*\.(tar.gz|zip)');
+Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy')->where('filename', '.*\.(tar.gz|zip)');
 
 // Trial requests
 Route::get('/trial-requests', [TrialRequestController::class, 'index'])->name('trial-requests.index');
