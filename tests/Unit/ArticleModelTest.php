@@ -6,6 +6,9 @@ use App\Models\Article;
 use Carbon\Carbon;
 use Tests\TestCase;
 
+/**
+ * @group p1
+ */
 class ArticleModelTest extends TestCase
 {
     public function test_type_meta_returns_correct_data_for_known_type(): void

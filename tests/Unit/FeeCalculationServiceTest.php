@@ -7,6 +7,9 @@ use App\Models\User;
 use App\Services\FeeCalculationService;
 use Tests\TestCase;
 
+/**
+ * @group p0
+ */
 class FeeCalculationServiceTest extends TestCase
 {
     public function test_build_communication_format(): void

@@ -9,6 +9,9 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/**
+ * @group p1
+ */
 class FederationVisibilityTest extends TestCase
 {
     use RefreshDatabase;

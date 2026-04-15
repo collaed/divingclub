@@ -5,6 +5,9 @@ namespace Tests\Unit;
 use App\Services\ThemeService;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @group p2
+ */
 class ThemeServiceTest extends TestCase
 {
     public function test_presets_returns_six_themes(): void

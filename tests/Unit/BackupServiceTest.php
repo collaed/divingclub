@@ -6,6 +6,9 @@ use App\Services\BackupService;
 use ReflectionMethod;
 use Tests\TestCase;
 
+/**
+ * @group p1
+ */
 class BackupServiceTest extends TestCase
 {
     public function test_human_size_bytes(): void

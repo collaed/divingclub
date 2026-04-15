@@ -6,6 +6,9 @@ use App\Models\Document;
 use Carbon\Carbon;
 use Tests\TestCase;
 
+/**
+ * @group p1
+ */
 class DocumentModelTest extends TestCase
 {
     public function test_is_expired_when_past(): void

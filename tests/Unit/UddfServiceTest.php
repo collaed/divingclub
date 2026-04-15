@@ -6,6 +6,9 @@ use App\Services\UddfService;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
+/**
+ * @group p2
+ */
 class UddfServiceTest extends TestCase
 {
     private UddfService $service;

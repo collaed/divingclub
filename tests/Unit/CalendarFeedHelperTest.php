@@ -7,6 +7,9 @@ use Carbon\Carbon;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
+/**
+ * @group p2
+ */
 class CalendarFeedHelperTest extends TestCase
 {
     private CalendarFeedController $controller;

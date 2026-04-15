@@ -5,6 +5,9 @@ namespace Tests\Unit;
 use App\Models\DiveGroupRule;
 use Tests\TestCase;
 
+/**
+ * @group p1
+ */
 class DiveGroupRuleTest extends TestCase
 {
     public function test_matches_diver_no_cert(): void

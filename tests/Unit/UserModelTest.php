@@ -7,6 +7,9 @@ use App\Models\User;
 use Carbon\Carbon;
 use Tests\TestCase;
 
+/**
+ * @group p0
+ */
 class UserModelTest extends TestCase
 {
     public function test_name_returns_full_name_when_detail_exists(): void

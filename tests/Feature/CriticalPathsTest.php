@@ -12,6 +12,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
+/**
+ * @group p0
+ */
 class CriticalPathsTest extends TestCase
 {
     use RefreshDatabase;
