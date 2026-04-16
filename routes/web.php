@@ -158,6 +158,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/profile/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');
     Route::post('/profile/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.update.password');
     Route::post('/profile/diving', [ProfileController::class, 'updateDiving'])->name('profile.update.diving');
     Route::post('/profile/federation-key/{licence}', [ProfileController::class, 'updateFederationKey'])->name('profile.update.federation-key');
     Route::post('/profile/licence/{licence}', [ProfileController::class, 'updateLicence'])->name('profile.update.licence');
