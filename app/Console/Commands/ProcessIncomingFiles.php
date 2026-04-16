@@ -166,7 +166,7 @@ class ProcessIncomingFiles extends Command
     {
         $s = mb_strtolower(trim($s));
         $s = str_replace(['_', '-', '.'], ' ', $s);
-        $s = transliterator_transliterate('Any-Latin; Latin-ASCII', $s);
+        $s = Str::ascii($s);
         $s = preg_replace('/\s+/', ' ', $s);
 
         return $s;
