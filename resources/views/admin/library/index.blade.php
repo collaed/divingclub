@@ -22,15 +22,43 @@
         <div class="col-md-3">
             <div class="card dc-card mb-3">
                 <div class="card-header py-2">{{ __('Folders') }}</div>
-                <div class="list-group list-group-flush" style="max-height:400px;overflow-y:auto">
-                    @foreach($folders as $f)
-                        @php $depth = substr_count(trim($f, '/'), '/'); @endphp
-                        <a href="{{ route('admin.library.index', ['folder' => $f]) }}"
-                           class="list-group-item list-group-item-action py-1 {{ $folder === $f ? 'active' : '' }}"
-                           style="padding-left:{{ 12 + $depth * 16 }}px;font-size:13px">
-                            {{ $f === '/' ? '📁 ' . __('Root') : '📂 ' . basename($f) }}
-                        </a>
-                    @endforeach
+                <div class="list-group list-group-flush" style="max-height:500px;overflow-y:auto" id="folderTree">
+                    @php
+                        // Build tree structure
+                        $tree = [];
+                        foreach ($folders as $f) {
+                            $parts = array_filter(explode('/', trim($f, '/')));
+                            $ref = &$tree;
+                            foreach ($parts as $p) {
+                                if (!isset($ref[$p])) $ref[$p] = [];
+                                $ref = &$ref[$p];
+                            }
+                            unset($ref);
+                        }
+                        function renderTree($node, $path, $currentFolder, $depth = 0) {
+                            $html = '';
+                            foreach ($node as $name => $children) {
+                                $fullPath = $path . '/' . $name;
+                                $isActive = $currentFolder === $fullPath;
+                                $isOpen = str_starts_with($currentFolder, $fullPath);
+                                $hasChildren = !empty($children);
+                                $indent = 8 + $depth * 16;
+                                $toggle = $hasChildren ? '<span class="tree-toggle me-1" style="cursor:pointer;font-size:10px;display:inline-block;width:12px;text-align:center" onclick="event.preventDefault();this.closest('li').querySelector('.tree-sub').classList.toggle('d-none');this.textContent=this.textContent==='▶'?'▼':'▶'">' . ($isOpen || $depth === 0 ? '▼' : '▶') . '</span>' : '<span style="display:inline-block;width:12px"></span>';
+                                $icon = $isActive ? '📂' : '📁';
+                                $activeClass = $isActive ? ' active' : '';
+                                $html .= '<li>';
+                                $html .= '<a href="' . route('admin.library.index', ['folder' => $fullPath]) . '" class="list-group-item list-group-item-action py-1 border-0' . $activeClass . '" style="padding-left:' . $indent . 'px;font-size:13px">' . $toggle . $icon . ' ' . e($name) . '</a>';
+                                if ($hasChildren) {
+                                    $hidden = ($isOpen || $depth === 0) ? '' : ' d-none';
+                                    $html .= '<ul class="list-unstyled tree-sub' . $hidden . '">' . renderTree($children, $fullPath, $currentFolder, $depth + 1) . '</ul>';
+                                }
+                                $html .= '</li>';
+                            }
+                            return $html;
+                        }
+                    @endphp
+                    <a href="{{ route('admin.library.index', ['folder' => '/']) }}" class="list-group-item list-group-item-action py-1 border-0 {{ $folder === '/' ? 'active' : '' }}" style="font-size:13px">📁 {{ __('Root') }}</a>
+                    <ul class="list-unstyled mb-0">{!! renderTree($tree, '', $folder) !!}</ul>
                 </div>
             </div>
             <form method="POST" action="{{ route('admin.library.create-folder') }}" class="card dc-card p-2">
