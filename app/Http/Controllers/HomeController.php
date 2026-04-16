@@ -173,7 +173,10 @@ class HomeController extends Controller
     private static function memberStats(): array
     {
         return Cache::remember('member_stats', 3600, function () {
-            $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id'))->get();
+            // Only count active members (paid current season or event in last 18mo)
+            $currentYear = (string) (now()->month >= 9 ? now()->year + 1 : now()->year);
+            $cutoff = now()->subMonths(18)->format('Y-m-d');
+            $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id')->where(fn ($u) => $u->whereJsonContains('cotisation_years', $currentYear)->orWhereHas('eventRegistrations', fn ($r) => $r->where('status', 'confirmed')->whereHas('event', fn ($e) => $e->where('event_date', '>=', $cutoff)))))->get();
 
             return [
                 'total' => $details->count(),
