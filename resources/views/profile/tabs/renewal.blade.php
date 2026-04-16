@@ -107,6 +107,15 @@
                     <a href="{{ route('profile.document.download', $licCard) }}" class="btn btn-sm btn-outline-primary ms-2">{{ __('Download') }}</a>
                 </div>
             @endif
+            {{-- FFESSM virtual licence card --}}
+            @if($lic->federation->acronym === 'FFESSM' && $lic->licence_number)
+                <div class="mt-3">
+                    <strong class="small">@icon('🪪') {{ __('FFESSM Licence Card') }}</strong>
+                    <div class="mt-2" style="display:flex;justify-content:flex-start">
+                        @include('profile.partials.ffessm-card', ['licence' => $lic, 'user' => $target])
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 @endforeach
