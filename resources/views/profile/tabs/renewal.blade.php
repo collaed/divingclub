@@ -115,7 +115,7 @@ function startQrScan(licId) {
     navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(s => {
         activeStream=s; v.srcObject=s; v.play();
         const d=new BarcodeDetector({formats:['qr_code']});
-        activeScanner=setInterval(async()=>{try{const codes=await d.detect(v);for(const c of codes){const m=c.rawValue.match(/[?&]id=(\d+)_([A-Z]+)/);if(m){document.getElementById('ffessm-key-'+licId).value=m[2];stopQrScan(licId);return;}}}catch(e){}},300);
+        activeScanner=setInterval(async()=>{try{const codes=await d.detect(v);for(const code of codes){const raw=code.rawValue;let key=null;let m=raw.match(/[?&]id=\d+_([A-Z0-9]{4,8})/);if(m)key=m[1];if(!key){m=raw.match(/key=([A-Z0-9]{4,8})/);if(m)key=m[1];}if(!key&&/^[A-Z0-9]{4,8}$/.test(raw))key=raw;if(key){document.getElementById('ffessm-key-'+licId).value=key;stopQrScan(licId);return;}alert('QR: '+raw.substring(0,100));stopQrScan(licId);return;}}catch(e){}},300);
     }).catch(()=>{alert('{{ __("Camera access denied.") }}');c.style.display='none';});
 }
 function stopQrScan(licId) {
