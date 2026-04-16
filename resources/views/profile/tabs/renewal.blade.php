@@ -93,6 +93,20 @@
                     </div>
                 @endif
             @endif
+
+            {{-- Licence card (PDF) --}}
+            @php $licCard = $target->documents()->where('category', 'licence_card')->where('file_path', 'LIKE', '%' . strtolower($lic->federation->acronym) . '%')->orWhere(function($q) use ($lic, $target) { $q->where('user_id', $target->id)->where('category', 'licence_card'); })->latest()->first(); @endphp
+            @if($licCard && str_ends_with($licCard->original_filename, '.pdf'))
+                <div class="mt-3">
+                    <strong class="small">@icon('🪪') {{ __('Licence Card') }}</strong>
+                    <iframe src="{{ route('profile.document.view', $licCard) }}" style="width:100%;height:200px;border:1px solid #dee2e6;border-radius:0.5rem" loading="lazy"></iframe>
+                </div>
+            @elseif($licCard)
+                <div class="mt-3">
+                    <strong class="small">@icon('🪪') {{ __('Licence Card') }}</strong>
+                    <a href="{{ route('profile.document.download', $licCard) }}" class="btn btn-sm btn-outline-primary ms-2">{{ __('Download') }}</a>
+                </div>
+            @endif
         </div>
     </div>
 @endforeach

@@ -92,6 +92,24 @@ class ProfileDocumentController extends Controller
         abort(404, __('File not found.'));
     }
 
+    public function view(Document $document)
+    {
+        $viewer = auth()->user();
+        if ($document->user_id !== $viewer->id && ! $viewer->isBureau()) {
+            abort(403);
+        }
+
+        foreach (['local', 'public'] as $disk) {
+            if (Storage::disk($disk)->exists($document->file_path)) {
+                return response(Storage::disk($disk)->get($document->file_path))
+                    ->header('Content-Type', $document->mime_type ?? 'application/pdf')
+                    ->header('Content-Disposition', 'inline; filename="'.$document->original_filename.'"');
+            }
+        }
+
+        abort(404);
+    }
+
     public function verify(Request $request, Document $document)
     {
         abort_unless(auth()->user()->isBureau(), 403);
