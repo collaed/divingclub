@@ -84,6 +84,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', fn () => view('auth.forgot-password'))->name('password.request');
     Route::post('/forgot-password', function (Request $request) {
         $request->validate(['email' => 'required|email']);
+        Log::info('Password reset requested', ['email' => $request->email, 'ip' => $request->ip()]);
         Password::sendResetLink(['email' => $request->email]);
 
         return back()->with('success', __('Reset link sent if the email exists.'));
