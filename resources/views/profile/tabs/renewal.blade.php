@@ -99,7 +99,7 @@
             @if($licCard && str_ends_with($licCard->original_filename, '.pdf'))
                 <div class="mt-3">
                     <strong class="small">@icon('🪪') {{ __('Licence Card') }}</strong>
-                    <iframe src="{{ route('profile.document.view', $licCard) }}" style="width:100%;height:200px;border:1px solid #dee2e6;border-radius:0.5rem" loading="lazy"></iframe>
+                    <iframe src="{{ route('profile.document.view', $licCard) }}" style="width:100%;max-width:500px;height:180px;border:1px solid #dee2e6;border-radius:0.5rem" loading="lazy"></iframe>
                 </div>
             @elseif($licCard)
                 <div class="mt-3">
