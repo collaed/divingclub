@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\MemberDetail;
+use App\Models\MemberStatus;
+use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -190,8 +192,16 @@ class SyncOldEvents extends Command
             }
         }
 
+        if (! $userId && $name && ($i['user_email'] ?? null)) {
+            $userId = $this->autoCreateMember($name, $i['user_email']);
+            if ($userId) {
+                $memberMap[mb_strtolower(trim($name))] = $userId;
+            }
+        }
+
         if (! $userId) {
             $this->skippedRegs++;
+            Log::info("SyncOldEvents: no match for '{$name}' (joomla uid={$i['userid']})");
 
             return;
         }
@@ -251,6 +261,32 @@ class SyncOldEvents extends Command
         }
 
         return 'social';
+    }
+
+    private function autoCreateMember(string $name, string $email): ?int
+    {
+        // Parse "Firstname LASTNAME" or "Firstname Lastname"
+        $parts = preg_split('/\s+/', trim($name), 2);
+        $firstName = $parts[0] ?? $name;
+        $lastName = $parts[1] ?? '';
+
+        $user = User::create([
+            'primary_email' => $email,
+            'role_id' => Role::where('slug', 'member')->value('id') ?? 2,
+            'status_id' => MemberStatus::where('slug', 'actif')->value('id') ?? 1,
+            'email_verified_at' => now(),
+        ]);
+        $user->assignRole('member');
+
+        MemberDetail::create([
+            'user_id' => $user->id,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+        ]);
+
+        $this->info("    Auto-created member: {$firstName} {$lastName} ({$email})");
+
+        return $user->id;
     }
 
     private function getLastSyncDate(): ?string
