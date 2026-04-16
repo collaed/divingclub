@@ -136,7 +136,7 @@ class HomeController extends Controller
             ->unique(fn ($e) => mb_strtolower($e->title))
             ->take(4)->values();
         $stats = self::memberStats();
-        $faces = MemberDetail::where(fn ($q) => $q->where('bureau_member', true)->orWhere('active_instructor', true))
+        $faces = MemberDetail::whereHas('user', fn ($q) => $q->role(['bureau_master', 'bureau_technical', 'bureau_finance', 'instructor']))
             ->whereHas('user.documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
             ->with('user')->get()->unique('user_id');
 
