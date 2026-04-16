@@ -132,6 +132,10 @@ class ArticleTranslationService
 
     protected function googleTranslate(string $text, string $from, string $to): ?string
     {
+        // Chunk long texts to stay under Google's ~5000 char limit
+        if (mb_strlen($text) > 4500) {
+            return $this->googleTranslateChunked($text, $from, $to);
+        }
         if (empty(trim(strip_tags($text)))) {
             return $text;
         }
@@ -178,5 +182,37 @@ class ArticleTranslationService
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    protected function googleTranslateChunked(string $text, string $from, string $to): ?string
+    {
+        // Split on paragraph boundaries
+        $parts = preg_split('/(<\/p>|<\/h[1-6]>|<br\s*\/?>)/i', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $chunks = [];
+        $current = '';
+
+        foreach ($parts as $part) {
+            if (mb_strlen($current.$part) > 4000 && $current !== '') {
+                $chunks[] = $current;
+                $current = $part;
+            } else {
+                $current .= $part;
+            }
+        }
+        if ($current !== '') {
+            $chunks[] = $current;
+        }
+
+        $translated = '';
+        foreach ($chunks as $chunk) {
+            $result = $this->googleTranslate($chunk, $from, $to);
+            if ($result === null) {
+                return null;
+            }
+            $translated .= $result;
+            usleep(300000); // 300ms between chunks
+        }
+
+        return $translated;
     }
 }
