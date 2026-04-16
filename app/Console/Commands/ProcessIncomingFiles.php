@@ -149,7 +149,7 @@ class ProcessIncomingFiles extends Command
     private function guessCategory(string $filename): string
     {
         $lower = mb_strtolower($filename);
-        if (str_contains($lower, 'licence') || str_contains($lower, 'flassa') || str_contains($lower, 'card')) {
+        if (str_contains($lower, 'licence') || str_contains($lower, 'flassa') || str_contains($lower, 'card') || preg_match('/ls-\d/i', $lower)) {
             return 'licence_card';
         }
         if (str_contains($lower, 'medical') || str_contains($lower, 'certif') || str_contains($lower, 'visite')) {
