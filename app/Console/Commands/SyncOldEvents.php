@@ -156,7 +156,8 @@ class SyncOldEvents extends Command
             'location' => $s['Lieu'] ?: null,
             'description' => $s['descr'] ?: null,
             'max_participants' => ((int) ($s['max'] ?? 0)) ?: null,
-            'inscriptions_closed' => ($s['clot'] ?? '') === 'O',
+            'inscriptions_closed' => in_array($s['clot'] ?? '', ['O', '1']),
+            'inscription_open_at' => ($s['date_ouverture'] ?? '') && $s['date_ouverture'] !== '0000-00-00 00:00:00' ? $s['date_ouverture'] : null,
             'event_type' => $eventType,
             'status' => 'scheduled',
         ];
