@@ -136,6 +136,7 @@ class Event extends Model
             'pool' => '#0077be',
             'dive' => '#003366',
             'training' => '#28a745',
+            'apnea' => '#00bcd4',
             'theory' => '#6f42c1',
             'social' => '#ffc107',
             default => '#6c757d',

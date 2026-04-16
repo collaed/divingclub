@@ -253,17 +253,23 @@ class SyncOldEvents extends Command
     private function guessEventType(string $title): string
     {
         $t = mb_strtolower($title);
-        if (str_contains($t, 'piscine') || str_contains($t, 'pool') || str_contains($t, 'merl')) {
+        if (str_contains($t, 'apnée') || str_contains($t, 'apnea')) {
+            return 'apnea';
+        }
+        if (str_contains($t, 'fosse') || str_contains($t, 'nemo33') || str_contains($t, 'nemo 33') || str_contains($t, 'staubotz') || str_contains($t, 'stausee') || str_contains($t, 'carrière') || str_contains($t, 'lac')) {
+            return 'dive';
+        }
+        if (str_contains($t, 'merl')) {
             return 'pool';
         }
-        if (str_contains($t, 'carrière') || str_contains($t, 'carriere') || str_contains($t, 'lac') || str_contains($t, 'plongée')) {
-            return 'dive';
+        if (str_contains($t, 'steinfort') && ! str_contains($t, 'fermé')) {
+            return 'training';
+        }
+        if (str_contains($t, 'piscine') || str_contains($t, 'pool')) {
+            return 'pool';
         }
         if (str_contains($t, 'théorie') || str_contains($t, 'theorie') || str_contains($t, 'cours')) {
             return 'theory';
-        }
-        if (str_contains($t, 'formation') || str_contains($t, 'training') || str_contains($t, 'apnée')) {
-            return 'training';
         }
 
         return 'social';
