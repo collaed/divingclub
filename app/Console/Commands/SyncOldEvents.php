@@ -9,6 +9,7 @@ use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\MedicalComplianceService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -345,7 +346,7 @@ class SyncOldEvents extends Command
             file_put_contents(storage_path("app/{$storagePath}"), $content);
 
             Document::where('user_id', $user->id)->where('category', 'medical')->where('is_current', true)->update(['is_current' => false]);
-            Document::create([
+            $doc = Document::create([
                 'user_id' => $user->id,
                 'category' => 'medical',
                 'file_path' => $storagePath,
@@ -355,6 +356,7 @@ class SyncOldEvents extends Command
                 'is_current' => true,
                 'date_established' => $f['modified'],
             ]);
+            app(MedicalComplianceService::class)->evaluateCertificate($doc);
             $imported++;
         }
 
