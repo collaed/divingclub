@@ -21,3 +21,5 @@ Schedule::job(new CleanupClassifieds)->monthlyOn(1, '05:00')->after(fn () => Sch
 Schedule::job(new SendEquipmentReminders)->dailyAt('09:00')->after(fn () => ScheduleHeartbeat::beat('equipment-reminders'));
 
 Schedule::command('sync:old-events')->everyFiveMinutes()->after(fn () => ScheduleHeartbeat::beat('joomla-sync'));
+
+Schedule::command('incoming:process')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('incoming-files'));
