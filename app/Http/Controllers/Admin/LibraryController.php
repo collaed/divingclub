@@ -54,11 +54,13 @@ class LibraryController extends Controller
 
         $folder = $request->input('folder', '/');
 
+        $stored = [];
         foreach ($request->file('files') as $file) {
+            $origName = $file->getClientOriginalName();
             $path = $file->store('library', 'local');
             LibraryFile::create([
                 'filename' => basename($path),
-                'original_name' => $file->getClientOriginalName(),
+                'original_name' => $origName,
                 'path' => $path,
                 'mime_type' => $file->getMimeType(),
                 'size' => $file->getSize(),
@@ -67,6 +69,21 @@ class LibraryController extends Controller
                 'description' => $request->input('description'),
                 'uploaded_by' => auth()->id(),
             ]);
+            $stored[$origName] = $path;
+        }
+
+        // Auto-copy to incoming/ for member matching
+        if (stripos($folder, 'incoming') !== false) {
+            $incomingDir = storage_path('app/incoming');
+            if (! is_dir($incomingDir)) {
+                mkdir($incomingDir, 0755, true);
+            }
+            foreach ($stored as $origName => $path) {
+                $src = Storage::disk('local')->path($path);
+                if (file_exists($src)) {
+                    copy($src, $incomingDir.'/'.$origName);
+                }
+            }
         }
 
         return back()->with('success', __('Files uploaded.'));
