@@ -39,7 +39,6 @@ class ImageQualityService
         $sh = (int) ($h * $scale);
         $small = imagecreatetruecolor($sw, $sh);
         imagecopyresampled($small, $src, 0, 0, 0, 0, $sw, $sh, $w, $h);
-        imagedestroy($src);
 
         // Collect pixel data in one pass
         $luminances = [];
@@ -64,7 +63,6 @@ class ImageQualityService
 
         // 1. Sharpness via Laplacian variance (0-30 pts)
         $sharpness = $this->laplacianVariance($small, $sw, $sh);
-        imagedestroy($small);
         // Typical range: 0-2000+. Score: 500+ is sharp
         $sharpScore = min(30, (int) ($sharpness / 500 * 30));
 
@@ -128,7 +126,6 @@ class ImageQualityService
                 $values[] = $c - 128; // center around 0
             }
         }
-        imagedestroy($gray);
 
         if (empty($values)) {
             return 0;
