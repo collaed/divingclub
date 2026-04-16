@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\MedicalComplianceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class ProfileController extends Controller
 {
@@ -154,9 +155,34 @@ class ProfileController extends Controller
             abort(403);
         }
         $request->validate(['federation_key' => 'nullable|string|max:20']);
-        $licence->update(['federation_key' => strtoupper(trim($request->federation_key))]);
+        $key = strtoupper(trim($request->federation_key));
+        $licence->update(['federation_key' => $key]);
 
-        return back()->with('success', __('Federation key updated.'))->withInput(['tab' => 'renewal']);
+        // Verify against FFESSM if applicable
+        $warning = null;
+        if ($key && $licence->federation?->acronym === 'FFESSM') {
+            $number = preg_replace('/^[A-Z]-\d{2}-/', '', $licence->licence_number);
+            try {
+                $html = Http::timeout(5)->get("https://infolicencie.ffessm.fr/Home/InfoLicence?number={$number}&key={$key}")->body();
+                $memberName = $licence->user->detail?->last_name ?? '';
+                if (stripos($html, $memberName) !== false) {
+                    $warning = null; // Name found — all good
+                } elseif (stripos($html, 'introuvable') !== false || strlen($html) < 500) {
+                    $warning = __('Warning: FFESSM returned no result for this key. Please verify.');
+                } else {
+                    $warning = __('Warning: the FFESSM page does not mention :name. Please verify the key.', ['name' => $memberName]);
+                }
+            } catch (\Throwable) {
+                // FFESSM unreachable — skip validation
+            }
+        }
+
+        $msg = __('Federation key updated.');
+        if ($warning) {
+            return back()->with('warning', $warning)->with('success', $msg)->withInput(['tab' => 'renewal']);
+        }
+
+        return back()->with('success', $msg)->withInput(['tab' => 'renewal']);
     }
 
     public function updateDiving(Request $request, ?User $user = null)
