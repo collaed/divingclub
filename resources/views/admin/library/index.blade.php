@@ -22,44 +22,50 @@
         <div class="col-md-3">
             <div class="card dc-card mb-3">
                 <div class="card-header py-2">{{ __('Folders') }}</div>
-                <div class="list-group list-group-flush" style="max-height:500px;overflow-y:auto" id="folderTree">
-                    @php
-                        // Build tree structure
-                        $tree = [];
-                        foreach ($folders as $f) {
-                            $parts = array_filter(explode('/', trim($f, '/')));
-                            $ref = &$tree;
-                            foreach ($parts as $p) {
-                                if (!isset($ref[$p])) $ref[$p] = [];
-                                $ref = &$ref[$p];
-                            }
-                            unset($ref);
-                        }
-                        function renderTree($node, $path, $currentFolder, $depth = 0) {
-                            $html = '';
-                            foreach ($node as $name => $children) {
-                                $fullPath = $path . '/' . $name;
-                                $isActive = $currentFolder === $fullPath;
-                                $isOpen = str_starts_with($currentFolder, $fullPath);
-                                $hasChildren = !empty($children);
-                                $indent = 8 + $depth * 16;
-                                $toggle = $hasChildren ? '<span class="tree-toggle me-1" style="cursor:pointer;font-size:10px;display:inline-block;width:12px;text-align:center" onclick="event.preventDefault();this.closest('li').querySelector('.tree-sub').classList.toggle('d-none');this.textContent=this.textContent==='▶'?'▼':'▶'">' . ($isOpen || $depth === 0 ? '▼' : '▶') . '</span>' : '<span style="display:inline-block;width:12px"></span>';
-                                $icon = $isActive ? '📂' : '📁';
-                                $activeClass = $isActive ? ' active' : '';
-                                $html .= '<li>';
-                                $html .= '<a href="' . route('admin.library.index', ['folder' => $fullPath]) . '" class="list-group-item list-group-item-action py-1 border-0' . $activeClass . '" style="padding-left:' . $indent . 'px;font-size:13px">' . $toggle . $icon . ' ' . e($name) . '</a>';
-                                if ($hasChildren) {
-                                    $hidden = ($isOpen || $depth === 0) ? '' : ' d-none';
-                                    $html .= '<ul class="list-unstyled tree-sub' . $hidden . '">' . renderTree($children, $fullPath, $currentFolder, $depth + 1) . '</ul>';
-                                }
-                                $html .= '</li>';
-                            }
-                            return $html;
-                        }
-                    @endphp
+                <div style="max-height:500px;overflow-y:auto">
                     <a href="{{ route('admin.library.index', ['folder' => '/']) }}" class="list-group-item list-group-item-action py-1 border-0 {{ $folder === '/' ? 'active' : '' }}" style="font-size:13px">📁 {{ __('Root') }}</a>
-                    <ul class="list-unstyled mb-0">{!! renderTree($tree, '', $folder) !!}</ul>
+                    @foreach($folders as $f)
+                        @if($f !== '/')
+                        @php
+                            $depth = substr_count(trim($f, '/'), '/');
+                            $isActive = $folder === $f;
+                            $isAncestor = str_starts_with($folder . '/', $f . '/');
+                            $parentPath = dirname($f);
+                        @endphp
+                        <a href="{{ route('admin.library.index', ['folder' => $f]) }}"
+                           class="list-group-item list-group-item-action py-1 border-0 tree-item {{ $isActive ? 'active' : '' }}"
+                           data-depth="{{ $depth }}"
+                           data-parent="{{ $parentPath }}"
+                           data-path="{{ $f }}"
+                           style="padding-left:{{ 8 + $depth * 16 }}px;font-size:13px;{{ $depth > 0 && !$isAncestor && !$isActive ? 'display:none' : '' }}">
+                            <span class="tree-arrow" style="display:inline-block;width:14px;font-size:10px;cursor:pointer">{{ $depth === 0 ? '▼' : '▶' }}</span>
+                            {{ $isActive ? '📂' : '📁' }} {{ basename($f) }}
+                        </a>
+                        @endif
+                    @endforeach
                 </div>
+                <script>
+                document.querySelectorAll('.tree-arrow').forEach(function(arrow) {
+                    arrow.addEventListener('click', function(e) {
+                        e.preventDefault(); e.stopPropagation();
+                        var item = this.closest('.tree-item');
+                        var path = item.dataset.path;
+                        var open = this.textContent.trim() === '▼';
+                        this.textContent = open ? '▶' : '▼';
+                        document.querySelectorAll('.tree-item').forEach(function(child) {
+                            if (child.dataset.parent === path) {
+                                child.style.display = open ? 'none' : '';
+                                if (open) {
+                                    // Also collapse children
+                                    var childArrow = child.querySelector('.tree-arrow');
+                                    if (childArrow) childArrow.textContent = '▶';
+                                    document.querySelectorAll('.tree-item[data-parent="'+child.dataset.path+'"]').forEach(function(gc) { gc.style.display = 'none'; });
+                                }
+                            }
+                        });
+                    });
+                });
+                </script>
             </div>
             <form method="POST" action="{{ route('admin.library.create-folder') }}" class="card dc-card p-2">
                 @csrf
