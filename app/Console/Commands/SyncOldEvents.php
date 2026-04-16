@@ -208,11 +208,11 @@ class SyncOldEvents extends Command
 
         $isCancelled = ! empty($i['dat_desinsc']) && $i['dat_desinsc'] !== '0000-00-00 00:00:00';
 
+        // Match by event+user (Joomla can have multiple rows per user per event)
         EventRegistration::updateOrCreate(
-            ['joomla_inscription_id' => (int) ($i['cp'] ?? $i['id'] ?? 0)],
+            ['event_id' => $event->id, 'user_id' => $userId],
             [
-                'event_id' => $event->id,
-                'user_id' => $userId,
+                'joomla_inscription_id' => (int) ($i['cp'] ?? $i['id'] ?? 0),
                 'status' => $isCancelled ? 'cancelled' : 'confirmed',
                 'comment' => $i['com_insc'] ?: null,
                 'created_at' => $i['dat_insc'] ? Carbon::parse($i['dat_insc']) : now(),
