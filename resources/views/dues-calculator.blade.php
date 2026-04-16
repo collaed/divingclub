@@ -1,6 +1,6 @@
 <x-layout :title="__('Membership Dues Calculator')">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+    <div class="row">
+        <div class="col-12">
             <div class="card dc-card">
                 <div class="card-header">{{ __('Membership Dues Calculator') }}</div>
                 <div class="card-body">
@@ -118,8 +118,8 @@
 
                             <div class="text-center mt-3">
                                 <p class="fw-bold mb-2">{{ __('Scan to pay with your banking app') }}</p>
-                                <img src="{{ route('qr.sepa.public', ['amount' => $total, 'communication' => $communication]) }}" alt="SEPA QR" class="border rounded p-2" style="max-width:250px">
-                                <p class="small text-muted mt-2">{{ __('EPC QR Code — compatible with most European banking apps') }}</p>
+                                {{-- QR codes disabled until Wero is available in Luxembourg --}}
+                                
                             </div>
                         @else
                             <div class="alert alert-warning">{{ __('Club IBAN not configured. Ask an administrator to set it in Settings → Banking.') }}</div>

@@ -186,7 +186,7 @@ function updateBulkBar() {
 function bulkDelete() {
     var ids = Array.from(document.querySelectorAll('.file-check:checked')).map(cb => cb.value);
     if (!ids.length) return;
-    dcConfirm('{{ __("Delete :count files?", ["count" => "' + '"+ ids.length +"' + '"]) }}'.replace(':count', ids.length), '{{ __("Delete") }}', 'danger', function(ok) {
+    dcConfirm('Delete ' + ids.length + ' files?', '{{ __("Delete") }}', 'danger', function(ok) {
         if (!ok) return;
         fetch('{{ route("admin.library.bulk-delete") }}', {
             method: 'POST',
