@@ -23,7 +23,7 @@ class EventRegistration extends Model
     use Auditable;
 
     protected $fillable = [
-        'event_id', 'user_id', 'status', 'comment',
+        'joomla_inscription_id', 'event_id', 'user_id', 'status', 'comment',
         'registered_by', 'waiting_list_position',
         'cancelled_at', 'cancelled_by', 'cancel_comment',
         'checked_in_at', 'checked_out_at', 'checked_in_by',
