@@ -145,4 +145,17 @@ class LibraryController extends Controller
 
         return redirect()->route('admin.library.index', ['folder' => $request->input('folder')]);
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
+
+        $files = LibraryFile::whereIn('id', $request->ids)->get();
+        foreach ($files as $file) {
+            Storage::disk('local')->delete($file->path);
+            $file->delete();
+        }
+
+        return response()->json(['deleted' => $files->count()]);
+    }
 }

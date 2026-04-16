@@ -97,6 +97,12 @@
                 @if($files->isEmpty())
                     <div class="card-body text-muted text-center py-4">{{ __('No files in this folder.') }}</div>
                 @else
+                    {{-- Bulk action bar --}}
+                    <div id="bulkBar" class="alert alert-primary py-2 mb-2 d-flex align-items-center gap-2" style="display:none!important">
+                        <strong id="bulkCount">0</strong> {{ __('selected') }}
+                        <button type="button" class="btn btn-sm btn-danger ms-auto" onclick="bulkDelete()">@icon('🗑') {{ __('Delete selected') }}</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false);document.querySelector('thead input[type=checkbox]').checked=false">{{ __('Clear') }}</button>
+                    </div>
                     <div class="table-responsive">
                         <table id="table-library" class="table table-sm table-hover mb-0">
                             <thead><tr>
@@ -165,6 +171,31 @@
 
 @push('scripts')
 <script>
+
+function toggleAll(checked) {
+    document.querySelectorAll('.file-check').forEach(cb => cb.checked = checked);
+    updateBulkBar();
+}
+function updateBulkBar() {
+    var n = document.querySelectorAll('.file-check:checked').length;
+    var bar = document.getElementById('bulkBar');
+    bar.style.display = n > 0 ? 'flex' : 'none';
+    bar.style.setProperty('display', n > 0 ? 'flex' : 'none', 'important');
+    document.getElementById('bulkCount').textContent = n;
+}
+function bulkDelete() {
+    var ids = Array.from(document.querySelectorAll('.file-check:checked')).map(cb => cb.value);
+    if (!ids.length) return;
+    dcConfirm('{{ __("Delete :count files?", ["count" => "' + '"+ ids.length +"' + '"]) }}'.replace(':count', ids.length), '{{ __("Delete") }}', 'danger', function(ok) {
+        if (!ok) return;
+        fetch('{{ route("admin.library.bulk-delete") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+            body: JSON.stringify({ids: ids})
+        }).then(r => { if(r.ok) location.reload(); });
+    });
+}
+
 // Drag-and-drop upload
 const dropArea = document.getElementById('dropArea');
 if (dropArea) {

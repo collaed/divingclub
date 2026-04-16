@@ -70,6 +70,7 @@ Route::get('/library', [LibraryController::class, 'index'])->name('library.index
 Route::post('/library/upload', [LibraryController::class, 'upload'])->name('library.upload');
 Route::put('/library/{file}', [LibraryController::class, 'update'])->name('library.update');
 Route::delete('/library/{file}', [LibraryController::class, 'destroy'])->name('library.destroy');
+Route::post('/library/bulk-delete', [LibraryController::class, 'bulkDelete'])->name('library.bulk-delete');
 Route::get('/library/{file}/download', [LibraryController::class, 'download'])->name('library.download');
 Route::get('/library/download-zip', [LibraryController::class, 'downloadZip'])->name('library.download-zip');
 Route::get('/library/{file}/thumb', [ThumbnailController::class, 'show'])->name('library.thumb');
