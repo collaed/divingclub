@@ -99,12 +99,19 @@ class ProfileDocumentController extends Controller
             abort(403);
         }
 
-        foreach (['local', 'public'] as $disk) {
-            if (Storage::disk($disk)->exists($document->file_path)) {
-                return response(Storage::disk($disk)->get($document->file_path))
-                    ->header('Content-Type', $document->mime_type ?? 'application/pdf')
-                    ->header('Content-Disposition', 'inline; filename="'.$document->original_filename.'"');
-            }
+        $path = $document->file_path;
+        $stripped = str_starts_with($path, 'private/') ? substr($path, 8) : $path;
+
+        if (Storage::disk('local')->exists($stripped)) {
+            return response(Storage::disk('local')->get($stripped))
+                ->header('Content-Type', $document->mime_type ?? 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="'.$document->original_filename.'"');
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return response(Storage::disk('public')->get($path))
+                ->header('Content-Type', $document->mime_type ?? 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="'.$document->original_filename.'"');
         }
 
         abort(404);
