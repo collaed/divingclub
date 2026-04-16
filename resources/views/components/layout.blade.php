@@ -341,6 +341,7 @@
     </script>
     @endauth
     <x-form-enhancements />
+    <x-instant-search />
 
     {{-- Back to top --}}
     <button id="backToTop" class="position-fixed bottom-0 end-0 m-4 btn btn-primary rounded-circle shadow" style="width:44px;height:44px;z-index:1050;display:none;opacity:.8" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="{{ __('Back to top') }}">↑</button>
