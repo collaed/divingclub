@@ -66,12 +66,12 @@ class HomeController extends Controller
         // Instructor bios for the instructors section
         $instructors = MemberDetail::whereNotNull('instructor_bio')
             ->where('instructor_bio', '!=', '')
-            ->where('show_on_public_site', true)
+            ->whereHas('user', fn ($q) => $q->role('instructor'))
             ->with('user')
             ->get();
 
         // Bureau members for the bureau section
-        $bureauMembers = MemberDetail::where('bureau_member', true)
+        $bureauMembers = MemberDetail::whereHas('user', fn ($q) => $q->role(['bureau_master', 'bureau_technical', 'bureau_finance']))
             ->with('user')
             ->get();
 
