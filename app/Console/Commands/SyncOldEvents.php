@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Document;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\MemberDetail;
@@ -76,6 +77,9 @@ class SyncOldEvents extends Command
             ['key' => 'joomla_last_sync'],
             ['value' => now()->toIso8601String()]
         );
+
+        // Sync medical certs from VisitesMed
+        $this->syncMedicalCerts();
 
         $this->info("Done: {$this->syncedEvents} events, {$this->syncedRegs} registrations synced, {$this->skippedRegs} skipped (no matching member)");
 
@@ -288,6 +292,75 @@ class SyncOldEvents extends Command
         $this->info("    Auto-created member: {$firstName} {$lastName} ({$email})");
 
         return $user->id;
+    }
+
+    private function syncMedicalCerts(): void
+    {
+        $url = str_replace('api_sync.php', 'api_scancards.php', $this->apiUrl);
+        $since = now()->subDays(30)->format('Y-m-d');
+
+        try {
+            $response = Http::timeout(30)->withHeaders(['X-Sync-Key' => $this->apiKey])
+                ->get($url, ['since' => $since]);
+        } catch (\Throwable) {
+            return;
+        }
+
+        if (! $response->ok()) {
+            return;
+        }
+
+        $data = $response->json();
+        $imported = 0;
+
+        foreach ($data['files'] ?? [] as $f) {
+            if ($f['folder'] !== 'VisitesMed') {
+                continue;
+            }
+
+            if (! preg_match('/^(.+?)\s+(\d+)\.(pdf|jpg|jpeg|png)$/i', $f['name'], $m)) {
+                continue;
+            }
+
+            $parts = preg_split('/\s+/', trim($m[1]), 2);
+            $user = User::whereHas('detail', fn ($q) => $q->whereRaw('LOWER(first_name) = ?', [mb_strtolower($parts[0] ?? '')])->whereRaw('LOWER(last_name) = ?', [mb_strtolower($parts[1] ?? '')]))->first();
+            if (! $user) {
+                continue;
+            }
+
+            if (Document::where('user_id', $user->id)->where('original_filename', $f['name'])->where('size_bytes', $f['size'])->exists()) {
+                continue;
+            }
+
+            $content = @file_get_contents($f['url'], false, stream_context_create(['http' => ['header' => 'X-Sync-Key: '.$this->apiKey]]));
+            if (! $content) {
+                continue;
+            }
+
+            $storagePath = "private/medical/{$user->id}/{$f['name']}";
+            $dir = storage_path("app/private/medical/{$user->id}");
+            if (! is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            file_put_contents(storage_path("app/{$storagePath}"), $content);
+
+            Document::where('user_id', $user->id)->where('category', 'medical')->where('is_current', true)->update(['is_current' => false]);
+            Document::create([
+                'user_id' => $user->id,
+                'category' => 'medical',
+                'file_path' => $storagePath,
+                'original_filename' => $f['name'],
+                'mime_type' => str_ends_with($f['name'], '.pdf') ? 'application/pdf' : 'image/jpeg',
+                'size_bytes' => $f['size'],
+                'is_current' => true,
+                'date_established' => $f['modified'],
+            ]);
+            $imported++;
+        }
+
+        if ($imported > 0) {
+            $this->line("    Medical certs: {$imported} updated from VisitesMed");
+        }
     }
 
     private function getLastSyncDate(): ?string
