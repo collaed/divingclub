@@ -50,4 +50,9 @@ return [
         'client_secret' => env('AMAZON_CLIENT_SECRET'),
         'redirect' => env('AMAZON_REDIRECT_URI'),
     ],
+
+    'old_sync' => [
+        'url' => env('OLD_SYNC_URL', 'https://clubcep.eu/wrapp/api_sync.php'),
+        'key' => env('OLD_SYNC_KEY', 'cep-sync-2026-hetzner'),
+    ],
 ];
