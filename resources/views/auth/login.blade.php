@@ -42,12 +42,10 @@
                         @foreach($providers as $provider => $label)
                             <a href="{{ route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
                         @endforeach
-                        <a href="{{ route('auth.eulogin.redirect') }}" class="btn btn-outline-secondary btn-sm">🇪🇺  EU Login</a>
                     </div>
                     @else
                     <hr>
                     <div class="d-grid gap-2">
-                        <a href="{{ route('auth.eulogin.redirect') }}" class="btn btn-outline-secondary btn-sm">🇪🇺  EU Login</a>
                     </div>
                     @endif
                 </div>

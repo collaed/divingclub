@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
-use App\Http\Controllers\Auth\EuLoginController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SocialAuthController;
@@ -110,8 +109,6 @@ Route::middleware('guest')->group(function () {
 });
 
 // EU Login (CAS) — must be before the {provider} wildcard
-Route::get('/auth/eulogin/redirect', [EuLoginController::class, 'redirect'])->name('auth.eulogin.redirect');
-Route::get('/auth/eulogin/callback', [EuLoginController::class, 'callback'])->name('auth.eulogin.callback');
 
 // OAuth
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('auth.social.redirect');

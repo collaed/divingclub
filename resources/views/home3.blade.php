@@ -313,7 +313,6 @@ fetch('{{ route("photos.browse") }}').then(r=>r.json()).then(d=>{document.getEle
         </div>
     @endif
     <hr>
-    <a href="{{ route('auth.eulogin.redirect') }}" class="btn btn-outline-secondary btn-sm w-100">🇪🇺  EU Login</a>
 
     <div style="text-align:center;margin-top:1.5rem">
         <a href="{{ route('register') }}" style="font-size:.9rem">{{ __("Don't have an account? Register") }}</a>
