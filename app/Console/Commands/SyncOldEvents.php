@@ -172,8 +172,10 @@ class SyncOldEvents extends Command
             $attrs
         );
 
-        if ($event->wasRecentlyCreated) {
-            $event->update(['created_by' => User::first()?->id ?? 1]);
+        if ($event->wasRecentlyCreated || ! $event->created_by) {
+            $resp = trim($s['nom_resp'] ?? '');
+            $respUser = $resp ? MemberDetail::whereRaw('LOWER(first_name) = ?', [mb_strtolower($resp)])->value('user_id') : null;
+            $event->update(['created_by' => $respUser ?? User::first()?->id ?? 1]);
         }
 
         $this->syncedEvents++;
