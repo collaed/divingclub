@@ -94,17 +94,16 @@
                 @endif
             @endif
 
-            {{-- Licence card (PDF) --}}
-            @php $licCard = $target->documents()->where('category', 'licence_card')->where('file_path', 'LIKE', '%' . strtolower($lic->federation->acronym) . '%')->orWhere(function($q) use ($lic, $target) { $q->where('user_id', $target->id)->where('category', 'licence_card'); })->latest()->first(); @endphp
-            @if($licCard && str_ends_with($licCard->original_filename, '.pdf'))
+            {{-- Licence card --}}
+            @php $licCard = $target->documents()->where('user_id', $target->id)->where('category', 'licence_card')->latest()->first(); @endphp
+            @if($lic->federation->acronym === 'FLASSA' && $licCard)
                 <div class="mt-3">
-                    <strong class="small">@icon('🪪') {{ __('Licence Card') }}</strong>
-                    <iframe src="{{ route('profile.document.view', $licCard) }}" style="width:100%;max-width:500px;height:180px;border:1px solid #dee2e6;border-radius:0.5rem" loading="lazy"></iframe>
+                    @include('profile.partials.flassa-card', ['licence' => $lic, 'user' => $target, 'pdfDoc' => $licCard])
                 </div>
-            @elseif($licCard)
+            @elseif($licCard && str_ends_with($licCard->original_filename, '.pdf'))
                 <div class="mt-3">
                     <strong class="small">@icon('🪪') {{ __('Licence Card') }}</strong>
-                    <a href="{{ route('profile.document.download', $licCard) }}" class="btn btn-sm btn-outline-primary ms-2">{{ __('Download') }}</a>
+                    <a href="{{ route('profile.document.download', $licCard) }}" class="btn btn-sm btn-outline-primary ms-2">@icon('📄') {{ __('Download PDF') }}</a>
                 </div>
             @endif
             {{-- FFESSM virtual licence card --}}

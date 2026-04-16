@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Document;
+use App\Models\LibraryFile;
 use App\Models\MemberDetail;
 use App\Models\User;
 use Illuminate\Console\Command;
@@ -48,6 +49,11 @@ class ProcessIncomingFiles extends Command
                 if (! $this->option('dry-run')) {
                     $this->importFile($fullPath, $file, $user, $category);
                     unlink($fullPath);
+
+                    // Remove from library incoming folder too
+                    LibraryFile::where('original_name', $file)
+                        ->where('folder', 'LIKE', '%incoming%')
+                        ->delete();
                 }
                 $matched++;
             } else {
