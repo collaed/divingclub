@@ -47,9 +47,23 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Intercept all outgoing mail in staging — redirect to a single address
-        if (config('app.staging_mode') && $to = config('mail.always_to')) {
-            Mail::alwaysTo($to);
+        // Staging mail: whitelist gets real email, everyone else → always_to
+        if (config('app.staging_mode') && $fallback = config('mail.always_to')) {
+            $whitelist = array_map('strtolower', config('mail.whitelist', []));
+            if (empty($whitelist)) {
+                Mail::alwaysTo($fallback);
+            } else {
+                Event::listen(MessageSending::class, function (MessageSending $event) use ($whitelist, $fallback) {
+                    $to = $event->message->getTo();
+                    $addresses = array_map(fn ($a) => strtolower($a->getAddress()), $to);
+                    $allowed = array_filter($addresses, fn ($a) => in_array($a, $whitelist));
+                    if (empty($allowed)) {
+                        // No whitelisted recipients — redirect to fallback
+                        $event->message->to($fallback);
+                    }
+                    // If any whitelisted, send to original recipients
+                });
+            }
         }
 
         // Load-balance outgoing mail across providers

@@ -124,5 +124,6 @@ return [
     */
 
     'always_to' => env('MAIL_ALWAYS_TO'),
+    'whitelist' => env('MAIL_WHITELIST') ? explode(',', env('MAIL_WHITELIST')) : [],
 
 ];
