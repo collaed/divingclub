@@ -24,6 +24,11 @@ class Federation extends Model
         return $this->hasMany(MemberLicence::class);
     }
 
+    public function complianceRules(): HasMany
+    {
+        return $this->hasMany(MedicalComplianceRule::class);
+    }
+
     public function certificationLevels(): HasMany
     {
         return $this->hasMany(CertificationLevel::class);

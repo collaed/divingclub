@@ -1,14 +1,11 @@
 <?php
 
 /**
- * Medical certificate compliance evaluation and status checking.
+ * Medical certificate compliance — per-federation evaluation.
  *
- * Evaluates uploaded medical certificates against federation-specific rules
- * (FFESSM age brackets, LIFRAS calendar-based validity). Determines expiry
- * dates, supersedes previous certificates, and provides compliance status
- * for dive registration gates.
- *
- * @author ClubCEP.eu
+ * Computes expiry per federation independently. A member is compliant
+ * if ANY active federation considers the cert valid. Warnings shown
+ * for federations where it's expired.
  */
 
 namespace App\Services;
@@ -22,9 +19,9 @@ use Carbon\Carbon;
 class MedicalComplianceService
 {
     /**
-     * Evaluate a newly uploaded medical certificate against all matching rules.
-     * Sets expiry_date = issue_date + minimum validity_months from matching rules.
-     * Supersedes previous current medical cert.
+     * Evaluate a certificate against each active federation independently.
+     * Stores the most generous expiry (latest date) as the document expiry,
+     * plus per-federation breakdown in compliance_notes.
      */
     public function evaluateCertificate(Document $document): void
     {
@@ -32,64 +29,43 @@ class MedicalComplianceService
         $age = $user->detail?->date_of_birth?->age;
         $issueDate = $document->date_established ?? $document->created_at;
 
-        // Find rules for ALL active federations (club-wide enforcement)
-        $activeFederationIds = Federation::where('visibility', 'active')->pluck('id')->toArray();
-
-        $rules = MedicalComplianceRule::query()
-            ->whereIn('federation_id', $activeFederationIds)
-            ->when($age !== null, fn ($q) => $q->where('age_bracket_low', '<=', $age)->where('age_bracket_high', '>=', $age))
+        $activeFeds = Federation::where('visibility', 'active')
+            ->whereHas('complianceRules')
             ->get();
 
-        if ($rules->isEmpty()) {
-            // No matching rules — use default 12 months, flag for review
+        $perFed = [];
+
+        foreach ($activeFeds as $fed) {
+            $rules = MedicalComplianceRule::where('federation_id', $fed->id)
+                ->when($age !== null, fn ($q) => $q->where('age_bracket_low', '<=', $age)->where('age_bracket_high', '>=', $age))
+                ->get();
+
+            if ($rules->isEmpty()) {
+                continue;
+            }
+
+            $expiry = $this->computeExpiry($fed, $rules, $issueDate, $age);
+            $perFed[$fed->acronym] = $expiry;
+        }
+
+        if (empty($perFed)) {
             $document->update([
                 'expiry_date' => $issueDate->copy()->addMonths(12),
                 'is_compliant' => null,
-                'compliance_notes' => 'No matching compliance rules found — using default 12 months. Bureau review needed.',
+                'compliance_notes' => 'No matching rules — default 12 months.',
             ]);
 
             return;
         }
 
-        // Use minimum validity_months from all matching rules (most restrictive)
-        $minMonths = $rules->min('validity_months');
-        $expiryDate = $issueDate->copy()->addMonths($minMonths);
-
-        // LIFRAS calendar-based rule (MIL 2026 §1.5.1):
-        // Jan 1 - Aug 31 of year N → valid until Jan 31 of N+1
-        // Sep 1 - Dec 31 of year N → valid until Jan 31 of N+2
-        $lifrasId = 2; // LIFRAS federation_id
-        if ($rules->contains('federation_id', $lifrasId)) {
-            $year = $issueDate->year;
-            $expiryDate = $issueDate->month >= 9
-                ? Carbon::create($year + 2, 1, 31)
-                : Carbon::create($year + 1, 1, 31);
-        }
-
-        // FLASSA calendar-based rule:
-        // Age 18-45: cert Jan-Aug → valid until Dec 31 of Y+1; cert Sep-Dec → valid until Dec 31 of Y+2
-        // Age <18 or >45: cert Jan-Aug → valid until Dec 31 of Y; cert Sep-Dec → valid until Dec 31 of Y+1
-        $flassaId = Federation::where('acronym', 'FLASSA')->value('id');
-        if ($flassaId && $rules->contains('federation_id', $flassaId) && $age !== null) {
-            $year = $issueDate->year;
-            $beforeSep = $issueDate->month < 9;
-            if ($age >= 18 && $age <= 45) {
-                $expiryDate = $beforeSep
-                    ? Carbon::create($year + 1, 12, 31)
-                    : Carbon::create($year + 2, 12, 31);
-            } else {
-                $expiryDate = $beforeSep
-                    ? Carbon::create($year, 12, 31)
-                    : Carbon::create($year + 1, 12, 31);
-            }
-        }
-
-        $ruleNames = $rules->map(fn ($r) => $r->federation->acronym)->unique()->implode(', ');
+        // Document expiry = latest (most generous) across all federations
+        $latestExpiry = collect($perFed)->max();
+        $notes = collect($perFed)->map(fn ($exp, $fed) => "{$fed}: {$exp->format('d/m/Y')}")->implode(' | ');
 
         $document->update([
-            'expiry_date' => $expiryDate,
-            'is_compliant' => $expiryDate->isFuture(),
-            'compliance_notes' => "Evaluated against {$rules->count()} rule(s) ({$ruleNames}). Expiry: {$expiryDate->format('d/m/Y')}.",
+            'expiry_date' => $latestExpiry,
+            'is_compliant' => $latestExpiry->isFuture(),
+            'compliance_notes' => $notes,
         ]);
 
         // Supersede previous current medical certs
@@ -100,8 +76,42 @@ class MedicalComplianceService
             ->update(['is_current' => false, 'superseded_by' => $document->id]);
     }
 
+    private function computeExpiry(Federation $fed, $rules, Carbon $issueDate, ?int $age): Carbon
+    {
+        $minMonths = $rules->min('validity_months');
+        $expiry = $issueDate->copy()->addMonths($minMonths);
+
+        // LIFRAS calendar rule
+        if ($fed->acronym === 'LIFRAS') {
+            $year = $issueDate->year;
+            $expiry = $issueDate->month >= 9
+                ? Carbon::create($year + 2, 1, 31)
+                : Carbon::create($year + 1, 1, 31);
+        }
+
+        // FLASSA calendar rule
+        if ($fed->acronym === 'FLASSA' && $age !== null) {
+            $year = $issueDate->year;
+            $beforeSep = $issueDate->month < 9;
+            if ($age >= 18 && $age <= 45) {
+                $expiry = $beforeSep
+                    ? Carbon::create($year + 1, 12, 31)
+                    : Carbon::create($year + 2, 12, 31);
+            } else {
+                $expiry = $beforeSep
+                    ? Carbon::create($year, 12, 31)
+                    : Carbon::create($year + 1, 12, 31);
+            }
+        }
+
+        // FFESSM: straight day-to-day (issue + validity_months)
+        // Already handled by the default $minMonths calculation above
+
+        return $expiry;
+    }
+
     /**
-     * Check if a user is medically compliant at a given date (defaults to now).
+     * Compliant if ANY active federation considers the cert valid.
      */
     public function isCompliant(User $user, ?Carbon $atDate = null): bool
     {
@@ -115,7 +125,7 @@ class MedicalComplianceService
     }
 
     /**
-     * Get compliance status details for a user, optionally at a specific date.
+     * Get compliance status with per-federation breakdown.
      */
     public function getStatus(User $user, ?Carbon $atDate = null): array
     {
@@ -127,18 +137,32 @@ class MedicalComplianceService
             ->first();
 
         if (! $cert) {
-            return ['status' => 'missing', 'badge' => 'danger', 'label' => 'No Certificate', 'days' => null, 'cert' => null];
+            return ['status' => 'missing', 'badge' => 'danger', 'label' => 'No Certificate', 'days' => null, 'cert' => null, 'warnings' => []];
         }
 
         if (! $cert->expiry_date || $cert->expiry_date <= $date) {
-            return ['status' => 'expired', 'badge' => 'danger', 'label' => 'Expired', 'days' => $cert->daysUntilExpiry(), 'cert' => $cert];
+            return ['status' => 'expired', 'badge' => 'danger', 'label' => 'Expired', 'days' => $cert->daysUntilExpiry(), 'cert' => $cert, 'warnings' => []];
         }
 
         $days = (int) $date->diffInDays($cert->expiry_date, false);
-        if ($days <= 30) {
-            return ['status' => 'expiring', 'badge' => 'warning', 'label' => "Expires in {$days}d", 'days' => $days, 'cert' => $cert];
+
+        // Per-federation warnings from compliance_notes
+        $warnings = [];
+        if ($cert->compliance_notes) {
+            foreach (explode(' | ', $cert->compliance_notes) as $part) {
+                if (preg_match('/^(\w+): (\d{2}\/\d{2}\/\d{4})$/', $part, $m)) {
+                    $fedExpiry = Carbon::createFromFormat('d/m/Y', $m[2]);
+                    if ($fedExpiry <= $date) {
+                        $warnings[] = __('Expired per :fed rules', ['fed' => $m[1]]);
+                    }
+                }
+            }
         }
 
-        return ['status' => 'compliant', 'badge' => 'success', 'label' => 'Compliant', 'days' => $days, 'cert' => $cert];
+        if ($days <= 30) {
+            return ['status' => 'expiring', 'badge' => 'warning', 'label' => "Expires in {$days}d", 'days' => $days, 'cert' => $cert, 'warnings' => $warnings];
+        }
+
+        return ['status' => 'compliant', 'badge' => 'success', 'label' => 'Compliant', 'days' => $days, 'cert' => $cert, 'warnings' => $warnings];
     }
 }
