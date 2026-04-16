@@ -209,7 +209,7 @@ class SyncOldEvents extends Command
         $isCancelled = ! empty($i['dat_desinsc']) && $i['dat_desinsc'] !== '0000-00-00 00:00:00';
 
         EventRegistration::updateOrCreate(
-            ['joomla_inscription_id' => (int) $i['id']],
+            ['joomla_inscription_id' => (int) ($i['cp'] ?? $i['id'] ?? 0)],
             [
                 'event_id' => $event->id,
                 'user_id' => $userId,
