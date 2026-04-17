@@ -21,7 +21,7 @@ class EventPhoto extends Model
 
     protected function casts(): array
     {
-        return ['approved' => 'boolean', 'gdpr_consent', 'file_hash', 'view_count' => 'boolean', 'has_faces' => 'boolean'];
+        return ['approved' => 'boolean', 'gdpr_consent' => 'boolean', 'has_faces' => 'boolean', 'view_count' => 'integer'];
     }
 
     public function event(): BelongsTo
