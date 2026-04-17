@@ -91,7 +91,7 @@ class EventController extends Controller
                 ->orWhere('to_email', 'like', "event-{$event->id}@%")
                 ->orWhere('alias', 'like', "event-{$event->id}@%");
         })->orderByDesc('created_at')->get();
-        $members = auth()->user()?->isBureau() ? User::with('detail')->role(['member', 'instructor', 'instructor_apnea', 'bureau_finance', 'bureau_technical', 'bureau_master'])->orderBy('username')->get() : collect();
+        $members = auth()->check() ? User::with('detail')->role(['member', 'instructor', 'instructor_apnea', 'bureau_finance', 'bureau_technical', 'bureau_master'])->orderBy('username')->get() : collect();
 
         return view('events.show', compact('event', 'userReg', 'emailHistory', 'members'));
     }

@@ -176,7 +176,7 @@
                             @if($userReg->status === 'waiting')
                                 <p class="small text-muted">{{ __('Position') }}: #{{ $userReg->waiting_list_position }}</p>
                             @endif
-                            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" data-confirm="{{ __('Cancel registration?') }}" data-confirm-style="warning" data-confirm-btn="{{ __('Cancel') }}">
+                            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" data-confirm="{{ __('Cancel registration?') }}" data-confirm-style="warning" data-confirm-btn="{{ __('Yes, cancel') }}">
                                 @csrf
                                 <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                                 <div class="mb-2">
