@@ -293,7 +293,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 ## Instructor Planning & Activity Types
 
 - **Activity types describe WHAT is done**, never where or when. Location and schedule are separate event fields. Do not create activity types that duplicate location (e.g., "Merl vendr.") or schedule info.
-- Current activity types: `pool` (generic pool), `pool_kids` (children), `pool_pn1` (PN1 training), `pool_pn23` (PN2-PN3 training), `apnea`, `fosse`, `quarry` (quarry/lake), `long_trip`, `theory`, `steinfort`, `missing` (instructor needed).
+- Current activity types: `pool` (generic pool), `pool_kids` (children), `pool_pn1` (PN1 training), `pool_pn23` (PN2-PN3 training), `apnea`, `fosse`, `quarry` (quarry/lake), `long_trip`, `theory`, `social`.
 - **Instructor initials and colors** are stored in `member_details.instructor_initial` and `member_details.instructor_color`. These match the old Google Sheet planning. Do not auto-generate — they are manually assigned and must remain stable.
 - **Jerome disambiguation**: Jerome Samson = J (first Jerome), Jerome Tongio = T, Jérôme Boisseau = B. Pietro = O (not P, which is Pascale). Manuel = U. Valérie = A. Luc = C.
 - **Legend categories**: Instructors (Spatie role `instructor` or `instructor_apnea`) and Bureau non-instructors (bureau roles without instructor role) are shown separately.

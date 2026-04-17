@@ -17,16 +17,15 @@ class InstructorAvailabilityController extends Controller
      */
     public const ACTIVITY_COLORS = [
         'pool' => ['color' => '#c9daf8', 'text' => '#000', 'icon' => '🏊', 'label' => 'Pool'],
-        'pool_kids' => ['color' => '#6d9eeb', 'text' => '#fff', 'icon' => '👶', 'label' => 'Kids'],
-        'pool_pn1' => ['color' => '#1155cc', 'text' => '#fff', 'icon' => '1️⃣', 'label' => 'PN1'],
-        'pool_pn23' => ['color' => '#c9daf8', 'text' => '#f00', 'icon' => '🔴', 'label' => 'PN2-PN3'],
+        'pool_kids' => ['color' => '#6d9eeb', 'text' => '#fff', 'icon' => '👶', 'label' => '↳ Kids'],
+        'pool_pn1' => ['color' => '#1155cc', 'text' => '#fff', 'icon' => '1️⃣', 'label' => '↳ PN1'],
+        'pool_pn23' => ['color' => '#c9daf8', 'text' => '#f00', 'icon' => '🔴', 'label' => '↳ PN2+'],
         'apnea' => ['color' => '#00ff00', 'text' => '#000', 'icon' => '🫁', 'label' => 'Apnea'],
         'fosse' => ['color' => '#93c47d', 'text' => '#000', 'icon' => '🕳️', 'label' => 'Fosse'],
         'quarry' => ['color' => '#00ffff', 'text' => '#000', 'icon' => '🪨', 'label' => 'Quarry/Lake'],
         'long_trip' => ['color' => '#ffe599', 'text' => '#000', 'icon' => '✈️', 'label' => 'Long Trip'],
         'theory' => ['color' => '#d9d9d9', 'text' => '#000', 'icon' => '📖', 'label' => 'Theory'],
-        'steinfort' => ['color' => '#ff9900', 'text' => '#000', 'icon' => '🟠', 'label' => 'Steinfort'],
-        'missing' => ['color' => '#ff00ff', 'text' => '#fff', 'icon' => '⚠️', 'label' => 'Instructor needed'],
+        'social' => ['color' => '#f4cccc', 'text' => '#000', 'icon' => '🎉', 'label' => 'Social'],
     ];
 
     public function index(Request $request)
