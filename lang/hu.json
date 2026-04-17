@@ -572,6 +572,8 @@
     "Type (e.g. regulator)": "Típus (pl. szabályozó)",
     "URL": "URL",
     "Unmatched": "Nincs párosítva",
+    "Unregister": "Regisztráció törlése",
+    "Unregister :name?": "Regisztráció törlése :name ?",
     "Unverified": "Nincs ellenőrizve",
     "Upcoming Birthdays": "Közelgő születésnapok",
     "Update": "A frissítéshez",

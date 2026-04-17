@@ -572,6 +572,8 @@
     "Type (e.g. regulator)": "Type (e.g. regulator)",
     "URL": "URL-osoite",
     "Unmatched": "Päivitetään",
+    "Unregister": "Peruuta rekisteröinti",
+    "Unregister :name?": "Peruuta rekisteröinti :name ?",
     "Unverified": "Vahvistamaton",
     "Upcoming Birthdays": "Upcoming Birthdays",
     "Update": "Update",

@@ -572,6 +572,8 @@
     "Type (e.g. regulator)": "Τύπος (π.χ. ρυθμιστής)",
     "URL": "URL",
     "Unmatched": "Αταίριαστο",
+    "Unregister": "Κατάργηση εγγραφής",
+    "Unregister :name?": "Κατάργηση εγγραφής :name ?",
     "Unverified": "Μη επαληθευμένο",
     "Upcoming Birthdays": "Ερχόμενα γενέθλια",
     "Update": "Ενημέρωση",
