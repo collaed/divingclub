@@ -10,7 +10,7 @@ class UserEmail extends Model
 {
     use Auditable;
 
-    protected $fillable = ['user_id', 'email', 'is_primary', 'is_verified', 'label', 'verification_token', 'verification_sent_at'];
+    protected $fillable = ['user_id', 'email', 'is_primary', 'is_verified', 'receive_mail', 'label', 'verification_token', 'verification_sent_at'];
 
     protected function casts(): array
     {

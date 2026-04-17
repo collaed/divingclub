@@ -235,6 +235,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/profile/email', [ProfileEmailController::class, 'add'])->name('profile.email.add');
     Route::post('/profile/email/{email}/primary', [ProfileEmailController::class, 'setPrimary'])->name('profile.email.primary');
     Route::delete('/profile/email/{email}', [ProfileEmailController::class, 'delete'])->name('profile.email.delete');
+    Route::post('/profile/email/{email}/toggle-mail', [ProfileEmailController::class, 'toggleReceiveMail'])->name('profile.email.toggle-mail');
 
     // Events (calendar visible to all authenticated users)
     Route::get('/events', [EventController::class, 'index'])->name('events.index');

@@ -69,4 +69,15 @@ class ProfileEmailController extends Controller
 
         return back()->with('success', __('Email removed.'))->withInput(['tab' => 'info']);
     }
+
+    public function toggleReceiveMail(UserEmail $email)
+    {
+        abort_unless(auth()->id() === $email->user_id, 403);
+        $email->update(['receive_mail' => ! $email->receive_mail]);
+
+        return back()->with('success', $email->receive_mail
+            ? __(':email will receive club emails.', ['email' => $email->email])
+            : __(':email will NOT receive club emails (login only).', ['email' => $email->email])
+        )->withInput(['tab' => 'info']);
+    }
 }

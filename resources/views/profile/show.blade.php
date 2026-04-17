@@ -206,13 +206,19 @@
         </div>
         <div class="card-body">
             <table class="table table-sm">
-                <thead><tr><th>{{ __('Email') }}</th><th>{{ __('Label') }}</th><th>{{ __('Status') }}</th><th></th></tr></thead>
+                <thead><tr><th>{{ __('Email') }}</th><th>{{ __('Label') }}</th><th>{{ __('Status') }}</th><th>{{ __('Receive mail') }}</th><th></th></tr></thead>
                 <tbody>
                 @foreach($target->emails as $em)
                     <tr>
                         <td>{{ $em->email }} @if($em->is_primary) <span class="badge bg-primary">{{ __('Primary') }}</span> @endif</td>
                         <td>{{ $em->label }}</td>
                         <td>@if($em->is_verified) <span class="badge bg-success">{{ __('Verified') }}</span> @else <span class="badge bg-warning text-dark">{{ __('Unverified') }}</span> @endif</td>
+                        <td class="text-center">
+                            <form method="POST" action="{{ route('profile.email.toggle-mail', $em) }}" class="d-inline">
+                                @csrf
+                                <input type="checkbox" {{ $em->receive_mail ? 'checked' : '' }} onchange="this.form.submit()" title="{{ $em->receive_mail ? __('Receives club emails') : __('Login only — no emails') }}">
+                            </form>
+                        </td>
                         <td class="text-end">
                             @if(!$em->is_primary && $em->is_verified)
                                 <form method="POST" action="{{ route('profile.email.primary', $em) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-primary">{{ __('Set Primary') }}</button></form>
