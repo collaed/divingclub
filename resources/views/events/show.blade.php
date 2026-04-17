@@ -176,13 +176,13 @@
                             @if($userReg->status === 'waiting')
                                 <p class="small text-muted">{{ __('Position') }}: #{{ $userReg->waiting_list_position }}</p>
                             @endif
-                            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" data-confirm="{{ __('Cancel registration?') }}" data-confirm-style="warning" data-confirm-btn="{{ __('Yes, cancel') }}">
+                            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" data-confirm="{{ __('Unregister :name?', ['name' => auth()->user()->name]) }}" data-confirm-style="warning" data-confirm-btn="{{ __('Confirm') }}">
                                 @csrf
                                 <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                                 <div class="mb-2">
                                     <input type="text" name="cancel_comment" class="form-control form-control-sm" placeholder="{{ __('Reason (optional)') }}">
                                 </div>
-                                <button class="btn btn-outline-danger btn-sm">{{ __('Cancel Registration') }}</button>
+                                <button class="btn btn-outline-danger btn-sm">{{ __('Unregister') }}</button>
                             </form>
                         @elseif($event->isRegistrationOpen())
                             @php $myMed = app(\App\Services\MedicalComplianceService::class)->getStatus(auth()->user()); @endphp
