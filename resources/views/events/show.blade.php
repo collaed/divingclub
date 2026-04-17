@@ -258,31 +258,39 @@
                     {{-- Instructors --}}
                     @if($instructorRegs->count())
                         <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Instructors') }}</small></div>
+                        <ul class="list-group list-group-flush">
                         @foreach($instructorRegs as $reg)
                             @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event])
                         @endforeach
+                        </ul>
                     @endif
                     {{-- Members --}}
                     @if($memberRegs->count())
                         <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Members') }}</small></div>
+                        <ul class="list-group list-group-flush">
                         @foreach($memberRegs as $reg)
                             @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event])
                         @endforeach
+                        </ul>
                     @endif
                     {{-- Waiting list --}}
                     @if($waiting->count())
                         <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Waiting List') }}</small></div>
+                        <ul class="list-group list-group-flush">
                         @foreach($waiting as $reg)
                             @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event, 'showPosition' => true])
                         @endforeach
+                        </ul>
                     @endif
                     {{-- Cancelled (hidden by default, privileged only) --}}
                     @if($cancelled->count() && $isPrivileged)
                         <div id="cancelled-list" class="d-none">
                             <div class="px-3 pt-2 pb-1"><small class="fw-bold text-danger">{{ __('Cancelled') }}</small></div>
+                            <ul class="list-group list-group-flush">
                             @foreach($cancelled as $reg)
                                 @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event, 'showCancel' => true])
                             @endforeach
+                            </ul>
                         </div>
                     @endif
                     @if($confirmed->count() === 0 && $waiting->count() === 0)
