@@ -16,16 +16,18 @@ class InstructorAvailabilityController extends Controller
      * Activity types with colors matching the old CEP Google Sheet planning.
      */
     public const ACTIVITY_COLORS = [
-        'pool' => ['color' => '#c9daf8', 'text' => '#000', 'icon' => '🏊', 'label' => 'Pool'],
-        'pool_kids' => ['color' => '#6d9eeb', 'text' => '#fff', 'icon' => '👶', 'label' => 'Kids'],
-        'pool_pn1' => ['color' => '#1155cc', 'text' => '#fff', 'icon' => '1️⃣', 'label' => 'PN1'],
-        'pool_pn23' => ['color' => '#c9daf8', 'text' => '#f00', 'icon' => '🔴', 'label' => 'PN2-3'],
-        'apnea' => ['color' => '#00ff00', 'text' => '#000', 'icon' => '🫁', 'label' => 'Apnea'],
+        'pool' => ['color' => '#c9daf8', 'text' => '#000', 'icon' => '🏊', 'label' => 'Merl mercr.'],
+        'pool_friday' => ['color' => '#ffe599', 'text' => '#000', 'icon' => '🏊', 'label' => 'Merl vendr.'],
+        'pool_kids' => ['color' => '#6d9eeb', 'text' => '#fff', 'icon' => '👶', 'label' => 'Blocs enfants'],
+        'pool_pn1' => ['color' => '#1155cc', 'text' => '#fff', 'icon' => '1️⃣', 'label' => 'Blocs PN1'],
+        'pool_pn23' => ['color' => '#c9daf8', 'text' => '#f00', 'icon' => '🔴', 'label' => 'Blocs PN2-PN3'],
+        'apnea' => ['color' => '#00ff00', 'text' => '#000', 'icon' => '🫁', 'label' => 'Apnéa'],
         'fosse' => ['color' => '#93c47d', 'text' => '#000', 'icon' => '🕳️', 'label' => 'Fosse'],
-        'quarry' => ['color' => '#ff00ff', 'text' => '#000', 'icon' => '🪨', 'label' => 'Quarry/Lake'],
-        'long_trip' => ['color' => '#ffe599', 'text' => '#000', 'icon' => '✈️', 'label' => 'Long Trip'],
-        'theory' => ['color' => '#d9d9d9', 'text' => '#000', 'icon' => '📖', 'label' => 'Theory'],
+        'quarry' => ['color' => '#00ffff', 'text' => '#000', 'icon' => '🪨', 'label' => 'Lac/Carrière'],
+        'long_trip' => ['color' => '#d9d9d9', 'text' => '#000', 'icon' => '✈️', 'label' => 'Sortie longue'],
+        'theory' => ['color' => '#f3f3f3', 'text' => '#000', 'icon' => '📖', 'label' => 'Cours théorique'],
         'steinfort' => ['color' => '#ff9900', 'text' => '#000', 'icon' => '🟠', 'label' => 'Steinfort'],
+        'missing' => ['color' => '#ff00ff', 'text' => '#fff', 'icon' => '⚠️', 'label' => 'Moniteur manquant'],
     ];
 
     public function index(Request $request)

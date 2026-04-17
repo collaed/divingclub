@@ -123,7 +123,7 @@
     <div class="mt-3">
         <strong class="small text-muted">{{ __('Instructors') }}:</strong>
         <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-1 mt-1">
-            @foreach($instructors as $inst)
+            @foreach($instructors->filter(fn($u) => $u->hasAnyRole(['instructor', 'instructor_apnea'])) as $inst)
                 @php
                     $ini = $inst->detail?->instructor_initial ?: mb_strtoupper(mb_substr($inst->detail?->first_name ?? '?', 0, 1));
                     $ic = $inst->detail?->instructor_color ?? '#6c757d';
@@ -132,6 +132,20 @@
             @endforeach
         </div>
     </div>
+    @if($instructors->filter(fn($u) => $u->hasAnyRole(['bureau_master', 'bureau_technical', 'bureau_finance']) && !$u->hasAnyRole(['instructor', 'instructor_apnea']))->isNotEmpty())
+    <div class="mt-2">
+        <strong class="small text-muted">{{ __('Bureau') }}:</strong>
+        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-1 mt-1">
+            @foreach($instructors->filter(fn($u) => $u->hasAnyRole(['bureau_master', 'bureau_technical', 'bureau_finance']) && !$u->hasAnyRole(['instructor', 'instructor_apnea'])) as $inst)
+                @php
+                    $ini = $inst->detail?->instructor_initial ?: mb_strtoupper(mb_substr($inst->detail?->first_name ?? '?', 0, 1));
+                    $ic = $inst->detail?->instructor_color ?? '#6c757d';
+                @endphp
+                <div class="col small"><span class="badge me-1" style="background:{{ $ic }};color:#fff;opacity:.7">{{ $ini }}</span>{{ $inst->detail?->first_name }} {{ $inst->detail?->last_name }}</div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     @if($isInstructor)
     <script>
