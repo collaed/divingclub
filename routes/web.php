@@ -16,6 +16,7 @@ use App\Http\Controllers\DiveGroupController;
 use App\Http\Controllers\DocumentBrowserController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GdprController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InstructorAvailabilityController;
@@ -57,6 +58,7 @@ Route::get('/install', [InstallController::class, 'index'])->name('install.index
 Route::post('/install', [InstallController::class, 'run'])->name('install.run');
 
 // Public
+Route::get('/health', HealthController::class)->name('health');
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/home2', [HomeController::class, 'index2'])->name('home2');
 Route::get('/home3', [HomeController::class, 'index3'])->name('home3');
