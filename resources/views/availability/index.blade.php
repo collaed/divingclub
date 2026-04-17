@@ -73,29 +73,62 @@
                                 $dayEvents = $events[$dateStr] ?? collect();
                                 $isWeekend = $day->isWeekend();
                             @endphp
-                            <td class="{{ !$inMonth ? 'text-muted bg-light' : '' }} {{ $isWeekend && $inMonth ? 'bg-light' : '' }} {{ $day->isToday() ? 'ic-today' : '' }}" style="vertical-align:top;min-width:100px;height:60px">
+                            <td class="{{ !$inMonth ? 'text-muted bg-light' : '' }} {{ $isWeekend && $inMonth ? 'bg-light' : '' }} {{ $day->isToday() ? 'ic-today' : '' }}" style="vertical-align:top;min-width:100px;height:60px;padding:2px">
                                 @if($inMonth)
                                     <div class="fw-bold small {{ $isPast ? 'text-muted' : '' }}">{{ $day->format('d') }}</div>
-                                    @foreach($dayEvents as $ev)
-                                        @php
-                                            $evAvails = $availByEvent->get($ev->id, collect());
-                                            $myAvail = $evAvails->firstWhere('user_id', auth()->id());
-                                        @endphp
-                                        <div class="d-block mb-1 rounded px-1 text-start" style="background:{{ $ev->color_hex ?? '#6c757d' }};font-size:.65rem;color:#fff">
-                                            <div class="d-flex align-items-center gap-1">
-                                                <a href="{{ route('events.show', $ev) }}" class="text-white text-truncate text-decoration-none flex-grow-1" style="max-width:70px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 12) }}</a>
-                                                @if($isInstructor && !$isPast)
-                                                    <span class="ms-auto" style="cursor:pointer;font-size:.6rem" onclick="toggleEvent({{ $ev->id }})" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✅' : '➕' }}</span>
+                                    @if($dayEvents->count() > 1)
+                                        {{-- Side by side for multiple events (e.g. Wednesday two timeslots) --}}
+                                        <div class="d-flex gap-1">
+                                        @foreach($dayEvents->sortBy('event_time') as $ev)
+                                            @php
+                                                $evAvails = $availByEvent->get($ev->id, collect());
+                                                $myAvail = $evAvails->firstWhere('user_id', auth()->id());
+                                                $actType = $ev->event_type ?? 'pool';
+                                                $actColor = $actColors[$actType]['color'] ?? ($ev->color_hex ?? '#6c757d');
+                                                $actText = $actColors[$actType]['text'] ?? '#fff';
+                                            @endphp
+                                            <div class="flex-fill rounded px-1 text-start" style="background:{{ $actColor }};font-size:.6rem;color:{{ $actText }};min-width:0">
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:50px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 8) }}</a>
+                                                    @if($isInstructor && !$isPast)
+                                                        <span class="ms-auto" style="cursor:pointer;font-size:.55rem" onclick="toggleEvent({{ $ev->id }})">{{ $myAvail ? '✅' : '➕' }}</span>
+                                                    @endif
+                                                </div>
+                                                @if($evAvails->isNotEmpty())
+                                                    <span class="d-block" style="font-size:.55rem;letter-spacing:1px">@foreach($evAvails as $av)@php
+                                                        $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
+                                                        $ic = $av->user->detail?->instructor_color ?? '#00695c';
+                                                    @endphp<span class="ic-avatar" style="background:{{ $ic }};width:16px;height:16px;font-size:.45rem" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
                                                 @endif
                                             </div>
-                                            @if($evAvails->isNotEmpty())
-                                                <span class="d-block" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
-                                                    $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
-                                                    $ic = $av->user->detail?->instructor_color ?? '#00695c';
-                                                @endphp<span class="ic-avatar" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
-                                            @endif
+                                        @endforeach
                                         </div>
-                                    @endforeach
+                                    @elseif($dayEvents->count() === 1)
+                                        {{-- Single event — full width --}}
+                                        @foreach($dayEvents as $ev)
+                                            @php
+                                                $evAvails = $availByEvent->get($ev->id, collect());
+                                                $myAvail = $evAvails->firstWhere('user_id', auth()->id());
+                                                $actType = $ev->event_type ?? 'pool';
+                                                $actColor = $actColors[$actType]['color'] ?? ($ev->color_hex ?? '#6c757d');
+                                                $actText = $actColors[$actType]['text'] ?? '#fff';
+                                            @endphp
+                                            <div class="d-block mb-1 rounded px-1 text-start" style="background:{{ $actColor }};font-size:.65rem;color:{{ $actText }}">
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:70px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 12) }}</a>
+                                                    @if($isInstructor && !$isPast)
+                                                        <span class="ms-auto" style="cursor:pointer;font-size:.6rem" onclick="toggleEvent({{ $ev->id }})" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✅' : '➕' }}</span>
+                                                    @endif
+                                                </div>
+                                                @if($evAvails->isNotEmpty())
+                                                    <span class="d-block" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
+                                                        $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
+                                                        $ic = $av->user->detail?->instructor_color ?? '#00695c';
+                                                    @endphp<span class="ic-avatar" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    @endif
                                     @if($dayEvents->isEmpty() && !$isPast)
                                         <span class="text-muted" style="font-size:.6rem">—</span>
                                     @endif
