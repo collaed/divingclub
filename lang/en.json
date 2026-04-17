@@ -1,0 +1,7 @@
+{
+    ":email will NOT receive club emails (login only).": ":email will NOT receive club emails (login only).",
+    ":email will receive club emails.": ":email will receive club emails.",
+    "At least one email address must receive club communications.": "At least one email address must receive club communications.",
+    "Receive mail": "Receive mail",
+    "You can add multiple email addresses for login (including social login). Uncheck \"Receive mail\" on addresses you only want for login — at least one must remain checked to receive club communications (newsletters, reminders, event updates).": "You can add multiple email addresses for login (including social login). Uncheck \"Receive mail\" on addresses you only want for login — at least one must remain checked to receive club communications (newsletters, reminders, event updates)."
+}
