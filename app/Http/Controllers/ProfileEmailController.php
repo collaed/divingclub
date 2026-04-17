@@ -73,6 +73,15 @@ class ProfileEmailController extends Controller
     public function toggleReceiveMail(UserEmail $email)
     {
         abort_unless(auth()->id() === $email->user_id, 403);
+
+        // Prevent disabling all — at least one must receive mail
+        if ($email->receive_mail) {
+            $othersReceiving = $email->user->emails()->where('id', '!=', $email->id)->where('receive_mail', true)->count();
+            if ($othersReceiving === 0) {
+                return back()->with('error', __('At least one email address must receive club communications.'))->withInput(['tab' => 'info']);
+            }
+        }
+
         $email->update(['receive_mail' => ! $email->receive_mail]);
 
         return back()->with('success', $email->receive_mail

@@ -205,6 +205,9 @@
             @endif
         </div>
         <div class="card-body">
+            <p class="small text-muted mb-2">
+                @icon('ℹ️') {{ __('You can add multiple email addresses for login (including social login). Uncheck "Receive mail" on addresses you only want for login — at least one must remain checked to receive club communications (newsletters, reminders, event updates).') }}
+            </p>
             <table class="table table-sm">
                 <thead><tr><th>{{ __('Email') }}</th><th>{{ __('Label') }}</th><th>{{ __('Status') }}</th><th>{{ __('Receive mail') }}</th><th></th></tr></thead>
                 <tbody>
