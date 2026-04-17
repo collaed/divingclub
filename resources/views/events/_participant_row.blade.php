@@ -6,7 +6,7 @@
     $isCancelled = $reg->status === 'cancelled';
     $medInvalid = !$isCancelled && in_array($med['status'], ['missing', 'expired']);
 @endphp
-<li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid #dee2e6; overflow: hidden;">
+<li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid rgba(var(--bs-emphasis-color-rgb), 0.15);">
     <div class="d-flex justify-content-between align-items-start">
         <div>
             <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</span>
@@ -71,9 +71,9 @@
             <form method="POST" action="{{ route('events.cancel-registration', $event) }}" class="mt-1" data-confirm="{{ __('Unregister :name?', ['name' => $reg->user->name]) }}" data-confirm-style="warning" data-confirm-btn="{{ __('Confirm') }}">
                 @csrf
                 <input type="hidden" name="user_id" value="{{ $reg->user_id }}">
-                <div class="input-group input-group-sm" style="max-width:300px">
+                <div class="input-group input-group-sm">
                     <input type="text" name="cancel_comment" class="form-control" placeholder="{{ __('Reason') }}" style="font-size:0.7rem">
-                    <button class="btn btn-outline-danger" style="font-size:0.7rem">{{ __('Unregister') }}</button>
+                    <button class="btn btn-outline-danger" style="font-size:0.7rem">✗</button>
                 </div>
             </form>
         @endif
