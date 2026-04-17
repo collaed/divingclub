@@ -48,7 +48,7 @@
                 <input type="hidden" name="registration_id" value="{{ $reg->id }}">
                 <div class="input-group input-group-sm" style="max-width:300px">
                     <input type="text" name="comment" class="form-control" value="{{ $reg->comment }}" placeholder="{{ __('Comment') }}" style="font-size:0.7rem">
-                    <button class="btn btn-outline-primary" style="font-size:0.7rem">💾</button>
+                    <button class="btn btn-primary btn-sm" style="font-size:0.7rem">💾</button>
                 </div>
             </form>
         @endif
@@ -73,7 +73,7 @@
                 <input type="hidden" name="user_id" value="{{ $reg->user_id }}">
                 <div class="input-group input-group-sm">
                     <input type="text" name="cancel_comment" class="form-control" placeholder="{{ __('Reason') }}" style="font-size:0.7rem">
-                    <button class="btn btn-outline-danger" style="font-size:0.7rem">✗</button>
+                    <button class="btn btn-danger btn-sm" style="font-size:0.7rem">✗</button>
                 </div>
             </form>
         @endif

@@ -182,7 +182,7 @@
                                 <div class="mb-2">
                                     <input type="text" name="cancel_comment" class="form-control form-control-sm" placeholder="{{ __('Reason (optional)') }}">
                                 </div>
-                                <button class="btn btn-outline-danger btn-sm">{{ __('Unregister') }}</button>
+                                <button class="btn btn-danger btn-sm">{{ __('Unregister') }}</button>
                             </form>
                         @elseif($event->isRegistrationOpen())
                             @php $myMed = app(\App\Services\MedicalComplianceService::class)->getStatus(auth()->user()); @endphp
