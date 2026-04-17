@@ -90,12 +90,16 @@ class HealthController extends Controller
         // 7. App response time (total)
         $totalMs = round((microtime(true) - $start) * 1000);
 
+        $hasWarning = collect($checks)->contains(fn ($c) => ($c['status'] ?? '') === 'warn');
+        $status = $healthy ? ($hasWarning ? 'degraded' : 'healthy') : 'unhealthy';
+        $code = $healthy ? ($hasWarning ? 299 : 200) : 503;
+
         return response()->json([
-            'status' => $healthy ? 'healthy' : 'unhealthy',
+            'status' => $status,
             'timestamp' => now()->toIso8601String(),
             'response_ms' => $totalMs,
             'checks' => $checks,
-        ], $healthy ? 200 : 503);
+        ], $code);
     }
 
     private function human(float $bytes): string
