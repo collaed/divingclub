@@ -63,16 +63,49 @@
         <div class="col-md-3">
             <div class="card dc-card mb-3">
                 <div class="card-header py-2">{{ __('Folders') }}</div>
-                <div class="list-group list-group-flush">
+                <div style="max-height:500px;overflow-y:auto">
+                    <a href="{{ route('documents.index', ['folder' => '/']) }}" class="list-group-item list-group-item-action py-1 border-0 {{ $folder === '/' ? 'active' : '' }}" style="font-size:13px">📁 {{ __('Root') }}</a>
                     @foreach($folders as $f)
-                        @php $depth = $f === '/' ? 0 : substr_count(trim($f, '/'), '/') + 1; @endphp
+                        @if($f !== '/')
+                        @php
+                            $depth = substr_count(trim($f, '/'), '/');
+                            $isActive = $folder === $f;
+                            $isAncestor = str_starts_with($folder . '/', $f . '/');
+                            $parentPath = dirname($f);
+                        @endphp
                         <a href="{{ route('documents.index', ['folder' => $f]) }}"
-                           class="list-group-item list-group-item-action py-1 {{ $folder === $f ? 'active' : '' }}"
-                           style="padding-left:{{ 12 + $depth * 16 }}px; font-size:0.85rem">
-                            @icon('📁') {{ $f === '/' ? __('Root') : basename($f) }}
+                           class="list-group-item list-group-item-action py-1 border-0 tree-item {{ $isActive ? 'active' : '' }}"
+                           data-depth="{{ $depth }}"
+                           data-parent="{{ $parentPath }}"
+                           data-path="{{ $f }}"
+                           style="padding-left:{{ 8 + $depth * 16 }}px;font-size:13px;{{ $depth > 0 && !$isAncestor && !$isActive ? 'display:none' : '' }}">
+                            <span class="tree-arrow" style="display:inline-block;width:14px;font-size:10px;cursor:pointer">{{ $depth === 0 ? '▼' : '▶' }}</span>
+                            {{ $isActive ? '📂' : '📁' }} {{ basename($f) }}
                         </a>
+                        @endif
                     @endforeach
                 </div>
+                <script>
+                document.querySelectorAll('.tree-arrow').forEach(function(arrow) {
+                    arrow.addEventListener('click', function(e) {
+                        e.preventDefault(); e.stopPropagation();
+                        var item = this.closest('.tree-item');
+                        var path = item.dataset.path;
+                        var expanded = this.textContent.trim() === '▼';
+                        this.textContent = expanded ? '▶' : '▼';
+                        document.querySelectorAll('.tree-item').forEach(function(el) {
+                            if (el.dataset.parent === path) {
+                                el.style.display = expanded ? 'none' : '';
+                                if (expanded) {
+                                    var sub = el.querySelector('.tree-arrow');
+                                    if (sub) { sub.textContent = '▶'; }
+                                    document.querySelectorAll('.tree-item[data-parent="'+el.dataset.path+'"]').forEach(function(s){ s.style.display='none'; });
+                                }
+                            }
+                        });
+                    });
+                });
+                </script>
             </div>
 
             {{-- New folder (instructors/bureau) --}}
