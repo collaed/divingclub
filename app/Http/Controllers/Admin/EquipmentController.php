@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendLoanRecapEmail;
+use App\Jobs\SendReturnRecapEmail;
 use App\Models\Equipment;
 use App\Models\EquipmentLoan;
 use App\Models\EquipmentMaintenance;
 use App\Models\EquipmentMaintenanceRule;
+use App\Models\Event;
+use App\Models\ThemeSetting;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -73,10 +77,14 @@ class EquipmentController extends Controller
 
     public function show(Equipment $equipment)
     {
-        $equipment->load(['maintenanceTasks' => fn ($q) => $q->orderBy('due_date'), 'loans' => fn ($q) => $q->with('user.detail')->orderByDesc('loaned_at')]);
+        $equipment->load(['maintenanceTasks' => fn ($q) => $q->orderBy('due_date'), 'loans' => fn ($q) => $q->with('user.detail', 'event')->orderByDesc('loaned_at')]);
         $members = User::with('detail')->whereHas('detail')->get()->sortBy(fn ($u) => $u->detail?->last_name);
+        $recentEvents = Event::where('event_date', '>=', now()->subDays(7))
+            ->where('event_date', '<=', now()->addDays(7))
+            ->orderBy('event_date')
+            ->get();
 
-        return view('admin.equipment.show', compact('equipment', 'members'));
+        return view('admin.equipment.show', compact('equipment', 'members', 'recentEvents'));
     }
 
     public function update(Request $request, Equipment $equipment)
@@ -100,16 +108,26 @@ class EquipmentController extends Controller
             return back()->with('error', __('Equipment is not available for loan.'));
         }
 
-        $request->validate(['user_id' => 'required|exists:users,id', 'expected_return_date' => 'nullable|date|after:today']);
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'expected_return_date' => 'nullable|date|after:today',
+            'event_id' => 'nullable|exists:events,id',
+            'loan_reason' => 'nullable|string|max:255',
+        ]);
 
-        EquipmentLoan::create([
+        $loan = EquipmentLoan::create([
             'equipment_id' => $equipment->id,
             'user_id' => $request->user_id,
             'loaned_at' => now(),
             'expected_return_date' => $request->expected_return_date,
             'loaned_by' => auth()->id(),
+            'event_id' => $request->event_id,
+            'loan_reason' => $request->loan_reason,
         ]);
         $equipment->update(['status' => 'on_loan']);
+
+        SendLoanRecapEmail::dispatch($request->user_id)
+            ->delay(now()->addMinutes((int) ThemeSetting::get('equipment_loan_email_delay', 5)));
 
         return back()->with('success', __('Equipment loaned.'));
     }
@@ -121,12 +139,25 @@ class EquipmentController extends Controller
         $status = $loan->equipment->hasOverdueMaintenance() ? 'maintenance_required' : 'available';
         $loan->equipment->update(['status' => $status]);
 
+        // Check if user has remaining outstanding loans
+        $outstanding = EquipmentLoan::where('user_id', $loan->user_id)->whereNull('returned_at')->count();
+        $delay = $outstanding === 0
+            ? 2  // Full return — short delay for mistake buffer
+            : (int) ThemeSetting::get('equipment_return_email_delay', 10);
+
+        SendReturnRecapEmail::dispatch($loan->user_id)
+            ->delay(now()->addMinutes($delay));
+
         return back()->with('success', __('Equipment returned.'));
     }
 
     public function quickLoan(Request $request): RedirectResponse
     {
-        $request->validate(['user_id' => 'required|exists:users,id']);
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'event_id' => 'nullable|exists:events,id',
+            'loan_reason' => 'nullable|string|max:255',
+        ]);
         $userId = $request->user_id;
         $loaned = 0;
 
@@ -138,10 +169,17 @@ class EquipmentController extends Controller
                     'user_id' => $userId,
                     'loaned_at' => now(),
                     'loaned_by' => auth()->id(),
+                    'event_id' => $request->event_id,
+                    'loan_reason' => $request->loan_reason,
                 ]);
                 $eq->update(['status' => 'on_loan']);
                 $loaned++;
             }
+        }
+
+        if ($loaned) {
+            SendLoanRecapEmail::dispatch($userId)
+                ->delay(now()->addMinutes((int) ThemeSetting::get('equipment_loan_email_delay', 5)));
         }
 
         return back()->with('success', __(':count item(s) loaned.', ['count' => $loaned]));

@@ -344,6 +344,35 @@
             </div>
         </div>
 
+        {{-- Equipment Email Delays --}}
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eqptEmailSection">{{ __('Equipment Loan Emails') }}</button></h2>
+            <div id="eqptEmailSection" class="accordion-collapse collapse" data-bs-parent="#rulesAccordion">
+                <div class="accordion-body">
+                    <p class="text-muted small">{{ __('Delay before sending loan/return recap emails. Allows batching multiple items into one email.') }}</p>
+                    <form method="POST" action="{{ route('admin.settings.equipment-emails.update') }}" class="row g-3">
+                        @csrf
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Loan email delay (minutes)') }}</label>
+                            <input type="number" name="equipment_loan_email_delay" class="form-control form-control-sm" value="{{ \App\Models\ThemeSetting::get('equipment_loan_email_delay', 5) }}" min="1" max="60">
+                            <small class="text-muted">{{ __('After last loan action for a member') }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Partial return email delay (minutes)') }}</label>
+                            <input type="number" name="equipment_return_email_delay" class="form-control form-control-sm" value="{{ \App\Models\ThemeSetting::get('equipment_return_email_delay', 10) }}" min="1" max="60">
+                            <small class="text-muted">{{ __('When items are still outstanding') }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Full return email delay (minutes)') }}</label>
+                            <input type="number" class="form-control form-control-sm" value="2" disabled>
+                            <small class="text-muted">{{ __('Fixed 2-minute buffer for corrections') }}</small>
+                        </div>
+                        <div class="col-12"><button class="btn btn-sm btn-primary">{{ __('Save') }}</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         {{-- Equipment Maintenance Rules --}}
         <div class="accordion-item">
             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eqptRulesSection">{{ __('Equipment Maintenance Rules') }}</button></h2>

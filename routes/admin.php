@@ -150,6 +150,7 @@ Route::post('/settings/maintenance-rule', [SettingsController::class, 'storeMain
 Route::put('/settings/maintenance-rule/{rule}', [SettingsController::class, 'updateMaintenanceRule'])->name('settings.maintenance-rule.update');
 Route::delete('/settings/maintenance-rule/{rule}', [SettingsController::class, 'destroyMaintenanceRule'])->name('settings.maintenance-rule.destroy');
 Route::post('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');
+Route::post('/settings/equipment-emails', [SettingsController::class, 'updateEquipmentEmails'])->name('settings.equipment-emails.update');
 Route::post('/settings/theme/preset', [SettingsController::class, 'applyPreset'])->name('settings.theme.preset');
 Route::post('/settings/theme/logo', [SettingsController::class, 'uploadLogo'])->name('settings.theme.logo');
 Route::post('/settings/membership-fee', [SettingsController::class, 'storeMembershipFee'])->name('settings.membership-fee.store');

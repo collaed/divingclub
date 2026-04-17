@@ -19,6 +19,14 @@
             @if(!$isCancelled && $isPrivileged)
                 <span class="badge bg-{{ $med['badge'] }}" style="font-size:0.55rem">{{ __($med['label']) }}</span>
             @endif
+            @if(!$isCancelled && $isPrivileged && isset($eventLoans) && ($userLoans = $eventLoans[$reg->user_id] ?? collect())->isNotEmpty())
+                <br>
+                @foreach($userLoans as $loan)
+                    <span class="badge bg-{{ $loan->returned_at ? 'secondary' : 'warning text-dark' }}" style="font-size:0.6rem" title="{{ $loan->equipment->name }}">
+                        {{ ucfirst($loan->equipment->type) }} #{{ $loan->equipment->short_number ?? $loan->equipment->id }}{{ $loan->returned_at ? ' ✓' : '' }}
+                    </span>
+                @endforeach
+            @endif
             @if($medInvalid && !$isPrivileged)
                 <span class="text-danger" style="font-size:0.7rem">⚠ {{ __('Medical cert invalid at event date') }}</span>
             @endif

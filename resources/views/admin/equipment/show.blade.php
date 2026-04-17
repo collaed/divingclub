@@ -42,6 +42,15 @@
                                 </select>
                             </div>
                             <div class="col-md-4"><button class="btn btn-sm btn-primary w-100">{{ __('Loan') }}</button></div>
+                            <div class="col-md-6">
+                                <select name="event_id" class="form-select form-select-sm">
+                                    <option value="">{{ __('Event (optional)') }}</option>
+                                    @foreach($recentEvents as $ev) <option value="{{ $ev->id }}">{{ $ev->event_date->format('d/m') }} {{ $ev->title }}</option> @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="loan_reason" class="form-control form-control-sm" placeholder="{{ __('Or reason…') }}">
+                            </div>
                         </form>
                     @else
                         <p class="text-muted mb-0">{{ __('Equipment must be available to loan.') }}</p>
@@ -80,6 +89,7 @@
                         <div class="d-flex justify-content-between align-items-center border-bottom py-2">
                             <div>
                                 <strong>{{ $loan->user?->name }}</strong>
+                                @if($loan->event) <span class="badge bg-info" style="font-size:0.65rem">{{ $loan->event->title }}</span> @elseif($loan->loan_reason) <span class="text-muted small">{{ $loan->loan_reason }}</span> @endif
                                 <br><small class="text-muted">{{ $loan->loaned_at->format('d/m/Y') }} {{ $loan->returned_at ? '→ ' . $loan->returned_at->format('d/m/Y') : '' }}</small>
                             </div>
                             @if(!$loan->returned_at)

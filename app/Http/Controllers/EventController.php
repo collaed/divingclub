@@ -20,6 +20,8 @@ namespace App\Http\Controllers;
 use App\Helpers\HtmlSanitizer;
 use App\Models\DiveSite;
 use App\Models\EmailLog;
+use App\Models\Equipment;
+use App\Models\EquipmentLoan;
 use App\Models\Event;
 use App\Models\EventPhoto;
 use App\Models\EventRegistration;
@@ -93,7 +95,13 @@ class EventController extends Controller
         })->orderByDesc('created_at')->get();
         $members = auth()->check() ? User::with('detail')->role(['member', 'instructor', 'instructor_apnea', 'bureau_finance', 'bureau_technical', 'bureau_master'])->orderBy('username')->get() : collect();
 
-        return view('events.show', compact('event', 'userReg', 'emailHistory', 'members'));
+        // Equipment loans linked to this event, keyed by user_id
+        $eventLoans = EquipmentLoan::with('equipment')
+            ->where('event_id', $event->id)
+            ->get()
+            ->groupBy('user_id');
+
+        return view('events.show', compact('event', 'userReg', 'emailHistory', 'members', 'eventLoans'));
     }
 
     // ─── Event CRUD ──────────────────────────────────────────

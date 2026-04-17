@@ -188,4 +188,17 @@ class SettingsController extends Controller
 
         return back()->with('success', __('Logo uploaded.'));
     }
+
+    public function updateEquipmentEmails(Request $request)
+    {
+        $request->validate([
+            'equipment_loan_email_delay' => 'required|integer|min:1|max:60',
+            'equipment_return_email_delay' => 'required|integer|min:1|max:60',
+        ]);
+
+        ThemeSetting::set('equipment_loan_email_delay', $request->equipment_loan_email_delay);
+        ThemeSetting::set('equipment_return_email_delay', $request->equipment_return_email_delay);
+
+        return back()->with('success', __('Equipment email settings saved.'));
+    }
 }
