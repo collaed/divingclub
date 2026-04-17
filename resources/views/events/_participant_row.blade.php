@@ -6,7 +6,7 @@
     $isCancelled = $reg->status === 'cancelled';
     $medInvalid = !$isCancelled && in_array($med['status'], ['missing', 'expired']);
 @endphp
-<li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}">
+<li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid #dee2e6; overflow: hidden;">
     <div class="d-flex justify-content-between align-items-start">
         <div>
             <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</span>
