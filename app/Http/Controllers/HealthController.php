@@ -91,11 +91,25 @@ class HealthController extends Controller
         $totalMs = round((microtime(true) - $start) * 1000);
 
         $hasWarning = collect($checks)->contains(fn ($c) => ($c['status'] ?? '') === 'warn');
+        $issues = [];
+        foreach ($checks as $name => $check) {
+            if (! in_array($check['status'], ['warn', 'fail'])) {
+                continue;
+            }
+            $detail = match (true) {
+                isset($check['error']) => $check['error'],
+                isset($check['used_pct']) => $check['used_pct'].'% used',
+                isset($check['failed']) => $check['failed'].' failed jobs',
+                default => '',
+            };
+            $issues[] = strtoupper($name).': '.$check['status'].($detail ? " ($detail)" : '');
+        }
         $status = $healthy ? ($hasWarning ? 'degraded' : 'healthy') : 'unhealthy';
         $code = $healthy ? ($hasWarning ? 299 : 200) : 503;
 
         return response()->json([
             'status' => $status,
+            'message' => $issues ? implode(' | ', $issues) : 'All systems operational',
             'timestamp' => now()->toIso8601String(),
             'response_ms' => $totalMs,
             'checks' => $checks,
