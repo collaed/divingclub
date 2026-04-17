@@ -338,8 +338,18 @@ class EventController extends Controller
             return back()->with('error', __('You must grant photo publication consent in Privacy settings before uploading event photos.'));
         }
 
+        $dupes = 0;
         foreach ($request->file('photos', []) as $file) {
             $realPath = $file->getRealPath();
+            $fileHash = hash_file('xxh3', $realPath);
+
+            // Skip duplicate (same hash already exists for this event)
+            if (EventPhoto::where('event_id', $event->id)->where('file_hash', $fileHash)->exists()) {
+                $dupes++;
+
+                continue;
+            }
+
             $path = $file->store('event-photos/'.$event->id, 'public');
 
             // Quality score (sharpness, exposure, saturation, contrast, resolution)
@@ -356,13 +366,14 @@ class EventController extends Controller
                 'quality_score' => $score,
                 'has_faces' => $hasFaces,
                 'gdpr_consent' => true,
+                'file_hash' => $fileHash,
             ]);
 
             // Auto-publish to social media if eligible
             app(SocialPublishService::class)->publishToFacebook($photo);
         }
 
-        return back()->with('success', __('Photos uploaded.'));
+        return back()->with('success', $dupes ? __('Photos uploaded. :count duplicate(s) skipped.', ['count' => $dupes]) : __('Photos uploaded.'));
     }
 
     public function deletePhoto(Event $event, EventPhoto $photo)

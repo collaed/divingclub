@@ -17,11 +17,11 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class EventPhoto extends Model
 {
-    protected $fillable = ['event_id', 'uploaded_by', 'path', 'thumbnail_path', 'caption', 'quality_score', 'has_faces', 'approved', 'gdpr_consent'];
+    protected $fillable = ['event_id', 'uploaded_by', 'path', 'thumbnail_path', 'caption', 'quality_score', 'has_faces', 'approved', 'gdpr_consent', 'file_hash', 'view_count'];
 
     protected function casts(): array
     {
-        return ['approved' => 'boolean', 'gdpr_consent' => 'boolean', 'has_faces' => 'boolean'];
+        return ['approved' => 'boolean', 'gdpr_consent', 'file_hash', 'view_count' => 'boolean', 'has_faces' => 'boolean'];
     }
 
     public function event(): BelongsTo
@@ -43,7 +43,7 @@ class EventPhoto extends Model
     public function scopeBestPublic($q, int $limit = 10)
     {
         return $q->where('approved', true)
-            ->where('gdpr_consent', true)
+            ->where('gdpr_consent', 'file_hash', 'view_count', true)
             ->where(fn ($q) => $q->where('has_faces', false)->orWhereNull('has_faces'))
             ->whereDoesntHave('uploader', fn ($q) => $q->whereHas('detail', fn ($d) => $d->where('public_photos_banned', true)))
             ->orderByDesc('quality_score')
@@ -54,7 +54,7 @@ class EventPhoto extends Model
     public function scopeRandomPublic($q, int $limit = 10)
     {
         return $q->where('approved', true)
-            ->where('gdpr_consent', true)
+            ->where('gdpr_consent', 'file_hash', 'view_count', true)
             ->where(fn ($q) => $q->where('has_faces', false)->orWhereNull('has_faces'))
             ->whereDoesntHave('uploader', fn ($q) => $q->whereHas('detail', fn ($d) => $d->where('public_photos_banned', true)))
             ->orderByRaw('-(quality_score * quality_score) * LOG('.($this->getConnection()->getDriverName() === 'pgsql' ? 'RANDOM' : 'RAND').'())')
@@ -65,7 +65,7 @@ class EventPhoto extends Model
     public function scopeBestForMembers($q, int $limit = 10)
     {
         return $q->where('approved', true)
-            ->where('gdpr_consent', true)
+            ->where('gdpr_consent', 'file_hash', 'view_count', true)
             ->orderByDesc('quality_score')
             ->limit($limit);
     }
@@ -74,7 +74,7 @@ class EventPhoto extends Model
     public function scopeRandomForMembers($q, int $limit = 10)
     {
         return $q->where('approved', true)
-            ->where('gdpr_consent', true)
+            ->where('gdpr_consent', 'file_hash', 'view_count', true)
             ->orderByRaw('-(quality_score * quality_score) * LOG('.($this->getConnection()->getDriverName() === 'pgsql' ? 'RANDOM' : 'RAND').'())')
             ->limit($limit);
     }

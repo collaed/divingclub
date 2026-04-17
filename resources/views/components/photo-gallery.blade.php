@@ -35,6 +35,9 @@ function openGallery(id,idx){
 function closeGallery(){if(pgEl){pgEl.classList.remove('open');document.body.style.overflow='';}}
 function pgNav(d){pgIdx=(pgIdx+d+pgPhotos.length)%pgPhotos.length;pgShow();}
 function pgShow(){if(pgImg&&pgPhotos[pgIdx]){pgImg.src=pgPhotos[pgIdx];pgCounter.textContent=(pgIdx+1)+' / '+pgPhotos.length;}}
+// Track photo view
+function trackView(id){fetch('/photo/'+id+'/view',{method:'POST',headers:{'X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]')?.content||''}}).catch(()=>{});}
+
 document.addEventListener('keydown',e=>{if(!pgEl||!pgEl.classList.contains('open'))return;if(e.key==='Escape')closeGallery();if(e.key==='ArrowLeft')pgNav(-1);if(e.key==='ArrowRight')pgNav(1);});
 </script>
 @endonce
