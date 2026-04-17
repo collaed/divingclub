@@ -20,6 +20,7 @@ class InstructorAvailabilityController extends Controller
         'pool_kids' => ['color' => '#6d9eeb', 'text' => '#fff', 'icon' => '👶', 'label' => '↳ Kids'],
         'pool_pn1' => ['color' => '#1155cc', 'text' => '#fff', 'icon' => '1️⃣', 'label' => '↳ PN1'],
         'pool_pn23' => ['color' => '#c9daf8', 'text' => '#f00', 'icon' => '🔴', 'label' => '↳ PN2+'],
+        'pool_swimming' => ['color' => '#ff9900', 'text' => '#000', 'icon' => '🏊‍♂️', 'label' => '↳ Swimming'],
         'apnea' => ['color' => '#00ff00', 'text' => '#000', 'icon' => '🫁', 'label' => 'Apnea'],
         'fosse' => ['color' => '#93c47d', 'text' => '#000', 'icon' => '🕳️', 'label' => 'Fosse'],
         'quarry' => ['color' => '#00ffff', 'text' => '#000', 'icon' => '🪨', 'label' => 'Quarry/Lake'],
