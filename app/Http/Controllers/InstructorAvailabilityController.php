@@ -16,17 +16,17 @@ class InstructorAvailabilityController extends Controller
      * Activity types with colors matching the old CEP Google Sheet planning.
      */
     public const ACTIVITY_COLORS = [
-        'pool' => ['color' => '#c9daf8', 'text' => '#000', 'icon' => '🏊', 'label' => 'Pool'],
-        'pool_kids' => ['color' => '#6d9eeb', 'text' => '#fff', 'icon' => '👶', 'label' => '↳ Kids'],
-        'pool_pn1' => ['color' => '#1155cc', 'text' => '#fff', 'icon' => '1️⃣', 'label' => '↳ PN1'],
-        'pool_pn23' => ['color' => '#c9daf8', 'text' => '#f00', 'icon' => '🔴', 'label' => '↳ PN2+'],
-        'pool_swimming' => ['color' => '#ff9900', 'text' => '#000', 'icon' => '🏊‍♂️', 'label' => '↳ Swimming'],
-        'apnea' => ['color' => '#00ff00', 'text' => '#000', 'icon' => '🫁', 'label' => 'Apnea'],
-        'fosse' => ['color' => '#93c47d', 'text' => '#000', 'icon' => '🕳️', 'label' => 'Fosse'],
-        'quarry' => ['color' => '#00ffff', 'text' => '#000', 'icon' => '🪨', 'label' => 'Quarry/Lake'],
-        'long_trip' => ['color' => '#ffe599', 'text' => '#000', 'icon' => '✈️', 'label' => 'Long Trip'],
-        'theory' => ['color' => '#d9d9d9', 'text' => '#000', 'icon' => '📖', 'label' => 'Theory'],
-        'social' => ['color' => '#f4cccc', 'text' => '#000', 'icon' => '🎉', 'label' => 'Social'],
+        'pool' => ['color' => '#4a86c8', 'text' => '#fff', 'icon' => '🏊', 'label' => 'Pool'],
+        'pool_kids' => ['color' => '#2ecc71', 'text' => '#fff', 'icon' => '👶', 'label' => '↳ Kids'],
+        'pool_pn1' => ['color' => '#1a237e', 'text' => '#fff', 'icon' => '1️⃣', 'label' => '↳ PN1'],
+        'pool_pn23' => ['color' => '#e74c3c', 'text' => '#fff', 'icon' => '🔴', 'label' => '↳ PN2+'],
+        'pool_swimming' => ['color' => '#ff9800', 'text' => '#fff', 'icon' => '🏊‍♂️', 'label' => '↳ Swimming'],
+        'apnea' => ['color' => '#00c853', 'text' => '#000', 'icon' => '🫁', 'label' => 'Apnea'],
+        'fosse' => ['color' => '#00695c', 'text' => '#fff', 'icon' => '🕳️', 'label' => 'Fosse'],
+        'quarry' => ['color' => '#00bcd4', 'text' => '#000', 'icon' => '🪨', 'label' => 'Quarry/Lake'],
+        'long_trip' => ['color' => '#f9a825', 'text' => '#000', 'icon' => '✈️', 'label' => 'Long Trip'],
+        'theory' => ['color' => '#78909c', 'text' => '#fff', 'icon' => '📖', 'label' => 'Theory'],
+        'social' => ['color' => '#e91e63', 'text' => '#fff', 'icon' => '🎉', 'label' => 'Social'],
     ];
 
     public function index(Request $request)
