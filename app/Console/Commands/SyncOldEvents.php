@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Document;
+use App\Models\Equipment;
+use App\Models\EquipmentLoan;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\MemberDetail;
@@ -81,6 +83,9 @@ class SyncOldEvents extends Command
 
         // Sync medical certs from VisitesMed
         $this->syncMedicalCerts();
+
+        // Sync equipment movements from SM
+        $this->syncEquipmentMovements();
 
         $this->info("Done: {$this->syncedEvents} events, {$this->syncedRegs} registrations synced, {$this->skippedRegs} skipped (no matching member)");
 
@@ -382,5 +387,115 @@ class SyncOldEvents extends Command
 
         // For incremental: use events from 30 days before last sync (overlap for safety)
         return Carbon::parse($val)->subDays(30)->format('Y-m-d');
+    }
+
+    private function syncEquipmentMovements(): void
+    {
+        $this->line('  Syncing SM equipment movements...');
+
+        try {
+            $response = Http::withHeaders(['X-Sync-Key' => $this->apiKey])
+                ->timeout(30)
+                ->get('https://clubcep.eu/wrapp/api_sm.php');
+
+            if (! $response->ok()) {
+                $this->warn('  SM API returned '.$response->status());
+
+                return;
+            }
+        } catch (\Throwable $e) {
+            $this->warn('  SM API error: '.$e->getMessage());
+
+            return;
+        }
+
+        $data = $response->json();
+        if (empty($data['movements'])) {
+            return;
+        }
+
+        // Build user map from movement emails
+        $userMap = [];
+        foreach ($data['movements'] as $m) {
+            $destId = $m['id_dest'] ?? null;
+            $email = $m['dest_email'] ?? null;
+            if ($destId && $email && ! isset($userMap[$destId])) {
+                $user = User::where('primary_email', $email)->first();
+                if ($user) {
+                    $userMap[$destId] = $user;
+                }
+            }
+        }
+
+        // Ensure equipment exists
+        $equipMap = [];
+        foreach ($data['equipment'] ?? [] as $item) {
+            $name = trim($item['nom'] ?? '');
+            if (! $name) {
+                continue;
+            }
+            $eq = Equipment::firstOrCreate(
+                ['name' => $name],
+                ['type' => 'other', 'condition' => 'good', 'status' => 'available', 'is_loanable' => true]
+            );
+            $equipMap[$item['id']] = $eq;
+        }
+
+        // Import only recent movements (last 30 days)
+        $cutoff = now()->subDays(30)->format('Y-m-d');
+        $imported = 0;
+
+        foreach ($data['movements'] as $m) {
+            $loanedAt = $m['horo_sortie'] ? date('Y-m-d', strtotime($m['horo_sortie'])) : null;
+            $returnedAt = $m['horo_retour'] ? date('Y-m-d', strtotime($m['horo_retour'])) : null;
+            $dateRef = $loanedAt ?: $returnedAt;
+
+            if (! $dateRef || $dateRef < $cutoff) {
+                continue;
+            }
+
+            $eq = $equipMap[$m['id_matos']] ?? null;
+            $user = $userMap[$m['id_dest']] ?? null;
+            if (! $eq || ! $user) {
+                continue;
+            }
+
+            $exists = EquipmentLoan::where('equipment_id', $eq->id)
+                ->where('user_id', $user->id)
+                ->where('loaned_at', $loanedAt ?: $returnedAt)
+                ->exists();
+
+            if ($exists) {
+                // Update return date if now returned
+                if ($returnedAt) {
+                    EquipmentLoan::where('equipment_id', $eq->id)
+                        ->where('user_id', $user->id)
+                        ->where('loaned_at', $loanedAt ?: $returnedAt)
+                        ->whereNull('returned_at')
+                        ->update(['returned_at' => $returnedAt]);
+                }
+
+                continue;
+            }
+
+            EquipmentLoan::create([
+                'equipment_id' => $eq->id,
+                'user_id' => $user->id,
+                'loaned_at' => $loanedAt ?: $returnedAt,
+                'returned_at' => $returnedAt,
+            ]);
+
+            if (! $returnedAt) {
+                $eq->update(['status' => 'on_loan']);
+            } elseif ($eq->status === 'on_loan' && ! EquipmentLoan::where('equipment_id', $eq->id)->whereNull('returned_at')->exists()) {
+                $eq->update(['status' => 'available']);
+            }
+
+            $imported++;
+        }
+
+        if ($imported) {
+            $this->info("  SM: {$imported} new movements synced.");
+        }
     }
 }
