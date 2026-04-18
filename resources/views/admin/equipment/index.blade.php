@@ -55,18 +55,21 @@
                 <th><x-sortable-th column="short_number" :label="'#'" /></th>
                 <th><x-sortable-th column="name" :label="__('Name')" /></th>
                 <th><x-sortable-th column="type" :label="__('Type')" /></th>
-                <th>{{ __('Serial') }}</th>
                 <th><x-sortable-th column="location" :label="__('Location')" /></th>
                 <th><x-sortable-th column="status" :label="__('Status')" /></th>
                 <th>{{ __('Loaned To') }}</th>
+                <th>{{ __('Last Seen') }}</th>
             </tr></thead>
             <tbody>
             @foreach($equipment as $e)
                 <tr data-href="{{ route('admin.equipment.show', $e) }}">
                     <td class="fw-bold">{{ $e->short_number ?? '—' }}</td>
-                    <td>{{ $e->name }}</td>
+                    <td>
+                        {{ $e->name }}
+                        @if($e->is_child_sized) <span class="badge bg-warning text-dark" style="font-size:.6rem">👶</span> @endif
+                        @if($e->is_cold_water) <span class="badge bg-info" style="font-size:.6rem">❄️</span> @endif
+                    </td>
                     <td><span class="badge bg-secondary">{{ ucfirst($e->type) }}</span></td>
-                    <td class="small">{{ $e->serial_number ?? '—' }}</td>
                     <td class="small">{{ $e->location ?? '—' }}</td>
                     <td><span class="badge bg-{{ $e->status === 'available' ? 'success' : ($e->status === 'on_loan' ? 'info' : ($e->status === 'maintenance_required' ? 'danger' : 'secondary')) }}">{{ ucfirst(str_replace('_', ' ', $e->status)) }}</span></td>
                     <td>
@@ -76,6 +79,10 @@
                         @else
                             —
                         @endif
+                    </td>
+                    <td class="small text-muted">
+                        @php $ls = $e->lastSeenDate(); @endphp
+                        {{ $ls ? \Carbon\Carbon::parse($ls)->format('d/m/y') : '—' }}
                     </td>
                 </tr>
             @endforeach

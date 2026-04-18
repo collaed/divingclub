@@ -305,3 +305,9 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 - **Clickable rows**: Equipment table rows link to the detail page. Use `data-href` + `clickable-rows` component. Do not add separate "View" buttons — the whole row is the link.
 - **Filters**: Equipment index must have filters for type, status, location, and a free-text size filter (searches in name). All filters use Excel-style dropdowns with auto-submit.
+
+## Tables & Lists (all pages)
+
+- **Sortable headers**: All data tables must use `<x-sortable-th>` for sortable columns with ↑↓ indicators.
+- **Instant search**: Use `data-instant-search="table-id"` on search inputs for immediate JS-powered filtering without page reload.
+- **Clickable rows**: All table rows that represent a viewable entity must use `data-href` + the `clickable-rows` component. Do not add separate "View" buttons — the whole row is the link. Buttons/forms inside rows (e.g., Return, Delete) must still work without triggering row navigation.

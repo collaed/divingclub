@@ -13,7 +13,7 @@ class Equipment extends Model
 
     protected $table = 'equipment';
 
-    protected $fillable = ['club_id', 'name', 'short_number', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'is_loanable', 'notes', 'location'];
+    protected $fillable = ['club_id', 'name', 'short_number', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'is_loanable', 'is_child_sized', 'is_cold_water', 'notes', 'location'];
 
     protected function casts(): array
     {
@@ -56,5 +56,14 @@ class Equipment extends Model
     public function needsRetest(): bool
     {
         return $this->next_retest_date && $this->next_retest_date->isPast();
+    }
+
+    public function lastSeenDate(): ?string
+    {
+        $lastLoan = $this->loans()->max('loaned_at');
+        $lastReturn = $this->loans()->max('returned_at');
+        $inventory = $this->last_inventory_date?->format('Y-m-d');
+
+        return collect([$lastLoan, $lastReturn, $inventory])->filter()->max();
     }
 }
