@@ -414,15 +414,45 @@ class SyncOldEvents extends Command
             return;
         }
 
+        // Special destinations = equipment locations, not borrowers
+        $locationMap = [
+            '<HS>' => 'maintenance_required',
+            '<LOCAL>' => 'available',
+            '<PISCINE>' => 'available',  // at training pool
+        ];
+
         // Build user map from movement emails
         $userMap = [];
         foreach ($data['movements'] as $m) {
             $destId = $m['id_dest'] ?? null;
             $email = $m['dest_email'] ?? null;
+            $destName = $m['dest_name'] ?? '';
+
+            // Skip location destinations
+            if (isset($locationMap[$destName])) {
+                continue;
+            }
+
             if ($destId && $email && ! isset($userMap[$destId])) {
                 $user = User::where('primary_email', $email)->first();
                 if ($user) {
                     $userMap[$destId] = $user;
+                }
+            }
+
+            // Try name match (strip MF1/MF2 suffixes)
+            if ($destId && ! isset($userMap[$destId]) && $destName) {
+                $cleanName = preg_replace('/\s+(MF[12]|E[1-4])\s*$/i', '', trim($destName));
+                $parts = preg_split('/\s+/', $cleanName, 2);
+                if (count($parts) === 2) {
+                    $like = config('database.default') === 'pgsql' ? 'ILIKE' : 'LIKE';
+                    $user = User::whereHas('detail', fn ($q) => $q->where('first_name', $like, $parts[0])->where('last_name', $like, $parts[1]))->first();
+                    if (! $user) {
+                        $user = User::whereHas('detail', fn ($q) => $q->where('first_name', $like, $parts[1])->where('last_name', $like, $parts[0]))->first();
+                    }
+                    if ($user) {
+                        $userMap[$destId] = $user;
+                    }
                 }
             }
         }
@@ -442,7 +472,7 @@ class SyncOldEvents extends Command
         }
 
         // Import only recent movements (last 30 days)
-        $cutoff = now()->subDays(30)->format('Y-m-d');
+        $cutoff = now()->subDays(10)->format('Y-m-d');
         $imported = 0;
 
         foreach ($data['movements'] as $m) {
@@ -455,8 +485,21 @@ class SyncOldEvents extends Command
             }
 
             $eq = $equipMap[$m['id_matos']] ?? null;
+            if (! $eq) {
+                continue;
+            }
+
+            // Location destinations update equipment status, not loans
+            $destName = $m['dest_name'] ?? '';
+            if (isset($locationMap[$destName]) && ! $returnedAt) {
+                $loc = ['<HS>' => 'Hors Service', '<LOCAL>' => 'Entrepôt', '<PISCINE>' => 'Piscine Merl'];
+                $eq->update(['status' => $locationMap[$destName], 'location' => $loc[$destName] ?? null]);
+
+                continue;
+            }
+
             $user = $userMap[$m['id_dest']] ?? null;
-            if (! $eq || ! $user) {
+            if (! $user) {
                 continue;
             }
 
