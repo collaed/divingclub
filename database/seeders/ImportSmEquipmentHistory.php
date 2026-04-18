@@ -47,40 +47,34 @@ class ImportSmEquipmentHistory extends Seeder
         }
         $this->command->info(count($equipMap).' equipment items mapped.');
 
-        // 2. Map borrowers to users
+        // 2. Map borrowers to users — build from movement emails
         $userMap = []; // old dest id => User
-        foreach ($data['borrowers'] as $b) {
-            $email = $b['user_email'] ?? null;
-            $destName = $b['dest_name'] ?? '';
-            $userName = $b['user_name'] ?? '';
+        $destEmails = collect($data['movements'])->pluck('dest_email', 'id_dest')->filter()->unique();
+        $destNames = collect($data['movements'])->pluck('dest_name', 'id_dest')->filter()->unique();
 
-            // Try email match first
-            if ($email) {
-                $user = User::where('primary_email', $email)->first();
-                if ($user) {
-                    $userMap[$b['id']] = $user;
-
-                    continue;
-                }
+        foreach ($destEmails as $destId => $email) {
+            $user = User::where('primary_email', $email)->first();
+            if (! $user) {
+                $user = User::whereHas('emails', fn ($q) => $q->where('email', $email))->first();
             }
+            if ($user) {
+                $userMap[$destId] = $user;
+            }
+        }
 
-            // Try name match
-            $name = $userName ?: $destName;
-            if ($name) {
-                $parts = preg_split('/\s+/', trim($name), 2);
-                if (count($parts) === 2) {
-                    $user = User::whereHas('detail', fn ($q) => $q->where('first_name', 'ILIKE', $parts[0])
-                        ->where('last_name', 'ILIKE', $parts[1])
-                    )->first();
-                    if (! $user) {
-                        // Try reversed
-                        $user = User::whereHas('detail', fn ($q) => $q->where('first_name', 'ILIKE', $parts[1])
-                            ->where('last_name', 'ILIKE', $parts[0])
-                        )->first();
-                    }
-                    if ($user) {
-                        $userMap[$b['id']] = $user;
-                    }
+        // Try name match for remaining
+        foreach ($destNames as $destId => $name) {
+            if (isset($userMap[$destId])) {
+                continue;
+            }
+            $parts = preg_split('/\s+/', trim($name), 2);
+            if (count($parts) === 2) {
+                $like = config('database.default') === 'pgsql' ? 'ILIKE' : 'LIKE';
+                $user = User::whereHas('detail', fn ($q) => $q->where('first_name', $like, $parts[0])
+                    ->where('last_name', $like, $parts[1])
+                )->first();
+                if ($user) {
+                    $userMap[$destId] = $user;
                 }
             }
         }
@@ -123,7 +117,7 @@ class ImportSmEquipmentHistory extends Seeder
                 'user_id' => $user->id,
                 'loaned_at' => $loanedAt ?: $returnedAt,
                 'returned_at' => $returnedAt,
-                'loan_reason' => $m['rem'] ?: ($m['sortie_titre'] ? 'SM: '.$m['sortie_titre'] : null),
+                // loan_reason not yet on staging
             ]);
 
             // Update equipment status if still out
