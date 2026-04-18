@@ -20,8 +20,22 @@
                                 <select name="status" class="form-select form-select-sm">@foreach(['available','on_loan','maintenance_required','retired'] as $s) <option value="{{ $s }}" {{ $equipment->status === $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option> @endforeach</select>
                             </div>
                             <div class="col-12"><textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="{{ __('Notes') }}">{{ $equipment->notes }}</textarea></div>
-                            <div class="col-md-6"><label class="form-label">{{ __('Location') }}</label><input type="text" name="location" class="form-control form-control-sm" value="{{ $equipment->location }}" placeholder="e.g. Entrepôt, Piscine Merl"></div>
-                            <div class="col-md-6 d-flex align-items-end"><div class="form-check"><input type="hidden" name="is_loanable" value="0"><input type="checkbox" name="is_loanable" value="1" class="form-check-input" id="loanable" {{ $equipment->is_loanable ? 'checked' : '' }}><label class="form-check-label" for="loanable">{{ __('Available for loan') }}</label></div></div>
+                            <div class="col-md-6"><label class="form-label">{{ __('Location') }}</label>
+                                <select name="location" class="form-select form-select-sm">
+                                    <option value="">{{ __('— Select —') }}</option>
+                                    @foreach(['Entrepôt', 'Piscine Merl', 'Hors Service'] as $loc)
+                                        <option value="{{ $loc }}" {{ $equipment->location === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                    @endforeach
+                                    @if($equipment->location && !in_array($equipment->location, ['Entrepôt', 'Piscine Merl', 'Hors Service']))
+                                        <option value="{{ $equipment->location }}" selected>{{ $equipment->location }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end gap-3">
+                                <div class="form-check"><input type="hidden" name="is_loanable" value="0"><input type="checkbox" name="is_loanable" value="1" class="form-check-input" id="loanable" {{ $equipment->is_loanable ? 'checked' : '' }}><label class="form-check-label" for="loanable">{{ __('Loanable') }}</label></div>
+                                <div class="form-check"><input type="hidden" name="is_child_sized" value="0"><input type="checkbox" name="is_child_sized" value="1" class="form-check-input" id="child" {{ $equipment->is_child_sized ? 'checked' : '' }}><label class="form-check-label" for="child">👶 {{ __('Child') }}</label></div>
+                                <div class="form-check"><input type="hidden" name="is_cold_water" value="0"><input type="checkbox" name="is_cold_water" value="1" class="form-check-input" id="cold" {{ $equipment->is_cold_water ? 'checked' : '' }}><label class="form-check-label" for="cold">❄️ {{ __('Cold') }}</label></div>
+                            </div>
                         </div>
                         <button class="btn btn-sm btn-primary mt-2">{{ __('Save') }}</button>
                     </form>

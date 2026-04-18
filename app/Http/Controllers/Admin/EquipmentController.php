@@ -90,6 +90,11 @@ class EquipmentController extends Controller
             'condition' => 'required|in:new,good,fair,poor',
             'status' => 'required|in:available,on_loan,maintenance_required,retired',
             'notes' => 'nullable|string',
+            'location' => 'nullable|string|max:100',
+            'short_number' => 'nullable|string|max:10',
+            'is_loanable' => 'boolean',
+            'is_child_sized' => 'boolean',
+            'is_cold_water' => 'boolean',
         ]);
         $equipment->update($v);
 
