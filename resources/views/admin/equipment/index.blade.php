@@ -4,12 +4,15 @@
         <a href="{{ route('admin.equipment.create') }}" class="btn btn-sm btn-primary">{{ __('Add Equipment') }}</a>
     </div>
 
-    @php $typeCounts = \App\Models\Equipment::query()->selectRaw('type, count(*) as cnt')->groupBy('type')->pluck('cnt', 'type'); @endphp
+    @php
+        $typeCounts = \App\Models\Equipment::query()->selectRaw('type, count(*) as cnt')->groupBy('type')->pluck('cnt', 'type');
+        $locations = \App\Models\Equipment::query()->whereNotNull('location')->where('location', '!=', '')->distinct()->pluck('location')->sort();
+    @endphp
     <form method="GET" class="row g-2 mb-3">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <input type="text" name="search" data-instant-search="table-equipment" class="form-control form-control-sm" placeholder="{{ __('Search name, serial, #…') }}" value="{{ request('search') }}">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Types') }} ({{ $typeCounts->sum() }})</option>
                 @foreach(['bcd','regulator','tank','wetsuit','mask','fins','computer','other'] as $t)
@@ -28,9 +31,20 @@
             </select>
         </div>
         <div class="col-md-2">
-            <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
-            @if(request('search'))
-                <a href="{{ route('admin.equipment.index', request()->except('search', 'page')) }}" class="btn btn-sm btn-outline-secondary">✕</a>
+            <select name="location" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">{{ __('All Locations') }}</option>
+                @foreach($locations as $loc)
+                    <option value="{{ $loc }}" {{ request('location') === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="text" name="size" class="form-control form-control-sm" placeholder="{{ __('Size filter…') }}" value="{{ request('size') }}" onchange="this.form.submit()">
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-sm btn-outline-primary">{{ __('Filter') }}</button>
+            @if(request()->hasAny(['search','type','status','location','size']))
+                <a href="{{ route('admin.equipment.index') }}" class="btn btn-sm btn-outline-secondary">✕</a>
             @endif
         </div>
     </form>
@@ -45,23 +59,23 @@
                 <th><x-sortable-th column="location" :label="__('Location')" /></th>
                 <th><x-sortable-th column="status" :label="__('Status')" /></th>
                 <th>{{ __('Loaned To') }}</th>
-                <th></th>
             </tr></thead>
             <tbody>
             @foreach($equipment as $e)
-                <tr>
+                <tr data-href="{{ route('admin.equipment.show', $e) }}">
                     <td class="fw-bold">{{ $e->short_number ?? '—' }}</td>
                     <td>{{ $e->name }}</td>
                     <td><span class="badge bg-secondary">{{ ucfirst($e->type) }}</span></td>
                     <td class="small">{{ $e->serial_number ?? '—' }}</td>
                     <td class="small">{{ $e->location ?? '—' }}</td>
                     <td><span class="badge bg-{{ $e->status === 'available' ? 'success' : ($e->status === 'on_loan' ? 'info' : ($e->status === 'maintenance_required' ? 'danger' : 'secondary')) }}">{{ ucfirst(str_replace('_', ' ', $e->status)) }}</span></td>
-                    <td>{{ $e->currentLoan?->user?->name ?? '—' }}</td>
-                    <td class="text-end text-nowrap">
+                    <td>
                         @if($e->currentLoan)
-                            <form method="POST" action="{{ route('admin.equipment.return', $e->currentLoan) }}" class="d-inline">@csrf<button class="btn btn-sm btn-outline-success py-0">↩ {{ __('Return') }}</button></form>
+                            {{ $e->currentLoan->user?->name ?? '—' }}
+                            <form method="POST" action="{{ route('admin.equipment.return', $e->currentLoan) }}" class="d-inline ms-1">@csrf<button class="btn btn-sm btn-outline-success py-0">↩</button></form>
+                        @else
+                            —
                         @endif
-                        <a href="{{ route('admin.equipment.show', $e) }}" class="btn btn-sm btn-outline-primary py-0">{{ __('View') }}</a>
                     </td>
                 </tr>
             @endforeach

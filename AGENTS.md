@@ -300,3 +300,8 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - **Wednesday pool blocks**: Two timeslots per Wednesday (17:00-18:30 and 18:30-20:00), created as separate events. The `event_type` determines which group gets tank priority (PN1, kids, or generic pool). Both blocks share the same type each week.
 - **Side-by-side display**: When multiple events fall on the same day, the instructor planning shows them side by side (not stacked), sorted by `event_time`. Each slot is colored by its `event_type`.
 - **`active_instructor` on `member_details`** must only be true for actual instructors (people who lead training). Bureau members who participate but don't instruct should have it false.
+
+## Equipment Management
+
+- **Clickable rows**: Equipment table rows link to the detail page. Use `data-href` + `clickable-rows` component. Do not add separate "View" buttons — the whole row is the link.
+- **Filters**: Equipment index must have filters for type, status, location, and a free-text size filter (searches in name). All filters use Excel-style dropdowns with auto-submit.
