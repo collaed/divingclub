@@ -18,7 +18,7 @@ class EquipmentController extends Controller
 
     public function index(Request $request)
     {
-        $sortable = ['name' => 'name', 'type' => 'type', 'status' => 'status', 'short_number' => 'short_number', 'location' => 'location'];
+        $sortable = ['name' => 'name', 'type' => 'type', 'status' => 'status', 'short_number' => 'short_number', 'location' => 'location', 'last_seen_at' => 'last_seen_at'];
         $sort = $sortable[$request->get('sort')] ?? 'name';
         $dir = $request->get('dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
@@ -121,7 +121,7 @@ class EquipmentController extends Controller
         $loan->update(['returned_at' => now(), 'returned_by' => auth()->id()]);
 
         $status = $loan->equipment->hasOverdueMaintenance() ? 'maintenance_required' : 'available';
-        $loan->equipment->update(['status' => $status]);
+        $loan->equipment->update(['status' => $status, 'last_seen_at' => now()]);
 
         return back()->with('success', __('Equipment returned.'));
     }
@@ -141,7 +141,7 @@ class EquipmentController extends Controller
                     'loaned_at' => now(),
                     'loaned_by' => auth()->id(),
                 ]);
-                $eq->update(['status' => 'on_loan']);
+                $eq->update(['status' => 'on_loan', 'last_seen_at' => now()]);
                 $loaned++;
             }
         }

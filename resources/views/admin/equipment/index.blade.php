@@ -58,7 +58,7 @@
                 <th><x-sortable-th column="location" :label="__('Location')" /></th>
                 <th><x-sortable-th column="status" :label="__('Status')" /></th>
                 <th>{{ __('Loaned To') }}</th>
-                <th>{{ __('Last Seen') }}</th>
+                <th><x-sortable-th column="last_seen_at" :label="__('Last Seen')" /></th>
             </tr></thead>
             <tbody>
             @foreach($equipment as $e)
@@ -81,8 +81,7 @@
                         @endif
                     </td>
                     <td class="small text-muted">
-                        @php $ls = $e->lastSeenDate(); @endphp
-                        {{ $ls ? \Carbon\Carbon::parse($ls)->format('d/m/y') : '—' }}
+                        {{ $e->last_seen_at?->format('d/m/y') ?? '—' }}
                     </td>
                 </tr>
             @endforeach
