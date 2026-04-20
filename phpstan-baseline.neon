@@ -79,12 +79,6 @@ parameters:
 			path: app/Http/Controllers/Admin/MedicalExportController.php
 
 		-
-			message: '#^If condition is always true\.$#'
-			identifier: if.alwaysTrue
-			count: 1
-			path: app/Http/Controllers/Admin/MemberController.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between string\|null and int will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1

@@ -80,6 +80,7 @@ class MemberController extends Controller
         abort_unless($originalId, 403);
         session()->forget(['impersonating', 'impersonating_name', 'original_user_id']);
 
+        /** @phpstan-ignore if.alwaysTrue */
         if ($originalId) {
             auth()->loginUsingId($originalId);
         }
