@@ -15,12 +15,14 @@ use App\Models\MemberStatus;
 use App\Models\ThemeSetting;
 use App\Services\LicenseService;
 use App\Services\ThemeService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class SettingsController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         return view('admin.settings.index', [
             'federations' => Federation::orderBy('acronym')->get(),
@@ -34,21 +36,21 @@ class SettingsController extends Controller
     }
 
     // --- Federations ---
-    public function storeFederation(StoreFederationRequest $request)
+    public function storeFederation(StoreFederationRequest $request): RedirectResponse
     {
         Federation::create($request->validated());
 
         return back()->with('success', __('Federation added.'));
     }
 
-    public function updateFederation(StoreFederationRequest $request, Federation $federation)
+    public function updateFederation(StoreFederationRequest $request, Federation $federation): RedirectResponse
     {
         $federation->update($request->validated());
 
         return back()->with('success', __('Federation updated.'));
     }
 
-    public function destroyFederation(Federation $federation)
+    public function destroyFederation(Federation $federation): RedirectResponse
     {
         $federation->delete();
 
@@ -56,7 +58,7 @@ class SettingsController extends Controller
     }
 
     // --- Member Statuses ---
-    public function storeStatus(Request $request)
+    public function storeStatus(Request $request): RedirectResponse
     {
         $v = $request->validate(['name' => 'required|string|max:100', 'slug' => 'required|string|max:50|unique:member_statuses', 'description' => 'nullable|string']);
         MemberStatus::create($v);
@@ -64,7 +66,7 @@ class SettingsController extends Controller
         return back()->with('success', __('Status added.'));
     }
 
-    public function updateStatus(Request $request, MemberStatus $status)
+    public function updateStatus(Request $request, MemberStatus $status): RedirectResponse
     {
         $v = $request->validate(['name' => 'required|string|max:100', 'description' => 'nullable|string']);
         $status->update($v);
@@ -73,21 +75,21 @@ class SettingsController extends Controller
     }
 
     // --- Medical Compliance Rules ---
-    public function storeMedicalRule(StoreMedicalRuleRequest $request)
+    public function storeMedicalRule(StoreMedicalRuleRequest $request): RedirectResponse
     {
         MedicalComplianceRule::create($request->validated());
 
         return back()->with('success', __('Medical rule added.'));
     }
 
-    public function updateMedicalRule(StoreMedicalRuleRequest $request, MedicalComplianceRule $rule)
+    public function updateMedicalRule(StoreMedicalRuleRequest $request, MedicalComplianceRule $rule): RedirectResponse
     {
         $rule->update($request->validated());
 
         return back()->with('success', __('Medical rule updated.'));
     }
 
-    public function destroyMedicalRule(MedicalComplianceRule $rule)
+    public function destroyMedicalRule(MedicalComplianceRule $rule): RedirectResponse
     {
         $rule->delete();
 
@@ -95,7 +97,7 @@ class SettingsController extends Controller
     }
 
     // --- Equipment Maintenance Rules ---
-    public function storeMaintenanceRule(StoreMaintenanceRuleRequest $request)
+    public function storeMaintenanceRule(StoreMaintenanceRuleRequest $request): RedirectResponse
     {
         $v = $request->validated();
         $v['is_mandatory'] = $request->boolean('is_mandatory');
@@ -104,7 +106,7 @@ class SettingsController extends Controller
         return back()->with('success', __('Maintenance rule added.'));
     }
 
-    public function updateMaintenanceRule(StoreMaintenanceRuleRequest $request, EquipmentMaintenanceRule $rule)
+    public function updateMaintenanceRule(StoreMaintenanceRuleRequest $request, EquipmentMaintenanceRule $rule): RedirectResponse
     {
         $v = $request->validated();
         $v['is_mandatory'] = $request->boolean('is_mandatory');
@@ -113,7 +115,7 @@ class SettingsController extends Controller
         return back()->with('success', __('Maintenance rule updated.'));
     }
 
-    public function destroyMaintenanceRule(EquipmentMaintenanceRule $rule)
+    public function destroyMaintenanceRule(EquipmentMaintenanceRule $rule): RedirectResponse
     {
         $rule->delete();
 
@@ -121,7 +123,7 @@ class SettingsController extends Controller
     }
 
     // --- Membership Fees ---
-    public function storeMembershipFee(StoreMembershipFeeRequest $request)
+    public function storeMembershipFee(StoreMembershipFeeRequest $request): RedirectResponse
     {
         $v = $request->validated();
         MembershipFee::updateOrCreate(
@@ -132,14 +134,14 @@ class SettingsController extends Controller
         return back()->with('success', __('Membership fee saved.'));
     }
 
-    public function destroyMembershipFee(MembershipFee $fee)
+    public function destroyMembershipFee(MembershipFee $fee): RedirectResponse
     {
         $fee->delete();
 
         return back()->with('success', __('Membership fee deleted.'));
     }
 
-    public function updateTheme(Request $request)
+    public function updateTheme(Request $request): RedirectResponse
     {
         $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'ui_show_icons', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x', 'newsletter_article_base_url', 'default_locale'];
 
@@ -162,7 +164,7 @@ class SettingsController extends Controller
         return back()->with('success', __('Theme updated.'));
     }
 
-    public function applyPreset(Request $request)
+    public function applyPreset(Request $request): RedirectResponse
     {
         $presets = ThemeService::presets();
         $name = $request->input('preset');
@@ -179,7 +181,7 @@ class SettingsController extends Controller
         return back()->with('success', __('Preset applied: ').$name);
     }
 
-    public function uploadLogo(Request $request)
+    public function uploadLogo(Request $request): RedirectResponse
     {
         $request->validate(['logo' => 'required|image|max:2048']);
         $path = $request->file('logo')->store('theme', 'public');

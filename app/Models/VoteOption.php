@@ -19,11 +19,13 @@ class VoteOption extends Model
 {
     protected $fillable = ['vote_id', 'label', 'sort_order'];
 
+    /** @return BelongsTo<Vote, $this> */
     public function vote(): BelongsTo
     {
         return $this->belongsTo(Vote::class);
     }
 
+    /** @return HasMany<VoteBallot, $this> */
     public function ballots(): HasMany
     {
         return $this->hasMany(VoteBallot::class);

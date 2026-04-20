@@ -37,6 +37,7 @@ class ClubPartnership extends Model
         ];
     }
 
+    /** @return HasMany<ExternalRegistration, $this> */
     public function externalRegistrations(): HasMany
     {
         return $this->hasMany(ExternalRegistration::class, 'partnership_id');

@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\GuardianLink;
 use App\Models\ParentalConsent;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class GuardianController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $minors = User::whereHas('detail', fn ($q) => $q->whereNotNull('date_of_birth')
             ->where('date_of_birth', '>', now()->subYears(18)))
@@ -21,7 +23,7 @@ class GuardianController extends Controller
         return view('admin.guardians.index', compact('minors'));
     }
 
-    public function linkGuardian(Request $request)
+    public function linkGuardian(Request $request): RedirectResponse
     {
         $v = $request->validate([
             'minor_user_id' => 'required|exists:users,id',
@@ -37,14 +39,14 @@ class GuardianController extends Controller
         return back()->with('success', __('Guardian linked.'));
     }
 
-    public function unlinkGuardian(GuardianLink $link)
+    public function unlinkGuardian(GuardianLink $link): RedirectResponse
     {
         $link->delete();
 
         return back()->with('success', __('Guardian unlinked.'));
     }
 
-    public function storeConsent(Request $request)
+    public function storeConsent(Request $request): RedirectResponse
     {
         $v = $request->validate([
             'minor_user_id' => 'required|exists:users,id',
@@ -70,7 +72,7 @@ class GuardianController extends Controller
         return back()->with('success', __('Parental consent recorded.'));
     }
 
-    public function revokeConsent(ParentalConsent $consent)
+    public function revokeConsent(ParentalConsent $consent): RedirectResponse
     {
         $consent->update(['granted' => false, 'revoked_at' => now()]);
 

@@ -30,11 +30,13 @@ class MemberLicence extends Model
         return ['licence_request_date' => 'date', 'licence_request_pending' => 'boolean', 'medical_cert_expiry' => 'date', 'registration_date' => 'date'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<Federation, $this> */
     public function federation(): BelongsTo
     {
         return $this->belongsTo(Federation::class);

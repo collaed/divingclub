@@ -8,13 +8,15 @@ use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class ProfileController extends Controller
 {
-    public function show(Request $request, ?User $user = null)
+    public function show(Request $request, ?User $user = null): View
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
@@ -105,7 +107,7 @@ class ProfileController extends Controller
         return back()->with('success', __('Profile updated.'))->withInput(['tab' => 'info']);
     }
 
-    public function updatePrivate(Request $request, ?User $user = null)
+    public function updatePrivate(Request $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
@@ -134,7 +136,7 @@ class ProfileController extends Controller
         return back()->with('success', __('Private info updated.'))->withInput(['tab' => 'private']);
     }
 
-    public function updateLicence(Request $request, MemberLicence $licence)
+    public function updateLicence(Request $request, MemberLicence $licence): RedirectResponse
     {
         abort_unless(auth()->user()->can('manage members'), 403);
 
@@ -148,7 +150,7 @@ class ProfileController extends Controller
         return back()->with('success', __('Licence updated.'))->withInput(['tab' => 'renewal']);
     }
 
-    public function updateFederationKey(Request $request, MemberLicence $licence)
+    public function updateFederationKey(Request $request, MemberLicence $licence): RedirectResponse
     {
         $user = auth()->user();
         if ($licence->user_id !== $user->id && ! $user->isBureau()) {
@@ -185,7 +187,7 @@ class ProfileController extends Controller
         return back()->with('success', $msg)->withInput(['tab' => 'renewal']);
     }
 
-    public function updateDiving(Request $request, ?User $user = null)
+    public function updateDiving(Request $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
@@ -229,7 +231,7 @@ class ProfileController extends Controller
         return back()->with('success', __('Diving info updated.'))->withInput(['tab' => 'diving']);
     }
 
-    public function updateLanguage(UpdateProfileLanguageRequest $request, ?User $user = null)
+    public function updateLanguage(UpdateProfileLanguageRequest $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
@@ -249,7 +251,7 @@ class ProfileController extends Controller
         return back()->with('success', __('Language preference updated.'))->withInput(['tab' => 'language']);
     }
 
-    public function updatePassword(Request $request)
+    public function updatePassword(Request $request): RedirectResponse
     {
         $request->validate([
             'current_password' => 'required|current_password',

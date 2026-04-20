@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\Federation;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -75,7 +76,7 @@ class MedicalExportController extends Controller
      * Includes DB-tracked documents + legacy files from private/medical/.
      * Files named: LASTNAME Firstname member# type.ext
      */
-    public function downloadCertificates(Request $request)
+    public function downloadCertificates(Request $request): RedirectResponse
     {
         $federationId = $request->get('federation_id');
 

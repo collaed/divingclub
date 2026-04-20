@@ -24,6 +24,7 @@ class MemberStatus extends Model
         return ['fee_multiplier' => 'decimal:2'];
     }
 
+    /** @return HasMany<User, $this> */
     public function users(): HasMany
     {
         return $this->hasMany(User::class, 'status_id');

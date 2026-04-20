@@ -66,16 +66,19 @@ class Equipment extends Model
         ];
     }
 
+    /** @return HasMany<EquipmentMaintenance, $this> */
     public function maintenanceTasks(): HasMany
     {
         return $this->hasMany(EquipmentMaintenance::class);
     }
 
+    /** @return HasMany<EquipmentLoan, $this> */
     public function loans(): HasMany
     {
         return $this->hasMany(EquipmentLoan::class);
     }
 
+    /** @return HasOne<EquipmentLoan, $this> */
     public function currentLoan(): HasOne
     {
         return $this->hasOne(EquipmentLoan::class)->whereNull('returned_at');

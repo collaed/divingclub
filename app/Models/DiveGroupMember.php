@@ -20,6 +20,7 @@ class DiveGroupMember extends Model
 {
     protected $fillable = ['dive_group_id', 'user_id', 'role'];
 
+    /** @return BelongsTo<DiveGroup, $this> */
     public function group(): BelongsTo
     {
         return $this->belongsTo(DiveGroup::class, 'dive_group_id');
@@ -30,6 +31,7 @@ class DiveGroupMember extends Model
         return $this->group();
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

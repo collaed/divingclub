@@ -18,11 +18,13 @@ class VoteBallot extends Model
 {
     protected $fillable = ['vote_id', 'vote_option_id', 'token_hash'];
 
+    /** @return BelongsTo<Vote, $this> */
     public function vote(): BelongsTo
     {
         return $this->belongsTo(Vote::class);
     }
 
+    /** @return BelongsTo<VoteOption, $this> */
     public function option(): BelongsTo
     {
         return $this->belongsTo(VoteOption::class, 'vote_option_id');

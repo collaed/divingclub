@@ -29,11 +29,13 @@ class EquipmentMaintenance extends Model
         return ['due_date' => 'date', 'completed_at' => 'date', 'is_mandatory' => 'boolean'];
     }
 
+    /** @return BelongsTo<Equipment, $this> */
     public function equipment(): BelongsTo
     {
         return $this->belongsTo(Equipment::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function completedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'completed_by');

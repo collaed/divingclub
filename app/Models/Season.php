@@ -25,16 +25,19 @@ class Season extends Model
         return ['start_date' => 'date', 'end_date' => 'date', 'is_active' => 'boolean'];
     }
 
+    /** @return HasMany<SeasonHoliday, $this> */
     public function holidays(): HasMany
     {
         return $this->hasMany(SeasonHoliday::class);
     }
 
+    /** @return HasMany<SeasonPattern, $this> */
     public function patterns(): HasMany
     {
         return $this->hasMany(SeasonPattern::class);
     }
 
+    /** @return HasMany<Event, $this> */
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);

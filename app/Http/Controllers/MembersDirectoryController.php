@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Models\MemberStatus;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class MembersDirectoryController extends Controller
@@ -65,7 +66,7 @@ class MembersDirectoryController extends Controller
         return view('members.directory', compact('members', 'statuses'));
     }
 
-    public function trombinoscope()
+    public function trombinoscope(): View
     {
         $members = User::with('detail')
             ->whereHas('detail', fn ($q) => $q->whereNotNull('avatar_path')->whereNotNull('first_name'))

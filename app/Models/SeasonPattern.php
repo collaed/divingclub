@@ -35,6 +35,7 @@ class SeasonPattern extends Model
         'color_hex', 'whatsapp_group_url', 'dive_site_id',
     ];
 
+    /** @return BelongsTo<Season, $this> */
     public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class);

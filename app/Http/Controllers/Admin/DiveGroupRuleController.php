@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DiveGroupRule;
 use App\Models\Federation;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class DiveGroupRuleController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $rules = DiveGroupRule::orderBy('scope')->orderBy('dive_mode')->orderBy('min_leader_rank')->get();
         $federations = Federation::orderBy('acronym')->pluck('acronym');
+
         return view('admin.dive-group-rules.index', compact('rules', 'federations'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -30,10 +33,11 @@ class DiveGroupRuleController extends Controller
             'description' => 'nullable|string',
         ]);
         DiveGroupRule::create($data);
+
         return back()->with('success', __('Rule created.'));
     }
 
-    public function update(Request $request, DiveGroupRule $rule)
+    public function update(Request $request, DiveGroupRule $rule): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -49,12 +53,14 @@ class DiveGroupRuleController extends Controller
         ]);
         $data['is_active'] = $request->boolean('is_active');
         $rule->update($data);
+
         return back()->with('success', __('Rule updated.'));
     }
 
-    public function destroy(DiveGroupRule $rule)
+    public function destroy(DiveGroupRule $rule): RedirectResponse
     {
         $rule->delete();
+
         return back()->with('success', __('Rule deleted.'));
     }
 }

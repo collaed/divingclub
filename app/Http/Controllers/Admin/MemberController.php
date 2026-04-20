@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\MemberStatus;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
@@ -14,7 +16,7 @@ class MemberController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $query = User::with(['detail', 'roles', 'status']);
 
@@ -48,7 +50,7 @@ class MemberController extends Controller
         return view('admin.members.index', compact('members', 'statuses', 'roles'));
     }
 
-    public function impersonate(User $user)
+    public function impersonate(User $user): RedirectResponse
     {
         AuditLog::create([
             'user_id' => auth()->id(),
@@ -72,7 +74,7 @@ class MemberController extends Controller
         return redirect()->route('profile.show')->with('success', __('Now impersonating :name', ['name' => $user->name]));
     }
 
-    public function stopImpersonation()
+    public function stopImpersonation(): RedirectResponse
     {
         $originalId = session('original_user_id');
         abort_unless($originalId, 403);

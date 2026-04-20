@@ -21,11 +21,13 @@ class GuardianLink extends Model
 
     protected $fillable = ['guardian_user_id', 'minor_user_id', 'relationship'];
 
+    /** @return BelongsTo<User, $this> */
     public function guardian(): BelongsTo
     {
         return $this->belongsTo(User::class, 'guardian_user_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function minor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'minor_user_id');

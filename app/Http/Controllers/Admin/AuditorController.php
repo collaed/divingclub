@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BankTransaction;
 use App\Models\PaymentExpected;
+use Illuminate\Contracts\View\View;
 
 class AuditorController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         abort_unless(auth()->user()->can('view finances'), 403);
 

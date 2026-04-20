@@ -75,66 +75,79 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->username ?? $this->primary_email;
     }
 
+    /** @return BelongsTo<Role, $this> */
     public function legacyRole(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
 
+    /** @return BelongsTo<MemberStatus, $this> */
     public function status(): BelongsTo
     {
         return $this->belongsTo(MemberStatus::class, 'status_id');
     }
 
+    /** @return HasMany<UserEmail, $this> */
     public function emails(): HasMany
     {
         return $this->hasMany(UserEmail::class);
     }
 
+    /** @return HasOne<UserEmail, $this> */
     public function primaryEmailRecord(): HasOne
     {
         return $this->hasOne(UserEmail::class)->where('is_primary', true);
     }
 
+    /** @return HasMany<UserSocialAccount, $this> */
     public function socialAccounts(): HasMany
     {
         return $this->hasMany(UserSocialAccount::class);
     }
 
+    /** @return HasOne<MemberDetail, $this> */
     public function detail(): HasOne
     {
         return $this->hasOne(MemberDetail::class);
     }
 
+    /** @return HasMany<MemberLicence, $this> */
     public function licences(): HasMany
     {
         return $this->hasMany(MemberLicence::class);
     }
 
+    /** @return HasMany<Document, $this> */
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
     }
 
+    /** @return HasMany<PaymentExpected, $this> */
     public function paymentsExpected(): HasMany
     {
         return $this->hasMany(PaymentExpected::class);
     }
 
+    /** @return HasMany<EventRegistration, $this> */
     public function eventRegistrations(): HasMany
     {
         return $this->hasMany(EventRegistration::class);
     }
 
+    /** @return HasMany<EquipmentLoan, $this> */
     public function equipmentLoans(): HasMany
     {
         return $this->hasMany(EquipmentLoan::class);
     }
 
+    /** @return HasMany<GdprConsent, $this> */
     public function gdprConsents(): HasMany
     {
         return $this->hasMany(GdprConsent::class);
     }
 
+    /** @return BelongsToMany<CertificationLevel, $this> */
     public function certificationLevels(): BelongsToMany
     {
         return $this->belongsToMany(CertificationLevel::class, 'user_certification_levels')
@@ -157,12 +170,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isBureau();
     }
 
+    /** @return BelongsToMany<User, $this> */
     public function guardians(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'guardian_links', 'minor_user_id', 'guardian_user_id')
             ->withPivot('relationship')->withTimestamps();
     }
 
+    /** @return BelongsToMany<User, $this> */
     public function minors(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'guardian_links', 'guardian_user_id', 'minor_user_id')
@@ -194,6 +209,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return (bool) ($this->detail?->public_photos_banned ?? false);
     }
 
+    /** @return HasMany<ParentalConsent, $this> */
     public function parentalConsents(): HasMany
     {
         return $this->hasMany(ParentalConsent::class, 'minor_user_id');
@@ -235,6 +251,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $missing;
     }
 
+    /** @return HasMany<PushSubscription, $this> */
     public function pushSubscriptions(): HasMany
     {
         return $this->hasMany(PushSubscription::class);

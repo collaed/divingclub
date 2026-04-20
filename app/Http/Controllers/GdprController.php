@@ -4,19 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\GdprConsent;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class GdprController extends Controller
 {
-    public function consents()
+    public function consents(): View
     {
         $consents = auth()->user()->gdprConsents()->get()->keyBy('consent_type');
 
         return view('gdpr.consents', compact('consents'));
     }
 
-    public function updateConsent(Request $request)
+    public function updateConsent(Request $request): RedirectResponse
     {
         $request->validate(['consent_type' => 'required|in:data_processing,marketing,photo_publication']);
         $granted = $request->boolean('granted');
@@ -33,7 +35,7 @@ class GdprController extends Controller
         return back()->with('success', __('Consent updated.'));
     }
 
-    public function exportData()
+    public function exportData(): View
     {
         $user = auth()->user();
         $user->load(['detail', 'emails', 'licences', 'documents', 'gdprConsents', 'eventRegistrations.event', 'paymentsExpected']);
@@ -60,12 +62,12 @@ class GdprController extends Controller
         return response()->json($data)->header('Content-Disposition', "attachment; filename={$filename}");
     }
 
-    public function requestErasure()
+    public function requestErasure(): View
     {
         return view('gdpr.erasure-confirm');
     }
 
-    public function confirmErasure(Request $request)
+    public function confirmErasure(Request $request): RedirectResponse
     {
         $request->validate([
             'confirm' => 'required|accepted',

@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTrialRequest;
 use App\Models\TrialRequest;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class TrialController extends Controller
 {
-    public function show()
+    public function show(): View
     {
         return view('trial.show');
     }
 
-    public function store(StoreTrialRequest $request)
+    public function store(StoreTrialRequest $request): RedirectResponse
     {
         $data = $request->validated();
         unset($data['website']);

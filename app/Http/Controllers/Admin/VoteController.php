@@ -7,24 +7,26 @@ use App\Models\User;
 use App\Models\Vote;
 use App\Models\VoteOption;
 use App\Models\VoteToken;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class VoteController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $votes = Vote::withCount(['tokens', 'ballots'])->orderByDesc('created_at')->get();
 
         return view('admin.votes.index', compact('votes'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('admin.votes.form', ['vote' => new Vote]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): View
     {
         $request->merge(['options' => array_values(array_filter($request->input('options', []), fn ($v) => trim($v) !== ''))]);
 
@@ -61,7 +63,7 @@ class VoteController extends Controller
         return redirect()->route('admin.votes.show', $vote)->with('success', __('Vote created.'));
     }
 
-    public function show(Vote $vote)
+    public function show(Vote $vote): View
     {
         $vote->load(['options.ballots', 'tokens']);
         $results = $vote->options->map(fn ($o) => ['label' => $o->label, 'count' => $o->ballots->count()]);
@@ -69,7 +71,7 @@ class VoteController extends Controller
         return view('admin.votes.show', compact('vote', 'results'));
     }
 
-    public function generateTokens(Vote $vote)
+    public function generateTokens(Vote $vote): RedirectResponse
     {
         $users = User::whereNotNull('email_verified_at')->get();
         $created = 0;
@@ -88,21 +90,21 @@ class VoteController extends Controller
         return back()->with('success', __(':count tokens generated.', ['count' => $created]));
     }
 
-    public function open(Vote $vote)
+    public function open(Vote $vote): RedirectResponse
     {
         $vote->update(['status' => 'open']);
 
         return back()->with('success', __('Vote opened.'));
     }
 
-    public function close(Vote $vote)
+    public function close(Vote $vote): RedirectResponse
     {
         $vote->update(['status' => 'closed']);
 
         return back()->with('success', __('Vote closed.'));
     }
 
-    public function cancel(Vote $vote)
+    public function cancel(Vote $vote): RedirectResponse
     {
         $vote->update(['status' => 'cancelled']);
 

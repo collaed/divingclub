@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Helpers\HtmlSanitizer;
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Models\Article;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -12,7 +14,7 @@ class ClassifiedController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $classifieds = Article::where('article_type', 'classified')
             ->active()->where('is_published', true)
@@ -29,12 +31,12 @@ class ClassifiedController extends Controller
         return view('classifieds.index', compact('classifieds', 'mine'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('classifieds.form', ['article' => new Article(['article_type' => 'classified'])]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): View
     {
         $v = $request->validate([
             'title' => 'required|string|max:255',
@@ -59,14 +61,14 @@ class ClassifiedController extends Controller
         return redirect()->route('classifieds.index')->with('success', __('Classified posted. It will expire in 30 days.'));
     }
 
-    public function edit(Article $article)
+    public function edit(Article $article): View
     {
         abort_unless($article->article_type === 'classified' && $article->author_id === auth()->id(), 403);
 
         return view('classifieds.form', compact('article'));
     }
 
-    public function update(Request $request, Article $article)
+    public function update(Request $request, Article $article): RedirectResponse
     {
         abort_unless($article->article_type === 'classified' && $article->author_id === auth()->id(), 403);
 
@@ -87,7 +89,7 @@ class ClassifiedController extends Controller
         return redirect()->route('classifieds.index')->with('success', __('Classified updated.'));
     }
 
-    public function extend(Article $article)
+    public function extend(Article $article): RedirectResponse
     {
         abort_unless($article->article_type === 'classified' && $article->author_id === auth()->id(), 403);
         $article->update(['expires_at' => now()->addDays(30)]);
@@ -95,7 +97,7 @@ class ClassifiedController extends Controller
         return back()->with('success', __('Extended for 30 more days.'));
     }
 
-    public function destroy(Article $article)
+    public function destroy(Article $article): RedirectResponse
     {
         abort_unless(
             $article->article_type === 'classified' && ($article->author_id === auth()->id() || auth()->user()->can('manage articles')),

@@ -19,11 +19,13 @@ class BuddyResponse extends Model
 {
     protected $fillable = ['buddy_request_id', 'user_id', 'message', 'status'];
 
+    /** @return BelongsTo<BuddyRequest, $this> */
     public function buddyRequest(): BelongsTo
     {
         return $this->belongsTo(BuddyRequest::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

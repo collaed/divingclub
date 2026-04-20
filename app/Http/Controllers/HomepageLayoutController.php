@@ -18,6 +18,7 @@ use App\Models\EventPhoto;
 use App\Models\Link;
 use App\Models\ThemeSetting;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class HomepageLayoutController extends Controller
@@ -68,7 +69,7 @@ class HomepageLayoutController extends Controller
     }
 
     /** Save layout via AJAX. */
-    public function saveLayout(Request $request)
+    public function saveLayout(Request $request): JsonResponse
     {
         abort_unless(auth()->user()?->can('manage settings'), 403);
 

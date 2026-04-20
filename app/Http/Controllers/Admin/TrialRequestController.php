@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ThemeSetting;
 use App\Models\TrialRequest;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -13,14 +15,14 @@ use Illuminate\Support\Facades\Mail;
  */
 class TrialRequestController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $requests = TrialRequest::orderByDesc('created_at')->get();
 
         return view('admin.trial-requests.index', compact('requests'));
     }
 
-    public function update(Request $request, TrialRequest $trialRequest)
+    public function update(Request $request, TrialRequest $trialRequest): RedirectResponse
     {
         $data = $request->validate([
             'status' => 'required|in:pending,confirmed,completed,cancelled',

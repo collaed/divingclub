@@ -28,16 +28,19 @@ class Federation extends Model
         return $q->where('visibility', 'active');
     }
 
+    /** @return HasMany<MemberLicence, $this> */
     public function licences(): HasMany
     {
         return $this->hasMany(MemberLicence::class);
     }
 
+    /** @return HasMany<MedicalComplianceRule, $this> */
     public function complianceRules(): HasMany
     {
         return $this->hasMany(MedicalComplianceRule::class);
     }
 
+    /** @return HasMany<CertificationLevel, $this> */
     public function certificationLevels(): HasMany
     {
         return $this->hasMany(CertificationLevel::class);

@@ -35,11 +35,13 @@ class Newsletter extends Model
         ];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /** @return HasMany<NewsletterApproval, $this> */
     public function approvals(): HasMany
     {
         return $this->hasMany(NewsletterApproval::class);

@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\BuddyRequest;
 use App\Models\BuddyResponse;
 use App\Models\DiveSite;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class BuddyController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $requests = BuddyRequest::active()
             ->with(['user.detail', 'user.certificationLevels.federation', 'diveSite', 'responses.user.detail'])
@@ -20,7 +22,7 @@ class BuddyController extends Controller
         return view('buddies.index', compact('requests', 'sites'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'dive_site_id' => 'nullable|exists:dive_sites,id',
@@ -39,7 +41,7 @@ class BuddyController extends Controller
         return back()->with('success', __('Buddy request posted.'));
     }
 
-    public function respond(Request $request, BuddyRequest $buddyRequest)
+    public function respond(Request $request, BuddyRequest $buddyRequest): RedirectResponse
     {
         $request->validate(['message' => 'nullable|string|max:500']);
 
@@ -55,7 +57,7 @@ class BuddyController extends Controller
         return back()->with('success', __('Response sent.'));
     }
 
-    public function close(BuddyRequest $buddyRequest)
+    public function close(BuddyRequest $buddyRequest): RedirectResponse
     {
         abort_unless($buddyRequest->user_id === auth()->id() || auth()->user()->isBureau(), 403);
         $buddyRequest->update(['is_active' => false]);

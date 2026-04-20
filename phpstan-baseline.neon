@@ -31,14 +31,38 @@ parameters:
 			path: app/Console/Commands/SyncOldEvents.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasOverdueMaintenance\(\)\.$#'
-			identifier: method.notFound
+			message: '#^Method App\\Http\\Controllers\\Admin\\ArticleController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
 			count: 1
-			path: app/Http/Controllers/Admin/EquipmentController.php
+			path: app/Http/Controllers/Admin/ArticleController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\AuditLogController\:\:export\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/AuditLogController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\DashboardController\:\:exportCsv\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\DiveSiteController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/DiveSiteController.php
 
 		-
 			message: '#^Instanceof between App\\Models\\Equipment and App\\Models\\Equipment will always evaluate to true\.$#'
 			identifier: instanceof.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Admin/EquipmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\EquipmentController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/Admin/EquipmentController.php
 
@@ -55,6 +79,24 @@ parameters:
 			path: app/Http/Controllers/Admin/LibraryController.php
 
 		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\LibraryController\:\:download\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/LibraryController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\LibraryController\:\:downloadZip\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\BinaryFileResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/LibraryController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\MedicalExportController\:\:downloadCertificates\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\BinaryFileResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/MedicalExportController.php
+
+		-
 			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -67,10 +109,94 @@ parameters:
 			path: app/Http/Controllers/Admin/MemberController.php
 
 		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\NewsletterController\:\:destroy\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/NewsletterController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\NewsletterController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/NewsletterController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\NewsletterController\:\:testSend\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/NewsletterController.php
+
+		-
 			message: '#^Strict comparison using \=\=\= between string\|null and int will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Http/Controllers/Admin/NewsletterController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\PartnershipController\:\:destroy\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/PartnershipController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\PartnershipController\:\:remoteEvents\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 2
+			path: app/Http/Controllers/Admin/PartnershipController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\PaymentController\:\:adjustComponents\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/PaymentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\PaymentController\:\:generateBulkFees\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/PaymentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyHoliday\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyPattern\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\JsonResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyPattern\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storeHoliday\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storePattern\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\JsonResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storePattern\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
 
 		-
 			message: '#^Match expression does not handle remaining values\: string\|null$#'
@@ -79,15 +205,27 @@ parameters:
 			path: app/Http/Controllers/Admin/TrialRequestController.php
 
 		-
-			message: '#^Parameter \#1 \$user of static method Illuminate\\Support\\Facades\\Auth\:\:login\(\) expects Illuminate\\Contracts\\Auth\\Authenticatable, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
+			message: '#^Method App\\Http\\Controllers\\Admin\\VoteController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
 			count: 1
-			path: app/Http/Controllers/Auth/EuLoginController.php
+			path: app/Http/Controllers/Admin/VoteController.php
 
 		-
 			message: '#^Expression on left side of \?\? is always null\.$#'
 			identifier: nullCoalesce.expr
 			count: 2
+			path: app/Http/Controllers/Auth/SocialAuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\SocialAuthController\:\:choose\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Auth/SocialAuthController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Auth\\SocialAuthController\:\:redirect\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
@@ -97,10 +235,10 @@ parameters:
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
-			message: '#^Parameter \#1 \$user of static method Illuminate\\Support\\Facades\\Auth\:\:login\(\) expects Illuminate\\Contracts\\Auth\\Authenticatable, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
+			message: '#^Method App\\Http\\Controllers\\ClassifiedController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
 			count: 1
-			path: app/Http/Controllers/Auth/SocialAuthController.php
+			path: app/Http/Controllers/ClassifiedController.php
 
 		-
 			message: '#^Parameter \#2 \$diveGroupMembers of method App\\Services\\UddfService\:\:export\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DiveGroupMember\> given\.$#'
@@ -115,20 +253,26 @@ parameters:
 			path: app/Http/Controllers/DiveGroupController.php
 
 		-
-			message: '#^Parameter \#1 \$group of method App\\Http\\Controllers\\DiveGroupController\:\:checkGroup\(\) expects App\\Models\\DiveGroup, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
 			message: '#^Cannot call method last\(\) on array\|ArrayAccess\.$#'
 			identifier: method.nonObject
 			count: 1
 			path: app/Http/Controllers/DocumentBrowserController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\|Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
-			identifier: property.notFound
+			message: '#^Method App\\Http\\Controllers\\DocumentBrowserController\:\:download\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/DocumentBrowserController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DocumentBrowserController\:\:thumb\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\BinaryFileResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/DocumentBrowserController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\EventController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/EventController.php
 
@@ -137,6 +281,12 @@ parameters:
 			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Http/Controllers/EventController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GdprController\:\:exportData\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\JsonResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/GdprController.php
 
 		-
 			message: '#^Offset ''status'' on array\{status\: string, bytes\: int, human\: string\}\|array\{status\: string, error\?\: string\}\|array\{status\: string, free\: string, total\: string, used_pct\: float\}\|array\{status\: string, ms\?\: float\}\|array\{status\: string, pending\: int, failed\: int\} on left side of \?\? always exists and is not nullable\.$#'
@@ -148,6 +298,18 @@ parameters:
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<TRelatedModel of Illuminate\\Database\\Eloquent\\Model\>\:\:role\(\)\.$#'
 			identifier: method.notFound
 			count: 2
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:index4\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:showArticle\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
 			path: app/Http/Controllers/HomeController.php
 
 		-
@@ -163,10 +325,52 @@ parameters:
 			path: app/Http/Controllers/HomeController.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:emails\(\)\.$#'
-			identifier: method.notFound
+			message: '#^Method App\\Http\\Controllers\\InstallController\:\:index\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 2
+			path: app/Http/Controllers/InstallController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileDocumentController\:\:download\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\BinaryFileResponse\.$#'
+			identifier: return.type
 			count: 1
-			path: app/Http/Controllers/ProfileEmailController.php
+			path: app/Http/Controllers/ProfileDocumentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileDocumentController\:\:download\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
+			identifier: return.type
+			count: 2
+			path: app/Http/Controllers/ProfileDocumentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:federation\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/QrCodeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:sepa\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/QrCodeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:sepaPublic\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\Response\.$#'
+			identifier: return.type
+			count: 2
+			path: app/Http/Controllers/QrCodeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:signedPaymentQr\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\Response\.$#'
+			identifier: return.type
+			count: 2
+			path: app/Http/Controllers/QrCodeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:vcard\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/QrCodeController.php
 
 		-
 			message: '#^Parameter \#1 \$num of function number_format expects float, string\|null given\.$#'
@@ -175,9 +379,15 @@ parameters:
 			path: app/Http/Controllers/QrCodeController.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isOpen\(\)\.$#'
-			identifier: method.notFound
-			count: 2
+			message: '#^Method App\\Http\\Controllers\\StagingMailController\:\:raw\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/StagingMailController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VotePublicController\:\:cast\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 4
 			path: app/Http/Controllers/VotePublicController.php
 
 		-
@@ -185,12 +395,6 @@ parameters:
 			identifier: nullCoalesce.offset
 			count: 1
 			path: app/Jobs/PollInboundMail.php
-
-		-
-			message: '#^Parameter \#1 \$article of method App\\Services\\ArticleTranslationService\:\:translate\(\) expects App\\Models\\Article, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Jobs/ProcessTranslations.php
 
 		-
 			message: '#^Binary operation "/" between non\-falsy\-string and 1\|non\-falsy\-string results in an error\.$#'
@@ -215,24 +419,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Models/Newsletter.php
-
-		-
-			message: '#^Method App\\Models\\User\:\:primaryCertification\(\) should return App\\Models\\CertificationLevel\|null but returns \(Illuminate\\Database\\Eloquent\\Model&object\{pivot\: Illuminate\\Database\\Eloquent\\Relations\\Pivot\}\)\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Models/User.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasPlausibleWordCount\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Services/ArticleTranslationService.php
-
-		-
-			message: '#^Method App\\Services\\ArticleTranslationService\:\:translate\(\) should return App\\Models\\ArticleTranslation but returns Illuminate\\Database\\Eloquent\\Model\.$#'
-			identifier: return.type
-			count: 3
-			path: app/Services/ArticleTranslationService.php
 
 		-
 			message: '#^Method App\\Services\\BackupService\:\:create\(\) should return array\{filename\: string, path\: string, size\: int, manifest\: array\} but returns array\{filename\: non\-falsy\-string, path\: non\-falsy\-string, size\: int\<0, max\>\|false, manifest\: null\}\.$#'
@@ -277,22 +463,10 @@ parameters:
 			path: app/Services/MailBalancer.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:daysUntilExpiry\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Services/MedicalComplianceService.php
-
-		-
 			message: '#^Relation ''role'' is not found in App\\Models\\User model\.$#'
 			identifier: larastan.relationExistence
 			count: 1
 			path: app/Services/PushNotificationService.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasPublicPhotosBanned\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Services/SocialPublishService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\DiveSite\:\:\$water_temperature\.$#'

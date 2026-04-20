@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 
 class ProfileAvatarController extends Controller
 {
-    public function upload(Request $request, ?User $user = null)
+    public function upload(Request $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
@@ -38,7 +39,7 @@ class ProfileAvatarController extends Controller
         return back()->with('success', __('Photo updated.'));
     }
 
-    public function delete(?User $user = null)
+    public function delete(?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;

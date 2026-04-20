@@ -20,6 +20,8 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserEmail;
 use App\Models\UserSocialAccount;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,14 +31,14 @@ class SocialAuthController extends Controller
 {
     protected array $providers = ['google', 'microsoft', 'facebook', 'x'];
 
-    public function redirect(string $provider)
+    public function redirect(string $provider): RedirectResponse
     {
         abort_unless(in_array($provider, $this->providers), 404);
 
         return Socialite::driver($provider)->redirect();
     }
 
-    public function callback(string $provider)
+    public function callback(string $provider): RedirectResponse
     {
         abort_unless(in_array($provider, $this->providers), 404);
 
@@ -101,7 +103,7 @@ class SocialAuthController extends Controller
     }
 
     /** Show the "link existing or register new" choice page. */
-    public function choose()
+    public function choose(): View
     {
         $pending = session('pending_social_new');
         if (! $pending) {
@@ -116,7 +118,7 @@ class SocialAuthController extends Controller
     }
 
     /** User chose "I have an existing account" — log in to link. */
-    public function linkExisting(Request $request)
+    public function linkExisting(Request $request): RedirectResponse
     {
         $pending = session('pending_social_new');
         if (! $pending) {
@@ -152,7 +154,7 @@ class SocialAuthController extends Controller
     }
 
     /** User chose "I'm new" — create account. */
-    public function createNew()
+    public function createNew(): RedirectResponse
     {
         $pending = session('pending_social_new');
         if (! $pending) {
@@ -204,7 +206,7 @@ class SocialAuthController extends Controller
     }
 
     /** After password login, confirm and apply a pending social link. */
-    public function confirmLink(Request $request)
+    public function confirmLink(Request $request): RedirectResponse
     {
         $pending = session('pending_social_link');
 
@@ -242,7 +244,7 @@ class SocialAuthController extends Controller
     }
 
     /** Dismiss a pending social link without applying it. */
-    public function dismissLink()
+    public function dismissLink(): RedirectResponse
     {
         session()->forget('pending_social_link');
 

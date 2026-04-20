@@ -17,6 +17,7 @@ use App\Models\EventPhoto;
 use App\Models\LibraryFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -24,7 +25,7 @@ use Illuminate\View\View;
 class DocumentBrowserController extends Controller
 {
     /** Photo gallery — all approved photos grouped by event. */
-    public function gallery()
+    public function gallery(): \Illuminate\Contracts\View\View
     {
         $user = auth()->user();
         $query = $user ? EventPhoto::bestForMembers(200) : EventPhoto::bestPublic(200);
@@ -87,7 +88,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __('Photos uploaded.'));
     }
 
-    public function index(Request $request)
+    public function index(Request $request): \Illuminate\Contracts\View\View
     {
         $user = auth()->user();
         $folder = $request->get('folder', '/');
@@ -135,7 +136,7 @@ class DocumentBrowserController extends Controller
         return view('documents.index', compact('files', 'folder', 'folders', 'subfolders', 'canManage', 'search', 'myDocuments'));
     }
 
-    public function upload(Request $request)
+    public function upload(Request $request): RedirectResponse
     {
         abort_unless(LibraryFile::canManage(auth()->user()), 403);
 
@@ -169,7 +170,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __(':count file(s) uploaded.', ['count' => count($request->file('files'))]));
     }
 
-    public function createFolder(Request $request)
+    public function createFolder(Request $request): RedirectResponse
     {
         abort_unless(LibraryFile::canManage(auth()->user()), 403);
         $request->validate(['name' => 'required|string|max:100|regex:/^[a-zA-Z0-9_\- ]+$/']);
@@ -198,7 +199,7 @@ class DocumentBrowserController extends Controller
             ->with('success', __('Folder created.'));
     }
 
-    public function updateFile(Request $request, LibraryFile $file)
+    public function updateFile(Request $request, LibraryFile $file): RedirectResponse
     {
         abort_unless(LibraryFile::canManage(auth()->user()), 403);
 
@@ -213,7 +214,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __('File updated.'));
     }
 
-    public function destroy(LibraryFile $file)
+    public function destroy(LibraryFile $file): RedirectResponse
     {
         abort_unless(LibraryFile::canManage(auth()->user()), 403);
         Storage::disk('local')->delete($file->path);
@@ -222,7 +223,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __('File deleted.'));
     }
 
-    public function download(LibraryFile $file)
+    public function download(LibraryFile $file): Response
     {
         // Verify visibility access
         $user = auth()->user();
@@ -232,7 +233,7 @@ class DocumentBrowserController extends Controller
         return Storage::disk('local')->download($file->path, $file->original_name);
     }
 
-    public function thumb(LibraryFile $file)
+    public function thumb(LibraryFile $file): Response
     {
         $user = auth()->user();
         abort_unless(LibraryFile::visibleTo($user)->where('id', $file->id)->exists(), 403);

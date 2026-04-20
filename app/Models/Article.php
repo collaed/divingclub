@@ -110,26 +110,31 @@ class Article extends Model
         return false;
     }
 
+    /** @return BelongsTo<User, $this> */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    /** @return BelongsTo<Vote, $this> */
     public function vote(): BelongsTo
     {
         return $this->belongsTo(Vote::class);
     }
 
+    /** @return HasMany<ArticleImage, $this> */
     public function images(): HasMany
     {
         return $this->hasMany(ArticleImage::class)->orderBy('sort_order');
     }
 
+    /** @return HasMany<ArticleComment, $this> */
     public function comments(): HasMany
     {
         return $this->hasMany(ArticleComment::class);
     }
 
+    /** @return HasMany<ArticleTranslation, $this> */
     public function translations(): HasMany
     {
         return $this->hasMany(ArticleTranslation::class);
@@ -151,6 +156,7 @@ class Article extends Model
         ];
     }
 
+    /** @return HasMany<ArticleComment, $this> */
     public function rootComments(): HasMany
     {
         return $this->hasMany(ArticleComment::class)->whereNull('parent_id')->orderBy('created_at');

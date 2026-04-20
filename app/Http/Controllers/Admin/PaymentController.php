@@ -10,13 +10,15 @@ use App\Models\PaymentExpected;
 use App\Models\User;
 use App\Services\BankReconciliationService;
 use App\Services\FeeCalculationService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $query = PaymentExpected::with('user.detail')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
@@ -37,14 +39,14 @@ class PaymentController extends Controller
         return view('admin.payments.index', compact('payments', 'components'));
     }
 
-    public function components()
+    public function components(): View
     {
         $components = MembershipFeeComponent::orderBy('sort_order')->get();
 
         return view('admin.payments.components', compact('components'));
     }
 
-    public function storeComponent(Request $request)
+    public function storeComponent(Request $request): RedirectResponse
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -61,28 +63,28 @@ class PaymentController extends Controller
         return back()->with('success', __('Component added.'));
     }
 
-    public function destroyComponent(MembershipFeeComponent $component)
+    public function destroyComponent(MembershipFeeComponent $component): RedirectResponse
     {
         $component->delete();
 
         return back()->with('success', __('Component removed.'));
     }
 
-    public function calculateFee(Request $request, User $user)
+    public function calculateFee(Request $request, User $user): RedirectResponse
     {
         $calc = app(FeeCalculationService::class)->calculate($user, $request->get('season', date('Y')), $request->get('optionals', []));
 
         return back()->with('success', __('Fee: €:amount — :comm', ['amount' => number_format((float) $calc['amount_due'], 2), 'comm' => $calc['communication']]));
     }
 
-    public function generateFee(Request $request, User $user)
+    public function generateFee(Request $request, User $user): RedirectResponse
     {
         $pe = app(FeeCalculationService::class)->createPaymentExpected($user, $request->get('season', date('Y')), $request->get('optionals', []));
 
         return back()->with('success', __('Payment expected created: €:amount', ['amount' => number_format((float) $pe->amount_due, 2)]));
     }
 
-    public function generateBulkFees(Request $request)
+    public function generateBulkFees(Request $request): View
     {
         $season = $request->get('season', date('Y'));
         $svc = app(FeeCalculationService::class);
@@ -100,7 +102,7 @@ class PaymentController extends Controller
         return back()->with('success', __(':count membership fees generated for season :season.', ['count' => $count, 'season' => $season]));
     }
 
-    public function adjustComponents(Request $request, PaymentExpected $payment)
+    public function adjustComponents(Request $request, PaymentExpected $payment): View
     {
         $request->validate([
             'components' => 'required|array',
@@ -120,7 +122,7 @@ class PaymentController extends Controller
     }
 
     // Bank reconciliation
-    public function reconciliation()
+    public function reconciliation(): View
     {
         $transactions = BankTransaction::with('matchedPayment.user.detail')->orderByDesc('transaction_date')->paginate(50);
         $summary = [
@@ -132,7 +134,7 @@ class PaymentController extends Controller
         return view('admin.payments.reconciliation', compact('transactions', 'summary'));
     }
 
-    public function importStatement(Request $request)
+    public function importStatement(Request $request): RedirectResponse
     {
         $request->validate([
             'statement' => 'required_without:statement_pdf|nullable|string',
@@ -157,21 +159,21 @@ class PaymentController extends Controller
         return back()->with('success', __(':count transactions imported.', ['count' => count($txs)]));
     }
 
-    public function suggestMatches()
+    public function suggestMatches(): RedirectResponse
     {
         $matches = app(BankReconciliationService::class)->suggestMatches();
 
         return back()->with('success', __(':count matches suggested — please review and confirm.', ['count' => count($matches)]));
     }
 
-    public function confirmMatch(BankTransaction $transaction)
+    public function confirmMatch(BankTransaction $transaction): RedirectResponse
     {
         app(BankReconciliationService::class)->confirmMatch($transaction);
 
         return back()->with('success', __('Match confirmed.'));
     }
 
-    public function ignoreTransaction(BankTransaction $transaction)
+    public function ignoreTransaction(BankTransaction $transaction): RedirectResponse
     {
         $transaction->update(['status' => 'ignored']);
 

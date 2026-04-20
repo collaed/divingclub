@@ -30,6 +30,7 @@ class TrialRequest extends Model
         return ['preferred_date' => 'date', 'confirmed_date' => 'date'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function confirmedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');

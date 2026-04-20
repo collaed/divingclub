@@ -39,6 +39,7 @@ class ArticleTranslation extends Model
         ];
     }
 
+    /** @return BelongsTo<Article, $this> */
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);

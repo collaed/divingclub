@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\UserEmail;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProfileEmailController extends Controller
 {
-    public function add(Request $request)
+    public function add(Request $request): RedirectResponse
     {
         $user = auth()->user();
 
@@ -36,7 +37,7 @@ class ProfileEmailController extends Controller
         return back()->with('success', __('Email added. Please verify it.'))->withInput(['tab' => 'info']);
     }
 
-    public function setPrimary(UserEmail $email)
+    public function setPrimary(UserEmail $email): RedirectResponse
     {
         $user = auth()->user();
         if ($email->user_id !== $user->id && ! $user->can('manage members')) {
@@ -55,7 +56,7 @@ class ProfileEmailController extends Controller
         return back()->with('success', __('Primary email updated.'))->withInput(['tab' => 'info']);
     }
 
-    public function delete(UserEmail $email)
+    public function delete(UserEmail $email): RedirectResponse
     {
         $user = auth()->user();
         if ($email->user_id !== $user->id && ! $user->can('manage members')) {
@@ -70,7 +71,7 @@ class ProfileEmailController extends Controller
         return back()->with('success', __('Email removed.'))->withInput(['tab' => 'info']);
     }
 
-    public function toggleReceiveMail(UserEmail $email)
+    public function toggleReceiveMail(UserEmail $email): RedirectResponse
     {
         abort_unless(auth()->id() === $email->user_id, 403);
 

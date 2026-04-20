@@ -80,41 +80,49 @@ class Event extends Model
         ];
     }
 
+    /** @return BelongsTo<Season, $this> */
     public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function responsible(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function instructor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'instructor_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /** @return HasMany<EventRegistration, $this> */
     public function registrations(): HasMany
     {
         return $this->hasMany(EventRegistration::class);
     }
 
+    /** @return HasMany<EventPhoto, $this> */
     public function photos(): HasMany
     {
         return $this->hasMany(EventPhoto::class)->orderByDesc('quality_score');
     }
 
+    /** @return BelongsTo<DiveSite, $this> */
     public function diveSite(): BelongsTo
     {
         return $this->belongsTo(DiveSite::class);
     }
 
+    /** @return HasMany<DiveGroup, $this> */
     public function diveGroups(): HasMany
     {
         return $this->hasMany(DiveGroup::class);
@@ -130,6 +138,7 @@ class Event extends Model
         return $this->registrations()->where('status', 'waiting')->orderBy('waiting_list_position');
     }
 
+    /** @return HasMany<ExternalRegistration, $this> */
     public function externalRegistrations(): HasMany
     {
         return $this->hasMany(ExternalRegistration::class);

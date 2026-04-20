@@ -42,21 +42,25 @@ class Vote extends Model
         ];
     }
 
+    /** @return HasMany<VoteOption, $this> */
     public function options(): HasMany
     {
         return $this->hasMany(VoteOption::class);
     }
 
+    /** @return HasMany<VoteToken, $this> */
     public function tokens(): HasMany
     {
         return $this->hasMany(VoteToken::class);
     }
 
+    /** @return HasMany<VoteBallot, $this> */
     public function ballots(): HasMany
     {
         return $this->hasMany(VoteBallot::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

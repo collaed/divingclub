@@ -7,6 +7,8 @@ use App\Models\EventRegistration;
 use App\Models\InstructorAvailability;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -29,7 +31,7 @@ class InstructorAvailabilityController extends Controller
         'social' => ['color' => '#e91e63', 'text' => '#fff', 'icon' => '🎉', 'label' => 'Social'],
     ];
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $user = auth()->user();
         $isInstructor = $user->hasAnyRole(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical', 'assistant']);
@@ -72,7 +74,7 @@ class InstructorAvailabilityController extends Controller
         return view('availability.index', compact('availabilities', 'events', 'start', 'end', 'isInstructor', 'instructors', 'month', 'colors'));
     }
 
-    public function toggle(Request $request)
+    public function toggle(Request $request): JsonResponse
     {
         $user = auth()->user();
         if (! $user->hasAnyRole(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical', 'assistant'])) {

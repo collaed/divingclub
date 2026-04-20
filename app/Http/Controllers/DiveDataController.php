@@ -16,6 +16,7 @@ use App\Models\DiveGroupMember;
 use App\Models\Event;
 use App\Services\DanExportService;
 use App\Services\UddfService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class DiveDataController extends Controller
@@ -24,7 +25,7 @@ class DiveDataController extends Controller
      * Upload a UDDF file and match dives to events by date.
      * Members upload their own; bureau can upload for any member.
      */
-    public function importUddf(Request $request)
+    public function importUddf(Request $request): RedirectResponse
     {
         $request->validate(['uddf_file' => 'required|file|mimes:xml,uddf|max:10240']);
 

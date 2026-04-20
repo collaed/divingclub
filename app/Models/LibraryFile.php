@@ -33,6 +33,7 @@ class LibraryFile extends Model
     // Visibility levels ordered from most to least restrictive
     const VISIBILITY_OPTIONS = ['public', 'members', 'instructors', 'bureau'];
 
+    /** @return BelongsTo<User, $this> */
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');

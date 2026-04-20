@@ -10,17 +10,19 @@ use App\Models\User;
 use App\Models\UserEmail;
 use App\Services\PushNotificationService;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
 {
-    public function create()
+    public function create(): View
     {
         return view('auth.register');
     }
 
-    public function store(RegisterUserRequest $request)
+    public function store(RegisterUserRequest $request): RedirectResponse
     {
         $validated = $request->validated();
 

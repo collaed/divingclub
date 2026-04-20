@@ -18,12 +18,14 @@ use App\Models\ThemeSetting;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class QrCodeController extends Controller
 {
-    public function vcard()
+    public function vcard(): View
     {
         $user = auth()->user();
         $d = $user->detail;
@@ -44,7 +46,7 @@ class QrCodeController extends Controller
     // ─── Signed Payment QR (anti-quishing) ─────────────────────
 
     /** Generate a QR containing a signed verification URL instead of raw EPC data. */
-    public function signedPaymentQr(Request $request)
+    public function signedPaymentQr(Request $request): View
     {
         $amount = round((float) $request->query('amount', 0), 2);
         $communication = $request->query('communication', '');
@@ -59,7 +61,7 @@ class QrCodeController extends Controller
     }
 
     /** Verification page — user lands here after scanning the QR. */
-    public function verifyPayment(Request $request)
+    public function verifyPayment(Request $request): View
     {
         $amount = (float) $request->query('a', 0);
         $communication = $request->query('c', '');
@@ -108,7 +110,7 @@ class QrCodeController extends Controller
 
     // ─── Legacy EPC QR (kept for backward compatibility) ───────
 
-    public function sepaPublic(Request $request)
+    public function sepaPublic(Request $request): RedirectResponse
     {
         $amount = $request->query('amount', 0);
         $communication = $request->query('communication', '');
@@ -129,7 +131,7 @@ class QrCodeController extends Controller
         return $this->generatePng($epc, 'sepa-dues.png', false);
     }
 
-    public function sepa(PaymentExpected $payment)
+    public function sepa(PaymentExpected $payment): RedirectResponse
     {
         $user = auth()->user();
         if ($payment->user_id !== $user->id && ! $user->can('manage payments')) {
@@ -148,7 +150,7 @@ class QrCodeController extends Controller
         return $this->generatePng($epc, "sepa-{$payment->id}.png", false);
     }
 
-    public function federation(MemberLicence $licence)
+    public function federation(MemberLicence $licence): RedirectResponse
     {
         $user = auth()->user();
         if ($licence->user_id !== $user->id && ! $user->isBureau() && ! $user->detail?->active_instructor) {

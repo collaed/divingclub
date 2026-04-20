@@ -31,6 +31,7 @@ class UserEmail extends Model
         return ['is_primary' => 'boolean', 'is_verified' => 'boolean', 'verification_sent_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

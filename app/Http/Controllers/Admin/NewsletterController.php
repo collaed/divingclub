@@ -10,13 +10,14 @@ use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Services\ArticleTranslationService;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class NewsletterController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $newsletters = Newsletter::with('creator', 'approvals.user')
             ->orderByDesc('created_at')->paginate(20);
@@ -24,7 +25,7 @@ class NewsletterController extends Controller
         return view('admin.newsletters.index', compact('newsletters'));
     }
 
-    public function create()
+    public function create(): View
     {
         $articles = Article::active()->where('article_type', '!=', 'classified')
             ->orderByDesc('created_at')->limit(50)->get();
@@ -35,7 +36,7 @@ class NewsletterController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): View
     {
         $v = $request->validate([
             'title' => 'required|string|max:255',
@@ -70,7 +71,7 @@ class NewsletterController extends Controller
             ->with('success', __('Newsletter draft saved.'));
     }
 
-    public function show(Newsletter $newsletter)
+    public function show(Newsletter $newsletter): View
     {
         $newsletter->load('approvals.user', 'creator');
         $slotArticles = $newsletter->slotArticles();
@@ -78,7 +79,7 @@ class NewsletterController extends Controller
         return view('admin.newsletters.show', compact('newsletter', 'slotArticles'));
     }
 
-    public function edit(Newsletter $newsletter)
+    public function edit(Newsletter $newsletter): View
     {
         abort_if($newsletter->status === 'sent', 403, 'Cannot edit a sent newsletter.');
 
@@ -88,7 +89,7 @@ class NewsletterController extends Controller
         return view('admin.newsletters.compose', compact('newsletter', 'articles'));
     }
 
-    public function update(Request $request, Newsletter $newsletter)
+    public function update(Request $request, Newsletter $newsletter): RedirectResponse
     {
         abort_if($newsletter->status === 'sent', 403);
 
@@ -125,7 +126,7 @@ class NewsletterController extends Controller
             ->with('success', __('Newsletter updated.'));
     }
 
-    public function submit(Newsletter $newsletter)
+    public function submit(Newsletter $newsletter): RedirectResponse
     {
         abort_unless($newsletter->status === 'draft', 403);
         $newsletter->update(['status' => 'pending']);
@@ -143,7 +144,7 @@ class NewsletterController extends Controller
         return redirect()->route('admin.newsletters.edit', $newsletter)->with('success', __('Newsletter withdrawn to draft.'));
     }
 
-    public function approve(Request $request, Newsletter $newsletter)
+    public function approve(Request $request, Newsletter $newsletter): RedirectResponse
     {
         abort_unless($newsletter->status === 'pending', 403);
         $user = auth()->user();
@@ -228,7 +229,7 @@ class NewsletterController extends Controller
             ->with('success', __('Newsletter sent to :count members.', ['count' => $users->count()]));
     }
 
-    public function destroy(Newsletter $newsletter)
+    public function destroy(Newsletter $newsletter): View
     {
         abort_if($newsletter->status === 'sent', 403);
         $newsletter->delete();
@@ -238,7 +239,7 @@ class NewsletterController extends Controller
     }
 
     /** Render email preview in an iframe-friendly standalone page. */
-    public function preview(Newsletter $newsletter)
+    public function preview(Newsletter $newsletter): View
     {
         $data = $this->buildEmailData($newsletter, 'fr');
 
@@ -246,7 +247,7 @@ class NewsletterController extends Controller
     }
 
     /** Send a test email to the current user. */
-    public function testSend(Newsletter $newsletter)
+    public function testSend(Newsletter $newsletter): View
     {
         $data = $this->buildEmailData($newsletter, 'fr');
         $html = view('admin.newsletters.themes.email', $data)->render();

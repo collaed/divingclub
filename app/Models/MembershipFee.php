@@ -20,6 +20,7 @@ class MembershipFee extends Model
 {
     protected $fillable = ['season_year', 'status_id', 'amount', 'label', 'notes'];
 
+    /** @return BelongsTo<MemberStatus, $this> */
     public function status(): BelongsTo
     {
         return $this->belongsTo(MemberStatus::class, 'status_id');

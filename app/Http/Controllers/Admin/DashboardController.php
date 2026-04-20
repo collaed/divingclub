@@ -20,6 +20,7 @@ use App\Services\MailBalancer;
 use App\Services\ScheduleHeartbeat;
 use App\Services\UpdateService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
@@ -99,7 +100,7 @@ class DashboardController extends Controller
         return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats', 'updateInfo', 'commitInfo', 'mailBalance'));
     }
 
-    public function exportCsv(Request $request)
+    public function exportCsv(Request $request): Response
     {
         $type = $request->get('type', 'members');
 

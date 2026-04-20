@@ -9,6 +9,8 @@ use App\Models\Article;
 use App\Models\ArticleImage;
 use App\Models\Vote;
 use App\Services\ArticleTranslationService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -16,7 +18,7 @@ class ArticleController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $query = Article::when($request->type, fn ($q, $t) => $q->where('article_type', $t));
 
@@ -40,14 +42,14 @@ class ArticleController extends Controller
         return view('admin.articles.index', compact('articles'));
     }
 
-    public function create(Request $request)
+    public function create(Request $request): View
     {
         $votes = Vote::where('status', 'open')->orWhere('status', 'draft')->orderByDesc('created_at')->get();
 
         return view('admin.articles.form', ['article' => new Article(['article_type' => $request->get('type', 'news')]), 'votes' => $votes]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): View
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -78,14 +80,14 @@ class ArticleController extends Controller
         return redirect()->route('admin.articles.index')->with('success', __('Article created.'));
     }
 
-    public function edit(Article $article)
+    public function edit(Article $article): View
     {
         $votes = Vote::where('status', 'open')->orWhere('status', 'draft')->orderByDesc('created_at')->get();
 
         return view('admin.articles.form', compact('article', 'votes'));
     }
 
-    public function update(Request $request, Article $article)
+    public function update(Request $request, Article $article): RedirectResponse
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -125,7 +127,7 @@ class ArticleController extends Controller
         return redirect()->route('admin.articles.edit', $article)->with('success', __('Article updated.'));
     }
 
-    public function destroy(Article $article)
+    public function destroy(Article $article): RedirectResponse
     {
         $article->delete();
 
@@ -150,7 +152,7 @@ class ArticleController extends Controller
         }
     }
 
-    public function translate(Request $request, Article $article)
+    public function translate(Request $request, Article $article): RedirectResponse
     {
         $locales = config('app.available_locales', ['en', 'fr', 'de', 'lb', 'pt', 'it', 'es', 'nl', 'ro', 'hu', 'sk']);
         $source = $request->input('source_locale', 'fr');

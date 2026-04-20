@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
 
 class GuideController extends Controller
 {
@@ -32,12 +33,12 @@ class GuideController extends Controller
         'troubleshooting' => 'Troubleshooting',
     ];
 
-    public function index()
+    public function index(): View
     {
         return view('admin.guide.index', ['sections' => $this->sections]);
     }
 
-    public function show(string $section)
+    public function show(string $section): View
     {
         abort_unless(array_key_exists($section, $this->sections), 404);
         $keys = array_keys($this->sections);

@@ -6,11 +6,12 @@ use App\Models\MembershipFee;
 use App\Models\MembershipFeeComponent;
 use App\Models\MemberStatus;
 use App\Models\ThemeSetting;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class DuesCalculatorController extends Controller
 {
-    public function show()
+    public function show(): View
     {
         $year = date('Y');
         $statuses = MemberStatus::orderBy('name')->get();
@@ -20,7 +21,7 @@ class DuesCalculatorController extends Controller
         return view('dues-calculator', compact('year', 'statuses', 'fees', 'optionals'));
     }
 
-    public function calculate(Request $request)
+    public function calculate(Request $request): View
     {
         $year = $request->input('season_year', date('Y'));
         $statusId = $request->input('status_id');
@@ -44,11 +45,11 @@ class DuesCalculatorController extends Controller
         $lastName = strtoupper($request->input('last_name', ''));
         $firstName = strtoupper($request->input('first_name', ''));
         $name = trim("$lastName $firstName");
-        $opts = $selectedOptionals ? '+' . implode('+', $selectedOptionals) : '';
-        $communication = ThemeSetting::get('club_short_code', config('club.id', 'CLUB')) . "-{$year}-{$name}{$opts}";
+        $opts = $selectedOptionals ? '+'.implode('+', $selectedOptionals) : '';
+        $communication = ThemeSetting::get('club_short_code', config('club.id', 'CLUB'))."-{$year}-{$name}{$opts}";
 
         $breakdown = [];
-        $breakdown[] = ['label' => __('Membership') . ' (' . ($status?->name ?? '—') . ')', 'amount' => $baseFee];
+        $breakdown[] = ['label' => __('Membership').' ('.($status?->name ?? '—').')', 'amount' => $baseFee];
         foreach (MembershipFeeComponent::where('is_optional', true)->whereIn('slug', $selectedOptionals)->get() as $opt) {
             $breakdown[] = ['label' => $opt->name, 'amount' => $opt->amount];
         }

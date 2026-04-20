@@ -63,23 +63,27 @@ class EventRegistration extends Model
 
     // ─── Relationships ────────────────────────────────────────
 
+    /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /** Who performed the registration (null = self-registration). */
+    /** @return BelongsTo<User, $this> */
     public function registeredByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'registered_by');
     }
 
     /** Who cancelled the registration (null = self-cancellation). */
+    /** @return BelongsTo<User, $this> */
     public function cancelledByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');

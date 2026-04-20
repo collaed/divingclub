@@ -25,6 +25,7 @@ class SeasonHoliday extends Model
         return ['start_date' => 'date', 'end_date' => 'date', 'is_adhoc' => 'boolean'];
     }
 
+    /** @return BelongsTo<Season, $this> */
     public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class);

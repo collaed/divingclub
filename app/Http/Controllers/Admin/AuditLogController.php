@@ -6,13 +6,16 @@ use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\ThemeSetting;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class AuditLogController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $query = AuditLog::with('user');
 
@@ -43,14 +46,14 @@ class AuditLogController extends Controller
         return view('admin.audit-logs.index', compact('logs', 'oldestLog', 'retentionMonths'));
     }
 
-    public function show(AuditLog $auditLog)
+    public function show(AuditLog $auditLog): View
     {
         $auditLog->load('user');
 
         return view('admin.audit-logs.show', ['log' => $auditLog]);
     }
 
-    public function purge(Request $request)
+    public function purge(Request $request): RedirectResponse
     {
         $years = (int) $request->validate(['years' => 'required|integer|min:1|max:5'])['years'];
         $cutoff = now()->subYears($years);
@@ -59,7 +62,7 @@ class AuditLogController extends Controller
         return back()->with('success', __(':count audit log entries older than :years year(s) deleted.', ['count' => $deleted, 'years' => $years]));
     }
 
-    public function updateRetention(Request $request)
+    public function updateRetention(Request $request): RedirectResponse
     {
         $months = $request->validate(['audit_retention_months' => 'required|integer|min:1|max:120'])['audit_retention_months'];
         ThemeSetting::set('audit_retention_months', $months);
@@ -67,7 +70,7 @@ class AuditLogController extends Controller
         return back()->with('success', __('Retention policy updated to :months months.', ['months' => $months]));
     }
 
-    public function export(Request $request)
+    public function export(Request $request): Response
     {
         $query = AuditLog::with('user')->orderByDesc('created_at');
 

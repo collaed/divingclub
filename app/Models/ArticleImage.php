@@ -19,6 +19,7 @@ class ArticleImage extends Model
 {
     protected $fillable = ['article_id', 'file_path', 'alt_text', 'sort_order'];
 
+    /** @return BelongsTo<Article, $this> */
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);

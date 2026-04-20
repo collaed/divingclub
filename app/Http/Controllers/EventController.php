@@ -34,6 +34,7 @@ use App\Services\MedicalComplianceService;
 use App\Services\PushNotificationService;
 use App\Services\SocialPublishService;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -44,7 +45,7 @@ class EventController extends Controller
 {
     // ─── Calendar Views ────────────────────────────────────────
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $view = $request->get('view', 'month');
         $date = $request->get('date') ? Carbon::parse($request->get('date')) : now();
@@ -77,7 +78,7 @@ class EventController extends Controller
         return view('events.index', compact('events', 'view', 'date', 'start', 'end'));
     }
 
-    public function show(Event $event)
+    public function show(Event $event): View
     {
         $event->load([
             'registrations.user.detail', 'registrations.user.certificationLevels',
@@ -98,7 +99,7 @@ class EventController extends Controller
 
     // ─── Event CRUD ──────────────────────────────────────────
 
-    public function create()
+    public function create(): View
     {
         $this->authorizeBureau();
         $seasons = Season::orderByDesc('year')->get();
@@ -109,7 +110,7 @@ class EventController extends Controller
         return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites, 'locationSuggestions' => $locationSuggestions]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): View
     {
         $this->authorizeBureau();
         $data = $this->validateEvent($request);
@@ -133,7 +134,7 @@ class EventController extends Controller
         return redirect()->route('events.show', $event)->with('success', __('Event created.'));
     }
 
-    public function edit(Event $event)
+    public function edit(Event $event): View
     {
         $this->authorizeEventEdit($event);
         $seasons = Season::orderByDesc('year')->get();
@@ -144,7 +145,7 @@ class EventController extends Controller
         return view('events.form', compact('event', 'seasons', 'instructors', 'diveSites', 'locationSuggestions'));
     }
 
-    public function update(Request $request, Event $event)
+    public function update(Request $request, Event $event): RedirectResponse
     {
         $this->authorizeEventEdit($event);
         $data = $this->validateEvent($request);
@@ -160,7 +161,7 @@ class EventController extends Controller
     // registered by bureau/instructor). Medical compliance is enforced for
     // pool, dive, and training events. Waiting list auto-promotes on cancel.
 
-    public function register(Event $event, Request $request)
+    public function register(Event $event, Request $request): RedirectResponse
     {
         $actor = auth()->user();
         $targetUserId = $request->input('user_id', $actor->id);
@@ -258,7 +259,7 @@ class EventController extends Controller
         return back()->with('success', __(':who registered successfully.', ['who' => $who]));
     }
 
-    public function cancelRegistration(Event $event, Request $request)
+    public function cancelRegistration(Event $event, Request $request): RedirectResponse
     {
         $actor = auth()->user();
         $targetUserId = $request->input('user_id', $actor->id);
@@ -311,7 +312,7 @@ class EventController extends Controller
         return back()->with('success', __('Comment updated.'));
     }
 
-    public function cancel(Event $event)
+    public function cancel(Event $event): RedirectResponse
     {
         $this->authorizeBureau();
         $event->update(['status' => 'cancelled']);
@@ -323,7 +324,7 @@ class EventController extends Controller
     // Only confirmed participants with photo_publication GDPR consent can upload.
     // Photos are auto-scored by quality heuristic and published to social media.
 
-    public function uploadPhoto(Request $request, Event $event)
+    public function uploadPhoto(Request $request, Event $event): RedirectResponse
     {
         $request->validate([
             'photos.*' => 'required|image|max:10240',
@@ -376,7 +377,7 @@ class EventController extends Controller
         return back()->with('success', $dupes ? __('Photos uploaded. :count duplicate(s) skipped.', ['count' => $dupes]) : __('Photos uploaded.'));
     }
 
-    public function deletePhoto(Event $event, EventPhoto $photo)
+    public function deletePhoto(Event $event, EventPhoto $photo): RedirectResponse
     {
         $user = auth()->user();
         abort_unless($photo->event_id === $event->id, 404);

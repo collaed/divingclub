@@ -29,11 +29,13 @@ class BankTransaction extends Model
         return ['transaction_date' => 'date'];
     }
 
+    /** @return BelongsTo<PaymentExpected, $this> */
     public function matchedPayment(): BelongsTo
     {
         return $this->belongsTo(PaymentExpected::class, 'matched_payment_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function confirmedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');

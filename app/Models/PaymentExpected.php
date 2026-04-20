@@ -37,11 +37,13 @@ class PaymentExpected extends Model
         return ['components' => 'array', 'paid_at' => 'date', 'reconciled_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);

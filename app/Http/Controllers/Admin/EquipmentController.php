@@ -9,6 +9,7 @@ use App\Models\EquipmentLoan;
 use App\Models\EquipmentMaintenance;
 use App\Models\EquipmentMaintenanceRule;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class EquipmentController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $sortable = ['name' => 'name', 'type' => 'type', 'status' => 'status', 'short_number' => 'short_number', 'location' => 'location', 'last_seen_at' => 'last_seen_at'];
         $sort = $sortable[$request->get('sort')] ?? 'name';
@@ -41,12 +42,12 @@ class EquipmentController extends Controller
         return view('admin.equipment.index', compact('equipment'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('admin.equipment.form', ['item' => new Equipment]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): View
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -73,7 +74,7 @@ class EquipmentController extends Controller
         return redirect()->route('admin.equipment.index')->with('success', __('Equipment added with :count maintenance tasks.', ['count' => $rules->count()]));
     }
 
-    public function show(Equipment $equipment)
+    public function show(Equipment $equipment): View
     {
         $equipment->load(['maintenanceTasks' => fn ($q) => $q->orderBy('due_date'), 'loans' => fn ($q) => $q->with('user.detail')->orderByDesc('loaned_at')]);
         $members = User::with('detail')->whereHas('detail')->get()->sortBy(fn ($u) => $u->detail?->last_name);
@@ -81,7 +82,7 @@ class EquipmentController extends Controller
         return view('admin.equipment.show', compact('equipment', 'members'));
     }
 
-    public function update(Request $request, Equipment $equipment)
+    public function update(Request $request, Equipment $equipment): RedirectResponse
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -101,7 +102,7 @@ class EquipmentController extends Controller
         return back()->with('success', __('Equipment updated.'));
     }
 
-    public function loan(Request $request, Equipment $equipment)
+    public function loan(Request $request, Equipment $equipment): RedirectResponse
     {
         if (! $equipment->isAvailable()) {
             return back()->with('error', __('Equipment is not available for loan.'));
@@ -121,7 +122,7 @@ class EquipmentController extends Controller
         return back()->with('success', __('Equipment loaned.'));
     }
 
-    public function returnLoan(EquipmentLoan $loan)
+    public function returnLoan(EquipmentLoan $loan): RedirectResponse
     {
         $loan->update(['returned_at' => now(), 'returned_by' => auth()->id()]);
 
@@ -154,7 +155,7 @@ class EquipmentController extends Controller
         return back()->with('success', __(':count item(s) loaned.', ['count' => $loaned]));
     }
 
-    public function completeMaintenance(EquipmentMaintenance $maintenance)
+    public function completeMaintenance(EquipmentMaintenance $maintenance): RedirectResponse
     {
         $maintenance->update(['completed_at' => now(), 'completed_by' => auth()->id()]);
 

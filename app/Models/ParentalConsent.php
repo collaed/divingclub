@@ -30,11 +30,13 @@ class ParentalConsent extends Model
         return ['granted' => 'boolean', 'granted_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function minor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'minor_user_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function grantedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'granted_by');

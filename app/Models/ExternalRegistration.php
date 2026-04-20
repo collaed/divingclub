@@ -33,11 +33,13 @@ class ExternalRegistration extends Model
         'external_medical_valid_until' => 'date',
     ];
 
+    /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
+    /** @return BelongsTo<ClubPartnership, $this> */
     public function partnership(): BelongsTo
     {
         return $this->belongsTo(ClubPartnership::class, 'partnership_id');

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ClubPartnership;
 use App\Models\ExternalRegistration;
 use App\Models\ThemeSetting;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
@@ -14,21 +16,21 @@ use Illuminate\Support\Facades\Mail;
 
 class PartnershipController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $partners = ClubPartnership::withCount('externalRegistrations')->orderBy('name')->get();
 
         return view('admin.partnerships.index', compact('partners'));
     }
 
-    public function create()
+    public function create(): View
     {
         $keys = ClubPartnership::generateKeyPair();
 
         return view('admin.partnerships.create', compact('keys'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:100',
@@ -51,7 +53,7 @@ class PartnershipController extends Controller
         return redirect()->route('admin.partnerships.index')->with('success', 'Partnership created. Share the Key ID and Secret with the partner club.');
     }
 
-    public function destroy(ClubPartnership $partnership)
+    public function destroy(ClubPartnership $partnership): View
     {
         $partnership->delete();
 
@@ -61,7 +63,7 @@ class PartnershipController extends Controller
     /**
      * Fetch federated events from a partner club and display them.
      */
-    public function remoteEvents(ClubPartnership $partnership)
+    public function remoteEvents(ClubPartnership $partnership): View
     {
         if (! $partnership->their_api_key_id || ! $partnership->their_api_secret) {
             return back()->with('error', 'Outbound API credentials not configured for this partner.');
@@ -84,7 +86,7 @@ class PartnershipController extends Controller
     /**
      * Manage external registrations for our events.
      */
-    public function registrations(Request $request)
+    public function registrations(Request $request): View
     {
         $regs = ExternalRegistration::with(['event', 'partnership'])
             ->orderByDesc('created_at')
@@ -93,7 +95,7 @@ class PartnershipController extends Controller
         return view('admin.partnerships.registrations', compact('regs'));
     }
 
-    public function approveRegistration(ExternalRegistration $registration)
+    public function approveRegistration(ExternalRegistration $registration): RedirectResponse
     {
         $registration->update(['status' => 'approved']);
         $this->notifyExternalMember($registration, 'approved');
@@ -101,7 +103,7 @@ class PartnershipController extends Controller
         return back()->with('success', $registration->external_member_name.' approved.');
     }
 
-    public function rejectRegistration(ExternalRegistration $registration)
+    public function rejectRegistration(ExternalRegistration $registration): RedirectResponse
     {
         $registration->update(['status' => 'rejected']);
         $this->notifyExternalMember($registration, 'rejected');

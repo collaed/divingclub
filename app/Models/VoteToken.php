@@ -25,11 +25,13 @@ class VoteToken extends Model
         return ['is_consumed' => 'boolean', 'consumed_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<Vote, $this> */
     public function vote(): BelongsTo
     {
         return $this->belongsTo(Vote::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

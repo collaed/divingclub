@@ -24,11 +24,13 @@ class NewsletterApproval extends Model
         return ['approved' => 'boolean'];
     }
 
+    /** @return BelongsTo<Newsletter, $this> */
     public function newsletter(): BelongsTo
     {
         return $this->belongsTo(Newsletter::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

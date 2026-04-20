@@ -4,24 +4,26 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DiveSite;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class DiveSiteController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $sites = DiveSite::orderBy('name')->get();
 
         return view('admin.dive-sites.index', compact('sites'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('admin.dive-sites.form', ['site' => new DiveSite]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): View
     {
         $data = $this->validate($request);
         if ($request->hasFile('image')) {
@@ -38,12 +40,12 @@ class DiveSiteController extends Controller
         return redirect()->route('admin.dive-sites.index')->with('success', __('Dive site created.'));
     }
 
-    public function edit(DiveSite $diveSite)
+    public function edit(DiveSite $diveSite): View
     {
         return view('admin.dive-sites.form', ['site' => $diveSite]);
     }
 
-    public function update(Request $request, DiveSite $diveSite)
+    public function update(Request $request, DiveSite $diveSite): RedirectResponse
     {
         $data = $this->validate($request);
         foreach (['image' => 'image_path', 'map_image' => 'map_image_path', 'site_plan' => 'site_plan_path'] as $field => $col) {
@@ -59,7 +61,7 @@ class DiveSiteController extends Controller
         return redirect()->route('admin.dive-sites.edit', $diveSite)->with('success', __('Dive site updated.'));
     }
 
-    public function destroy(DiveSite $diveSite)
+    public function destroy(DiveSite $diveSite): RedirectResponse
     {
         if ($diveSite->image_path) {
             Storage::disk('public')->delete($diveSite->image_path);

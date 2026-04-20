@@ -28,6 +28,7 @@ class MembershipFeeComponent extends Model
         return ['is_base' => 'boolean', 'is_optional' => 'boolean'];
     }
 
+    /** @return BelongsTo<Season, $this> */
     public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class);

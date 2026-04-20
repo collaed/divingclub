@@ -53,16 +53,19 @@ class Document extends Model
         ];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
 
+    /** @return BelongsTo<Document, $this> */
     public function supersededBy(): BelongsTo
     {
         return $this->belongsTo(Document::class, 'superseded_by');

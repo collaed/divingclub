@@ -32,16 +32,19 @@ class BuddyRequest extends Model
         return ['dive_date' => 'date', 'is_active' => 'boolean'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<DiveSite, $this> */
     public function diveSite(): BelongsTo
     {
         return $this->belongsTo(DiveSite::class);
     }
 
+    /** @return HasMany<BuddyResponse, $this> */
     public function responses(): HasMany
     {
         return $this->hasMany(BuddyResponse::class);

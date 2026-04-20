@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\VoteBallot;
 use App\Models\VoteToken;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class VotePublicController extends Controller
 {
-    public function show(string $token)
+    public function show(string $token): View
     {
         $voteToken = VoteToken::where('token', $token)->with(['vote.options', 'user'])->firstOrFail();
         $vote = $voteToken->vote;
@@ -25,7 +26,7 @@ class VotePublicController extends Controller
         return view('vote.show', compact('vote', 'voteToken', 'currentBallots'));
     }
 
-    public function cast(Request $request, string $token)
+    public function cast(Request $request, string $token): View
     {
         $voteToken = VoteToken::where('token', $token)->with('vote.options')->firstOrFail();
         $vote = $voteToken->vote;

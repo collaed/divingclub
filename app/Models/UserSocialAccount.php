@@ -26,6 +26,7 @@ class UserSocialAccount extends Model
         return ['token' => 'encrypted', 'refresh_token' => 'encrypted'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -20,6 +20,7 @@ class MedicalComplianceRule extends Model
 {
     protected $fillable = ['federation_id', 'age_bracket_low', 'age_bracket_high', 'cert_type', 'validity_months'];
 
+    /** @return BelongsTo<Federation, $this> */
     public function federation(): BelongsTo
     {
         return $this->belongsTo(Federation::class);

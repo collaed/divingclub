@@ -25,6 +25,7 @@ class GdprConsent extends Model
         return ['granted' => 'boolean', 'granted_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

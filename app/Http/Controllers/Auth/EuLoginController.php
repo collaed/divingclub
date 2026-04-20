@@ -19,6 +19,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserEmail;
 use App\Models\UserSocialAccount;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -40,14 +41,16 @@ class EuLoginController extends Controller
         }
     }
 
-    public function redirect()
+    public function redirect(): RedirectResponse
     {
         $this->initCas();
         \phpCAS::setFixedServiceURL(route('auth.eulogin.callback'));
         \phpCAS::forceAuthentication();
+
+        return redirect()->route('home'); // phpCAS redirects before reaching here
     }
 
-    public function callback()
+    public function callback(): RedirectResponse
     {
         $this->initCas();
         \phpCAS::setFixedServiceURL(route('auth.eulogin.callback'));

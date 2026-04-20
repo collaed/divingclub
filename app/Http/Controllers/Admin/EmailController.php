@@ -9,6 +9,9 @@ use App\Models\EmailTemplate;
 use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Services\ArticleTranslationService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -16,7 +19,7 @@ class EmailController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index()
+    public function index(): View
     {
         $templates = EmailTemplate::orderBy('name')->get();
         $log = EmailLog::orderByDesc('created_at')->paginate($this->perPage(30));
@@ -24,7 +27,7 @@ class EmailController extends Controller
         return view('admin.email.index', compact('templates', 'log'));
     }
 
-    public function storeTemplate(Request $request)
+    public function storeTemplate(Request $request): RedirectResponse
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -38,7 +41,7 @@ class EmailController extends Controller
         return back()->with('success', __('Template created.'));
     }
 
-    public function updateTemplate(Request $request, EmailTemplate $template)
+    public function updateTemplate(Request $request, EmailTemplate $template): RedirectResponse
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -50,14 +53,14 @@ class EmailController extends Controller
         return back()->with('success', __('Template updated.'));
     }
 
-    public function destroyTemplate(EmailTemplate $template)
+    public function destroyTemplate(EmailTemplate $template): RedirectResponse
     {
         $template->delete();
 
         return back()->with('success', __('Template deleted.'));
     }
 
-    public function preview(Request $request)
+    public function preview(Request $request): JsonResponse
     {
         $template = EmailTemplate::findOrFail($request->template_id);
         $user = User::with('detail')->first();

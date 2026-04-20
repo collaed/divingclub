@@ -41,16 +41,19 @@ class EventPhoto extends Model
         return ['approved' => 'boolean', 'gdpr_consent' => 'boolean', 'has_faces' => 'boolean', 'view_count' => 'integer'];
     }
 
+    /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    /** @return MorphMany<SocialPublishLog, $this> */
     public function socialPublishLogs(): MorphMany
     {
         return $this->morphMany(SocialPublishLog::class, 'publishable');

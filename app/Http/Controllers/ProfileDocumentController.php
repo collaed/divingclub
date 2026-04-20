@@ -6,7 +6,9 @@ use App\Jobs\OcrMedicalCert;
 use App\Models\Document;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -73,7 +75,7 @@ class ProfileDocumentController extends Controller
         return back()->with('success', __('Document uploaded.'))->withInput(['tab' => $request->category === 'medical' ? 'medical' : 'info']);
     }
 
-    public function download(Document $document)
+    public function download(Document $document): Response
     {
         $viewer = auth()->user();
         if ($document->user_id !== $viewer->id && ! $viewer->isBureau()) {
@@ -131,7 +133,7 @@ class ProfileDocumentController extends Controller
         abort(404);
     }
 
-    public function verify(Request $request, Document $document)
+    public function verify(Request $request, Document $document): RedirectResponse
     {
         abort_unless(auth()->user()->isBureau(), 403);
 

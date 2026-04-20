@@ -26,6 +26,8 @@ use App\Services\Homogeneity\DiveContext;
 use App\Services\Homogeneity\HomogeneityAssessmentService;
 use App\Services\SwapSuggestionService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -33,7 +35,7 @@ class DiveGroupController extends Controller
 {
     // ─── Board View & CRUD ─────────────────────────────────────
 
-    public function index(Event $event)
+    public function index(Event $event): View
     {
         abort_unless($this->canView($event), 403);
         $event->load(['diveGroups.members.user.certificationLevels.federation', 'diveGroups.members.user.detail', 'registrations.user.certificationLevels.federation', 'registrations.user.detail']);
@@ -59,7 +61,7 @@ class DiveGroupController extends Controller
         return view('events.dive-groups', compact('event', 'rules', 'unassigned', 'groupsStale'));
     }
 
-    public function store(Request $request, Event $event)
+    public function store(Request $request, Event $event): RedirectResponse
     {
         abort_unless($this->canManage($event), 403);
 
@@ -94,7 +96,7 @@ class DiveGroupController extends Controller
         return back()->with('success', __('Dive group created.'));
     }
 
-    public function addMember(Request $request, DiveGroup $group)
+    public function addMember(Request $request, DiveGroup $group): RedirectResponse
     {
         abort_unless($this->canManage($group->event), 403);
 
@@ -117,7 +119,7 @@ class DiveGroupController extends Controller
         return back()->with('success', __('Member added to group.'));
     }
 
-    public function removeMember(DiveGroupMember $member)
+    public function removeMember(DiveGroupMember $member): RedirectResponse
     {
         abort_unless($this->canManage($member->group->event), 403);
         $member->delete();
@@ -133,7 +135,7 @@ class DiveGroupController extends Controller
         return back();
     }
 
-    public function destroy(DiveGroup $group)
+    public function destroy(DiveGroup $group): RedirectResponse
     {
         abort_unless($this->canManage($group->event), 403);
         $group->delete();
@@ -146,7 +148,7 @@ class DiveGroupController extends Controller
     /**
      * Validate all groups for an event against rules. Returns JSON.
      */
-    public function validateGroups(Event $event)
+    public function validateGroups(Event $event): JsonResponse
     {
         $event->load(['diveGroups.members.user.certificationLevels', 'diveGroups.members.user.detail', 'diveSite']);
         $rules = DiveGroupRule::active()->get();
@@ -217,7 +219,7 @@ class DiveGroupController extends Controller
      * Auto-propose dive groups based on federation rules (fiche de sécurité).
      * Returns JSON with proposed groups for preview before applying.
      */
-    public function propose(Request $request, Event $event)
+    public function propose(Request $request, Event $event): JsonResponse
     {
         abort_unless($this->canManage($event), 403);
 
@@ -232,7 +234,7 @@ class DiveGroupController extends Controller
      * new ones from the proposal. Saves the configuration so it can be reused
      * as a starting point if registrations change.
      */
-    public function applyProposal(Request $request, Event $event)
+    public function applyProposal(Request $request, Event $event): RedirectResponse
     {
         abort_unless($this->canManage($event), 403);
 
@@ -283,7 +285,7 @@ class DiveGroupController extends Controller
     /**
      * Suggest member swaps between groups to improve homogeneity scores.
      */
-    public function suggestSwaps(Event $event)
+    public function suggestSwaps(Event $event): JsonResponse
     {
         abort_unless($this->canManage($event), 403);
 

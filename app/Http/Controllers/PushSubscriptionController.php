@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\PushSubscription;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PushSubscriptionController extends Controller
 {
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'endpoint' => 'required|url',
@@ -27,7 +28,7 @@ class PushSubscriptionController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request): JsonResponse
     {
         PushSubscription::where('user_id', auth()->id())
             ->where('endpoint', $request->input('endpoint'))

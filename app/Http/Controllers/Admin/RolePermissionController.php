@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -10,7 +12,7 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $roles = Role::with('permissions')->orderBy('name')->get();
         $permissions = Permission::orderBy('name')->get();
@@ -18,7 +20,7 @@ class RolePermissionController extends Controller
         return view('admin.roles.index', compact('roles', 'permissions'));
     }
 
-    public function update(Request $request)
+    public function update(Request $request): RedirectResponse
     {
         $request->validate([
             'roles' => 'required|array',
