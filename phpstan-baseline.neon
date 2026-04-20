@@ -73,12 +73,6 @@ parameters:
 			path: app/Console/Commands/SyncOldEvents.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Console/Commands/SyncOldEvents.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$show_icons\.$#'
 			identifier: property.notFound
 			count: 1
@@ -99,12 +93,6 @@ parameters:
 		-
 			message: '#^Cannot call method toIso8601String\(\) on string\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: app/Http/Controllers/Admin/AuditLogController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/Admin/AuditLogController.php
 
@@ -139,12 +127,6 @@ parameters:
 			path: app/Http/Controllers/Admin/DashboardController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Admin/DashboardController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$first_name\.$#'
 			identifier: property.notFound
 			count: 1
@@ -153,18 +135,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$last_name\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Admin/EmailController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Admin/EmailController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/Admin/EmailController.php
 
@@ -232,12 +202,6 @@ parameters:
 			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
-			path: app/Http/Controllers/Admin/MedicalExportController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
 			path: app/Http/Controllers/Admin/MedicalExportController.php
 
 		-
@@ -367,12 +331,6 @@ parameters:
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>user" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Auth/SocialAuthController.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\DiveGroupMember\:\:\$diveGroup\.$#'
 			identifier: property.notFound
 			count: 1
@@ -481,66 +439,6 @@ parameters:
 			path: app/Http/Controllers/DiveGroupController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>age" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>air_consumption" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>dive_count" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>ease_level" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>is_photographer" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>max_depth" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>primary_intent" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>rank" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>total_dives" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>water_temp" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DiveGroupController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$event_date\.$#'
 			identifier: property.notFound
 			count: 1
@@ -563,24 +461,6 @@ parameters:
 			identifier: method.nonObject
 			count: 1
 			path: app/Http/Controllers/DocumentBrowserController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>title" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DocumentBrowserController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>amount" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DuesCalculatorController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/DuesCalculatorController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\|Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
@@ -609,18 +489,6 @@ parameters:
 		-
 			message: '#^Cannot call method isFuture\(\) on string\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: app/Http/Controllers/EventController.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type string\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/EventController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/EventController.php
 
@@ -729,12 +597,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$acronym\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/ProfileController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/ProfileController.php
 
@@ -889,32 +751,8 @@ parameters:
 			path: app/Models/Article.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>auto_translated" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Models/Article.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>body" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Models/Article.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>title" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Models/Article.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Models/BuddyRequest.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Models/BuddyRequest.php
 
@@ -1045,18 +883,6 @@ parameters:
 			path: app/Models/User.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>cotisation_years" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Models/User.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>public_photos_banned" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Models/User.php
-
-		-
 			message: '#^Cannot call method isFuture\(\) on string\.$#'
 			identifier: method.nonObject
 			count: 1
@@ -1135,42 +961,6 @@ parameters:
 			path: app/Services/BankReconciliationService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>country" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DanExportService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DanExportService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DanExportService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DanExportService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>sex" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DanExportService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>water_type" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DanExportService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$active_instructor\.$#'
 			identifier: property.notFound
 			count: 1
@@ -1225,48 +1015,6 @@ parameters:
 			path: app/Services/DiveGroupProposalService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>acronym" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DiveGroupProposalService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>category" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DiveGroupProposalService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>code" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DiveGroupProposalService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DiveGroupProposalService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DiveGroupProposalService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>max_depth" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DiveGroupProposalService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>rank" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/DiveGroupProposalService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$primary_email\.$#'
 			identifier: property.notFound
 			count: 1
@@ -1309,12 +1057,6 @@ parameters:
 			path: app/Services/EmailStatsService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>primary_email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/EmailStatsService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$first_name\.$#'
 			identifier: property.notFound
 			count: 1
@@ -1335,36 +1077,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Services/FeeCalculationService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>amount" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/FeeCalculationService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/FeeCalculationService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>label" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/FeeCalculationService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/FeeCalculationService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Services/FeeCalculationService.php
 
@@ -1585,66 +1297,6 @@ parameters:
 			path: app/Services/SwapSuggestionService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>age" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>air_consumption" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>dive_count" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>ease_level" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>is_photographer" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>max_depth" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>primary_intent" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>rank" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>total_dives" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>water_temp" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$date_of_birth\.$#'
 			identifier: property.notFound
 			count: 1
@@ -1666,16 +1318,4 @@ parameters:
 			message: '#^Cannot call method addChild\(\) on array\<string, string\>\.$#'
 			identifier: method.nonObject
 			count: 4
-			path: app/Services/UddfService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>first_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/UddfService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
 			path: app/Services/UddfService.php

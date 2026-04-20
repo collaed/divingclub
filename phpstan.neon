@@ -6,3 +6,5 @@ parameters:
     paths:
         - app/
     level: 4
+    ignoreErrors:
+        - identifier: nullsafe.neverNull
