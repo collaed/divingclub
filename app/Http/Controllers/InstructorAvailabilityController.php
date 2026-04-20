@@ -48,10 +48,21 @@ class InstructorAvailabilityController extends Controller
             ->get()
             ->groupBy(fn ($a) => $a->date->format('Y-m-d'));
 
-        $events = Event::whereBetween('event_date', [$start, $end])
-            ->orderBy('event_date')
-            ->get()
-            ->groupBy(fn ($e) => $e->event_date->format('Y-m-d'));
+        $events = Event::where(function ($q) use ($start, $end) {
+            $q->whereBetween('event_date', [$start, $end])
+                ->orWhere(fn ($q2) => $q2->where('event_date', '<=', $end)->where('end_date', '>=', $start));
+        })->orderBy('event_date')->get();
+
+        // Expand multi-day events into each day
+        $eventsByDate = collect();
+        foreach ($events as $e) {
+            $eEnd = ($e->end_date && $e->end_date->gt($e->event_date)) ? $e->end_date : $e->event_date;
+            for ($d = $e->event_date->copy(); $d->lte($eEnd); $d->addDay()) {
+                $key = $d->format('Y-m-d');
+                $eventsByDate[$key] = ($eventsByDate[$key] ?? collect())->push($e);
+            }
+        }
+        $events = $eventsByDate;
 
         $instructors = User::role(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical'])->with('detail')->get()
             ->sortBy(fn ($u) => $u->detail?->first_name);
