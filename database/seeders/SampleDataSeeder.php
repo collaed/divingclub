@@ -2,21 +2,18 @@
 
 namespace Database\Seeders;
 
-use App\Models\Document;
+use App\Models\Article;
 use App\Models\Equipment;
 use App\Models\EquipmentLoan;
-use App\Models\EquipmentMaintenance;
 use App\Models\Event;
-use App\Models\EventRegistration;
 use App\Models\MemberDetail;
-use App\Models\MemberLicence;
 use App\Models\MembershipFeeComponent;
 use App\Models\MemberStatus;
-use App\Models\PaymentExpected;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class SampleDataSeeder extends Seeder
 {
@@ -69,21 +66,96 @@ class SampleDataSeeder extends Seeder
 
         // Fee components
         MembershipFeeComponent::create(['name' => 'Base Membership', 'slug' => 'base', 'amount' => 120.00, 'is_base' => true]);
+
+        $admin = User::whereHas('detail', fn ($q) => $q->where('first_name', 'admin'))->first()
+            ?? User::first();
+        $members = User::whereHas('detail')->get();
         MembershipFeeComponent::create(['name' => 'FFESSM Insurance Standard', 'slug' => 'insurance_standard', 'amount' => 33.50, 'is_optional' => true]);
         MembershipFeeComponent::create(['name' => 'FFESSM Insurance Premium', 'slug' => 'insurance_premium', 'amount' => 48.00, 'is_optional' => true]);
         MembershipFeeComponent::create(['name' => 'Double Affiliation (LIFRAS)', 'slug' => 'double_affiliation', 'amount' => 25.00, 'is_optional' => true]);
 
         // Equipment
         $items = [
-            ['BCD Aqualung Pro HD', 'bcd', 'AQ-BCD-001'], ['BCD Mares Hybrid', 'bcd', 'MA-BCD-002'],
-            ['Regulator Scubapro MK25', 'regulator', 'SP-REG-001'], ['Regulator Apeks XTX50', 'regulator', 'AP-REG-002'],
-            ['Tank 12L Steel', 'tank', 'TK-12L-001'], ['Tank 12L Steel', 'tank', 'TK-12L-002'],
-            ['Tank 15L Steel', 'tank', 'TK-15L-001'], ['Computer Suunto D5', 'computer', 'SU-D5-001'],
+            ['BCD Aqualung Pro HD — L', 'bcd', 'AQ-BCD-001', 'L', 'Aqualung', true],
+            ['BCD Mares Hybrid — M', 'bcd', 'MA-BCD-002', 'M', 'Mares', true],
+            ['BCD Cressi Start — S', 'bcd', 'CR-BCD-003', 'S', 'Cressi', true],
+            ['BCD Mares Scuba Ranger — XXXS', 'bcd', 'MA-BCD-004', 'XXXS', 'Mares', true],
+            ['Regulator Scubapro MK25 — DIN', 'regulator', 'SP-REG-001', '1', 'Scubapro', true],
+            ['Regulator Apeks XTX50 — DIN', 'regulator', 'AP-REG-002', '2', 'Apeks', true],
+            ['Regulator Mares Rover R2S — DIN', 'regulator', 'MA-REG-003', '3', 'Mares', true],
+            ['Regulator Mares Rover R2S — DIN (enfant)', 'regulator', 'MA-REG-004', '4', 'Mares', true],
+            ['Tank 12L Steel', 'tank', 'TK-12L-001', '01', 'Spirotechnique', true],
+            ['Tank 12L Steel', 'tank', 'TK-12L-002', '02', 'Spirotechnique', true],
+            ['Tank 10L Steel', 'tank', 'TK-10L-003', '03', 'ECS', true],
+            ['Tank 15L Steel', 'tank', 'TK-15L-004', '04', 'Spirotechnique', true],
+            ['Tank 7L Steel', 'tank', 'TK-7L-005', '05', 'Polaris', true],
+            ['Tank Nitrox 10L', 'tank', 'TK-NX-006', 'N1', 'Polaris', true],
+            ['Computer Suunto D5', 'computer', 'SU-D5-001', null, 'Suunto', false],
+            ['Lamp Scubapro Nova 850', 'other', 'SP-LMP-001', null, 'Scubapro', false],
         ];
         foreach ($items as $i) {
-            Equipment::create(['name' => $i[0], 'type' => $i[1], 'serial_number' => $i[2], 'purchase_date' => now()->subYears(rand(1, 5)), 'condition' => 'good']);
+            $eq = Equipment::create([
+                'name' => $i[0], 'type' => $i[1], 'serial_number' => $i[2],
+                'short_number' => $i[3], 'brand' => $i[4],
+                'purchase_date' => now()->subYears(rand(1, 5)),
+                'condition' => 'good', 'status' => 'available',
+                'is_loanable' => $i[5], 'location' => 'Warehouse',
+                'is_child_sized' => str_contains($i[0], 'XXXS') || str_contains($i[0], 'enfant'),
+                'is_cold_water' => str_contains($i[0], 'XTX50'),
+            ]);
         }
 
-        $this->command->info('Sample data seeded: 20 personas, 4 fee components, 8 equipment items.');
+        // Events — upcoming pool sessions, dives, theory
+        $eventData = [
+            ['Wednesday Pool — Block 1', 'pool', now()->next('Wednesday'), '17:00', '18:30', 'Pool Merl'],
+            ['Wednesday Pool — Block 2', 'pool_pn1', now()->next('Wednesday'), '18:30', '20:00', 'Pool Merl'],
+            ['Friday Apnea', 'apnea', now()->next('Friday'), '18:00', '20:00', 'Pool Merl'],
+            ['Quarry Dive — Carrière Tossiat', 'quarry', now()->next('Saturday'), '09:00', '16:00', 'Carrière de Tossiat'],
+            ['Theory — Nitrox', 'theory', now()->next('Wednesday')->addWeek(), '18:30', '20:00', 'Pool Merl'],
+            ['Long Trip — Sardinia', 'long_trip', now()->addWeeks(6), '08:00', null, 'Sardinia, Italy'],
+            ['Monday Swimming — Steinfort', 'pool_swimming', now()->next('Monday'), '19:00', '20:30', 'Steinfort Pool'],
+            ['Fosse Training', 'fosse', now()->addWeeks(2)->next('Saturday'), '10:00', '12:00', 'Nemo33, Brussels'],
+        ];
+        foreach ($eventData as $ed) {
+            $event = Event::create([
+                'title' => $ed[0], 'event_type' => $ed[1], 'event_date' => $ed[2],
+                'event_time' => $ed[3], 'end_time' => $ed[4], 'location' => $ed[5],
+                'status' => 'scheduled', 'max_participants' => $ed[1] === 'long_trip' ? 12 : 20,
+                'waiting_list_enabled' => true, 'created_by' => $admin->id,
+            ]);
+            // Register a few members
+            foreach ($members->random(min(5, $members->count())) as $m) {
+                $event->registrations()->create(['user_id' => $m->id, 'status' => 'confirmed']);
+            }
+        }
+
+        // Articles
+        $articles = [
+            ['Welcome to the Club', 'page', 'Welcome to our diving club! We offer training from beginner to instructor level, with weekly pool sessions, open water dives, and international trips.', true],
+            ['Training Schedule 2026', 'page', "Pool sessions every Wednesday (17:00-20:00) and Friday (Apnea 18:00-20:00).\nMonday swimming at Steinfort.\nQuarry dives on selected Saturdays.", true],
+            ['Safety Guidelines', 'page', 'All divers must have a valid medical certificate. Equipment checks are mandatory before every dive. Buddy system is always enforced.', true],
+            ['BCD for Sale — Scubapro Hydros Pro', 'classified', 'Selling my Scubapro Hydros Pro BCD, size M, excellent condition. Used for 50 dives. Asking €350.', false],
+        ];
+        foreach ($articles as $a) {
+            Article::create([
+                'title' => $a[0], 'slug' => Str::slug($a[0]).'-'.rand(100, 999),
+                'article_type' => $a[1], 'body' => $a[2],
+                'is_published' => true, 'is_public' => $a[3],
+                'author_id' => $admin->id,
+            ]);
+        }
+
+        // Equipment loans — a couple of active loans
+        $loanableEquipment = Equipment::where('is_loanable', true)->where('status', 'available')->take(2)->get();
+        foreach ($loanableEquipment as $eq) {
+            $borrower = $members->random();
+            EquipmentLoan::create([
+                'equipment_id' => $eq->id, 'user_id' => $borrower->id,
+                'loaned_at' => now()->subDays(rand(1, 7)), 'loaned_by' => $admin->id,
+            ]);
+            $eq->update(['status' => 'on_loan', 'last_seen_at' => now()]);
+        }
+
+        $this->command->info('Sample data seeded: 20 personas, 4 fee components, '.count($items).' equipment, '.count($eventData).' events, '.count($articles).' articles, 2 active loans.');
     }
 }
