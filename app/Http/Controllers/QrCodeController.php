@@ -142,7 +142,7 @@ class QrCodeController extends Controller
         $epc .= ThemeSetting::get('club_bic')."\n";
         $epc .= ThemeSetting::get('club_full_name', 'Diving Club')."\n";
         $epc .= $iban."\n";
-        $epc .= 'EUR'.number_format($payment->amount_due, 2, '.', '')."\n";
+        $epc .= 'EUR'.number_format((float) $payment->amount_due, 2, '.', '')."\n";
         $epc .= "\n";
         $epc .= $payment->communication."\n";
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
+ * @property float|null $water_temperature
  * @property string|null $name
  * @property string|null $country
  * @property string|null $region

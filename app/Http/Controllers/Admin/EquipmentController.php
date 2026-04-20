@@ -66,7 +66,7 @@ class EquipmentController extends Controller
             EquipmentMaintenance::create([
                 'equipment_id' => $item->id,
                 'maintenance_name' => $rule->maintenance_name,
-                'due_date' => now()->addMonths($rule->interval_months),
+                'due_date' => now()->addMonths((int) $rule->interval_months),
                 'is_mandatory' => $rule->is_mandatory,
             ]);
         }
@@ -167,7 +167,7 @@ class EquipmentController extends Controller
             EquipmentMaintenance::create([
                 'equipment_id' => $maintenance->equipment_id,
                 'maintenance_name' => $maintenance->maintenance_name,
-                'due_date' => now()->addMonths($rule->interval_months),
+                'due_date' => now()->addMonths((int) $rule->interval_months),
                 'is_mandatory' => $rule->is_mandatory,
             ]);
         }

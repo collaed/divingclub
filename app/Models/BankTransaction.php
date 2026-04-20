@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
+ * @property string|null $transaction_ref
  * @property Carbon|null $transaction_date
  * @property string|null $amount
  * @property string|null $communication

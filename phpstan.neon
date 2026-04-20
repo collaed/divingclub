@@ -31,3 +31,7 @@ parameters:
             message: '#on an unknown class Intervention\\Image#'
         -
             message: '#Access to an undefined property Laravel\\Socialite\\Contracts\\User::#'
+        -
+            message: '#Parameter \#1 \$callback of method Illuminate\\Support\\Collection.*::filter\(\) expects#'
+        -
+            message: '#Parameter \#2 \$key of static method Illuminate\\Database\\Eloquent\\Builder.*::pluck\(\) expects#'
