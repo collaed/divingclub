@@ -80,13 +80,21 @@ class ProfileDocumentController extends Controller
             abort(403);
         }
 
-        // Try local disk first, then public (Joomla imports stored in public)
-        if (Storage::disk('local')->exists($document->file_path)) {
-            return Storage::disk('local')->download($document->file_path, $document->original_filename);
+        // Strip 'private/' prefix since local disk root is already storage/app/private/
+        $path = $document->file_path;
+        $localPath = str_starts_with($path, 'private/') ? substr($path, 8) : $path;
+
+        if (Storage::disk('local')->exists($localPath)) {
+            return Storage::disk('local')->download($localPath, $document->original_filename);
         }
 
-        if (Storage::disk('public')->exists($document->file_path)) {
-            return Storage::disk('public')->download($document->file_path, $document->original_filename);
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->download($path, $document->original_filename);
+        }
+
+        // Fallback: try raw path from storage/app/
+        if (file_exists(storage_path('app/'.$path))) {
+            return response()->download(storage_path('app/'.$path), $document->original_filename);
         }
 
         abort(404, __('File not found.'));
@@ -110,6 +118,12 @@ class ProfileDocumentController extends Controller
 
         if (Storage::disk('public')->exists($path)) {
             return response(Storage::disk('public')->get($path))
+                ->header('Content-Type', $document->mime_type ?? 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="'.$document->original_filename.'"');
+        }
+
+        if (file_exists(storage_path('app/'.$path))) {
+            return response(file_get_contents(storage_path('app/'.$path)))
                 ->header('Content-Type', $document->mime_type ?? 'application/pdf')
                 ->header('Content-Disposition', 'inline; filename="'.$document->original_filename.'"');
         }
