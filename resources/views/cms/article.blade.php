@@ -165,8 +165,9 @@
                     const base = {responsive:true, maintainAspectRatio:false};
 
                     // Gender — doughnut
-                    const genderLabels = Object.keys(stats.gender).map(g => g === 'M' ? '♂ {{ __("Male") }}' : '♀ {{ __("Female") }}');
-                    new Chart(document.getElementById('chartGender'), {type:'doughnut', data:{labels:genderLabels, datasets:[{data:Object.values(stats.gender), backgroundColor:['#0066cc','#ff6699']}]}, options:{...base, plugins:{legend:{position:'bottom'}}}});
+                    const genderLabels = Object.keys(stats.gender).map(g => g === 'M' ? '♂ {{ __("Male") }}' : g === 'F' ? '♀ {{ __("Female") }}' : '⚧ {{ __("Other") }}');
+                    const genderColors = Object.keys(stats.gender).map(g => g === 'M' ? '#0066cc' : g === 'F' ? '#ff6699' : '#999999');
+                    new Chart(document.getElementById('chartGender'), {type:'doughnut', data:{labels:genderLabels, datasets:[{data:Object.values(stats.gender), backgroundColor:genderColors}]}, options:{...base, plugins:{legend:{position:'bottom'}}}});
 
                     // Age — vertical bar
                     new Chart(document.getElementById('chartAge'), {type:'bar', data:{labels:Object.keys(stats.age), datasets:[{label:'{{ __("Members") }}', data:Object.values(stats.age), backgroundColor:'#0066cc'}]}, options:{...base, plugins:{legend:{display:false}}, scales:{x:{ticks:noSkip}, y:{beginAtZero:true}}}});
