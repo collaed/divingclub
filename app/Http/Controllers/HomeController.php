@@ -63,11 +63,11 @@ class HomeController extends Controller
         $events = Event::where('event_date', '>=', now())
             ->orderBy('event_date')->limit(3)->get();
 
-        // Instructor bios for the instructors section
-        $instructors = MemberDetail::whereNotNull('instructor_bio')
-            ->where('instructor_bio', '!=', '')
-            ->whereHas('user', fn ($q) => $q->role('instructor'))
+        // Instructor list for the instructors section
+        $instructors = MemberDetail::where('active_instructor', true)
+            ->where('show_on_public_site', true)
             ->with('user')
+            ->orderBy('last_name')
             ->get();
 
         // Bureau members for the bureau section
@@ -94,10 +94,10 @@ class HomeController extends Controller
 
         // Dynamic instructor list for the instructors page
         if ($slug === 'instructors') {
-            $extra['instructors'] = MemberDetail::whereNotNull('instructor_bio')
-                ->where('instructor_bio', '!=', '')
+            $extra['instructors'] = MemberDetail::where('active_instructor', true)
                 ->where('show_on_public_site', true)
                 ->with('user')
+                ->orderBy('last_name')
                 ->get();
         }
 
