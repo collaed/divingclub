@@ -5,6 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $equipment_id
+ * @property string|null $maintenance_name
+ * @property Carbon|null $due_date
+ * @property Carbon|null $completed_at
+ * @property string|null $completed_by
+ * @property string|null $notes
+ * @property bool $is_mandatory
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class EquipmentMaintenance extends Model
 {
     protected $table = 'equipment_maintenance';

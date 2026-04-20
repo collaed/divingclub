@@ -6,6 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int|null $user_id
+ * @property int|null $dive_site_id
+ * @property string|null $location_text
+ * @property Carbon|null $dive_date
+ * @property string|null $dive_time
+ * @property string|null $need_type
+ * @property string|null $description
+ * @property string|null $max_depth
+ * @property string|null $desired_cert_level
+ * @property string|null $max_buddies
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class BuddyRequest extends Model
 {
     protected $fillable = ['user_id', 'dive_site_id', 'location_text', 'dive_date', 'dive_time', 'need_type', 'description', 'max_depth', 'desired_cert_level', 'max_buddies', 'is_active'];

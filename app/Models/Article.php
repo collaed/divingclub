@@ -8,6 +8,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string|null $title
+ * @property string|null $slug
+ * @property string|null $body
+ * @property string|null $article_type
+ * @property string|null $featured_image
+ * @property bool $is_published
+ * @property bool $is_public
+ * @property int|null $author_id
+ * @property int|null $vote_id
+ * @property Carbon|null $expires_at
+ * @property string|null $sort_order
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User|null $author
+ * @property-read Collection $translations
+ */
 class Article extends Model
 {
     use SoftDeletes;

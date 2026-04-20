@@ -8,6 +8,51 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int|null $joomla_sortie_id
+ * @property string|null $title
+ * @property string|null $color_hex
+ * @property string|null $event_type
+ * @property Carbon|null $event_date
+ * @property string|null $event_time
+ * @property string|null $end_time
+ * @property Carbon|null $end_date
+ * @property string|null $location
+ * @property string|null $description
+ * @property int|null $responsible_id
+ * @property string|null $max_participants
+ * @property bool $waiting_list_enabled
+ * @property Carbon|null $inscription_open_at
+ * @property bool $inscriptions_closed
+ * @property bool $levels_display
+ * @property bool $confirmation_required
+ * @property string|null $estimated_cost
+ * @property Carbon|null $deposit_1_date
+ * @property string|null $deposit_1_amount
+ * @property Carbon|null $deposit_2_date
+ * @property string|null $deposit_2_amount
+ * @property Carbon|null $deposit_3_date
+ * @property string|null $deposit_3_amount
+ * @property int|null $instructor_id
+ * @property array $assistant_ids
+ * @property string|null $created_by
+ * @property Carbon|null $permissions_expire_date
+ * @property string|null $status
+ * @property bool $is_federated
+ * @property string|null $external_slots
+ * @property int|null $season_id
+ * @property string|null $participant_email
+ * @property string|null $whatsapp_group_url
+ * @property int|null $dive_site_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection $registrations
+ * @property-read User|null $instructor
+ * @property-read User|null $responsible
+ * @property-read DiveSite|null $diveSite
+ * @property-read Season|null $season
+ */
 class Event extends Model
 {
     use Auditable;

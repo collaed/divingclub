@@ -6,6 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property int $id
+ * @property int|null $federation_id
+ * @property string|null $code
+ * @property string|null $name
+ * @property string|null $category
+ * @property string|null $rank
+ * @property string|null $equivalence_group
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class CertificationLevel extends Model
 {
     protected $fillable = ['federation_id', 'code', 'name', 'category', 'rank', 'equivalence_group'];

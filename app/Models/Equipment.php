@@ -7,6 +7,39 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int|null $club_id
+ * @property string|null $name
+ * @property string|null $short_number
+ * @property string|null $brand
+ * @property string|null $manufacturer
+ * @property string|null $threading
+ * @property Carbon|null $manufacture_date
+ * @property float $weight_kg
+ * @property string|null $volume
+ * @property string|null $material
+ * @property string|null $test_pressure_bar
+ * @property string|null $working_pressure_bar
+ * @property Carbon|null $last_retest_date
+ * @property Carbon|null $next_retest_date
+ * @property Carbon|null $last_inventory_date
+ * @property string|null $type
+ * @property string|null $serial_number
+ * @property Carbon|null $purchase_date
+ * @property string|null $condition
+ * @property string|null $status
+ * @property bool $is_loanable
+ * @property bool $is_child_sized
+ * @property bool $is_cold_water
+ * @property Carbon|null $last_seen_at
+ * @property string|null $notes
+ * @property string|null $location
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read EquipmentLoan|null $currentLoan
+ * @property-read Collection $loans
+ */
 class Equipment extends Model
 {
     use SoftDeletes;

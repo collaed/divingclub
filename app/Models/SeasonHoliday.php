@@ -5,6 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $season_id
+ * @property string|null $name
+ * @property Carbon|null $start_date
+ * @property Carbon|null $end_date
+ * @property bool $is_adhoc
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class SeasonHoliday extends Model
 {
     protected $fillable = ['season_id', 'name', 'start_date', 'end_date', 'is_adhoc'];

@@ -15,6 +15,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @property int $id
+ * @property int|null $event_id
+ * @property string|null $uploaded_by
+ * @property string|null $path
+ * @property string|null $thumbnail_path
+ * @property string|null $caption
+ * @property string|null $quality_score
+ * @property bool $has_faces
+ * @property bool $approved
+ * @property bool $gdpr_consent
+ * @property string|null $file_hash
+ * @property int $view_count
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class EventPhoto extends Model
 {
     protected $fillable = ['event_id', 'uploaded_by', 'path', 'thumbnail_path', 'caption', 'quality_score', 'has_faces', 'approved', 'gdpr_consent', 'file_hash', 'view_count'];

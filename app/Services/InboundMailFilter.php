@@ -54,7 +54,7 @@ class InboundMailFilter
         return ['body' => $body, 'needs_review' => false, 'review_reason' => null];
     }
 
-    private static function stripSignatures(string $body): string
+    protected static function stripSignatures(string $body): string
     {
         // Common signature markers
         $patterns = [
@@ -75,7 +75,7 @@ class InboundMailFilter
         return $body;
     }
 
-    private static function stripQuotedReplies(string $body): string
+    protected static function stripQuotedReplies(string $body): string
     {
         // "On DATE, NAME wrote:" block and everything after
         $body = preg_replace('/\n(Le |On |Am ).+?(a écrit|wrote|schrieb)\s*:\s*\n.*/s', '', $body);
@@ -102,7 +102,7 @@ class InboundMailFilter
         return implode("\n", $result);
     }
 
-    private static function stripDisclaimers(string $body): string
+    protected static function stripDisclaimers(string $body): string
     {
         // Corporate email disclaimers
         $patterns = [
@@ -123,7 +123,7 @@ class InboundMailFilter
      * Optional AI filtering via configured LLM endpoint.
      * Returns needs_review=true if content seems private or irrelevant.
      */
-    private static function aiFilter(string $body, ?int $eventId): array
+    protected static function aiFilter(string $body, ?int $eventId): array
     {
         $oneMinKey = config('services.onemin.key');
         $openAiKey = config('services.openai.key') ?: env('OPENAI_API_KEY');

@@ -5,6 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $user_id
+ * @property string|null $consent_type
+ * @property bool $granted
+ * @property Carbon|null $granted_at
+ * @property Carbon|null $revoked_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class GdprConsent extends Model
 {
     protected $fillable = ['user_id', 'consent_type', 'granted', 'granted_at', 'revoked_at'];

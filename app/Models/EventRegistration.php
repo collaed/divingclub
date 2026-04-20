@@ -18,6 +18,28 @@ use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $joomla_inscription_id
+ * @property int|null $event_id
+ * @property int|null $user_id
+ * @property string|null $status
+ * @property string|null $comment
+ * @property string|null $registered_by
+ * @property string|null $waiting_list_position
+ * @property Carbon|null $cancelled_at
+ * @property string|null $cancelled_by
+ * @property string|null $cancel_comment
+ * @property Carbon|null $checked_in_at
+ * @property Carbon|null $checked_out_at
+ * @property string|null $checked_in_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ * @property-read Event $event
+ * @property-read User|null $registeredByUser
+ * @property-read User|null $cancelledByUser
+ */
 class EventRegistration extends Model
 {
     use Auditable;

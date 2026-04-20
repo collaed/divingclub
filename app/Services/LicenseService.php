@@ -75,7 +75,7 @@ PEM;
     }
 
     /** Decode the free tier limit from the obfuscated seed. */
-    private static function freeTierLimit(): int
+    protected static function freeTierLimit(): int
     {
         $decoded = base64_decode(self::TIER_SEED, true);
 
@@ -92,7 +92,7 @@ PEM;
      * Checks this file, the middleware, and the routes file.
      * Returns true if INTEGRITY_HASHES is empty (dev mode).
      */
-    private static function integrityOk(): bool
+    protected static function integrityOk(): bool
     {
         if (empty(self::INTEGRITY_HASHES)) {
             return true;

@@ -11,6 +11,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property string|null $filename
+ * @property string|null $original_name
+ * @property string|null $path
+ * @property string|null $mime_type
+ * @property string|null $size
+ * @property string|null $folder
+ * @property string|null $visibility
+ * @property string|null $description
+ * @property string|null $uploaded_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class LibraryFile extends Model
 {
     protected $fillable = ['filename', 'original_name', 'path', 'mime_type', 'size', 'folder', 'visibility', 'description', 'uploaded_by'];

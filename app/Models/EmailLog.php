@@ -17,6 +17,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $event_id
+ * @property int|null $user_id
+ * @property string|null $to_email
+ * @property string|null $alias
+ * @property string|null $from_name
+ * @property string|null $from_email
+ * @property string|null $subject
+ * @property string|null $body
+ * @property string|null $template_slug
+ * @property string|null $status
+ * @property string|null $direction
+ * @property string|null $authorized
+ * @property string|null $attempts
+ * @property string|null $error
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class EmailLog extends Model
 {
     protected $table = 'email_log';

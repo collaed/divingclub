@@ -7,6 +7,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string|null $title
+ * @property string|null $description
+ * @property string|null $mode
+ * @property bool $allow_multiple
+ * @property bool $allow_change
+ * @property string|null $num_positions
+ * @property string|null $min_vote_pct
+ * @property bool $is_public
+ * @property string|null $status
+ * @property Carbon|null $opens_at
+ * @property Carbon|null $closes_at
+ * @property string|null $created_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Vote extends Model
 {
     use SoftDeletes;

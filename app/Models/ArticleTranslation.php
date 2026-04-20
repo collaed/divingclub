@@ -5,6 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $article_id
+ * @property string|null $locale
+ * @property string|null $title
+ * @property string|null $body
+ * @property bool $auto_translated
+ * @property bool $stale
+ * @property string|null $source_hash
+ * @property string|null $source_word_count
+ * @property string|null $translated_word_count
+ * @property string|null $retries
+ * @property Carbon|null $flagged_at
+ * @property string|null $flag_reason
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class ArticleTranslation extends Model
 {
     protected $fillable = [

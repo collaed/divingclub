@@ -6,6 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string|null $title
+ * @property string|null $month
+ * @property string|null $background_image
+ * @property array $slots
+ * @property array $decorations
+ * @property string|null $status
+ * @property string|null $created_by
+ * @property Carbon|null $sent_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Newsletter extends Model
 {
     protected $fillable = [

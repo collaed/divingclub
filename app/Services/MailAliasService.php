@@ -143,7 +143,7 @@ class MailAliasService
     }
 
     /** Bureau members (detail.bureau_member = true). */
-    private static function bureau(): array
+    protected static function bureau(): array
     {
         $emails = User::whereHas('detail', fn ($q) => $q->where('bureau_member', true))
             ->pluck('primary_email')->toArray();
@@ -152,7 +152,7 @@ class MailAliasService
     }
 
     /** All active members with verified email. */
-    private static function allActive(): array
+    protected static function allActive(): array
     {
         $emails = User::whereHas('status', fn ($q) => $q->whereIn('slug', ['actif', 'membre_de_droit', 'fonctionnaire']))
             ->whereNotNull('email_verified_at')
@@ -162,7 +162,7 @@ class MailAliasService
     }
 
     /** Active instructors (detail.active_instructor = true). */
-    private static function instructors(): array
+    protected static function instructors(): array
     {
         $emails = User::whereHas('detail', fn ($q) => $q->where('active_instructor', true))
             ->pluck('primary_email')->toArray();
@@ -171,7 +171,7 @@ class MailAliasService
     }
 
     /** Event participants: event-{id} format. */
-    private static function eventParticipants(string $local): ?array
+    protected static function eventParticipants(string $local): ?array
     {
         if (! preg_match('/^event-(\d+)$/', $local, $m)) {
             return null;
@@ -181,7 +181,7 @@ class MailAliasService
     }
 
     /** Legacy event participants: members.s{id} format (old CEP system). */
-    private static function eventParticipantsLegacy(string $local): ?array
+    protected static function eventParticipantsLegacy(string $local): ?array
     {
         if (! preg_match('/^members\.s(\d+)$/', $local, $m)) {
             return null;
@@ -191,7 +191,7 @@ class MailAliasService
     }
 
     /** Resolve event participants by event ID. */
-    private static function resolveEventParticipants(int $eventId): ?array
+    protected static function resolveEventParticipants(int $eventId): ?array
     {
         $event = Event::find($eventId);
         if (! $event) {
@@ -221,7 +221,7 @@ class MailAliasService
     }
 
     /** Members filtered by dues year. */
-    private static function membersByYear(string $local): ?array
+    protected static function membersByYear(string $local): ?array
     {
         if (! preg_match('/^year=(\d{4})$/', $local, $m)) {
             return null;
@@ -236,7 +236,7 @@ class MailAliasService
     }
 
     /** Members enrolled in a specific training level (pn1, pn2, pn3). */
-    private static function trainingLevel(string $local): ?array
+    protected static function trainingLevel(string $local): ?array
     {
         if (! preg_match('/^members\.pn(\d)$/', $local, $m)) {
             return null;
@@ -251,7 +251,7 @@ class MailAliasService
     }
 
     /** Find members by partial name match (first + last). */
-    private static function findByName(string $name): array
+    protected static function findByName(string $name): array
     {
         $parts = preg_split('/\s+/', trim($name), 2);
         $first = $parts[0] ?? '';
@@ -273,7 +273,7 @@ class MailAliasService
     }
 
     /** Check if sender is a participant, instructor, or bureau for an event alias. */
-    private static function isEventParticipantOrStaff(User $sender, string $alias): bool
+    protected static function isEventParticipantOrStaff(User $sender, string $alias): bool
     {
         if ($sender->isBureau() || $sender->hasRole('instructor')) {
             return true;

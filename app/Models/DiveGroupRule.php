@@ -5,6 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string|null $name
+ * @property string|null $scope
+ * @property string|null $diver_condition
+ * @property string|null $dive_mode
+ * @property string|null $min_leader_rank
+ * @property string|null $leader_category
+ * @property string|null $max_depth
+ * @property string|null $max_group_size
+ * @property string|null $description
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class DiveGroupRule extends Model
 {
     protected $fillable = ['name', 'scope', 'diver_condition', 'dive_mode', 'min_leader_rank', 'leader_category', 'max_depth', 'max_group_size', 'description', 'is_active'];

@@ -6,6 +6,18 @@ use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $minor_user_id
+ * @property string|null $granted_by
+ * @property string|null $consent_type
+ * @property bool $granted
+ * @property string|null $document_path
+ * @property Carbon|null $granted_at
+ * @property Carbon|null $revoked_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class ParentalConsent extends Model
 {
     use Auditable;

@@ -7,6 +7,58 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int|null $user_id
+ * @property string|null $avatar_path
+ * @property string|null $first_name
+ * @property string|null $last_name
+ * @property string|null $birth_name
+ * @property string|null $nationality
+ * @property string|null $phone_private
+ * @property string|null $phone_office
+ * @property string|null $phone_mobile
+ * @property string|null $sex
+ * @property string|null $adhesion_year
+ * @property bool $bureau_member
+ * @property bool $active_instructor
+ * @property string|null $instructor_bio
+ * @property string|null $instructor_specialties
+ * @property string|null $instructor_motivation
+ * @property string|null $show_on_public_site
+ * @property string|null $public_photos_banned
+ * @property string|null $club_email
+ * @property Carbon|null $date_of_birth
+ * @property string|null $place_of_birth
+ * @property string|null $address_line1
+ * @property string|null $address_line2
+ * @property string|null $city
+ * @property string|null $postal_code
+ * @property string|null $country
+ * @property string|null $iban
+ * @property string|null $emergency_contact_name
+ * @property string|null $emergency_contact_phone
+ * @property string|null $emergency_contact_relationship
+ * @property Carbon|null $brevet_date
+ * @property string|null $dive_count
+ * @property float $air_consumption
+ * @property float $ease_level
+ * @property string|null $primary_intent
+ * @property bool $is_photographer
+ * @property int $total_dives
+ * @property Carbon|null $last_dive_date
+ * @property string|null $certification_level
+ * @property array $other_certifications
+ * @property array $training_enrollments
+ * @property string|null $preferred_language
+ * @property string|null $show_icons
+ * @property array $cotisation_years
+ * @property string|null $bcd_size
+ * @property string|null $bcd_notes
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ */
 class MemberDetail extends Model
 {
     use Auditable;

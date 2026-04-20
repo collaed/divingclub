@@ -5,6 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $season_id
+ * @property string|null $day_of_week
+ * @property string|null $start_time
+ * @property string|null $end_time
+ * @property string|null $event_type
+ * @property string|null $title
+ * @property string|null $location
+ * @property string|null $description
+ * @property string|null $max_participants
+ * @property string|null $estimated_cost
+ * @property string|null $registration_opens_days_before
+ * @property string|null $registration_closes_days_before
+ * @property string|null $color_hex
+ * @property string|null $whatsapp_group_url
+ * @property int|null $dive_site_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class SeasonPattern extends Model
 {
     protected $fillable = [

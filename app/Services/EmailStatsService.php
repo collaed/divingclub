@@ -75,7 +75,7 @@ class EmailStatsService
     }
 
     /** Fetch messages from Mailjet for a given date. Cached 5 min. */
-    private static function fetchMailjetMessages(string $date): array
+    protected static function fetchMailjetMessages(string $date): array
     {
         $key = config('services.mailjet.key');
         $secret = config('services.mailjet.secret');
@@ -113,7 +113,7 @@ class EmailStatsService
     }
 
     /** Fetch messages from Resend for a given date. Cached 5 min. */
-    private static function fetchResendMessages(string $date): array
+    protected static function fetchResendMessages(string $date): array
     {
         $keys = array_filter([config('services.resend.key'), config('services.resend.key_secondary')]);
         if (! $keys) {
@@ -160,7 +160,7 @@ class EmailStatsService
     }
 
     /** Build email → member name lookup. */
-    private static function memberLookup(): array
+    protected static function memberLookup(): array
     {
         return Cache::remember('email_stats_members', 3600, function () {
             $lookup = [];
@@ -177,7 +177,7 @@ class EmailStatsService
     }
 
     /** Remove dots from local part (Gmail ignores them). */
-    private static function removeDots(string $email): string
+    protected static function removeDots(string $email): string
     {
         $parts = explode('@', $email, 2);
 
@@ -186,7 +186,7 @@ class EmailStatsService
             : $email;
     }
 
-    private static function normalizeStatus(string $status): string
+    protected static function normalizeStatus(string $status): string
     {
         return match ($status) {
             'clicked' => 'clicked',
@@ -196,7 +196,7 @@ class EmailStatsService
         };
     }
 
-    private static function statusPriority(string $status): int
+    protected static function statusPriority(string $status): int
     {
         return match ($status) {
             'clicked' => 3,

@@ -5,6 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property string|null $first_name
+ * @property string|null $last_name
+ * @property string|null $email
+ * @property string|null $phone
+ * @property Carbon|null $preferred_date
+ * @property string|null $message
+ * @property string|null $status
+ * @property string|null $confirmed_by
+ * @property Carbon|null $confirmed_date
+ * @property string|null $admin_notes
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class TrialRequest extends Model
 {
     protected $fillable = ['first_name', 'last_name', 'email', 'phone', 'preferred_date', 'message', 'status', 'confirmed_by', 'confirmed_date', 'admin_notes'];

@@ -5,6 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string|null $acronym
+ * @property string|null $full_name
+ * @property string|null $visibility
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Federation extends Model
 {
     protected $fillable = ['acronym', 'full_name', 'visibility'];
