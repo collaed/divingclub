@@ -1,34 +1,10 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property App\\Console\\Commands\\EnrichImportedEvents\:\:\$instructorMap is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Console/Commands/EnrichImportedEvents.php
-
-		-
 			message: '#^Parameter \#2 \$key of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Event\>\:\:pluck\(\) expects string\|null, Illuminate\\Contracts\\Database\\Query\\Expression given\.$#'
 			identifier: argument.type
 			count: 2
 			path: app/Console/Commands/ImportLegacyData.php
-
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: app/Console/Commands/ProcessIncomingFiles.php
-
-		-
-			message: '#^Method App\\Console\\Commands\\SyncOldEvents\:\:autoCreateMember\(\) never returns null so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: app/Console/Commands/SyncOldEvents.php
-
-		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: app/Console/Commands/SyncOldEvents.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\Admin\\AuditLogController\:\:export\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
@@ -43,22 +19,10 @@ parameters:
 			path: app/Http/Controllers/Admin/DashboardController.php
 
 		-
-			message: '#^Instanceof between App\\Models\\Equipment and App\\Models\\Equipment will always evaluate to true\.$#'
-			identifier: instanceof.alwaysTrue
-			count: 1
-			path: app/Http/Controllers/Admin/EquipmentController.php
-
-		-
 			message: '#^Parameter \#1 \$value of method Carbon\\Carbon\:\:addMonths\(\) expects float\|int, string\|null given\.$#'
 			identifier: argument.type
 			count: 2
 			path: app/Http/Controllers/Admin/EquipmentController.php
-
-		-
-			message: '#^Cannot call method last\(\) on array\|ArrayAccess\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/Http/Controllers/Admin/LibraryController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\Admin\\LibraryController\:\:download\(\) should return Illuminate\\Http\\JsonResponse\|Illuminate\\Http\\RedirectResponse\|Symfony\\Component\\HttpFoundation\\BinaryFileResponse but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
@@ -73,38 +37,8 @@ parameters:
 			path: app/Http/Controllers/Admin/MedicalExportController.php
 
 		-
-			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Http/Controllers/Admin/MedicalExportController.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between string\|null and int will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/Admin/NewsletterController.php
-
-		-
-			message: '#^Match expression does not handle remaining values\: string\|null$#'
-			identifier: match.unhandled
-			count: 1
-			path: app/Http/Controllers/Admin/TrialRequestController.php
-
-		-
-			message: '#^Expression on left side of \?\? is always null\.$#'
-			identifier: nullCoalesce.expr
-			count: 2
-			path: app/Http/Controllers/Auth/SocialAuthController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\Auth\\SocialAuthController\:\:redirect\(\) should return Illuminate\\Contracts\\View\\View\|Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\RedirectResponse\.$#'
 			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Auth/SocialAuthController.php
-
-		-
-			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
 			count: 1
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
@@ -121,12 +55,6 @@ parameters:
 			path: app/Http/Controllers/DiveGroupController.php
 
 		-
-			message: '#^Cannot call method last\(\) on array\|ArrayAccess\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/Http/Controllers/DocumentBrowserController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\DocumentBrowserController\:\:download\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
 			identifier: return.type
 			count: 1
@@ -137,18 +65,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/DocumentBrowserController.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between string\|null and int will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: app/Http/Controllers/EventController.php
-
-		-
-			message: '#^Offset ''status'' on array\{status\: string, bytes\: int, human\: string\}\|array\{status\: string, error\?\: string\}\|array\{status\: string, free\: string, total\: string, used_pct\: float\}\|array\{status\: string, ms\?\: float\}\|array\{status\: string, pending\: int, failed\: int\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Http/Controllers/HealthController.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<TRelatedModel of Illuminate\\Database\\Eloquent\\Model\>\:\:role\(\)\.$#'
@@ -217,30 +133,6 @@ parameters:
 			path: app/Http/Controllers/StagingMailController.php
 
 		-
-			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Jobs/PollInboundMail.php
-
-		-
-			message: '#^Binary operation "/" between non\-falsy\-string and 1\|non\-falsy\-string results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: app/Models/ArticleTranslation.php
-
-		-
-			message: '#^Binary operation "/" between string and 1024 results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: app/Models/LibraryFile.php
-
-		-
-			message: '#^Binary operation "/" between string and 1048576 results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: app/Models/LibraryFile.php
-
-		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:filter\(\) expects \(callable\(array\{position\: mixed, article\: App\\Models\\Article\|null, teaser\: mixed, custom_url\: mixed, slug\: mixed\}, int\|string\)\: bool\)\|null, Closure\(mixed\)\: \(App\\Models\\Article\|null\) given\.$#'
 			identifier: argument.type
 			count: 1
@@ -259,49 +151,7 @@ parameters:
 			path: app/Services/BankReconciliationService.php
 
 		-
-			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Services/BankReconciliationService.php
-
-		-
-			message: '#^Loose comparison using \!\= between int\<min, \-26\> and 0 will always evaluate to true\.$#'
-			identifier: notEqual.alwaysTrue
-			count: 1
-			path: app/Services/Homogeneity/HomogeneityAssessmentService.php
-
-		-
-			message: '#^Expression in empty\(\) is always falsy\.$#'
-			identifier: empty.expr
-			count: 1
-			path: app/Services/LicenseService.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: app/Services/LicenseService.php
-
-		-
-			message: '#^Comparison operation "\>" between 98\|100\|200 and 0 is always true\.$#'
-			identifier: greater.alwaysTrue
-			count: 1
-			path: app/Services/MailBalancer.php
-
-		-
-			message: '#^Relation ''role'' is not found in App\\Models\\User model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: app/Services/PushNotificationService.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\DiveSite\:\:\$water_temperature\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Cannot call method addChild\(\) on array\<string, string\>\.$#'
-			identifier: method.nonObject
-			count: 4
-			path: app/Services/UddfService.php

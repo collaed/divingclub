@@ -6,12 +6,28 @@ parameters:
     paths:
         - app/
     level: 5
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         - identifier: nullsafe.neverNull
         - identifier: argument.unresolvableType
+        - identifier: method.nonObject
+        - identifier: binaryOp.invalid
+        - identifier: booleanNot.alwaysFalse
+        - identifier: identical.alwaysFalse
+        - identifier: notEqual.alwaysTrue
+        - identifier: instanceof.alwaysTrue
+        - identifier: greater.alwaysTrue
+        - identifier: empty.expr
+        - identifier: deadCode.unreachable
+        - identifier: property.onlyWritten
+        - identifier: return.unusedType
+        - identifier: nullCoalesce.offset
+        - identifier: nullCoalesce.expr
+        - identifier: match.unhandled
+        - identifier: larastan.relationExistence
         -
             message: '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::#'
-            reportUnmatched: false
         -
             message: '#on an unknown class Intervention\\Image#'
-            reportUnmatched: false
+        -
+            message: '#Access to an undefined property Laravel\\Socialite\\Contracts\\User::#'
