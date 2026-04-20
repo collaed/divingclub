@@ -99,8 +99,8 @@
                                             @endif
                                             <div>
                                                 <strong>{{ $detail->first_name }} {{ $detail->last_name }}</strong>
-                                                @if($detail->user?->primaryCertification())
-                                                    <br><small class="text-muted">{{ $detail->user->primaryCertification()->name }}</small>
+                                                @if($detail->certification_level)
+                                                    <br><span class="badge bg-primary">{{ $detail->certification_level }}</span>
                                                 @endif
                                             </div>
                                         </div>
