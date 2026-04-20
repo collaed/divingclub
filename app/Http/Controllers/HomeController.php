@@ -22,6 +22,7 @@ use App\Models\MemberDetail;
 use App\Services\ArticleTranslationService;
 use App\Services\ThemeService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
