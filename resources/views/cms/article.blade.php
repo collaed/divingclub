@@ -31,7 +31,11 @@
                 @if($article->featured_image)
                     <img src="{{ asset('storage/' . $article->featured_image) }}" class="img-fluid rounded mb-4" alt="{{ $article->title }}">
                 @endif
-                <h2>{{ $article->title }}</h2>
+                <h2>{{ $article->title }}
+                    @if(auth()->user()?->isBureau())
+                        <a href="{{ route('admin.articles.edit', $article) }}" class="btn btn-sm btn-outline-primary ms-2" title="{{ __('Edit') }}">✏️</a>
+                    @endif
+                </h2>
                 <p class="text-muted small">{{ $article->created_at->format('d/m/Y') }} — {{ $article->author?->name }}</p>
 
                 {{-- Translation tabs --}}
