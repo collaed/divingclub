@@ -8,3 +8,6 @@ parameters:
     level: 4
     ignoreErrors:
         - identifier: nullsafe.neverNull
+        -
+            message: '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::#'
+            reportUnmatched: false

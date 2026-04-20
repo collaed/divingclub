@@ -22,4 +22,6 @@ Schedule::job(new SendEquipmentReminders)->dailyAt('09:00')->after(fn () => Sche
 
 Schedule::command('sync:old-events')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('joomla-sync'));
 
+Schedule::command('legacy:sync')->hourly()->after(fn () => ScheduleHeartbeat::beat('legacy-sync-bidi'));
+
 Schedule::command('incoming:process')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('incoming-files'));

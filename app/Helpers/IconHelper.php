@@ -6,7 +6,7 @@ use App\Models\ThemeSetting;
 
 class IconHelper
 {
-    private static ?bool $resolved = null;
+    protected static ?bool $resolved = null;
 
     public static function render(string $emoji): string
     {

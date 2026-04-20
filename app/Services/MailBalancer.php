@@ -140,12 +140,12 @@ class MailBalancer
     public static function mailjetMonthlyUsage(): ?array
     {
         return Cache::remember('mailjet_monthly_usage', 900, function () {
-            $key = env('MAILJET_KEY', env('RESEND_KEY', ''));
-            $secret = env('MAILJET_SECRET', '');
+            $key = config('services.mailjet.key', config('services.resend.key', ''));
+            $secret = config('services.mailjet.secret', '');
 
             // Use the credentials from config if available
             if (! $key || ! $secret) {
-                return null;
+                return;
             }
 
             try {
@@ -161,7 +161,7 @@ class MailBalancer
                     ]);
 
                 if (! $response->ok()) {
-                    return null;
+                    return;
                 }
 
                 $data = $response->json('Data.0');
@@ -174,7 +174,7 @@ class MailBalancer
                     'blocked' => $data['MessageBlockedCount'] ?? 0,
                 ] : null;
             } catch (\Throwable) {
-                return null;
+                return;
             }
         });
     }

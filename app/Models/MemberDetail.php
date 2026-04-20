@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $phone_office
  * @property string|null $phone_mobile
  * @property string|null $sex
- * @property string|null $adhesion_year
+ * @property int|null $adhesion_year
  * @property bool $bureau_member
  * @property bool $active_instructor
  * @property string|null $instructor_bio
