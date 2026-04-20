@@ -50,6 +50,13 @@ class SetLocale
     {
         IconHelper::flush();
 
+        // Apply admin-configured default locale
+        $defaultLocale = ThemeSetting::get('default_locale');
+        if ($defaultLocale) {
+            app()->setLocale($defaultLocale);
+            app()->setFallbackLocale($defaultLocale);
+        }
+
         $supported = static::enabledLocales();
 
         // 1. Authenticated user preference

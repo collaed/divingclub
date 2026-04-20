@@ -646,6 +646,19 @@
                 <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                     @csrf
                     @php $enabled = \App\Http\Middleware\SetLocale::enabledLocales(); @endphp
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ __('Default Language') }}</label>
+                        <select name="default_locale" class="form-select form-select-sm" style="max-width:300px">
+                            @foreach(config('languages', []) as $code => $lang)
+                                @if(in_array($code, $enabled))
+                                    <option value="{{ $code }}" {{ \App\Models\ThemeSetting::get('default_locale', config('app.locale')) === $code ? 'selected' : '' }}>
+                                        {{ $lang['flag'] }} {{ $lang['native'] }} ({{ $lang['label'] }})
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                        <small class="text-muted">{{ __('Used for new visitors and as the fallback language.') }}</small>
+                    </div>
                     <div class="row">
                         @foreach(config('languages', []) as $code => $lang)
                             <div class="col-6 col-md-4 mb-2">
