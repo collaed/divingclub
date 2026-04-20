@@ -106,15 +106,12 @@
                     $endY = (int)date('Y') + 1;
                     $paid = array_map('strval', $d?->cotisation_years ?? []);
                 @endphp
-                <div class="d-flex flex-wrap align-items-center gap-0" style="font-size:0">
+                <div class="d-flex flex-wrap align-items-end gap-0" style="font-size:0">
                     @for($y = $startY; $y <= $endY; $y++)
                         @php $isPaid = in_array((string)$y, $paid); @endphp
                         <label class="d-inline-block text-center" style="cursor:pointer" title="{{ $y }}{{ $isPaid ? ' ✓' : '' }}">
-                            <input type="checkbox" name="cotisation_years[]" value="{{ $y }}" {{ $isPaid ? 'checked' : '' }} class="d-none cotis-cb" data-year="{{ $y }}">
-                            <span class="d-block" style="width:18px;height:22px;margin:0 1px;border-radius:2px;background:{{ $isPaid ? '#28a745' : '#dee2e6' }};border:1px solid {{ $isPaid ? '#1e7e34' : '#ccc' }}"></span>
-                            @if($y === $startY || $y === $endY || $y % 5 === 0)
-                                <span style="font-size:9px;color:#888">{{ substr($y, 2) }}</span>
-                            @endif
+                            <input type="checkbox" name="cotisation_years[]" value="{{ $y }}" {{ $isPaid ? 'checked' : '' }} class="d-none cotis-cb">
+                            <span class="d-block" style="width:20px;height:24px;margin:0 1px;border-radius:2px;background:{{ $isPaid ? '#28a745' : '#dee2e6' }};border:1px solid {{ $isPaid ? '#1e7e34' : '#ccc' }};line-height:24px;font-size:8px;color:{{ $isPaid ? '#fff' : '#999' }}">{{ substr($y, 2) }}</span>
                         </label>
                     @endfor
                 </div>
@@ -153,11 +150,10 @@
                     $endY = (int)date('Y') + 1;
                 @endphp
                 @if(count($paid))
-                    <div class="d-inline-flex align-items-center gap-0 ms-1">
+                    <div class="d-inline-flex align-items-end gap-0 ms-1">
                         @for($y = $startY; $y <= $endY; $y++)
                             @php $isPaid = in_array((string)$y, $paid); @endphp
-                            <span title="{{ $y }}{{ $isPaid ? ' ✓' : ' ✗' }}" style="display:inline-block;width:10px;height:14px;margin:0 1px;border-radius:1px;background:{{ $isPaid ? '#28a745' : '#dee2e6' }}"></span>
-                            @if($y % 5 === 0)<span style="font-size:8px;color:#aaa;margin:0 1px">{{ substr($y, 2) }}</span>@endif
+                            <span title="{{ $y }}{{ $isPaid ? ' ✓' : ' ✗' }}" style="display:inline-block;width:16px;height:18px;margin:0 1px;border-radius:1px;background:{{ $isPaid ? '#28a745' : '#dee2e6' }};line-height:18px;font-size:7px;color:{{ $isPaid ? '#fff' : '#aaa' }};text-align:center">{{ substr($y, 2) }}</span>
                         @endfor
                     </div>
                     @if(!in_array((string)date('Y'), $paid))
