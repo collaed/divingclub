@@ -102,18 +102,26 @@
             <div class="col-md-8 mb-3">
                 <label class="form-label">{{ __('Cotisation Years') }}</label>
                 @php
-                    $startY = max((int)($d?->adhesion_year ?? date('Y') - 5), date('Y') - 10);
+                    $startY = max((int)($d?->adhesion_year ?? date('Y') - 5), date('Y') - 25);
                     $endY = (int)date('Y') + 1;
-                    $paid = $d?->cotisation_years ?? [];
+                    $paid = array_map('strval', $d?->cotisation_years ?? []);
                 @endphp
-                <div class="d-flex flex-wrap gap-2">
-                    @for($y = $endY; $y >= $startY; $y--)
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" name="cotisation_years[]" value="{{ $y }}" id="cot_{{ $y }}" {{ in_array((string)$y, $paid) ? 'checked' : '' }}>
-                            <label class="form-check-label small" for="cot_{{ $y }}">{{ $y }}</label>
-                        </div>
+                <div class="d-flex flex-wrap align-items-center gap-0" style="font-size:0">
+                    @for($y = $startY; $y <= $endY; $y++)
+                        @php $isPaid = in_array((string)$y, $paid); @endphp
+                        <label class="d-inline-block text-center" style="cursor:pointer" title="{{ $y }}{{ $isPaid ? ' ✓' : '' }}">
+                            <input type="checkbox" name="cotisation_years[]" value="{{ $y }}" {{ $isPaid ? 'checked' : '' }} class="d-none cotis-cb" data-year="{{ $y }}">
+                            <span class="d-block" style="width:18px;height:22px;margin:0 1px;border-radius:2px;background:{{ $isPaid ? '#28a745' : '#dee2e6' }};border:1px solid {{ $isPaid ? '#1e7e34' : '#ccc' }}"></span>
+                            @if($y === $startY || $y === $endY || $y % 5 === 0)
+                                <span style="font-size:9px;color:#888">{{ substr($y, 2) }}</span>
+                            @endif
+                        </label>
                     @endfor
                 </div>
+                <script>document.querySelectorAll('.cotis-cb').forEach(cb => cb.addEventListener('change', function() {
+                    this.previousElementSibling.nextElementSibling.style.background = this.checked ? '#28a745' : '#dee2e6';
+                    this.previousElementSibling.nextElementSibling.style.borderColor = this.checked ? '#1e7e34' : '#ccc';
+                }));</script>
                 @error('cotisation_years') <div class="text-danger small">{{ $message }}</div> @enderror
             </div>
         </div>
@@ -138,9 +146,25 @@
         <div class="row mt-3">
             <div class="col-md-4"><strong>{{ __('Status') }}:</strong> {{ $target->status?->name ?? '—' }}</div>
             <div class="col-md-4"><strong>{{ __('Adhesion Year') }}:</strong> {{ $d?->adhesion_year ?? '—' }}</div>
-            <div class="col-md-4"><strong>{{ __('Cotisation Years') }}:</strong> {{ $d?->cotisation_years ? implode(', ', $d->cotisation_years) : '—' }}
-                @if($d?->cotisation_years && !in_array((string)date('Y'), $d->cotisation_years))
-                    <span class="badge bg-danger ms-1">{{ date('Y') }} ✗</span>
+            <div class="col-md-4"><strong>{{ __('Cotisation') }}:</strong>
+                @php
+                    $paid = array_map('strval', $d?->cotisation_years ?? []);
+                    $startY = max((int)($d?->adhesion_year ?? date('Y')), date('Y') - 25);
+                    $endY = (int)date('Y') + 1;
+                @endphp
+                @if(count($paid))
+                    <div class="d-inline-flex align-items-center gap-0 ms-1">
+                        @for($y = $startY; $y <= $endY; $y++)
+                            @php $isPaid = in_array((string)$y, $paid); @endphp
+                            <span title="{{ $y }}{{ $isPaid ? ' ✓' : ' ✗' }}" style="display:inline-block;width:10px;height:14px;margin:0 1px;border-radius:1px;background:{{ $isPaid ? '#28a745' : '#dee2e6' }}"></span>
+                            @if($y % 5 === 0)<span style="font-size:8px;color:#aaa;margin:0 1px">{{ substr($y, 2) }}</span>@endif
+                        @endfor
+                    </div>
+                    @if(!in_array((string)date('Y'), $paid))
+                        <span class="badge bg-danger ms-1">{{ date('Y') }} ✗</span>
+                    @endif
+                @else
+                    —
                 @endif
             </div>
         </div>
