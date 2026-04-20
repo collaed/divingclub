@@ -37,6 +37,12 @@ parameters:
 			path: app/Http/Controllers/Admin/EquipmentController.php
 
 		-
+			message: '#^Instanceof between App\\Models\\Equipment and App\\Models\\Equipment will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Admin/EquipmentController.php
+
+		-
 			message: '#^Parameter \#1 \$value of method Carbon\\Carbon\:\:addMonths\(\) expects float\|int, string\|null given\.$#'
 			identifier: argument.type
 			count: 2
@@ -67,22 +73,10 @@ parameters:
 			path: app/Http/Controllers/Admin/NewsletterController.php
 
 		-
-			message: '#^Call to static method read\(\) on an unknown class Intervention\\Image\\Laravel\\Facades\\Image\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Http/Controllers/Admin/ThumbnailController.php
-
-		-
 			message: '#^Match expression does not handle remaining values\: string\|null$#'
 			identifier: match.unhandled
 			count: 1
 			path: app/Http/Controllers/Admin/TrialRequestController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/Admin/VoteController.php
 
 		-
 			message: '#^Parameter \#1 \$user of static method Illuminate\\Support\\Facades\\Auth\:\:login\(\) expects Illuminate\\Contracts\\Auth\\Authenticatable, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
@@ -91,15 +85,9 @@ parameters:
 			path: app/Http/Controllers/Auth/EuLoginController.php
 
 		-
-			message: '#^Access to an undefined property Laravel\\Socialite\\Contracts\\User\:\:\$refreshToken\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Auth/SocialAuthController.php
-
-		-
-			message: '#^Access to an undefined property Laravel\\Socialite\\Contracts\\User\:\:\$token\.$#'
-			identifier: property.notFound
-			count: 3
+			message: '#^Expression on left side of \?\? is always null\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
@@ -121,7 +109,7 @@ parameters:
 			path: app/Http/Controllers/DiveDataController.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\DiveSite\:\:\$water_temp\.$#'
+			message: '#^Access to an undefined property App\\Models\\DiveSite\:\:\$water_temperature\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/DiveGroupController.php
@@ -139,12 +127,6 @@ parameters:
 			path: app/Http/Controllers/DocumentBrowserController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\EventPhoto\>\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/DocumentBrowserController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\|Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -155,12 +137,6 @@ parameters:
 			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Http/Controllers/EventController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/GdprController.php
 
 		-
 			message: '#^Offset ''status'' on array\{status\: string, bytes\: int, human\: string\}\|array\{status\: string, error\?\: string\}\|array\{status\: string, free\: string, total\: string, used_pct\: float\}\|array\{status\: string, ms\?\: float\}\|array\{status\: string, pending\: int, failed\: int\} on left side of \?\? always exists and is not nullable\.$#'
@@ -185,12 +161,6 @@ parameters:
 			identifier: argument.type
 			count: 3
 			path: app/Http/Controllers/HomeController.php
-
-		-
-			message: '#^Call to static method read\(\) on an unknown class Intervention\\Image\\Laravel\\Facades\\Image\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Http/Controllers/ProfileAvatarController.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:emails\(\)\.$#'
@@ -265,21 +235,9 @@ parameters:
 			path: app/Services/ArticleTranslationService.php
 
 		-
-			message: '#^Call to static method getTableListing\(\) on an unknown class App\\Services\\Schema\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/BackupService.php
-
-		-
 			message: '#^Method App\\Services\\BackupService\:\:create\(\) should return array\{filename\: string, path\: string, size\: int, manifest\: array\} but returns array\{filename\: non\-falsy\-string, path\: non\-falsy\-string, size\: int\<0, max\>\|false, manifest\: null\}\.$#'
 			identifier: return.type
 			count: 1
-			path: app/Services/BackupService.php
-
-		-
-			message: '#^Parameter \#1 \$array of function rsort contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 2
 			path: app/Services/BackupService.php
 
 		-
@@ -295,8 +253,8 @@ parameters:
 			path: app/Services/BankReconciliationService.php
 
 		-
-			message: '#^Strict comparison using \!\=\= between int\<min, \-26\> and 0 will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
+			message: '#^Loose comparison using \!\= between int\<min, \-26\> and 0 will always evaluate to true\.$#'
+			identifier: notEqual.alwaysTrue
 			count: 1
 			path: app/Services/Homogeneity/HomogeneityAssessmentService.php
 
@@ -337,14 +295,8 @@ parameters:
 			path: app/Services/SocialPublishService.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\DiveSite\:\:\$water_temp\.$#'
+			message: '#^Access to an undefined property App\\Models\\DiveSite\:\:\$water_temperature\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Services/SwapSuggestionService.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_values contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
 			count: 1
 			path: app/Services/SwapSuggestionService.php
 

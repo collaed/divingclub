@@ -217,7 +217,7 @@ class HomogeneityAssessmentService
             }
 
             if ($sum < $minTotal) {
-                $ratio = $sum !== 0 ? $minTotal / $sum : 1;
+                $ratio = $sum != 0 ? $minTotal / $sum : 1;
                 foreach ($factors as $f) {
                     if (str_starts_with($f->type->value, $prefix)) {
                         $f->scoreImpact = (int) round($f->scoreImpact * $ratio);

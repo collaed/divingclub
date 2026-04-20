@@ -8,6 +8,10 @@ parameters:
     level: 5
     ignoreErrors:
         - identifier: nullsafe.neverNull
+        - identifier: argument.unresolvableType
         -
             message: '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::#'
+            reportUnmatched: false
+        -
+            message: '#on an unknown class Intervention\\Image#'
             reportUnmatched: false

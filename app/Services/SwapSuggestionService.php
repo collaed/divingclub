@@ -42,7 +42,7 @@ class SwapSuggestionService
 
         $ctx = new DiveContext(
             plannedDepth: $event->diveSite?->max_depth ?? 20,
-            waterTempCelsius: $event->diveSite?->water_temp ?? 15.0,
+            waterTempCelsius: $event->diveSite?->water_temperature ?? 15.0,
         );
 
         // Build profiles per group

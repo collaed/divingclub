@@ -166,7 +166,7 @@ class DiveGroupController extends Controller
             $diverProfiles = $group->members->map(fn ($m) => $this->buildDiverProfile($m->user))->toArray();
             $ctx = new DiveContext(
                 plannedDepth: $group->planned_depth ?? $event->diveSite?->max_depth ?? 20,
-                waterTempCelsius: $event->diveSite?->water_temp ?? 15.0,
+                waterTempCelsius: $event->diveSite?->water_temperature ?? 15.0,
             );
             $result = $assessor->assess($diverProfiles, $ctx);
             $homogeneity[$groupKey] = [

@@ -52,7 +52,7 @@ class SocialAuthController extends Controller
             ->first();
 
         if ($social) {
-            $social->update(['token' => $socialUser->token, 'refresh_token' => $socialUser->refreshToken]);
+            $social->update(['token' => $socialUser->token ?? null, 'refresh_token' => $socialUser->refreshToken ?? null]);
             Auth::login($social->user, true);
 
             return redirect()->intended(route('profile.show'));
@@ -74,8 +74,8 @@ class SocialAuthController extends Controller
                     'provider' => $provider,
                     'provider_user_id' => $socialUser->getId(),
                     'email' => $email,
-                    'token' => encrypt($socialUser->token),
-                    'refresh_token' => encrypt($socialUser->refreshToken ?? ''),
+                    'token' => encrypt($socialUser->token ?? null),
+                    'refresh_token' => encrypt($socialUser->refreshToken ?? null ?? ''),
                     'user_id' => $existingUser->id,
                 ],
             ]);
@@ -92,8 +92,8 @@ class SocialAuthController extends Controller
                 'provider_user_id' => $socialUser->getId(),
                 'email' => $email,
                 'name' => $socialUser->getName() ?? '',
-                'token' => encrypt($socialUser->token),
-                'refresh_token' => encrypt($socialUser->refreshToken ?? ''),
+                'token' => encrypt($socialUser->token ?? null),
+                'refresh_token' => encrypt($socialUser->refreshToken ?? null ?? ''),
             ],
         ]);
 

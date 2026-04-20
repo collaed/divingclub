@@ -125,7 +125,7 @@ class EquipmentController extends Controller
     {
         $loan->update(['returned_at' => now(), 'returned_by' => auth()->id()]);
 
-        $status = $loan->equipment->hasOverdueMaintenance() ? 'maintenance_required' : 'available';
+        $status = ($loan->equipment instanceof Equipment && $loan->equipment->hasOverdueMaintenance()) ? 'maintenance_required' : 'available';
         $loan->equipment->update(['status' => $status, 'last_seen_at' => now()]);
 
         return back()->with('success', __('Equipment returned.'));
