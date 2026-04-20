@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
+use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -15,12 +16,35 @@ class MembersDirectoryController extends Controller
         $query = User::with(['detail', 'roles', 'status'])
             ->whereHas('detail', fn ($q) => $q->whereNotNull('first_name'));
 
+        // Text search
         if ($request->filled('search')) {
             $s = $request->search;
             $query->whereHas('detail', fn ($q) => $q->where(function ($w) use ($s) {
                 $w->whereRaw('LOWER(first_name) like ?', ['%'.strtolower($s).'%'])
                     ->orWhereRaw('LOWER(last_name) like ?', ['%'.strtolower($s).'%']);
             }));
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status_id', $request->status);
+        }
+
+        // Instructor filter
+        if ($request->filled('instructor')) {
+            if ($request->instructor === '1') {
+                $query->whereHas('detail', fn ($q) => $q->where('active_instructor', true));
+            } else {
+                $query->whereHas('detail', fn ($q) => $q->where('active_instructor', false)->orWhereNull('active_instructor'));
+            }
+        }
+
+        // Age bracket filter
+        if ($request->filled('age')) {
+            [$min, $max] = explode('-', $request->age);
+            $from = now()->subYears((int) $max + 1)->addDay()->format('Y-m-d');
+            $to = now()->subYears((int) $min)->format('Y-m-d');
+            $query->whereHas('detail', fn ($q) => $q->whereBetween('date_of_birth', [$from, $to]));
         }
 
         $sortable = ['last_name', 'certification_level', 'adhesion_year'];
@@ -32,12 +56,13 @@ class MembersDirectoryController extends Controller
             ->select('users.*');
 
         $members = $query->paginate($this->perPage(50))->withQueryString();
+        $statuses = MemberStatus::orderBy('name')->get();
 
         if ($request->ajax()) {
             return view('members._directory_rows', compact('members'));
         }
 
-        return view('members.directory', compact('members'));
+        return view('members.directory', compact('members', 'statuses'));
     }
 
     public function trombinoscope()
