@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -56,7 +57,7 @@ class DiveSite extends Model
         return $this->hasMany(Event::class);
     }
 
-    public function scopeActive($q)
+    public function scopeActive(Builder $q): Builder
     {
         return $q->where('is_active', true);
     }

@@ -19,12 +19,14 @@ use App\Models\User;
 use App\Services\MailBalancer;
 use App\Services\ScheduleHeartbeat;
 use App\Services\UpdateService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Response;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $season = $request->get('season', date('Y'));
 
@@ -99,7 +101,7 @@ class DashboardController extends Controller
         return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats', 'updateInfo', 'commitInfo', 'mailBalance'));
     }
 
-    public function exportCsv(Request $request): \Symfony\Component\HttpFoundation\Response
+    public function exportCsv(Request $request): Response
     {
         $type = $request->get('type', 'members');
 

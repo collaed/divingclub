@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\LibraryFile;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
+use Symfony\Component\HttpFoundation\Response;
 
 class ThumbnailController extends Controller
 {
-    public function show(LibraryFile $file)
+    public function show(LibraryFile $file): Response
     {
         $thumbPath = 'thumbnails/'.$file->id.'.jpg';
 

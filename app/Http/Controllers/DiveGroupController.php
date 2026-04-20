@@ -295,7 +295,7 @@ class DiveGroupController extends Controller
     // Validates leader qualification, depth limits, and group size against
     // active DiveGroupRules. Federation-specific rules take priority over global.
 
-    private function checkGroup(DiveGroup $group, $rules): array
+    private function checkGroup(DiveGroup $group, array $rules): array
     {
         $violations = [];
         $members = $group->members;
@@ -380,7 +380,7 @@ class DiveGroupController extends Controller
     // ─── PDF Export (Fiche de Sécurité) ────────────────────────
 
     /** Generate a printable fiche de sécurité PDF for the event's dive groups. */
-    public function printFiche(Event $event)
+    public function printFiche(Event $event): View
     {
         abort_unless($this->canView($event), 403);
         $event->load(['diveGroups.members.user.certificationLevels.federation', 'diveGroups.members.user.detail', 'diveSite', 'registrations']);
@@ -395,7 +395,7 @@ class DiveGroupController extends Controller
 
     // ─── Authorization ────────────────────────────────────────
 
-    private function getHighestCert($user): ?object
+    private function getHighestCert(User $user): ?object
     {
         return $user->certificationLevels
             ->where('category', '!=', 'specialty')

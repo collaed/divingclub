@@ -21,7 +21,7 @@ class CheckLicense
      * Block new member registration when license is invalid and member count exceeds free tier.
      * Existing members can still log in and use the system.
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): mixed
     {
         if (! LicenseService::isValid()) {
             return redirect()->route('home')

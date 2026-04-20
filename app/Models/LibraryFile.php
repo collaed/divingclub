@@ -9,6 +9,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -40,7 +41,7 @@ class LibraryFile extends Model
     }
 
     /** Files visible to the given user (or public if null). */
-    public function scopeVisibleTo($q, ?User $user)
+    public function scopeVisibleTo(Builder $q, ?User $user): Builder
     {
         if (! $user) {
             return $q->where('visibility', 'public');
@@ -55,12 +56,12 @@ class LibraryFile extends Model
         return $q->whereIn('visibility', ['public', 'members']);
     }
 
-    public function scopePublic($q)
+    public function scopePublic(Builder $q): Builder
     {
         return $q->where('visibility', 'public');
     }
 
-    public function scopeInFolder($q, string $folder)
+    public function scopeInFolder(Builder $q, string $folder): Builder
     {
         return $q->where('folder', $folder);
     }

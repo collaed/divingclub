@@ -40,7 +40,7 @@ class ProfileController extends Controller
         return view('profile.show', compact('target', 'viewer', 'statuses', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierManifest'));
     }
 
-    public function updateInfo(Request $request, ?User $user = null)
+    public function updateInfo(Request $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;

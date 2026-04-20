@@ -1,2 +1,55 @@
 parameters:
-    ignoreErrors: []
+	ignoreErrors:
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\EmailController\:\:resolveGroup\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Admin/EmailController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CalendarFeedController\:\:formatDt\(\) has parameter \$date with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CalendarFeedController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DiveGroupController\:\:printFiche\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/DiveGroupController.php
+
+		-
+			message: '#^Parameter \#2 \$rules of method App\\Http\\Controllers\\DiveGroupController\:\:checkGroup\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DiveGroupRule\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/DiveGroupController.php
+
+		-
+			message: '#^Method App\\Jobs\\PollInboundMail\:\:getImapBody\(\) has parameter \$imap with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Jobs/PollInboundMail.php
+
+		-
+			message: '#^Method App\\Models\\CertificationLevel\:\:equivalents\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\CertificationLevel\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/CertificationLevel.php
+
+		-
+			message: '#^Method App\\Models\\CertificationLevel\:\:equivalents\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany but returns Illuminate\\Support\\Collection\<\(int\|string\), mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/CertificationLevel.php
+
+		-
+			message: '#^Method App\\Models\\DiveGroup\:\:divers\(\) should return Illuminate\\Database\\Eloquent\\Collection but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\DiveGroupMember, \$this\(App\\Models\\DiveGroup\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/DiveGroup.php
+
+		-
+			message: '#^Method App\\Services\\MedicalComplianceService\:\:computeExpiry\(\) has parameter \$rules with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/MedicalComplianceService.php

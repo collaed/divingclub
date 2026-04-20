@@ -69,7 +69,7 @@ class EmailController extends Controller
         return response()->json($rendered);
     }
 
-    public function send(Request $request)
+    public function send(Request $request): RedirectResponse
     {
         $request->validate([
             'template_id' => 'required|exists:email_templates,id',

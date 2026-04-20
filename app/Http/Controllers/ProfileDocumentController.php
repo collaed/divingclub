@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProfileDocumentController extends Controller
 {
-    public function upload(Request $request, ?User $user = null)
+    public function upload(Request $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
@@ -102,7 +102,7 @@ class ProfileDocumentController extends Controller
         abort(404, __('File not found.'));
     }
 
-    public function view(Document $document)
+    public function view(Document $document): Response
     {
         $viewer = auth()->user();
         if ($document->user_id !== $viewer->id && ! $viewer->isBureau()) {

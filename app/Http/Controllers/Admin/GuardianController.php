@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class GuardianController extends Controller
 {
@@ -80,7 +81,7 @@ class GuardianController extends Controller
         return back()->with('success', __('Consent revoked.'));
     }
 
-    public function downloadConsent(ParentalConsent $consent)
+    public function downloadConsent(ParentalConsent $consent): Response
     {
         abort_unless($consent->document_path && Storage::disk('local')->exists($consent->document_path), 404);
 

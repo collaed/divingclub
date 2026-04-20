@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -36,7 +37,7 @@ class TrialRequest extends Model
         return $this->belongsTo(User::class, 'confirmed_by');
     }
 
-    public function scopePending($q)
+    public function scopePending(Builder $q): Builder
     {
         return $q->where('status', 'pending');
     }

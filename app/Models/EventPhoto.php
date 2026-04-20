@@ -12,6 +12,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -60,7 +61,7 @@ class EventPhoto extends Model
     }
 
     /** Best approved photos safe for public/anonymous display (no faces, no banned uploaders). */
-    public function scopeBestPublic($q, int $limit = 10)
+    public function scopeBestPublic(Builder $q, int $limit = 10): Builder
     {
         return $q->where('approved', true)
             ->where('gdpr_consent', true)
@@ -71,7 +72,7 @@ class EventPhoto extends Model
     }
 
     /** Weighted-random public photos — favours high quality_score. */
-    public function scopeRandomPublic($q, int $limit = 10)
+    public function scopeRandomPublic(Builder $q, int $limit = 10): Builder
     {
         return $q->where('approved', true)
             ->where('gdpr_consent', true)
@@ -82,7 +83,7 @@ class EventPhoto extends Model
     }
 
     /** Best approved photos for authenticated members (faces allowed). */
-    public function scopeBestForMembers($q, int $limit = 10)
+    public function scopeBestForMembers(Builder $q, int $limit = 10): Builder
     {
         return $q->where('approved', true)
             ->where('gdpr_consent', true)
@@ -91,7 +92,7 @@ class EventPhoto extends Model
     }
 
     /** Weighted-random photos for authenticated members (faces allowed). */
-    public function scopeRandomForMembers($q, int $limit = 10)
+    public function scopeRandomForMembers(Builder $q, int $limit = 10): Builder
     {
         return $q->where('approved', true)
             ->where('gdpr_consent', true)

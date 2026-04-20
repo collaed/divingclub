@@ -35,7 +35,7 @@ class InstallController extends Controller
         return view('install.index', compact('currentDriver', 'envExists'));
     }
 
-    public function run(Request $request)
+    public function run(Request $request): RedirectResponse
     {
         $request->validate([
             'db_driver' => 'required|in:sqlite,mysql',

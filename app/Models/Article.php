@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Helpers\HtmlSanitizer;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -98,7 +99,7 @@ class Article extends Model
         return $body;
     }
 
-    public function canBeEditedBy($user): bool
+    public function canBeEditedBy(User $user): bool
     {
         if ($user->can('manage articles')) {
             return true;
@@ -162,33 +163,33 @@ class Article extends Model
         return $this->hasMany(ArticleComment::class)->whereNull('parent_id')->orderBy('created_at');
     }
 
-    public function previousInType()
+    public function previousInType(): ?self
     {
         return self::where('article_type', $this->article_type)
             ->active()->where('created_at', '<', $this->created_at)
             ->orderByDesc('created_at')->first();
     }
 
-    public function nextInType()
+    public function nextInType(): ?self
     {
         return self::where('article_type', $this->article_type)
             ->active()->where('created_at', '>', $this->created_at)
             ->orderBy('created_at')->first();
     }
 
-    public function previousOverall()
+    public function previousOverall(): ?self
     {
         return self::active()->where('created_at', '<', $this->created_at)
             ->orderByDesc('created_at')->first();
     }
 
-    public function nextOverall()
+    public function nextOverall(): ?self
     {
         return self::active()->where('created_at', '>', $this->created_at)
             ->orderBy('created_at')->first();
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_published', true)
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));

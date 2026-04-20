@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -50,7 +51,7 @@ class BuddyRequest extends Model
         return $this->hasMany(BuddyResponse::class);
     }
 
-    public function scopeActive($q)
+    public function scopeActive(Builder $q): Builder
     {
         return $q->where('is_active', true)->where('dive_date', '>=', today());
     }

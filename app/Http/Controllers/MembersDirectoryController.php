@@ -7,12 +7,13 @@ use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class MembersDirectoryController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function directory(Request $request)
+    public function directory(Request $request): View|Response
     {
         $query = User::with(['detail', 'roles', 'status'])
             ->whereHas('detail', fn ($q) => $q->whereNotNull('first_name'));

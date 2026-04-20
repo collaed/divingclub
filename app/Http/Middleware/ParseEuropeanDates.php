@@ -17,7 +17,7 @@ class ParseEuropeanDates
         'licence_request_date',
     ];
 
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): mixed
     {
         foreach ($this->dateFields as $field) {
             if ($request->has($field) && $request->input($field)) {
@@ -28,6 +28,7 @@ class ParseEuropeanDates
                 }
             }
         }
+
         return $next($request);
     }
 }

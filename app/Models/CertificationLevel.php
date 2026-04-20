@@ -35,7 +35,7 @@ class CertificationLevel extends Model
     }
 
     // Get equivalent certs across federations
-    public function equivalents()
+    public function equivalents(): BelongsToMany
     {
         if (! $this->equivalence_group) {
             return collect();

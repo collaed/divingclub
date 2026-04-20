@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -18,12 +19,12 @@ class Federation extends Model
 {
     protected $fillable = ['acronym', 'full_name', 'visibility'];
 
-    public function scopeVisible($q)
+    public function scopeVisible(Builder $q): Builder
     {
         return $q->whereIn('visibility', ['active', 'recognized']);
     }
 
-    public function scopeActive($q)
+    public function scopeActive(Builder $q): Builder
     {
         return $q->where('visibility', 'active');
     }

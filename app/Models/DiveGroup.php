@@ -49,12 +49,12 @@ class DiveGroup extends Model
         return $this->hasMany(DiveGroupMember::class);
     }
 
-    public function leader()
+    public function leader(): ?DiveGroupMember
     {
         return $this->members()->where('role', 'leader')->first();
     }
 
-    public function divers()
+    public function divers(): Collection
     {
         return $this->members()->where('role', 'diver');
     }

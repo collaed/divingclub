@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 
 class EnsureInstalled
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): mixed
     {
         if ($request->is('install*') || $request->is('_debugbar/*') || app()->runningUnitTests()) {
             return $next($request);

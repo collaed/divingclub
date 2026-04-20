@@ -17,7 +17,7 @@ class MedicalExportController extends Controller
     /**
      * Export member list as CSV for federation medical submission.
      */
-    public function exportList(Request $request)
+    public function exportList(Request $request): Response
     {
         $federationId = $request->get('federation_id');
 

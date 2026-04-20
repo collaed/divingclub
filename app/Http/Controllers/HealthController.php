@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class HealthController extends Controller
 {
-    public function __invoke()
+    public function __invoke(): JsonResponse
     {
         $checks = [];
         $healthy = true;

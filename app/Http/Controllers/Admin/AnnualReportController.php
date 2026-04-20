@@ -8,11 +8,12 @@ use App\Models\EventRegistration;
 use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class AnnualReportController extends Controller
 {
-    public function show(Request $request)
+    public function show(Request $request): View
     {
         $year = (int) $request->get('year', date('Y'));
         $years = range(date('Y'), (int) (User::min('created_at') ? substr(User::min('created_at'), 0, 4) : date('Y') - 3), -1);

@@ -166,7 +166,7 @@ class NewsletterController extends Controller
         return back()->with('success', __('Approval recorded (:n/3).', ['n' => $newsletter->approvalCount()]));
     }
 
-    public function send(Newsletter $newsletter)
+    public function send(Newsletter $newsletter): RedirectResponse
     {
         abort_unless($newsletter->status === 'approved', 403);
 

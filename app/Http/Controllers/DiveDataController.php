@@ -18,6 +18,7 @@ use App\Services\DanExportService;
 use App\Services\UddfService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class DiveDataController extends Controller
 {
@@ -64,7 +65,7 @@ class DiveDataController extends Controller
     }
 
     /** Export a user's dive history as UDDF XML. */
-    public function exportUddf(Request $request)
+    public function exportUddf(Request $request): Response
     {
         $user = $request->user();
         $memberships = DiveGroupMember::where('user_id', $user->id)
@@ -80,7 +81,7 @@ class DiveDataController extends Controller
     }
 
     /** Export all club dive data as DAN DL7 (bureau only). */
-    public function exportDan(Request $request)
+    public function exportDan(Request $request): Response
     {
         $year = $request->input('year', now()->year);
 
