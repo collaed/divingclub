@@ -125,7 +125,7 @@ class InboundMailFilter
      */
     private static function aiFilter(string $body, ?int $eventId): array
     {
-        $oneMinKey = env('ONEMIN_AI_KEY');
+        $oneMinKey = config('services.onemin.key');
         $openAiKey = config('services.openai.key') ?: env('OPENAI_API_KEY');
         $apiKey = $oneMinKey ?: $openAiKey;
 

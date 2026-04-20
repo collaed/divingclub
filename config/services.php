@@ -4,7 +4,19 @@ return [
 
     'postmark' => ['token' => env('POSTMARK_TOKEN')],
     'ses' => ['key' => env('AWS_ACCESS_KEY_ID'), 'secret' => env('AWS_SECRET_ACCESS_KEY'), 'region' => env('AWS_DEFAULT_REGION', 'us-east-1')],
-    'resend' => ['key' => env('RESEND_KEY')],
+    'resend' => [
+        'key' => env('RESEND_KEY'),
+        'key_secondary' => env('RESEND_KEY_SECONDARY'),
+    ],
+
+    'mailjet' => [
+        'key' => env('MAILJET_KEY'),
+        'secret' => env('MAILJET_SECRET'),
+    ],
+
+    'onemin' => [
+        'key' => env('ONEMIN_AI_KEY'),
+    ],
 
     // Inbound mail processing
     // Mode 'maildir': reads from local Maildir (no extra services needed)

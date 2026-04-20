@@ -21,10 +21,10 @@ class PaymentController extends Controller
         $query = PaymentExpected::with('user.detail')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s) {
-                $w->where('communication', $op, "%{$s}%")
-                    ->orWhereHas('user', fn ($uq) => $uq->where('primary_email', $op, "%{$s}%")
-                        ->orWhereHas('detail', fn ($dq) => $dq->where('last_name', $op, "%{$s}%")
-                            ->orWhere('first_name', $op, "%{$s}%")));
+                $w->where('communication', 'ILIKE', "%{$s}%")
+                    ->orWhereHas('user', fn ($uq) => $uq->where('primary_email', 'ILIKE', "%{$s}%")
+                        ->orWhereHas('detail', fn ($dq) => $dq->where('last_name', 'ILIKE', "%{$s}%")
+                            ->orWhere('first_name', 'ILIKE', "%{$s}%")));
             }));
 
         $sortable = ['created_at', 'amount_due', 'amount_paid', 'status', 'type'];

@@ -96,8 +96,8 @@ class DocumentBrowserController extends Controller
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('original_name', $op, "%{$search}%")
-                    ->orWhere('description', $op, "%{$search}%");
+                $q->where('original_name', 'ILIKE', "%{$search}%")
+                    ->orWhere('description', 'ILIKE', "%{$search}%");
             });
             $folder = null;
         } else {

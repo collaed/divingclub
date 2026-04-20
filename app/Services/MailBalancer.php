@@ -92,7 +92,7 @@ class MailBalancer
         return Cache::remember('resend_quotas', 300, function () {
             $quotas = [];
 
-            foreach (['primary' => env('RESEND_KEY'), 'secondary' => env('RESEND_KEY_SECONDARY')] as $label => $key) {
+            foreach (['primary' => config('services.resend.key'), 'secondary' => config('services.resend.key_secondary')] as $label => $key) {
                 if (! $key) {
                     continue;
                 }
@@ -190,12 +190,12 @@ class MailBalancer
         switch ($provider) {
             case 'resend_primary':
                 config(['mail.default' => 'resend']);
-                config(['services.resend.key' => env('RESEND_KEY')]);
+                config(['services.resend.key' => config('services.resend.key')]);
                 break;
 
             case 'resend_secondary':
                 config(['mail.default' => 'resend']);
-                config(['services.resend.key' => env('RESEND_KEY_SECONDARY')]);
+                config(['services.resend.key' => config('services.resend.key_secondary')]);
                 break;
 
             case 'mailjet':

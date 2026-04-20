@@ -77,8 +77,8 @@ class EmailStatsService
     /** Fetch messages from Mailjet for a given date. Cached 5 min. */
     private static function fetchMailjetMessages(string $date): array
     {
-        $key = env('MAILJET_KEY');
-        $secret = env('MAILJET_SECRET');
+        $key = config('services.mailjet.key');
+        $secret = config('services.mailjet.secret');
         if (! $key || ! $secret) {
             return [];
         }
@@ -115,7 +115,7 @@ class EmailStatsService
     /** Fetch messages from Resend for a given date. Cached 5 min. */
     private static function fetchResendMessages(string $date): array
     {
-        $keys = array_filter([env('RESEND_KEY'), env('RESEND_KEY_SECONDARY')]);
+        $keys = array_filter([config('services.resend.key'), config('services.resend.key_secondary')]);
         if (! $keys) {
             return [];
         }

@@ -91,12 +91,6 @@ parameters:
 			path: app/Helpers/IconHelper.php
 
 		-
-			message: '#^Undefined variable\: \$op$#'
-			identifier: variable.undefined
-			count: 4
-			path: app/Http/Controllers/Admin/ArticleController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
@@ -105,12 +99,6 @@ parameters:
 		-
 			message: '#^Cannot call method toIso8601String\(\) on string\.$#'
 			identifier: method.nonObject
-			count: 1
-			path: app/Http/Controllers/Admin/AuditLogController.php
-
-		-
-			message: '#^Undefined variable\: \$op$#'
-			identifier: variable.undefined
 			count: 1
 			path: app/Http/Controllers/Admin/AuditLogController.php
 
@@ -217,12 +205,6 @@ parameters:
 			path: app/Http/Controllers/Admin/LibraryController.php
 
 		-
-			message: '#^Undefined variable\: \$op$#'
-			identifier: variable.undefined
-			count: 2
-			path: app/Http/Controllers/Admin/LibraryController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$date_established\.$#'
 			identifier: property.notFound
 			count: 1
@@ -275,12 +257,6 @@ parameters:
 			identifier: property.notFound
 			count: 4
 			path: app/Http/Controllers/Admin/PartnershipController.php
-
-		-
-			message: '#^Undefined variable\: \$op$#'
-			identifier: variable.undefined
-			count: 4
-			path: app/Http/Controllers/Admin/PaymentController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$day_of_week\.$#'
@@ -395,12 +371,6 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/Auth/SocialAuthController.php
-
-		-
-			message: '#^Undefined variable\: \$op$#'
-			identifier: variable.undefined
-			count: 2
-			path: app/Http/Controllers/ClassifiedController.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\DiveGroupMember\:\:\$diveGroup\.$#'
@@ -592,12 +562,6 @@ parameters:
 			message: '#^Cannot call method last\(\) on array\|ArrayAccess\.$#'
 			identifier: method.nonObject
 			count: 1
-			path: app/Http/Controllers/DocumentBrowserController.php
-
-		-
-			message: '#^Undefined variable\: \$op$#'
-			identifier: variable.undefined
-			count: 2
 			path: app/Http/Controllers/DocumentBrowserController.php
 
 		-
@@ -1309,12 +1273,6 @@ parameters:
 			path: app/Services/EmailStatsService.php
 
 		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 4
-			path: app/Services/EmailStatsService.php
-
-		-
 			message: '#^Unsafe call to private method App\\Services\\EmailStatsService\:\:fetchMailjetMessages\(\) through static\:\:\.$#'
 			identifier: staticClassAccess.privateMethod
 			count: 1
@@ -1419,7 +1377,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
+			count: 1
 			path: app/Services/InboundMailFilter.php
 
 		-
@@ -1545,7 +1503,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 7
+			count: 3
 			path: app/Services/MailBalancer.php
 
 		-
