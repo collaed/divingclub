@@ -461,7 +461,7 @@ class ImportLegacyData extends Command
 
             // Dive count
             $diveCount = (int) ($row['cb_nbrplon2'] ?? 0);
-            if ($diveCount > 0 && $detail->dive_count === 0) {
+            if ($diveCount > 0 && $detail->dive_count === '0') {
                 $updates['dive_count'] = $diveCount;
             }
 

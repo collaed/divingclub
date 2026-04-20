@@ -126,7 +126,7 @@ class InboundMailFilter
     protected static function aiFilter(string $body, ?int $eventId): array
     {
         $oneMinKey = config('services.onemin.key');
-        $openAiKey = config('services.openai.key') ?: env('OPENAI_API_KEY');
+        $openAiKey = config('services.openai.key', '');
         $apiKey = $oneMinKey ?: $openAiKey;
 
         if (! $apiKey || mb_strlen(strip_tags($body)) < 30) {

@@ -592,7 +592,7 @@ class SyncOldEvents extends Command
             $destName = $m['dest_name'] ?? '';
             if (isset($locationMap[$destName]) && ! $returnedAt) {
                 $loc = ['<HS>' => 'Hors Service', '<LOCAL>' => 'Entrepôt', '<PISCINE>' => 'Piscine Merl'];
-                $eq->update(['status' => $locationMap[$destName], 'location' => $loc[$destName] ?? null]);
+                $eq->update(['status' => $locationMap[$destName], 'location' => $loc[$destName]]);
 
                 continue;
             }

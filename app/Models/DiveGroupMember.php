@@ -25,7 +25,7 @@ class DiveGroupMember extends Model
         return $this->belongsTo(DiveGroup::class, 'dive_group_id');
     }
 
-    public function diveGroup()
+    public function diveGroup(): BelongsTo
     {
         return $this->group();
     }

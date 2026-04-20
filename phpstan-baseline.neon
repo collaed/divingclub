@@ -13,18 +13,6 @@ parameters:
 			path: app/Console/Commands/ImportLegacyData.php
 
 		-
-			message: '#^Result of && is always false\.$#'
-			identifier: booleanAnd.alwaysFalse
-			count: 1
-			path: app/Console/Commands/ImportLegacyData.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between string\|null and 0 will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: app/Console/Commands/ImportLegacyData.php
-
-		-
 			message: '#^Negated boolean expression is always false\.$#'
 			identifier: booleanNot.alwaysFalse
 			count: 1
@@ -39,12 +27,6 @@ parameters:
 		-
 			message: '#^Negated boolean expression is always false\.$#'
 			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: app/Console/Commands/SyncOldEvents.php
-
-		-
-			message: '#^Offset ''\<HS\>''\|''\<LOCAL\>''\|''\<PISCINE\>'' on array\{''\<HS\>''\: ''Hors Service'', ''\<LOCAL\>''\: ''Entrepôt'', ''\<PISCINE\>''\: ''Piscine Merl''\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
 			count: 1
 			path: app/Console/Commands/SyncOldEvents.php
 
@@ -83,12 +65,6 @@ parameters:
 			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Http/Controllers/Admin/NewsletterController.php
-
-		-
-			message: '#^Parameter \#1 \$num of function number_format expects float, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Admin/PaymentController.php
 
 		-
 			message: '#^Call to static method read\(\) on an unknown class Intervention\\Image\\Laravel\\Facades\\Image\.$#'
@@ -139,21 +115,9 @@ parameters:
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\DiveGroupMember\:\:\$diveGroup\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/DiveDataController.php
-
-		-
 			message: '#^Parameter \#2 \$diveGroupMembers of method App\\Services\\UddfService\:\:export\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DiveGroupMember\> given\.$#'
 			identifier: argument.type
 			count: 1
-			path: app/Http/Controllers/DiveDataController.php
-
-		-
-			message: '#^Relation ''diveGroup'' is not found in App\\Models\\DiveGroupMember model\.$#'
-			identifier: larastan.relationExistence
-			count: 3
 			path: app/Http/Controllers/DiveDataController.php
 
 		-
@@ -211,13 +175,13 @@ parameters:
 			path: app/Http/Controllers/HomeController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\MemberDetail\>\:\:filter\(\) expects \(callable\(App\\Models\\MemberDetail, int\)\: bool\)\|null, Closure\(mixed\)\: \(Carbon\\Carbon\|null\) given\.$#'
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\MemberDetail\>\:\:filter\(\) expects \(callable\(App\\Models\\MemberDetail, int\)\: bool\)\|null, Closure\(App\\Models\\MemberDetail\)\: \(Carbon\\Carbon\|null\) given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/HomeController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\MemberDetail\>\:\:filter\(\) expects \(callable\(App\\Models\\MemberDetail, int\)\: bool\)\|null, Closure\(mixed\)\: \(string\|null\) given\.$#'
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\MemberDetail\>\:\:filter\(\) expects \(callable\(App\\Models\\MemberDetail, int\)\: bool\)\|null, Closure\(App\\Models\\MemberDetail\)\: \(string\|null\) given\.$#'
 			identifier: argument.type
 			count: 3
 			path: app/Http/Controllers/HomeController.php
@@ -335,12 +299,6 @@ parameters:
 			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: app/Services/Homogeneity/HomogeneityAssessmentService.php
-
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: app/Services/InboundMailFilter.php
 
 		-
 			message: '#^Expression in empty\(\) is always falsy\.$#'

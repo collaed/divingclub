@@ -181,15 +181,15 @@ class HomeController extends Controller
             return [
                 'total' => $details->count(),
                 'gender' => $details->groupBy('sex')->map->count()->sortDesc(),
-                'age' => $details->filter(fn ($d) => $d->date_of_birth)
-                    ->groupBy(fn ($d) => (int) floor($d->date_of_birth->age / 10) * 10)
+                'age' => $details->filter(fn (MemberDetail $d) => $d->date_of_birth)
+                    ->groupBy(fn (MemberDetail $d) => (int) floor($d->date_of_birth->age / 10) * 10)
                     ->map->count()->sortKeys()
                     ->mapWithKeys(fn ($v, $k) => [$k.'-'.($k + 9) => $v]),
-                'certification' => $details->filter(fn ($d) => $d->certification_level)
+                'certification' => $details->filter(fn (MemberDetail $d) => $d->certification_level)
                     ->groupBy('certification_level')->map->count()->sortDesc()->take(12),
-                'nationality' => $details->filter(fn ($d) => $d->nationality)
+                'nationality' => $details->filter(fn (MemberDetail $d) => $d->nationality)
                     ->groupBy('nationality')->map->count()->sortDesc()->take(15),
-                'language' => $details->filter(fn ($d) => $d->preferred_language)
+                'language' => $details->filter(fn (MemberDetail $d) => $d->preferred_language)
                     ->groupBy('preferred_language')->map->count()->sortDesc(),
             ];
         });

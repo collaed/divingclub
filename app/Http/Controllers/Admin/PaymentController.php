@@ -72,14 +72,14 @@ class PaymentController extends Controller
     {
         $calc = app(FeeCalculationService::class)->calculate($user, $request->get('season', date('Y')), $request->get('optionals', []));
 
-        return back()->with('success', __('Fee: €:amount — :comm', ['amount' => number_format($calc['amount_due'], 2), 'comm' => $calc['communication']]));
+        return back()->with('success', __('Fee: €:amount — :comm', ['amount' => number_format((float) $calc['amount_due'], 2), 'comm' => $calc['communication']]));
     }
 
     public function generateFee(Request $request, User $user)
     {
         $pe = app(FeeCalculationService::class)->createPaymentExpected($user, $request->get('season', date('Y')), $request->get('optionals', []));
 
-        return back()->with('success', __('Payment expected created: €:amount', ['amount' => number_format($pe->amount_due, 2)]));
+        return back()->with('success', __('Payment expected created: €:amount', ['amount' => number_format((float) $pe->amount_due, 2)]));
     }
 
     public function generateBulkFees(Request $request)
@@ -116,7 +116,7 @@ class PaymentController extends Controller
             'amount_due' => round($total, 2),
         ]);
 
-        return back()->with('success', __('Components adjusted. New total: €:amount', ['amount' => number_format($total, 2)]));
+        return back()->with('success', __('Components adjusted. New total: €:amount', ['amount' => number_format((float) $total, 2)]));
     }
 
     // Bank reconciliation
