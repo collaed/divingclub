@@ -23,7 +23,33 @@
         </div>
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Nationality') }}</label>
-            <input type="text" name="nationality" class="form-control @error('nationality') is-invalid @enderror" value="{{ old('nationality', $d?->nationality) }}">
+            @php
+                $clubTop = ['France', 'Luxembourg', 'Belgium', 'Portugal', 'Italy', 'Germany', 'Romania', 'Spain', 'Greece', 'Poland'];
+                $eu = ['Austria', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'Hungary', 'Ireland', 'Latvia', 'Lithuania', 'Malta', 'Netherlands', 'Slovakia', 'Slovenia', 'Sweden'];
+                $world = ['Albania', 'Argentina', 'Armenia', 'Australia', 'Azerbaijan', 'Bosnia', 'Brazil', 'Canada', 'China', 'Colombia', 'Georgia', 'Iceland', 'India', 'Iran', 'Israel', 'Japan', 'Kosovo', 'Lebanon', 'Mexico', 'Moldova', 'Montenegro', 'Morocco', 'North Macedonia', 'Norway', 'Philippines', 'Russia', 'Serbia', 'South Korea', 'Switzerland', 'Tunisia', 'Turkey', 'UK', 'Ukraine', 'USA', 'Vietnam'];
+                $currentVal = old('nationality', $d?->nationality);
+            @endphp
+            <select name="nationality" class="form-select @error('nationality') is-invalid @enderror">
+                <option value="">{{ __('— Select —') }}</option>
+                <optgroup label="{{ __('Most common') }}">
+                    @foreach($clubTop as $n)
+                        <option value="{{ $n }}" {{ $currentVal === $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </optgroup>
+                <optgroup label="{{ __('EU') }}">
+                    @foreach($eu as $n)
+                        <option value="{{ $n }}" {{ $currentVal === $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </optgroup>
+                <optgroup label="{{ __('World') }}">
+                    @foreach($world as $n)
+                        <option value="{{ $n }}" {{ $currentVal === $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </optgroup>
+                @if($currentVal && !in_array($currentVal, array_merge($clubTop, $eu, $world)))
+                    <option value="{{ $currentVal }}" selected>{{ $currentVal }}</option>
+                @endif
+            </select>
             @error('nationality') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-4 mb-3">

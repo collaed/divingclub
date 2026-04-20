@@ -6,9 +6,21 @@
     <div class="mb-3">
         <label class="form-label">{{ __('Preferred Communication Language') }}</label>
         <select name="preferred_language" class="form-select @error('preferred_language') is-invalid @enderror" style="max-width: 300px;">
-            @foreach(['en' => 'English', 'fr' => 'Français', 'de' => 'Deutsch', 'it' => 'Italiano', 'es' => 'Español', 'pt' => 'Português', 'nl' => 'Nederlands', 'pl' => 'Polski', 'ro' => 'Română', 'cs' => 'Čeština', 'el' => 'Ελληνικά', 'lb' => 'Lëtzebuergesch'] as $code => $name)
-                <option value="{{ $code }}" {{ old('preferred_language', $d?->preferred_language) === $code ? 'selected' : '' }}>{{ $name }}</option>
-            @endforeach
+            @php
+                $clubLangs = ['fr' => '🇫🇷 Français', 'en' => '🇬🇧 English', 'de' => '🇩🇪 Deutsch', 'pt' => '🇵🇹 Português', 'lb' => '🇱🇺 Lëtzebuergesch', 'it' => '🇮🇹 Italiano'];
+                $otherLangs = ['nl' => '🇳🇱 Nederlands', 'es' => '🇪🇸 Español', 'pl' => '🇵🇱 Polski', 'ro' => '🇷🇴 Română', 'hu' => '🇭🇺 Magyar', 'el' => '🇬🇷 Ελληνικά', 'et' => '🇪🇪 Eesti', 'sk' => '🇸🇰 Slovenčina', 'fi' => '🇫🇮 Suomi'];
+                $currentLang = old('preferred_language', $d?->preferred_language);
+            @endphp
+            <optgroup label="{{ __('Most common in the club') }}">
+                @foreach($clubLangs as $code => $name)
+                    <option value="{{ $code }}" {{ $currentLang === $code ? 'selected' : '' }}>{{ $name }}</option>
+                @endforeach
+            </optgroup>
+            <optgroup label="{{ __('Other languages') }}">
+                @foreach($otherLangs as $code => $name)
+                    <option value="{{ $code }}" {{ $currentLang === $code ? 'selected' : '' }}>{{ $name }}</option>
+                @endforeach
+            </optgroup>
         </select>
         @error('preferred_language') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
