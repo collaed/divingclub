@@ -7,40 +7,10 @@ parameters:
 			path: app/Console/Commands/ImportLegacyData.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\AuditLogController\:\:export\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/AuditLogController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\DashboardController\:\:exportCsv\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/DashboardController.php
-
-		-
 			message: '#^Parameter \#1 \$value of method Carbon\\Carbon\:\:addMonths\(\) expects float\|int, string\|null given\.$#'
 			identifier: argument.type
 			count: 2
 			path: app/Http/Controllers/Admin/EquipmentController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\LibraryController\:\:download\(\) should return Illuminate\\Http\\JsonResponse\|Illuminate\\Http\\RedirectResponse\|Symfony\\Component\\HttpFoundation\\BinaryFileResponse but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/LibraryController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\MedicalExportController\:\:downloadCertificates\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\BinaryFileResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/MedicalExportController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Auth\\SocialAuthController\:\:redirect\(\) should return Illuminate\\Contracts\\View\\View\|Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
 			message: '#^Parameter \#2 \$diveGroupMembers of method App\\Services\\UddfService\:\:export\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DiveGroupMember\> given\.$#'
@@ -53,18 +23,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/DiveGroupController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\DocumentBrowserController\:\:download\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/DocumentBrowserController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\DocumentBrowserController\:\:thumb\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\BinaryFileResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/DocumentBrowserController.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<TRelatedModel of Illuminate\\Database\\Eloquent\\Model\>\:\:role\(\)\.$#'
@@ -85,52 +43,10 @@ parameters:
 			path: app/Http/Controllers/HomeController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\ProfileDocumentController\:\:download\(\) should return Illuminate\\Http\\RedirectResponse\|Symfony\\Component\\HttpFoundation\\BinaryFileResponse but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
-			identifier: return.type
-			count: 2
-			path: app/Http/Controllers/ProfileDocumentController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:federation\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\Response\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/QrCodeController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:sepa\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\Response\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/QrCodeController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:sepaPublic\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\Response\.$#'
-			identifier: return.type
-			count: 2
-			path: app/Http/Controllers/QrCodeController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:signedPaymentQr\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\Response\.$#'
-			identifier: return.type
-			count: 2
-			path: app/Http/Controllers/QrCodeController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\QrCodeController\:\:vcard\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\Response\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/QrCodeController.php
-
-		-
 			message: '#^Parameter \#1 \$num of function number_format expects float, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/QrCodeController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\StagingMailController\:\:raw\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\Response\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/StagingMailController.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:filter\(\) expects \(callable\(array\{position\: mixed, article\: App\\Models\\Article\|null, teaser\: mixed, custom_url\: mixed, slug\: mixed\}, int\|string\)\: bool\)\|null, Closure\(mixed\)\: \(App\\Models\\Article\|null\) given\.$#'

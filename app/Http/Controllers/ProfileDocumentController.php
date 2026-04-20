@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProfileDocumentController extends Controller
 {
@@ -75,7 +75,7 @@ class ProfileDocumentController extends Controller
         return back()->with('success', __('Document uploaded.'))->withInput(['tab' => $request->category === 'medical' ? 'medical' : 'info']);
     }
 
-    public function download(Document $document): BinaryFileResponse|RedirectResponse
+    public function download(Document $document): Response
     {
         $viewer = auth()->user();
         if ($document->user_id !== $viewer->id && ! $viewer->isBureau()) {

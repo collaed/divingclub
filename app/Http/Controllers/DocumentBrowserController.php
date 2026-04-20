@@ -17,7 +17,6 @@ use App\Models\EventPhoto;
 use App\Models\LibraryFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -224,7 +223,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __('File deleted.'));
     }
 
-    public function download(LibraryFile $file): Response
+    public function download(LibraryFile $file): \Symfony\Component\HttpFoundation\Response
     {
         // Verify visibility access
         $user = auth()->user();
@@ -234,7 +233,7 @@ class DocumentBrowserController extends Controller
         return Storage::disk('local')->download($file->path, $file->original_name);
     }
 
-    public function thumb(LibraryFile $file): Response
+    public function thumb(LibraryFile $file): \Symfony\Component\HttpFoundation\Response
     {
         $user = auth()->user();
         abort_unless(LibraryFile::visibleTo($user)->where('id', $file->id)->exists(), 403);

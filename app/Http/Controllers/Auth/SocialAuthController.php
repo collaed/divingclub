@@ -26,12 +26,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Laravel\Socialite\Facades\Socialite;
+use Symfony\Component\HttpFoundation\Response;
 
 class SocialAuthController extends Controller
 {
     protected array $providers = ['google', 'microsoft', 'facebook', 'x'];
 
-    public function redirect(string $provider): RedirectResponse|View
+    public function redirect(string $provider): Response
     {
         abort_unless(in_array($provider, $this->providers), 404);
 

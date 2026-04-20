@@ -7,6 +7,7 @@ use App\Models\EmailLog;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class StagingMailController extends Controller
 {
@@ -31,7 +32,7 @@ class StagingMailController extends Controller
         return view('staging.mail-show', compact('mail'));
     }
 
-    public function raw(EmailLog $mail): RedirectResponse
+    public function raw(EmailLog $mail): Response
     {
         abort_unless(config('app.staging_mode'), 404);
         abort_unless($mail->status === 'staging_captured', 404);

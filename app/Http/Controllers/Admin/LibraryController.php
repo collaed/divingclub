@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 use ZipArchive;
 
 class LibraryController extends Controller
@@ -114,7 +115,7 @@ class LibraryController extends Controller
         return back()->with('success', __('File deleted.'));
     }
 
-    public function download(LibraryFile $file): BinaryFileResponse|JsonResponse|RedirectResponse
+    public function download(LibraryFile $file): Response
     {
         return Storage::disk('local')->download($file->path, $file->original_name);
     }

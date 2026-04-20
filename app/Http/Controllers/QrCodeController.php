@@ -19,13 +19,12 @@ use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class QrCodeController extends Controller
 {
-    public function vcard(): View
+    public function vcard(): \Symfony\Component\HttpFoundation\Response
     {
         $user = auth()->user();
         $d = $user->detail;
@@ -46,7 +45,7 @@ class QrCodeController extends Controller
     // ─── Signed Payment QR (anti-quishing) ─────────────────────
 
     /** Generate a QR containing a signed verification URL instead of raw EPC data. */
-    public function signedPaymentQr(Request $request): View
+    public function signedPaymentQr(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $amount = round((float) $request->query('amount', 0), 2);
         $communication = $request->query('communication', '');
@@ -110,7 +109,7 @@ class QrCodeController extends Controller
 
     // ─── Legacy EPC QR (kept for backward compatibility) ───────
 
-    public function sepaPublic(Request $request): RedirectResponse
+    public function sepaPublic(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $amount = $request->query('amount', 0);
         $communication = $request->query('communication', '');
@@ -131,7 +130,7 @@ class QrCodeController extends Controller
         return $this->generatePng($epc, 'sepa-dues.png', false);
     }
 
-    public function sepa(PaymentExpected $payment): RedirectResponse
+    public function sepa(PaymentExpected $payment): \Symfony\Component\HttpFoundation\Response
     {
         $user = auth()->user();
         if ($payment->user_id !== $user->id && ! $user->can('manage payments')) {
@@ -150,7 +149,7 @@ class QrCodeController extends Controller
         return $this->generatePng($epc, "sepa-{$payment->id}.png", false);
     }
 
-    public function federation(MemberLicence $licence): RedirectResponse
+    public function federation(MemberLicence $licence): \Symfony\Component\HttpFoundation\Response
     {
         $user = auth()->user();
         if ($licence->user_id !== $user->id && ! $user->isBureau() && ! $user->detail?->active_instructor) {
