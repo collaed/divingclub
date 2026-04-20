@@ -84,6 +84,9 @@ class SyncOldEvents extends Command
         // Sync medical certs from VisitesMed
         $this->syncMedicalCerts();
 
+        // Sync member details (cotisation, DOB, nationality, etc.)
+        $this->syncMemberDetails();
+
         // Sync equipment movements from SM
         $this->syncEquipmentMovements();
 
@@ -306,6 +309,102 @@ class SyncOldEvents extends Command
         $this->info("    Auto-created member: {$firstName} {$lastName} ({$email})");
 
         return $user->id;
+    }
+
+    private function syncMemberDetails(): void
+    {
+        $this->line('  Syncing member details...');
+
+        try {
+            $response = Http::withHeaders(['X-Sync-Key' => $this->apiKey])
+                ->timeout(30)
+                ->get('https://clubcep.eu/wrapp/api_members.php');
+
+            if (! $response->ok()) {
+                $this->warn('  Members API returned '.$response->status());
+
+                return;
+            }
+        } catch (\Throwable $e) {
+            $this->warn('  Members API error: '.$e->getMessage());
+
+            return;
+        }
+
+        $data = $response->json();
+        $members = $data['members'] ?? [];
+        $updated = 0;
+
+        foreach ($members as $m) {
+            $email = $m['email'] ?? null;
+            if (! $email) {
+                continue;
+            }
+
+            $user = User::where('primary_email', $email)->first();
+            if (! $user || ! $user->detail) {
+                continue;
+            }
+
+            $d = $user->detail;
+            $changed = false;
+
+            // Cotisation years
+            if (! empty($m['cb_cotis'])) {
+                $year = (string) $m['cb_cotis'];
+                $current = $d->cotisation_years ?? [];
+                if (! in_array($year, $current)) {
+                    $current[] = $year;
+                    sort($current);
+                    $d->cotisation_years = $current;
+                    $changed = true;
+                }
+            }
+
+            // DOB
+            if (! $d->date_of_birth && ! empty($m['cb_datenaissance'])) {
+                $d->date_of_birth = $m['cb_datenaissance'];
+                $changed = true;
+            }
+
+            // Nationality
+            if (! $d->nationality && ! empty($m['cb_country'])) {
+                $d->nationality = $m['cb_country'];
+                $changed = true;
+            }
+
+            // Adhesion year from inscription date or cotisation
+            if (! $d->adhesion_year) {
+                if (! empty($m['cb_inscdat'])) {
+                    $d->adhesion_year = (int) substr($m['cb_inscdat'], 0, 4);
+                    $changed = true;
+                } elseif (! empty($m['cb_adhsioncep'])) {
+                    $d->adhesion_year = (int) $m['cb_adhsioncep'];
+                    $changed = true;
+                }
+            }
+
+            // Birth name
+            if (! $d->birth_name && ! empty($m['cb_nomdenaissance'])) {
+                $d->birth_name = $m['cb_nomdenaissance'];
+                $changed = true;
+            }
+
+            // Place of birth
+            if (! $d->place_of_birth && ! empty($m['cb_lieunaiss'])) {
+                $d->place_of_birth = $m['cb_lieunaiss'];
+                $changed = true;
+            }
+
+            if ($changed) {
+                $d->save();
+                $updated++;
+            }
+        }
+
+        if ($updated) {
+            $this->info("  Members: {$updated} profiles enriched.");
+        }
     }
 
     private function syncMedicalCerts(): void
