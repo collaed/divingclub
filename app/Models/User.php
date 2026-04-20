@@ -17,6 +17,8 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
+ * @method static \Illuminate\Database\Eloquent\Builder|static role(string|array $roles, string $guard = null)
+ *
  * @property int $id
  * @property string|null $username
  * @property string|null $primary_email

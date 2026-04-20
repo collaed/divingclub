@@ -167,7 +167,7 @@ class UddfService
      * @param  User  $user  The diver
      * @param  array  $diveGroupMembers  Collection of DiveGroupMember records with loaded relations
      */
-    public function export(User $user, $diveGroupMembers): string
+    public function export(User $user, iterable $diveGroupMembers): string
     {
         $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><uddf xmlns="http://www.streit.cc/uddf/3.2/" version="'.self::UDDF_VERSION.'"/>');
 

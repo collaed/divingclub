@@ -1,19 +1,2 @@
 parameters:
-	ignoreErrors:
-		-
-			message: '#^Parameter \#2 \$diveGroupMembers of method App\\Services\\UddfService\:\:export\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DiveGroupMember\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/DiveDataController.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<TRelatedModel of Illuminate\\Database\\Eloquent\\Model\>\:\:role\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: app/Http/Controllers/HomeController.php
-
-		-
-			message: '#^Method App\\Services\\BackupService\:\:create\(\) should return array\{filename\: string, path\: string, size\: int, manifest\: array\} but returns array\{filename\: non\-falsy\-string, path\: non\-falsy\-string, size\: int\<0, max\>\|false, manifest\: null\}\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/BackupService.php
+    ignoreErrors: []

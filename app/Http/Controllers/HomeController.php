@@ -22,6 +22,7 @@ use App\Models\MemberDetail;
 use App\Services\ArticleTranslationService;
 use App\Services\ThemeService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 
@@ -73,7 +74,8 @@ class HomeController extends Controller
             ->get();
 
         // Bureau members for the bureau section
-        $bureauMembers = MemberDetail::whereHas('user', fn ($q) => $q->role(['bureau_master', 'bureau_technical', 'bureau_finance']))
+        /** @phpstan-ignore-next-line */
+        $bureauMembers = MemberDetail::whereHas('user', fn (Builder $q) => $q->role(['bureau_master', 'bureau_technical', 'bureau_finance']))
             ->with('user')
             ->get();
 
@@ -138,7 +140,8 @@ class HomeController extends Controller
             ->unique(fn ($e) => mb_strtolower($e->title))
             ->take(4)->values();
         $stats = self::memberStats();
-        $faces = MemberDetail::whereHas('user', fn ($q) => $q->role(['bureau_master', 'bureau_technical', 'bureau_finance', 'instructor']))
+        /** @phpstan-ignore-next-line */
+        $faces = MemberDetail::whereHas('user', fn (Builder $q) => $q->role(['bureau_master', 'bureau_technical', 'bureau_finance', 'instructor']))
             ->whereHas('user.documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
             ->with('user')->get()->unique('user_id');
 

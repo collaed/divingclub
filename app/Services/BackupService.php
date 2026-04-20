@@ -52,7 +52,7 @@ class BackupService
         // Offsite upload via SFTP if configured
         $this->offsiteUpload($destPath, $filename);
 
-        return ['filename' => $filename, 'path' => $destPath, 'size' => $size, 'manifest' => null];
+        return ['filename' => $filename, 'path' => $destPath, 'size' => $size, 'manifest' => []];
     }
 
     /** Upload backup to offsite SFTP server if configured. */
@@ -104,7 +104,7 @@ EOF',
             return [
                 'filename' => basename($path),
                 'path' => $path,
-                'size' => filesize($path),
+                'size' => (int) filesize($path),
                 'size_human' => $this->humanSize(filesize($path)),
                 'created_at' => Carbon::createFromTimestamp(filemtime($path)),
                 'manifest' => $this->readManifest($path),
