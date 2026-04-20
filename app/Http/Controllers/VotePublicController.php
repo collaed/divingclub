@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class VotePublicController extends Controller
 {
-    public function show(string $token): View
+    public function show(string $token): RedirectResponse|View
     {
         $voteToken = VoteToken::where('token', $token)->with(['vote.options', 'user'])->firstOrFail();
         $vote = $voteToken->vote;
@@ -26,7 +26,7 @@ class VotePublicController extends Controller
         return view('vote.show', compact('vote', 'voteToken', 'currentBallots'));
     }
 
-    public function cast(Request $request, string $token): View
+    public function cast(Request $request, string $token): RedirectResponse|View
     {
         $voteToken = VoteToken::where('token', $token)->with('vote.options')->firstOrFail();
         $vote = $voteToken->vote;

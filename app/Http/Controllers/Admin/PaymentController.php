@@ -18,7 +18,7 @@ class PaymentController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse|View
     {
         $query = PaymentExpected::with('user.detail')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
@@ -39,7 +39,7 @@ class PaymentController extends Controller
         return view('admin.payments.index', compact('payments', 'components'));
     }
 
-    public function components(): View
+    public function components(): RedirectResponse|View
     {
         $components = MembershipFeeComponent::orderBy('sort_order')->get();
 
@@ -63,28 +63,28 @@ class PaymentController extends Controller
         return back()->with('success', __('Component added.'));
     }
 
-    public function destroyComponent(MembershipFeeComponent $component): RedirectResponse
+    public function destroyComponent(MembershipFeeComponent $component): RedirectResponse|View
     {
         $component->delete();
 
         return back()->with('success', __('Component removed.'));
     }
 
-    public function calculateFee(Request $request, User $user): RedirectResponse
+    public function calculateFee(Request $request, User $user): RedirectResponse|View
     {
         $calc = app(FeeCalculationService::class)->calculate($user, $request->get('season', date('Y')), $request->get('optionals', []));
 
         return back()->with('success', __('Fee: €:amount — :comm', ['amount' => number_format((float) $calc['amount_due'], 2), 'comm' => $calc['communication']]));
     }
 
-    public function generateFee(Request $request, User $user): RedirectResponse
+    public function generateFee(Request $request, User $user): RedirectResponse|View
     {
         $pe = app(FeeCalculationService::class)->createPaymentExpected($user, $request->get('season', date('Y')), $request->get('optionals', []));
 
         return back()->with('success', __('Payment expected created: €:amount', ['amount' => number_format((float) $pe->amount_due, 2)]));
     }
 
-    public function generateBulkFees(Request $request): View
+    public function generateBulkFees(Request $request): RedirectResponse|View
     {
         $season = $request->get('season', date('Y'));
         $svc = app(FeeCalculationService::class);
@@ -102,7 +102,7 @@ class PaymentController extends Controller
         return back()->with('success', __(':count membership fees generated for season :season.', ['count' => $count, 'season' => $season]));
     }
 
-    public function adjustComponents(Request $request, PaymentExpected $payment): View
+    public function adjustComponents(Request $request, PaymentExpected $payment): RedirectResponse|View
     {
         $request->validate([
             'components' => 'required|array',
@@ -122,7 +122,7 @@ class PaymentController extends Controller
     }
 
     // Bank reconciliation
-    public function reconciliation(): View
+    public function reconciliation(): RedirectResponse|View
     {
         $transactions = BankTransaction::with('matchedPayment.user.detail')->orderByDesc('transaction_date')->paginate(50);
         $summary = [

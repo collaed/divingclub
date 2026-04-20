@@ -15,21 +15,21 @@ use Illuminate\Support\Facades\DB;
 
 class SeasonController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $seasons = Season::withCount('events')->orderByDesc('year')->get();
 
         return view('admin.seasons.index', compact('seasons'));
     }
 
-    public function create(): View
+    public function create(): JsonResponse|RedirectResponse|View
     {
         $previousSeasons = Season::orderByDesc('year')->get();
 
         return view('admin.seasons.form', ['season' => new Season, 'previousSeasons' => $previousSeasons]);
     }
 
-    public function store(Request $request): View
+    public function store(Request $request): JsonResponse|RedirectResponse|View
     {
         $v = $request->validate([
             'year' => 'required|integer|min:2000',
@@ -68,14 +68,14 @@ class SeasonController extends Controller
         return redirect()->route('admin.seasons.show', $season)->with('success', __('Season created.'));
     }
 
-    public function show(Season $season): View
+    public function show(Season $season): JsonResponse|RedirectResponse|View
     {
         $season->load(['holidays', 'patterns']);
 
         return view('admin.seasons.show', compact('season'));
     }
 
-    public function activate(Season $season): RedirectResponse
+    public function activate(Season $season): JsonResponse|RedirectResponse
     {
         DB::transaction(function () use ($season) {
             Season::where('is_active', true)->update(['is_active' => false]);
@@ -86,7 +86,7 @@ class SeasonController extends Controller
     }
 
     // Holiday management
-    public function storeHoliday(Request $request, Season $season): RedirectResponse
+    public function storeHoliday(Request $request, Season $season): JsonResponse|RedirectResponse|View
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -111,7 +111,7 @@ class SeasonController extends Controller
         return back()->with('success', __('Holiday added.'));
     }
 
-    public function destroyHoliday(SeasonHoliday $holiday): RedirectResponse
+    public function destroyHoliday(SeasonHoliday $holiday): JsonResponse|RedirectResponse|View
     {
         $holiday->delete();
 
@@ -123,7 +123,7 @@ class SeasonController extends Controller
     }
 
     // Pattern management
-    public function storePattern(Request $request, Season $season): View
+    public function storePattern(Request $request, Season $season): JsonResponse|RedirectResponse|View
     {
         $v = $request->validate([
             'day_of_week' => 'required|integer|min:0|max:6',
@@ -147,7 +147,7 @@ class SeasonController extends Controller
         return back()->with('success', __('Pattern added.'));
     }
 
-    public function destroyPattern(SeasonPattern $pattern): View
+    public function destroyPattern(SeasonPattern $pattern): JsonResponse|RedirectResponse|View
     {
         $pattern->delete();
 
@@ -159,7 +159,7 @@ class SeasonController extends Controller
     }
 
     // Generate events preview
-    public function previewGeneration(Season $season): View
+    public function previewGeneration(Season $season): RedirectResponse|View
     {
         $season->load(['patterns', 'holidays']);
         $preview = $this->buildSchedule($season);

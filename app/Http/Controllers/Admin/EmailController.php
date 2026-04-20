@@ -19,7 +19,7 @@ class EmailController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(): View
+    public function index(): JsonResponse|RedirectResponse|View
     {
         $templates = EmailTemplate::orderBy('name')->get();
         $log = EmailLog::orderByDesc('created_at')->paginate($this->perPage(30));
@@ -27,7 +27,7 @@ class EmailController extends Controller
         return view('admin.email.index', compact('templates', 'log'));
     }
 
-    public function storeTemplate(Request $request): RedirectResponse
+    public function storeTemplate(Request $request): JsonResponse|RedirectResponse
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -41,7 +41,7 @@ class EmailController extends Controller
         return back()->with('success', __('Template created.'));
     }
 
-    public function updateTemplate(Request $request, EmailTemplate $template): RedirectResponse
+    public function updateTemplate(Request $request, EmailTemplate $template): JsonResponse|RedirectResponse
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -53,14 +53,14 @@ class EmailController extends Controller
         return back()->with('success', __('Template updated.'));
     }
 
-    public function destroyTemplate(EmailTemplate $template): RedirectResponse
+    public function destroyTemplate(EmailTemplate $template): JsonResponse|RedirectResponse
     {
         $template->delete();
 
         return back()->with('success', __('Template deleted.'));
     }
 
-    public function preview(Request $request): JsonResponse
+    public function preview(Request $request): JsonResponse|RedirectResponse
     {
         $template = EmailTemplate::findOrFail($request->template_id);
         $user = User::with('detail')->first();

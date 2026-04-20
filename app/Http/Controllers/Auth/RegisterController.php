@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
 {
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         return view('auth.register');
     }

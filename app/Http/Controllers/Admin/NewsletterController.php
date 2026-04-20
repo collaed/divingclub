@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Mail;
 
 class NewsletterController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $newsletters = Newsletter::with('creator', 'approvals.user')
             ->orderByDesc('created_at')->paginate(20);
@@ -25,7 +25,7 @@ class NewsletterController extends Controller
         return view('admin.newsletters.index', compact('newsletters'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         $articles = Article::active()->where('article_type', '!=', 'classified')
             ->orderByDesc('created_at')->limit(50)->get();
@@ -36,7 +36,7 @@ class NewsletterController extends Controller
         ]);
     }
 
-    public function store(Request $request): View
+    public function store(Request $request): RedirectResponse|View
     {
         $v = $request->validate([
             'title' => 'required|string|max:255',
@@ -71,7 +71,7 @@ class NewsletterController extends Controller
             ->with('success', __('Newsletter draft saved.'));
     }
 
-    public function show(Newsletter $newsletter): View
+    public function show(Newsletter $newsletter): RedirectResponse|View
     {
         $newsletter->load('approvals.user', 'creator');
         $slotArticles = $newsletter->slotArticles();
@@ -79,7 +79,7 @@ class NewsletterController extends Controller
         return view('admin.newsletters.show', compact('newsletter', 'slotArticles'));
     }
 
-    public function edit(Newsletter $newsletter): View
+    public function edit(Newsletter $newsletter): RedirectResponse|View
     {
         abort_if($newsletter->status === 'sent', 403, 'Cannot edit a sent newsletter.');
 
@@ -229,7 +229,7 @@ class NewsletterController extends Controller
             ->with('success', __('Newsletter sent to :count members.', ['count' => $users->count()]));
     }
 
-    public function destroy(Newsletter $newsletter): View
+    public function destroy(Newsletter $newsletter): RedirectResponse|View
     {
         abort_if($newsletter->status === 'sent', 403);
         $newsletter->delete();
@@ -239,7 +239,7 @@ class NewsletterController extends Controller
     }
 
     /** Render email preview in an iframe-friendly standalone page. */
-    public function preview(Newsletter $newsletter): View
+    public function preview(Newsletter $newsletter): RedirectResponse|View
     {
         $data = $this->buildEmailData($newsletter, 'fr');
 
@@ -247,7 +247,7 @@ class NewsletterController extends Controller
     }
 
     /** Send a test email to the current user. */
-    public function testSend(Newsletter $newsletter): View
+    public function testSend(Newsletter $newsletter): RedirectResponse|View
     {
         $data = $this->buildEmailData($newsletter, 'fr');
         $html = view('admin.newsletters.themes.email', $data)->render();

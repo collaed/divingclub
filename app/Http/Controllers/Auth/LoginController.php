@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         return view('auth.login');
     }

@@ -78,7 +78,7 @@ class EventController extends Controller
         return view('events.index', compact('events', 'view', 'date', 'start', 'end'));
     }
 
-    public function show(Event $event): View
+    public function show(Event $event): RedirectResponse|View
     {
         $event->load([
             'registrations.user.detail', 'registrations.user.certificationLevels',
@@ -99,7 +99,7 @@ class EventController extends Controller
 
     // ─── Event CRUD ──────────────────────────────────────────
 
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         $this->authorizeBureau();
         $seasons = Season::orderByDesc('year')->get();
@@ -110,7 +110,7 @@ class EventController extends Controller
         return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites, 'locationSuggestions' => $locationSuggestions]);
     }
 
-    public function store(Request $request): View
+    public function store(Request $request): RedirectResponse|View
     {
         $this->authorizeBureau();
         $data = $this->validateEvent($request);
@@ -134,7 +134,7 @@ class EventController extends Controller
         return redirect()->route('events.show', $event)->with('success', __('Event created.'));
     }
 
-    public function edit(Event $event): View
+    public function edit(Event $event): RedirectResponse|View
     {
         $this->authorizeEventEdit($event);
         $seasons = Season::orderByDesc('year')->get();

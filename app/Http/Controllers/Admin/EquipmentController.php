@@ -17,7 +17,7 @@ class EquipmentController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse|View
     {
         $sortable = ['name' => 'name', 'type' => 'type', 'status' => 'status', 'short_number' => 'short_number', 'location' => 'location', 'last_seen_at' => 'last_seen_at'];
         $sort = $sortable[$request->get('sort')] ?? 'name';
@@ -42,12 +42,12 @@ class EquipmentController extends Controller
         return view('admin.equipment.index', compact('equipment'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         return view('admin.equipment.form', ['item' => new Equipment]);
     }
 
-    public function store(Request $request): View
+    public function store(Request $request): RedirectResponse|View
     {
         $v = $request->validate([
             'name' => 'required|string|max:255',
@@ -74,7 +74,7 @@ class EquipmentController extends Controller
         return redirect()->route('admin.equipment.index')->with('success', __('Equipment added with :count maintenance tasks.', ['count' => $rules->count()]));
     }
 
-    public function show(Equipment $equipment): View
+    public function show(Equipment $equipment): RedirectResponse|View
     {
         $equipment->load(['maintenanceTasks' => fn ($q) => $q->orderBy('due_date'), 'loans' => fn ($q) => $q->with('user.detail')->orderByDesc('loaned_at')]);
         $members = User::with('detail')->whereHas('detail')->get()->sortBy(fn ($u) => $u->detail?->last_name);

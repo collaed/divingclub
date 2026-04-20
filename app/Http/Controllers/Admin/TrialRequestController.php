@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Mail;
  */
 class TrialRequestController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $requests = TrialRequest::orderByDesc('created_at')->get();
 

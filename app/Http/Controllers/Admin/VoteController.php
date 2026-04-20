@@ -14,19 +14,19 @@ use Illuminate\Support\Str;
 
 class VoteController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $votes = Vote::withCount(['tokens', 'ballots'])->orderByDesc('created_at')->get();
 
         return view('admin.votes.index', compact('votes'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         return view('admin.votes.form', ['vote' => new Vote]);
     }
 
-    public function store(Request $request): View
+    public function store(Request $request): RedirectResponse|View
     {
         $request->merge(['options' => array_values(array_filter($request->input('options', []), fn ($v) => trim($v) !== ''))]);
 
@@ -63,7 +63,7 @@ class VoteController extends Controller
         return redirect()->route('admin.votes.show', $vote)->with('success', __('Vote created.'));
     }
 
-    public function show(Vote $vote): View
+    public function show(Vote $vote): RedirectResponse|View
     {
         $vote->load(['options.ballots', 'tokens']);
         $results = $vote->options->map(fn ($o) => ['label' => $o->label, 'count' => $o->ballots->count()]);

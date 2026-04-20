@@ -16,7 +16,7 @@ class MemberController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse|View
     {
         $query = User::with(['detail', 'roles', 'status']);
 

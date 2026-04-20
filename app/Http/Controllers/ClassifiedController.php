@@ -14,7 +14,7 @@ class ClassifiedController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse|View
     {
         $classifieds = Article::where('article_type', 'classified')
             ->active()->where('is_published', true)
@@ -31,12 +31,12 @@ class ClassifiedController extends Controller
         return view('classifieds.index', compact('classifieds', 'mine'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         return view('classifieds.form', ['article' => new Article(['article_type' => 'classified'])]);
     }
 
-    public function store(Request $request): View
+    public function store(Request $request): RedirectResponse|View
     {
         $v = $request->validate([
             'title' => 'required|string|max:255',
@@ -61,7 +61,7 @@ class ClassifiedController extends Controller
         return redirect()->route('classifieds.index')->with('success', __('Classified posted. It will expire in 30 days.'));
     }
 
-    public function edit(Article $article): View
+    public function edit(Article $article): RedirectResponse|View
     {
         abort_unless($article->article_type === 'classified' && $article->author_id === auth()->id(), 403);
 

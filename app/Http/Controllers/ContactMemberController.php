@@ -11,7 +11,7 @@ use Illuminate\View\View;
 
 class ContactMemberController extends Controller
 {
-    public function create(User $user): View
+    public function create(User $user): RedirectResponse|View
     {
         abort_if($user->id === auth()->id(), 403);
 

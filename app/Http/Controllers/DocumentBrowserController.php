@@ -21,11 +21,12 @@ use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentBrowserController extends Controller
 {
     /** Photo gallery — all approved photos grouped by event. */
-    public function gallery(): \Illuminate\Contracts\View\View
+    public function gallery(): \Illuminate\Contracts\View\View|RedirectResponse
     {
         $user = auth()->user();
         $query = $user ? EventPhoto::bestForMembers(200) : EventPhoto::bestPublic(200);
@@ -58,7 +59,7 @@ class DocumentBrowserController extends Controller
         return view('gallery', compact('events'));
     }
 
-    public function galleryEvent(Event $event): View
+    public function galleryEvent(Event $event): RedirectResponse|View
     {
         $user = auth()->user();
         $photos = EventPhoto::where('event_id', $event->id)
@@ -68,7 +69,7 @@ class DocumentBrowserController extends Controller
         return view('gallery-event', compact('event', 'photos', 'user'));
     }
 
-    public function galleryUpload(Request $request, Event $event): RedirectResponse
+    public function galleryUpload(Request $request, Event $event): RedirectResponse|View
     {
         $request->validate([
             'photos.*' => 'required|image|max:10240',
@@ -88,7 +89,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __('Photos uploaded.'));
     }
 
-    public function index(Request $request): \Illuminate\Contracts\View\View
+    public function index(Request $request): \Illuminate\Contracts\View\View|RedirectResponse
     {
         $user = auth()->user();
         $folder = $request->get('folder', '/');
@@ -170,7 +171,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __(':count file(s) uploaded.', ['count' => count($request->file('files'))]));
     }
 
-    public function createFolder(Request $request): RedirectResponse
+    public function createFolder(Request $request): BinaryFileResponse|RedirectResponse
     {
         abort_unless(LibraryFile::canManage(auth()->user()), 403);
         $request->validate(['name' => 'required|string|max:100|regex:/^[a-zA-Z0-9_\- ]+$/']);
@@ -199,7 +200,7 @@ class DocumentBrowserController extends Controller
             ->with('success', __('Folder created.'));
     }
 
-    public function updateFile(Request $request, LibraryFile $file): RedirectResponse
+    public function updateFile(Request $request, LibraryFile $file): BinaryFileResponse|RedirectResponse
     {
         abort_unless(LibraryFile::canManage(auth()->user()), 403);
 
@@ -214,7 +215,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __('File updated.'));
     }
 
-    public function destroy(LibraryFile $file): RedirectResponse
+    public function destroy(LibraryFile $file): BinaryFileResponse|RedirectResponse
     {
         abort_unless(LibraryFile::canManage(auth()->user()), 403);
         Storage::disk('local')->delete($file->path);

@@ -9,11 +9,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use ZipArchive;
 
 class LibraryController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse|View
     {
         $folder = $request->get('folder', '/');
 
@@ -45,7 +46,7 @@ class LibraryController extends Controller
         return view('admin.library.index', compact('files', 'folder', 'folders', 'search'));
     }
 
-    public function upload(Request $request): RedirectResponse
+    public function upload(Request $request): BinaryFileResponse|RedirectResponse
     {
         $request->validate([
             'files' => 'required|array|min:1',
@@ -92,7 +93,7 @@ class LibraryController extends Controller
         return back()->with('success', __('Files uploaded.'));
     }
 
-    public function update(Request $request, LibraryFile $file): RedirectResponse
+    public function update(Request $request, LibraryFile $file): BinaryFileResponse|JsonResponse|RedirectResponse
     {
         $request->validate([
             'visibility' => 'required|in:public,members,instructors,bureau',
@@ -105,7 +106,7 @@ class LibraryController extends Controller
         return back()->with('success', __('File updated.'));
     }
 
-    public function destroy(LibraryFile $file): RedirectResponse
+    public function destroy(LibraryFile $file): BinaryFileResponse|JsonResponse|RedirectResponse
     {
         Storage::disk('local')->delete($file->path);
         $file->delete();
@@ -113,12 +114,12 @@ class LibraryController extends Controller
         return back()->with('success', __('File deleted.'));
     }
 
-    public function download(LibraryFile $file): RedirectResponse
+    public function download(LibraryFile $file): BinaryFileResponse|JsonResponse|RedirectResponse
     {
         return Storage::disk('local')->download($file->path, $file->original_name);
     }
 
-    public function downloadZip(Request $request): RedirectResponse
+    public function downloadZip(Request $request): BinaryFileResponse|JsonResponse|RedirectResponse
     {
         $ids = explode(',', $request->input('ids', ''));
         $files = LibraryFile::whereIn('id', $ids)->get();
@@ -142,7 +143,7 @@ class LibraryController extends Controller
         return response()->download($zipPath, 'library-export.zip')->deleteFileAfterSend();
     }
 
-    public function createFolder(Request $request): RedirectResponse
+    public function createFolder(Request $request): JsonResponse|RedirectResponse
     {
         $request->validate(['folder' => 'required|string|max:255']);
 

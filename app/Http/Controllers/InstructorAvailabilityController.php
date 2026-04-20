@@ -31,7 +31,7 @@ class InstructorAvailabilityController extends Controller
         'social' => ['color' => '#e91e63', 'text' => '#fff', 'icon' => '🎉', 'label' => 'Social'],
     ];
 
-    public function index(Request $request): View
+    public function index(Request $request): JsonResponse|View
     {
         $user = auth()->user();
         $isInstructor = $user->hasAnyRole(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical', 'assistant']);

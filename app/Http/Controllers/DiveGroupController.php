@@ -35,7 +35,7 @@ class DiveGroupController extends Controller
 {
     // ─── Board View & CRUD ─────────────────────────────────────
 
-    public function index(Event $event): View
+    public function index(Event $event): RedirectResponse|View
     {
         abort_unless($this->canView($event), 403);
         $event->load(['diveGroups.members.user.certificationLevels.federation', 'diveGroups.members.user.detail', 'registrations.user.certificationLevels.federation', 'registrations.user.detail']);
@@ -119,7 +119,7 @@ class DiveGroupController extends Controller
         return back()->with('success', __('Member added to group.'));
     }
 
-    public function removeMember(DiveGroupMember $member): RedirectResponse
+    public function removeMember(DiveGroupMember $member): JsonResponse|RedirectResponse
     {
         abort_unless($this->canManage($member->group->event), 403);
         $member->delete();
@@ -127,7 +127,7 @@ class DiveGroupController extends Controller
         return back()->with('success', __('Member removed from group.'));
     }
 
-    public function toggleLeader(DiveGroupMember $member): RedirectResponse
+    public function toggleLeader(DiveGroupMember $member): JsonResponse|RedirectResponse
     {
         abort_unless($this->canManage($member->group->event), 403);
         $member->update(['role' => $member->role === 'leader' ? 'diver' : 'leader']);
@@ -135,7 +135,7 @@ class DiveGroupController extends Controller
         return back();
     }
 
-    public function destroy(DiveGroup $group): RedirectResponse
+    public function destroy(DiveGroup $group): JsonResponse|RedirectResponse
     {
         abort_unless($this->canManage($group->event), 403);
         $group->delete();
@@ -219,7 +219,7 @@ class DiveGroupController extends Controller
      * Auto-propose dive groups based on federation rules (fiche de sécurité).
      * Returns JSON with proposed groups for preview before applying.
      */
-    public function propose(Request $request, Event $event): JsonResponse
+    public function propose(Request $request, Event $event): JsonResponse|RedirectResponse
     {
         abort_unless($this->canManage($event), 403);
 
@@ -234,7 +234,7 @@ class DiveGroupController extends Controller
      * new ones from the proposal. Saves the configuration so it can be reused
      * as a starting point if registrations change.
      */
-    public function applyProposal(Request $request, Event $event): RedirectResponse
+    public function applyProposal(Request $request, Event $event): JsonResponse|RedirectResponse
     {
         abort_unless($this->canManage($event), 403);
 

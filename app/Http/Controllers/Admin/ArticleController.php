@@ -18,7 +18,7 @@ class ArticleController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse|View
     {
         $query = Article::when($request->type, fn ($q, $t) => $q->where('article_type', $t));
 
@@ -42,14 +42,14 @@ class ArticleController extends Controller
         return view('admin.articles.index', compact('articles'));
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): RedirectResponse|View
     {
         $votes = Vote::where('status', 'open')->orWhere('status', 'draft')->orderByDesc('created_at')->get();
 
         return view('admin.articles.form', ['article' => new Article(['article_type' => $request->get('type', 'news')]), 'votes' => $votes]);
     }
 
-    public function store(Request $request): View
+    public function store(Request $request): RedirectResponse|View
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -80,7 +80,7 @@ class ArticleController extends Controller
         return redirect()->route('admin.articles.index')->with('success', __('Article created.'));
     }
 
-    public function edit(Article $article): View
+    public function edit(Article $article): RedirectResponse|View
     {
         $votes = Vote::where('status', 'open')->orWhere('status', 'draft')->orderByDesc('created_at')->get();
 

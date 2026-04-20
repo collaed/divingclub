@@ -31,12 +31,6 @@ parameters:
 			path: app/Console/Commands/SyncOldEvents.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\ArticleController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/ArticleController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\Admin\\AuditLogController\:\:export\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
 			identifier: return.type
 			count: 1
@@ -49,20 +43,8 @@ parameters:
 			path: app/Http/Controllers/Admin/DashboardController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\DiveSiteController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/DiveSiteController.php
-
-		-
 			message: '#^Instanceof between App\\Models\\Equipment and App\\Models\\Equipment will always evaluate to true\.$#'
 			identifier: instanceof.alwaysTrue
-			count: 1
-			path: app/Http/Controllers/Admin/EquipmentController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\EquipmentController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/Admin/EquipmentController.php
 
@@ -79,13 +61,7 @@ parameters:
 			path: app/Http/Controllers/Admin/LibraryController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\LibraryController\:\:download\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/LibraryController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\LibraryController\:\:downloadZip\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\BinaryFileResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\Admin\\LibraryController\:\:download\(\) should return Illuminate\\Http\\JsonResponse\|Illuminate\\Http\\RedirectResponse\|Symfony\\Component\\HttpFoundation\\BinaryFileResponse but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/Admin/LibraryController.php
@@ -109,91 +85,79 @@ parameters:
 			path: app/Http/Controllers/Admin/MemberController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\NewsletterController\:\:destroy\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/NewsletterController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\NewsletterController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/NewsletterController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\NewsletterController\:\:testSend\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/NewsletterController.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between string\|null and int will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Http/Controllers/Admin/NewsletterController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\PartnershipController\:\:destroy\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:activate\(\) has invalid return type App\\Http\\Controllers\\Admin\\JsonResponse\.$#'
+			identifier: class.notFound
 			count: 1
-			path: app/Http/Controllers/Admin/PartnershipController.php
+			path: app/Http/Controllers/Admin/SeasonController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\PartnershipController\:\:remoteEvents\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 2
-			path: app/Http/Controllers/Admin/PartnershipController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\PaymentController\:\:adjustComponents\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:create\(\) has invalid return type App\\Http\\Controllers\\Admin\\JsonResponse\.$#'
+			identifier: class.notFound
 			count: 1
-			path: app/Http/Controllers/Admin/PaymentController.php
+			path: app/Http/Controllers/Admin/SeasonController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\PaymentController\:\:generateBulkFees\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyHoliday\(\) has invalid return type App\\Http\\Controllers\\Admin\\JsonResponse\.$#'
+			identifier: class.notFound
 			count: 1
-			path: app/Http/Controllers/Admin/PaymentController.php
+			path: app/Http/Controllers/Admin/SeasonController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyHoliday\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyHoliday\(\) should return App\\Http\\Controllers\\Admin\\JsonResponse\|Illuminate\\Contracts\\View\\View\|Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/Admin/SeasonController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyPattern\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\JsonResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyPattern\(\) has invalid return type App\\Http\\Controllers\\Admin\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyPattern\(\) should return App\\Http\\Controllers\\Admin\\JsonResponse\|Illuminate\\Contracts\\View\\View\|Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/Admin/SeasonController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:destroyPattern\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:show\(\) has invalid return type App\\Http\\Controllers\\Admin\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:store\(\) has invalid return type App\\Http\\Controllers\\Admin\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storeHoliday\(\) has invalid return type App\\Http\\Controllers\\Admin\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SeasonController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storeHoliday\(\) should return App\\Http\\Controllers\\Admin\\JsonResponse\|Illuminate\\Contracts\\View\\View\|Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/Admin/SeasonController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storePattern\(\) has invalid return type App\\Http\\Controllers\\Admin\\JsonResponse\.$#'
+			identifier: class.notFound
 			count: 1
 			path: app/Http/Controllers/Admin/SeasonController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storeHoliday\(\) should return Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/SeasonController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storePattern\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\JsonResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/SeasonController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storePattern\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\Admin\\SeasonController\:\:storePattern\(\) should return App\\Http\\Controllers\\Admin\\JsonResponse\|Illuminate\\Contracts\\View\\View\|Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/Admin/SeasonController.php
@@ -205,25 +169,13 @@ parameters:
 			path: app/Http/Controllers/Admin/TrialRequestController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\VoteController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/VoteController.php
-
-		-
 			message: '#^Expression on left side of \?\? is always null\.$#'
 			identifier: nullCoalesce.expr
 			count: 2
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Auth\\SocialAuthController\:\:choose\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Auth/SocialAuthController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Auth\\SocialAuthController\:\:redirect\(\) should return Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\RedirectResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\Auth\\SocialAuthController\:\:redirect\(\) should return Illuminate\\Contracts\\View\\View\|Illuminate\\Http\\RedirectResponse but returns Symfony\\Component\\HttpFoundation\\RedirectResponse\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/Auth/SocialAuthController.php
@@ -233,12 +185,6 @@ parameters:
 			identifier: nullCoalesce.offset
 			count: 1
 			path: app/Http/Controllers/Auth/SocialAuthController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\ClassifiedController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/ClassifiedController.php
 
 		-
 			message: '#^Parameter \#2 \$diveGroupMembers of method App\\Services\\UddfService\:\:export\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DiveGroupMember\> given\.$#'
@@ -271,20 +217,32 @@ parameters:
 			path: app/Http/Controllers/DocumentBrowserController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\EventController\:\:store\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/EventController.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between string\|null and int will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Http/Controllers/EventController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\GdprController\:\:exportData\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\JsonResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\GdprController\:\:consents\(\) has invalid return type App\\Http\\Controllers\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/GdprController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GdprController\:\:exportData\(\) has invalid return type App\\Http\\Controllers\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/GdprController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GdprController\:\:exportData\(\) should return App\\Http\\Controllers\\JsonResponse\|Illuminate\\Contracts\\View\\View\|Illuminate\\Http\\RedirectResponse but returns Illuminate\\Http\\JsonResponse\.$#'
 			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/GdprController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GdprController\:\:updateConsent\(\) has invalid return type App\\Http\\Controllers\\JsonResponse\.$#'
+			identifier: class.notFound
 			count: 1
 			path: app/Http/Controllers/GdprController.php
 
@@ -301,13 +259,43 @@ parameters:
 			path: app/Http/Controllers/HomeController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\HomeController\:\:index4\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:index\(\) has invalid return type App\\Http\\Controllers\\RedirectResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:index2\(\) has invalid return type App\\Http\\Controllers\\RedirectResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:index3\(\) has invalid return type App\\Http\\Controllers\\RedirectResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:index4\(\) has invalid return type App\\Http\\Controllers\\RedirectResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:index4\(\) should return App\\Http\\Controllers\\RedirectResponse\|Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/HomeController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\HomeController\:\:showArticle\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:showArticle\(\) has invalid return type App\\Http\\Controllers\\RedirectResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\HomeController\:\:showArticle\(\) should return App\\Http\\Controllers\\RedirectResponse\|Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/HomeController.php
@@ -325,19 +313,19 @@ parameters:
 			path: app/Http/Controllers/HomeController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\InstallController\:\:index\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\InstallController\:\:index\(\) has invalid return type App\\Http\\Controllers\\RedirectResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/InstallController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\InstallController\:\:index\(\) should return App\\Http\\Controllers\\RedirectResponse\|Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
 			count: 2
 			path: app/Http/Controllers/InstallController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\ProfileDocumentController\:\:download\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\BinaryFileResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/ProfileDocumentController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\ProfileDocumentController\:\:download\(\) should return Illuminate\\Http\\Response but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\ProfileDocumentController\:\:download\(\) should return Illuminate\\Http\\RedirectResponse\|Symfony\\Component\\HttpFoundation\\BinaryFileResponse but returns Symfony\\Component\\HttpFoundation\\StreamedResponse\.$#'
 			identifier: return.type
 			count: 2
 			path: app/Http/Controllers/ProfileDocumentController.php
@@ -385,9 +373,21 @@ parameters:
 			path: app/Http/Controllers/StagingMailController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\VotePublicController\:\:cast\(\) should return Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
+			message: '#^Method App\\Http\\Controllers\\VotePublicController\:\:cast\(\) has invalid return type App\\Http\\Controllers\\RedirectResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/VotePublicController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VotePublicController\:\:cast\(\) should return App\\Http\\Controllers\\RedirectResponse\|Illuminate\\Contracts\\View\\View but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
 			count: 4
+			path: app/Http/Controllers/VotePublicController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\VotePublicController\:\:show\(\) has invalid return type App\\Http\\Controllers\\RedirectResponse\.$#'
+			identifier: class.notFound
+			count: 1
 			path: app/Http/Controllers/VotePublicController.php
 
 		-

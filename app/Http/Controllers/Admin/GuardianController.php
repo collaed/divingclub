@@ -10,10 +10,11 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class GuardianController extends Controller
 {
-    public function index(): View
+    public function index(): BinaryFileResponse|RedirectResponse|View
     {
         $minors = User::whereHas('detail', fn ($q) => $q->whereNotNull('date_of_birth')
             ->where('date_of_birth', '>', now()->subYears(18)))
@@ -23,7 +24,7 @@ class GuardianController extends Controller
         return view('admin.guardians.index', compact('minors'));
     }
 
-    public function linkGuardian(Request $request): RedirectResponse
+    public function linkGuardian(Request $request): BinaryFileResponse|RedirectResponse
     {
         $v = $request->validate([
             'minor_user_id' => 'required|exists:users,id',
@@ -39,14 +40,14 @@ class GuardianController extends Controller
         return back()->with('success', __('Guardian linked.'));
     }
 
-    public function unlinkGuardian(GuardianLink $link): RedirectResponse
+    public function unlinkGuardian(GuardianLink $link): BinaryFileResponse|RedirectResponse
     {
         $link->delete();
 
         return back()->with('success', __('Guardian unlinked.'));
     }
 
-    public function storeConsent(Request $request): RedirectResponse
+    public function storeConsent(Request $request): BinaryFileResponse|RedirectResponse
     {
         $v = $request->validate([
             'minor_user_id' => 'required|exists:users,id',
@@ -72,7 +73,7 @@ class GuardianController extends Controller
         return back()->with('success', __('Parental consent recorded.'));
     }
 
-    public function revokeConsent(ParentalConsent $consent): RedirectResponse
+    public function revokeConsent(ParentalConsent $consent): BinaryFileResponse|RedirectResponse
     {
         $consent->update(['granted' => false, 'revoked_at' => now()]);
 

@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $layout = HomepageLayoutController::getLayout();
         $widgetTypes = HomepageLayoutController::widgetTypes();
@@ -52,7 +52,7 @@ class HomeController extends Controller
         return view('home', compact('widgets', 'widgetTypes', 'isAdmin'));
     }
 
-    public function index2(): View
+    public function index2(): RedirectResponse|View
     {
         $slugs = ['values', 'history', 'bureau', 'member-figures', 'instructors'];
         $sections = Article::whereIn('slug', $slugs)->where('is_published', true)
@@ -83,7 +83,7 @@ class HomeController extends Controller
             ->with('theme', ThemeService::settings());
     }
 
-    public function showArticle(string $slug): View
+    public function showArticle(string $slug): RedirectResponse|View
     {
         $article = Article::where('slug', $slug)->active()->with('translations')->firstOrFail();
 
@@ -128,7 +128,7 @@ class HomeController extends Controller
         return view('cms.article', compact('article') + $extra);
     }
 
-    public function index3(): View
+    public function index3(): RedirectResponse|View
     {
         $photos = EventPhoto::randomPublic(8)->pluck('path');
         // One upcoming event per distinct activity title for variety
@@ -145,7 +145,7 @@ class HomeController extends Controller
             ->with('theme', ThemeService::settings());
     }
 
-    public function index4(): View
+    public function index4(): RedirectResponse|View
     {
         $user = auth()->user();
         if (! $user) {

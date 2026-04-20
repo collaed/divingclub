@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Schema;
 
 class InstallController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         // If already installed, redirect home
         try {

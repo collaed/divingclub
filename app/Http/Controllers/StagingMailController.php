@@ -12,7 +12,7 @@ class StagingMailController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse|View
     {
         abort_unless(config('app.staging_mode'), 404);
 
@@ -23,7 +23,7 @@ class StagingMailController extends Controller
         return view('staging.mailbox', compact('mails'));
     }
 
-    public function show(EmailLog $mail): View
+    public function show(EmailLog $mail): RedirectResponse|View
     {
         abort_unless(config('app.staging_mode'), 404);
         abort_unless($mail->status === 'staging_captured', 404);

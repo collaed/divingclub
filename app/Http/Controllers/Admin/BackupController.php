@@ -13,14 +13,14 @@ class BackupController extends Controller
 {
     public function __construct(protected BackupService $backup) {}
 
-    public function index(): View
+    public function index(): BinaryFileResponse|RedirectResponse|View
     {
         return view('admin.backups.index', [
             'backups' => $this->backup->list(),
         ]);
     }
 
-    public function create(Request $request): RedirectResponse
+    public function create(Request $request): BinaryFileResponse|RedirectResponse|View
     {
         $includeFiles = $request->boolean('include_files', true);
 
@@ -37,7 +37,7 @@ class BackupController extends Controller
         }
     }
 
-    public function show(string $filename): View
+    public function show(string $filename): BinaryFileResponse|RedirectResponse|View
     {
         $filename = basename($filename);
         $path = storage_path("app/backups/{$filename}");
@@ -52,7 +52,7 @@ class BackupController extends Controller
         ]);
     }
 
-    public function download(string $filename): BinaryFileResponse
+    public function download(string $filename): BinaryFileResponse|RedirectResponse
     {
         $filename = basename($filename);
         $path = storage_path("app/backups/{$filename}");

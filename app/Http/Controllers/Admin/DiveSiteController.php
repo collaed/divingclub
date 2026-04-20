@@ -11,19 +11,19 @@ use Illuminate\Support\Facades\Storage;
 
 class DiveSiteController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $sites = DiveSite::orderBy('name')->get();
 
         return view('admin.dive-sites.index', compact('sites'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         return view('admin.dive-sites.form', ['site' => new DiveSite]);
     }
 
-    public function store(Request $request): View
+    public function store(Request $request): RedirectResponse|View
     {
         $data = $this->validate($request);
         if ($request->hasFile('image')) {
@@ -40,7 +40,7 @@ class DiveSiteController extends Controller
         return redirect()->route('admin.dive-sites.index')->with('success', __('Dive site created.'));
     }
 
-    public function edit(DiveSite $diveSite): View
+    public function edit(DiveSite $diveSite): RedirectResponse|View
     {
         return view('admin.dive-sites.form', ['site' => $diveSite]);
     }

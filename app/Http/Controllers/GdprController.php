@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\Storage;
 
 class GdprController extends Controller
 {
-    public function consents(): View
+    public function consents(): JsonResponse|RedirectResponse|View
     {
         $consents = auth()->user()->gdprConsents()->get()->keyBy('consent_type');
 
         return view('gdpr.consents', compact('consents'));
     }
 
-    public function updateConsent(Request $request): RedirectResponse
+    public function updateConsent(Request $request): JsonResponse|RedirectResponse|View
     {
         $request->validate(['consent_type' => 'required|in:data_processing,marketing,photo_publication']);
         $granted = $request->boolean('granted');
@@ -35,7 +35,7 @@ class GdprController extends Controller
         return back()->with('success', __('Consent updated.'));
     }
 
-    public function exportData(): View
+    public function exportData(): JsonResponse|RedirectResponse|View
     {
         $user = auth()->user();
         $user->load(['detail', 'emails', 'licences', 'documents', 'gdprConsents', 'eventRegistrations.event', 'paymentsExpected']);
@@ -62,7 +62,7 @@ class GdprController extends Controller
         return response()->json($data)->header('Content-Disposition', "attachment; filename={$filename}");
     }
 
-    public function requestErasure(): View
+    public function requestErasure(): RedirectResponse|View
     {
         return view('gdpr.erasure-confirm');
     }

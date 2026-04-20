@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class LinkController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $links = Link::orderBy('sort_order')->get();
 

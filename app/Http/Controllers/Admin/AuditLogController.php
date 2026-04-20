@@ -10,12 +10,13 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AuditLogController extends Controller
 {
     use PaginatesFromRequest;
 
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse|StreamedResponse|View
     {
         $query = AuditLog::with('user');
 
@@ -46,14 +47,14 @@ class AuditLogController extends Controller
         return view('admin.audit-logs.index', compact('logs', 'oldestLog', 'retentionMonths'));
     }
 
-    public function show(AuditLog $auditLog): View
+    public function show(AuditLog $auditLog): RedirectResponse|StreamedResponse|View
     {
         $auditLog->load('user');
 
         return view('admin.audit-logs.show', ['log' => $auditLog]);
     }
 
-    public function purge(Request $request): RedirectResponse
+    public function purge(Request $request): RedirectResponse|StreamedResponse
     {
         $years = (int) $request->validate(['years' => 'required|integer|min:1|max:5'])['years'];
         $cutoff = now()->subYears($years);
@@ -62,7 +63,7 @@ class AuditLogController extends Controller
         return back()->with('success', __(':count audit log entries older than :years year(s) deleted.', ['count' => $deleted, 'years' => $years]));
     }
 
-    public function updateRetention(Request $request): RedirectResponse
+    public function updateRetention(Request $request): RedirectResponse|StreamedResponse
     {
         $months = $request->validate(['audit_retention_months' => 'required|integer|min:1|max:120'])['audit_retention_months'];
         ThemeSetting::set('audit_retention_months', $months);

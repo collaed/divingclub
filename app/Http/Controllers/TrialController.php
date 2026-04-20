@@ -9,7 +9,7 @@ use Illuminate\Http\RedirectResponse;
 
 class TrialController extends Controller
 {
-    public function show(): View
+    public function show(): RedirectResponse|View
     {
         return view('trial.show');
     }

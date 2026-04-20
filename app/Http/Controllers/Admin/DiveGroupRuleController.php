@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class DiveGroupRuleController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $rules = DiveGroupRule::orderBy('scope')->orderBy('dive_mode')->orderBy('min_leader_rank')->get();
         $federations = Federation::orderBy('acronym')->pluck('acronym');

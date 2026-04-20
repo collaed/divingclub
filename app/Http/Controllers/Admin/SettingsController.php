@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Cache;
 
 class SettingsController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         return view('admin.settings.index', [
             'federations' => Federation::orderBy('acronym')->get(),

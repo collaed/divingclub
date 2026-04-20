@@ -31,14 +31,14 @@ class SocialAuthController extends Controller
 {
     protected array $providers = ['google', 'microsoft', 'facebook', 'x'];
 
-    public function redirect(string $provider): RedirectResponse
+    public function redirect(string $provider): RedirectResponse|View
     {
         abort_unless(in_array($provider, $this->providers), 404);
 
         return Socialite::driver($provider)->redirect();
     }
 
-    public function callback(string $provider): RedirectResponse
+    public function callback(string $provider): RedirectResponse|View
     {
         abort_unless(in_array($provider, $this->providers), 404);
 
@@ -103,7 +103,7 @@ class SocialAuthController extends Controller
     }
 
     /** Show the "link existing or register new" choice page. */
-    public function choose(): View
+    public function choose(): RedirectResponse|View
     {
         $pending = session('pending_social_new');
         if (! $pending) {

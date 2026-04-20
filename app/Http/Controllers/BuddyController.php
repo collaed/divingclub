@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class BuddyController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $requests = BuddyRequest::active()
             ->with(['user.detail', 'user.certificationLevels.federation', 'diveSite', 'responses.user.detail'])

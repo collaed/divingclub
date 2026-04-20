@@ -16,21 +16,21 @@ use Illuminate\Support\Facades\Mail;
 
 class PartnershipController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse|View
     {
         $partners = ClubPartnership::withCount('externalRegistrations')->orderBy('name')->get();
 
         return view('admin.partnerships.index', compact('partners'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse|View
     {
         $keys = ClubPartnership::generateKeyPair();
 
         return view('admin.partnerships.create', compact('keys'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|View
     {
         $data = $request->validate([
             'name' => 'required|string|max:100',
@@ -53,7 +53,7 @@ class PartnershipController extends Controller
         return redirect()->route('admin.partnerships.index')->with('success', 'Partnership created. Share the Key ID and Secret with the partner club.');
     }
 
-    public function destroy(ClubPartnership $partnership): View
+    public function destroy(ClubPartnership $partnership): RedirectResponse|View
     {
         $partnership->delete();
 
@@ -63,7 +63,7 @@ class PartnershipController extends Controller
     /**
      * Fetch federated events from a partner club and display them.
      */
-    public function remoteEvents(ClubPartnership $partnership): View
+    public function remoteEvents(ClubPartnership $partnership): RedirectResponse|View
     {
         if (! $partnership->their_api_key_id || ! $partnership->their_api_secret) {
             return back()->with('error', 'Outbound API credentials not configured for this partner.');
@@ -86,7 +86,7 @@ class PartnershipController extends Controller
     /**
      * Manage external registrations for our events.
      */
-    public function registrations(Request $request): View
+    public function registrations(Request $request): RedirectResponse|View
     {
         $regs = ExternalRegistration::with(['event', 'partnership'])
             ->orderByDesc('created_at')
