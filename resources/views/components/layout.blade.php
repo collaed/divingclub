@@ -19,6 +19,9 @@
     .dc-footer{background:var(--dc-footer-bg) !important}
     </style>
     @stack('styles')
+    @if(config('services.umami.url') && config('services.umami.id'))
+        <script defer src="{{ config('services.umami.url') }}/dive" data-website-id="{{ config('services.umami.id') }}"></script>
+    @endif
 </head>
 <body class="d-flex flex-column min-vh-100">
 

@@ -55,4 +55,9 @@ return [
         'url' => env('OLD_SYNC_URL', 'https://clubcep.eu/wrapp/api_sync.php'),
         'key' => env('OLD_SYNC_KEY', 'cep-sync-2026-hetzner'),
     ],
+
+    'umami' => [
+        'url' => env('UMAMI_URL'),
+        'id' => env('UMAMI_WEBSITE_ID'),
+    ],
 ];
