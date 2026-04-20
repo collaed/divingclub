@@ -7,6 +7,12 @@ parameters:
 			path: app/Console/Commands/EnrichImportedEvents.php
 
 		-
+			message: '#^Parameter \#2 \$key of static method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Event\>\:\:pluck\(\) expects string\|null, Illuminate\\Contracts\\Database\\Query\\Expression given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Console/Commands/ImportLegacyData.php
+
+		-
 			message: '#^Result of && is always false\.$#'
 			identifier: booleanAnd.alwaysFalse
 			count: 1
@@ -49,6 +55,12 @@ parameters:
 			path: app/Http/Controllers/Admin/EquipmentController.php
 
 		-
+			message: '#^Parameter \#1 \$value of method Carbon\\Carbon\:\:addMonths\(\) expects float\|int, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/Admin/EquipmentController.php
+
+		-
 			message: '#^Cannot call method last\(\) on array\|ArrayAccess\.$#'
 			identifier: method.nonObject
 			count: 1
@@ -73,6 +85,12 @@ parameters:
 			path: app/Http/Controllers/Admin/NewsletterController.php
 
 		-
+			message: '#^Parameter \#1 \$num of function number_format expects float, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/PaymentController.php
+
+		-
 			message: '#^Call to static method read\(\) on an unknown class Intervention\\Image\\Laravel\\Facades\\Image\.$#'
 			identifier: class.notFound
 			count: 1
@@ -83,6 +101,18 @@ parameters:
 			identifier: match.unhandled
 			count: 1
 			path: app/Http/Controllers/Admin/TrialRequestController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/VoteController.php
+
+		-
+			message: '#^Parameter \#1 \$user of static method Illuminate\\Support\\Facades\\Auth\:\:login\(\) expects Illuminate\\Contracts\\Auth\\Authenticatable, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Auth/EuLoginController.php
 
 		-
 			message: '#^Access to an undefined property Laravel\\Socialite\\Contracts\\User\:\:\$refreshToken\.$#'
@@ -103,8 +133,20 @@ parameters:
 			path: app/Http/Controllers/Auth/SocialAuthController.php
 
 		-
+			message: '#^Parameter \#1 \$user of static method Illuminate\\Support\\Facades\\Auth\:\:login\(\) expects Illuminate\\Contracts\\Auth\\Authenticatable, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Auth/SocialAuthController.php
+
+		-
 			message: '#^Access to an undefined property App\\Models\\DiveGroupMember\:\:\$diveGroup\.$#'
 			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/DiveDataController.php
+
+		-
+			message: '#^Parameter \#2 \$diveGroupMembers of method App\\Services\\UddfService\:\:export\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DiveGroupMember\> given\.$#'
+			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/DiveDataController.php
 
@@ -121,8 +163,20 @@ parameters:
 			path: app/Http/Controllers/DiveGroupController.php
 
 		-
+			message: '#^Parameter \#1 \$group of method App\\Http\\Controllers\\DiveGroupController\:\:checkGroup\(\) expects App\\Models\\DiveGroup, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/DiveGroupController.php
+
+		-
 			message: '#^Cannot call method last\(\) on array\|ArrayAccess\.$#'
 			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/DocumentBrowserController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\EventPhoto\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
 			count: 1
 			path: app/Http/Controllers/DocumentBrowserController.php
 
@@ -139,6 +193,12 @@ parameters:
 			path: app/Http/Controllers/EventController.php
 
 		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/GdprController.php
+
+		-
 			message: '#^Offset ''status'' on array\{status\: string, bytes\: int, human\: string\}\|array\{status\: string, error\?\: string\}\|array\{status\: string, free\: string, total\: string, used_pct\: float\}\|array\{status\: string, ms\?\: float\}\|array\{status\: string, pending\: int, failed\: int\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -148,6 +208,18 @@ parameters:
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<TRelatedModel of Illuminate\\Database\\Eloquent\\Model\>\:\:role\(\)\.$#'
 			identifier: method.notFound
 			count: 2
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\MemberDetail\>\:\:filter\(\) expects \(callable\(App\\Models\\MemberDetail, int\)\: bool\)\|null, Closure\(mixed\)\: \(Carbon\\Carbon\|null\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\MemberDetail\>\:\:filter\(\) expects \(callable\(App\\Models\\MemberDetail, int\)\: bool\)\|null, Closure\(mixed\)\: \(string\|null\) given\.$#'
+			identifier: argument.type
+			count: 3
 			path: app/Http/Controllers/HomeController.php
 
 		-
@@ -163,6 +235,12 @@ parameters:
 			path: app/Http/Controllers/ProfileEmailController.php
 
 		-
+			message: '#^Parameter \#1 \$num of function number_format expects float, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/QrCodeController.php
+
+		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isOpen\(\)\.$#'
 			identifier: method.notFound
 			count: 2
@@ -173,6 +251,12 @@ parameters:
 			identifier: nullCoalesce.offset
 			count: 1
 			path: app/Jobs/PollInboundMail.php
+
+		-
+			message: '#^Parameter \#1 \$article of method App\\Services\\ArticleTranslationService\:\:translate\(\) expects App\\Models\\Article, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/ProcessTranslations.php
 
 		-
 			message: '#^Binary operation "/" between non\-falsy\-string and 1\|non\-falsy\-string results in an error\.$#'
@@ -191,6 +275,12 @@ parameters:
 			identifier: binaryOp.invalid
 			count: 1
 			path: app/Models/LibraryFile.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:filter\(\) expects \(callable\(array\{position\: mixed, article\: App\\Models\\Article\|null, teaser\: mixed, custom_url\: mixed, slug\: mixed\}, int\|string\)\: bool\)\|null, Closure\(mixed\)\: \(App\\Models\\Article\|null\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Models/Newsletter.php
 
 		-
 			message: '#^Method App\\Models\\User\:\:primaryCertification\(\) should return App\\Models\\CertificationLevel\|null but returns \(Illuminate\\Database\\Eloquent\\Model&object\{pivot\: Illuminate\\Database\\Eloquent\\Relations\\Pivot\}\)\|null\.$#'
@@ -220,6 +310,12 @@ parameters:
 			message: '#^Method App\\Services\\BackupService\:\:create\(\) should return array\{filename\: string, path\: string, size\: int, manifest\: array\} but returns array\{filename\: non\-falsy\-string, path\: non\-falsy\-string, size\: int\<0, max\>\|false, manifest\: null\}\.$#'
 			identifier: return.type
 			count: 1
+			path: app/Services/BackupService.php
+
+		-
+			message: '#^Parameter \#1 \$array of function rsort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 2
 			path: app/Services/BackupService.php
 
 		-
@@ -285,6 +381,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Models\\DiveSite\:\:\$water_temp\.$#'
 			identifier: property.notFound
+			count: 1
+			path: app/Services/SwapSuggestionService.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_values contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
 			count: 1
 			path: app/Services/SwapSuggestionService.php
 
