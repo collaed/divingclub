@@ -349,18 +349,6 @@ class SyncOldEvents extends Command
             $d = $user->detail;
             $changed = false;
 
-            // Cotisation years
-            if (! empty($m['cb_cotis'])) {
-                $year = (string) $m['cb_cotis'];
-                $current = $d->cotisation_years ?? [];
-                if (! in_array($year, $current)) {
-                    $current[] = $year;
-                    sort($current);
-                    $d->cotisation_years = $current;
-                    $changed = true;
-                }
-            }
-
             // DOB
             if (! $d->date_of_birth && ! empty($m['cb_datenaissance'])) {
                 $d->date_of_birth = $m['cb_datenaissance'];
@@ -373,13 +361,25 @@ class SyncOldEvents extends Command
                 $changed = true;
             }
 
-            // Adhesion year from inscription date or cotisation
+            // Adhesion year
             if (! $d->adhesion_year) {
-                if (! empty($m['cb_inscdat'])) {
+                if (! empty($m['cb_adhsioncep'])) {
+                    $d->adhesion_year = (int) $m['cb_adhsioncep'];
+                    $changed = true;
+                } elseif (! empty($m['cb_inscdat'])) {
                     $d->adhesion_year = (int) substr($m['cb_inscdat'], 0, 4);
                     $changed = true;
-                } elseif (! empty($m['cb_adhsioncep'])) {
-                    $d->adhesion_year = (int) $m['cb_adhsioncep'];
+                }
+            }
+
+            // Update cotisation to latest year if old API has a newer one
+            if (! empty($m['cb_cotis'])) {
+                $year = (string) $m['cb_cotis'];
+                $current = $d->cotisation_years ?? [];
+                if (! in_array($year, $current)) {
+                    $current[] = $year;
+                    sort($current);
+                    $d->cotisation_years = $current;
                     $changed = true;
                 }
             }
