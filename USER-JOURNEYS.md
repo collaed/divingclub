@@ -969,3 +969,179 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 81. Sender confirmation email after each forwarded message
 82. Two inbound modes: Maildir (local Postfix) or IMAP (remote mailbox) — configurable via .env
 83. Resend API load-balancing across two API keys (clubcep.eu + ecb.pm) for 200 emails/day on free tier
+
+---
+
+## Journey 51 — Member Manages Email Preferences
+
+**Actor:** A member with multiple email addresses (personal + work + OAuth).
+
+1. Opens **My Profile → Info tab → Email Addresses**
+2. Sees the table: each email has Label, Status (verified/unverified), and a **Receive mail** checkbox
+3. Adds their Google email for OAuth login → it appears as unverified
+4. Verifies it via the link sent to that address
+5. **Unchecks "Receive mail"** on the Google email — it's now login-only
+6. Tries to uncheck the last remaining email → gets error: "At least one email address must receive club communications"
+7. Help text explains the options in their language
+
+---
+
+## Journey 52 — Instructor Marks Availability on the Planning Calendar
+
+**Actor:** An instructor (e.g., Keran, E3/MF1).
+
+1. Opens **Instructor Planning** from the nav menu
+2. Sees the monthly calendar with color-coded activity types
+3. On a Wednesday with two pool blocks (17:00–18:30 and 18:30–20:00), sees them **side by side** with activity-type colors (PN1 = navy, Kids = green)
+4. Clicks **➕** on the first block → their initial (K, yellow) appears in that slot
+5. They're auto-registered for the event
+6. Clicks **✅** to remove availability → initial disappears, registration cancelled
+7. Legend shows **Instructors** (with initials/colors) and **Bureau** (non-instructor) separately
+8. Multi-day events (e.g., Gravière du Fort Sat–Sun) appear on both days
+
+---
+
+## Journey 53 — Bureau Loans Equipment at an Event
+
+**Actor:** A bureau member managing equipment at a pool session.
+
+1. Opens **Administration → Equipment**
+2. Filters by **Type: BCD**, **Status: Available**, **Location: Entrepôt**
+3. Clicks a row → sees equipment detail with serial number, last retest date, ❄️ cold water / 👶 child badges
+4. Selects a member from the dropdown, picks the current event, clicks **Loan**
+5. Or uses **Quick Loan** from a member's profile → selects multiple items at once
+6. After 5 minutes (configurable), the member receives an email: "Equipment loaned to you: BCD #M9, Tank #15"
+7. After the session, returns the items → member gets "All equipment returned — thank you!"
+8. The **Last Seen** column updates automatically
+9. Equipment with `status=on_loan` shows the borrower's name in the list
+
+---
+
+## Journey 54 — Bureau Reviews Equipment Inventory
+
+**Actor:** A bureau member doing an inventory check.
+
+1. Opens **Administration → Equipment**
+2. Uses filters: **Type** (BCD/tank/regulator), **Status**, **Location** (Entrepôt/Piscine Merl), **Size** (free text search in name)
+3. Clicks **Last Seen ↓** to sort — items not seen recently float to top
+4. Clicks a row → sees full detail: serial number, brand, manufacturer, threading, pressures, retest dates, maintenance schedule, loan history
+5. Updates **Location** via dropdown (Entrepôt / Piscine Merl / Hors Service)
+6. Checks **👶 Child** or **❄️ Cold Water** flags
+7. Items imported from the old SM system show full loan history back to 2023
+
+---
+
+## Journey 55 — Bureau Checks System Health
+
+**Actor:** A bureau member or sysadmin.
+
+1. Visits `/health` → gets JSON: status (healthy/degraded/unhealthy), response time, checks
+2. Checks: database connectivity (ms), DB size, disk usage (%), storage writable, cache, queue (pending/failed jobs)
+3. HTTP 200 = healthy, 299 = degraded (warnings), 503 = unhealthy
+4. Uptime Kuma monitors this endpoint and alerts on non-200
+5. **Umami analytics** at `analytics.ecb.pm` shows real-time visitors, pages, referrers, countries
+6. **GoAccess report** at `/report.html` shows historical traffic (refreshed every 15 minutes)
+
+---
+
+## Journey 56 — Member Views Cotisation Timeline
+
+**Actor:** A member checking their payment history.
+
+1. Opens **My Profile → Info tab**
+2. Sees the **cotisation timeline** — a row of colored blocks from adhesion year to current
+3. Green = paid, grey = unpaid, with 2-digit year labels inside each block
+4. Gaps are immediately visible (e.g., 2020–2021 grey = didn't pay during COVID)
+5. Current year unpaid → red badge warning
+6. Bureau members see the same timeline but can **click blocks to toggle** paid/unpaid
+
+---
+
+## Journey 57 — Member Registers Another Member for an Event
+
+**Actor:** A member registering their spouse/buddy.
+
+1. Opens an event page (e.g., "Sortie Gravière du Fort")
+2. Scrolls to **Registration** section
+3. Below their own registration, sees **"Register another person"** dropdown
+4. Selects their spouse from the member list
+5. Adds an optional comment
+6. Clicks **Register** → spouse is confirmed (or added to waiting list)
+7. To cancel: clicks **Unregister** → confirm dialog says "Unregister [Name]?" with Confirm/Cancel buttons
+
+---
+
+## Journey 58 — Bureau Configures Default Language
+
+**Actor:** A bureau master setting up the club for a German-speaking club.
+
+1. Opens **Administration → Settings → Languages**
+2. Selects **Default Language: Deutsch** from the dropdown
+3. Unchecks languages not needed (e.g., Finnish, Estonian)
+4. Clicks **Save**
+5. New visitors now see the site in German by default
+6. Members can still override with their profile preference or the language switcher
+
+---
+
+## Journey 59 — Visitor Requests a Trial Dive (Baptême)
+
+**Actor:** Someone interested in trying scuba diving.
+
+1. Clicks **"Book a Trial"** in the navigation
+2. Reads the page (translated to their language): what's included, how it works, health notice
+3. Fills in: first name, last name, email, phone, preferred date, questions
+4. Submits → sees "Your request has been submitted!"
+5. Bureau receives the request in **Administration → Trial Requests**
+6. Bureau contacts the person to confirm a date
+
+---
+
+## Journey 60 — Bureau Views Access Logs and Analytics
+
+**Actor:** A bureau member reviewing site usage.
+
+1. Checks **Umami** (analytics.ecb.pm) → sees real-time visitors, top pages, countries, devices
+2. Checks **GoAccess** (/report.html) → sees historical traffic, status codes, referrers
+3. Can identify: who logged in, what pages they visited, peak hours, 404 errors
+4. Data persists permanently in Umami (PostgreSQL), GoAccess refreshes every 15 minutes from Caddy logs
+
+---
+
+## Journey 61 — Member Browses the Document Library
+
+**Actor:** A member looking for club documents.
+
+1. Opens **Resources → Documents**
+2. Sees a **collapsible folder tree** on the left (same as admin library)
+3. Clicks ▶ to expand subfolders, 📂 marks the current folder
+4. Files show: name, size, access level (🌍 public / 👥 members / 🎓 instructors / 🔒 bureau), date
+5. Clicks a file to download
+6. Breadcrumb navigation shows the path
+7. Bureau members can upload, change visibility, create folders, drag-and-drop files
+
+---
+
+## Journey 62 — Member Views Federation Quick Links
+
+**Actor:** A member looking for federation information.
+
+1. On the homepage sidebar, sees **Quick Links** widget
+2. Each link shows: federation logo, name, and description
+3. **FFESSM** — Fédération Française d'Études et de Sports Sous-Marins (primary federation)
+4. **FLASSA** — Fédération Luxembourgeoise des Activités et Sports Sub-Aquatiques
+5. **CMAS** — Confédération Mondiale des Activités Subaquatiques
+6. Clicks any link → opens the federation website in a new tab
+
+---
+
+## Journey 63 — Bureau Edits an Article Inline
+
+**Actor:** A bureau member reading an article that needs updating.
+
+1. Views any article page (e.g., /article/member-figures)
+2. Sees a **✏️ Edit** button next to the title (only visible to bureau)
+3. Clicks it → goes directly to the admin article editor
+4. Makes changes in the rich text editor
+5. Saves → redirected back to the article with updated content
+6. Auto-translation queues the changes for all 15 languages
