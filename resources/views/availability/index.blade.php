@@ -11,11 +11,14 @@
     .ic-header a:hover { background: rgba(255,255,255,.15); }
     .ic-table thead { background: #00695c; color: #fff; }
     .ic-table thead th { border-color: #00796b; font-weight: 600; }
-    .ic-table td { vertical-align: top; min-width: 100px; height: 60px; }
+    .ic-table td { vertical-align: top; min-width: 100px; min-height: 60px; }
     .ic-today { outline: 2px solid #00bfa5; outline-offset: -2px; background: #e0f2f1 !important; }
     .ic-legend { display: flex; flex-wrap: wrap; gap: .5rem; }
     .ic-legend-item { display: inline-flex; align-items: center; gap: .3rem; font-size: .75rem; padding: .2rem .5rem; border-radius: 4px; }
-    .ic-avatar { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .5rem; font-weight: 700; color: #fff; }
+    .ic-avatar { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .6rem; font-weight: 700; color: #fff; }
+    .ic-toggle { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; font-size: .75rem; line-height: 1; }
+    .ic-toggle-add { background: #28a745; color: #fff; }
+    .ic-toggle-remove { background: #dc3545; color: #fff; }
     </style>
 
     <div class="ic-header d-flex justify-content-between align-items-center">
@@ -29,7 +32,7 @@
 
     @if($isInstructor)
         <div class="alert alert-info small py-2 mb-0 rounded-0" style="background:#e0f2f1;border-color:#b2dfdb;color:#004d40">
-            💡 {{ __('Click ➕ on an event to mark yourself available. Click ✅ to remove.') }}
+            💡 {{ __('Click ✓ to mark yourself available. Click ✗ to remove.') }}
         </div>
     @else
         <div class="alert alert-light small py-2 mb-0 rounded-0 border-0 text-muted">
@@ -91,14 +94,14 @@
                                                 <div class="d-flex align-items-center gap-1">
                                                     <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:50px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 8) }}</a>
                                                     @if($isInstructor && !$isPast)
-                                                        <span class="ms-auto" style="cursor:pointer;font-size:.55rem" onclick="toggleEvent({{ $ev->id }})">{{ $myAvail ? '✅' : '➕' }}</span>
+                                                        <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" onclick="toggleEvent({{ $ev->id }})" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
                                                     @endif
                                                 </div>
                                                 @if($evAvails->isNotEmpty())
                                                     <span class="d-block" style="font-size:.55rem;letter-spacing:1px">@foreach($evAvails as $av)@php
                                                         $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
                                                         $ic = $av->user->detail?->instructor_color ?? '#00695c';
-                                                    @endphp<span class="ic-avatar" style="background:{{ $ic }};width:16px;height:16px;font-size:.45rem" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
+                                                    @endphp<span class="ic-avatar" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -117,7 +120,7 @@
                                                 <div class="d-flex align-items-center gap-1">
                                                     <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:70px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 12) }}</a>
                                                     @if($isInstructor && !$isPast)
-                                                        <span class="ms-auto" style="cursor:pointer;font-size:.6rem" onclick="toggleEvent({{ $ev->id }})" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✅' : '➕' }}</span>
+                                                        <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" onclick="toggleEvent({{ $ev->id }})" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
                                                     @endif
                                                 </div>
                                                 @if($evAvails->isNotEmpty())
