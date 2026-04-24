@@ -158,7 +158,11 @@ class SyncOldEvents extends Command
 
     private function upsertEvent(array $s): void
     {
-        $eventType = $this->guessEventType($s['titre'] ?? '');
+        $eventDate = Carbon::parse($s['dat']);
+        $eventType = $this->guessEventType($s['titre'] ?? '', $eventDate);
+
+        // Closed events should not accept registrations
+        $closed = $eventType === 'closed';
 
         $attrs = [
             'title' => $s['titre'] ?? 'Untitled',
@@ -169,7 +173,7 @@ class SyncOldEvents extends Command
             'location' => $s['Lieu'] ?: null,
             'description' => $s['descr'] ?: null,
             'max_participants' => ((int) ($s['max'] ?? 0)) ?: null,
-            'inscriptions_closed' => in_array($s['clot'] ?? '', ['O', '1']),
+            'inscriptions_closed' => $closed || in_array($s['clot'] ?? '', ['O', '1']),
             'inscription_open_at' => ($s['date_ouverture'] ?? '') && $s['date_ouverture'] !== '0000-00-00 00:00:00' ? $s['date_ouverture'] : null,
             'event_type' => $eventType,
             'status' => 'scheduled',
@@ -260,26 +264,55 @@ class SyncOldEvents extends Command
         return $map;
     }
 
-    private function guessEventType(string $title): string
+    private function guessEventType(string $title, ?Carbon $date = null): string
     {
         $t = mb_strtolower($title);
-        if (str_contains($t, 'apnée') || str_contains($t, 'apnea')) {
+        $day = $date?->dayOfWeek; // 0=Sun, 1=Mon, ..., 5=Fri
+
+        // Closed facilities
+        if (str_contains($t, 'fermé') || str_contains($t, 'ferme')) {
+            return 'closed';
+        }
+
+        // Theory/courses
+        if (str_contains($t, 'théori') || str_contains($t, 'theori') || str_contains($t, 'législation') || str_contains($t, 'nitrox') || str_contains($t, 'cours théo')) {
+            return 'theory';
+        }
+
+        // Fosse apnée → apnea, other fosse → fosse
+        if (str_contains($t, 'fosse') && str_contains($t, 'apn')) {
             return 'apnea';
         }
-        if (str_contains($t, 'fosse') || str_contains($t, 'nemo33') || str_contains($t, 'nemo 33') || str_contains($t, 'staubotz') || str_contains($t, 'stausee') || str_contains($t, 'carrière') || str_contains($t, 'lac')) {
-            return 'dive';
+        if (str_contains($t, 'fosse') || str_contains($t, 'nemo33') || str_contains($t, 'nemo 33')) {
+            return 'fosse';
         }
-        if (str_contains($t, 'merl')) {
+
+        // Quarry/lake
+        if (str_contains($t, 'gravière') || str_contains($t, 'carrière') || str_contains($t, 'staubotz') || str_contains($t, 'stausee') || str_contains($t, 'lac ')) {
+            return 'quarry';
+        }
+
+        // Monday Steinfort → swimming
+        if ($day === 1 && str_contains($t, 'steinfort')) {
+            return 'pool_swimming';
+        }
+
+        // Friday → apnea
+        if ($day === 5 && (str_contains($t, 'apn') || str_contains($t, 'merl'))) {
+            return 'apnea';
+        }
+
+        // Apnea by name
+        if (str_contains($t, 'apnée') || str_contains($t, 'apnea') || str_contains($t, 'apné')) {
+            return 'apnea';
+        }
+
+        // Pool sessions
+        if (str_contains($t, 'steinfort')) {
+            return 'pool_swimming';
+        }
+        if (str_contains($t, 'merl') || str_contains($t, 'piscine') || str_contains($t, 'pool') || str_contains($t, 'bloc')) {
             return 'pool';
-        }
-        if (str_contains($t, 'steinfort') && ! str_contains($t, 'fermé')) {
-            return 'training';
-        }
-        if (str_contains($t, 'piscine') || str_contains($t, 'pool')) {
-            return 'pool';
-        }
-        if (str_contains($t, 'théorie') || str_contains($t, 'theorie') || str_contains($t, 'cours')) {
-            return 'theory';
         }
 
         return 'social';
