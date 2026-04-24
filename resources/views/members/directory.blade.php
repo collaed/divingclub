@@ -8,6 +8,7 @@
         <div class="col-md-2">
             <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Statuses') }}</option>
+                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>✅ {{ __('Active members') }}</option>
                 @foreach($statuses as $st)
                     <option value="{{ $st->id }}" {{ request('status') == $st->id ? 'selected' : '' }}>{{ $st->name }}</option>
                 @endforeach
