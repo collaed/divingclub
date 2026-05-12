@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c8ddd0"/>
+      <stop offset="40%" stop-color="#9ac0a8"/>
+      <stop offset="100%" stop-color="#6a9a7a"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6aaa88"/>
+      <stop offset="100%" stop-color="#3a7a5a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="600" height="220" fill="url(#sky)"/>
+
+  <!-- Distant treeline -->
+  <path d="M0,100 Q25,82 50,95 Q75,75 100,90 Q125,70 150,85 Q175,65 200,82 Q225,62 250,78 Q275,58 300,75 Q325,55 350,72 Q375,52 400,70 Q425,50 450,68 Q475,48 500,65 Q525,45 550,62 Q575,42 600,58 L600,125 L0,125Z" fill="#6a9a6a" opacity="0.35"/>
+
+  <!-- Strasbourg Cathedral (left, bigger) -->
+  <g transform="translate(35,10)" fill="#4a7a5a" opacity="0.7">
+    <!-- Main tower -->
+    <rect x="18" y="35" width="34" height="65"/>
+    <!-- Spire -->
+    <rect x="28" y="8" width="14" height="27"/>
+    <polygon points="35,-5 25,8 45,8"/>
+    <!-- Cross on top -->
+    <line x1="35" y1="-5" x2="35" y2="-12" stroke="#4a7a5a" stroke-width="2"/>
+    <line x1="32" y1="-9" x2="38" y2="-9" stroke="#4a7a5a" stroke-width="1.5"/>
+    <!-- Rose window -->
+    <circle cx="35" cy="55" r="8" fill="none" stroke="#8aba9a" stroke-width="1.5"/>
+    <circle cx="35" cy="55" r="4" fill="#8aba9a" opacity="0.4"/>
+    <!-- Door -->
+    <rect x="28" y="82" width="14" height="18" rx="7" fill="#3a6a4a"/>
+    <!-- Side windows -->
+    <rect x="22" y="42" width="5" height="8" rx="2" fill="#8aba9a" opacity="0.3"/>
+    <rect x="43" y="42" width="5" height="8" rx="2" fill="#8aba9a" opacity="0.3"/>
+    <rect x="22" y="65" width="5" height="8" rx="2" fill="#8aba9a" opacity="0.3"/>
+    <rect x="43" y="65" width="5" height="8" rx="2" fill="#8aba9a" opacity="0.3"/>
+    <!-- Base -->
+    <rect x="8" y="85" width="54" height="15"/>
+  </g>
+
+  <!-- Tram (center-left, bigger) -->
+  <g transform="translate(130,78)" fill="#4a7a5a" opacity="0.6">
+    <rect x="0" y="0" width="65" height="20" rx="4"/>
+    <!-- Wheels -->
+    <circle cx="12" cy="22" r="3" fill="#3a6a4a"/>
+    <circle cx="53" cy="22" r="3" fill="#3a6a4a"/>
+    <!-- Rail -->
+    <rect x="-5" y="24" width="75" height="1.5" fill="#3a6a4a"/>
+    <!-- Windows -->
+    <rect x="5" y="4" width="10" height="11" rx="1.5" fill="#a8d8b8" opacity="0.6"/>
+    <rect x="18" y="4" width="10" height="11" rx="1.5" fill="#a8d8b8" opacity="0.6"/>
+    <rect x="31" y="4" width="10" height="11" rx="1.5" fill="#a8d8b8" opacity="0.6"/>
+    <rect x="44" y="4" width="10" height="11" rx="1.5" fill="#a8d8b8" opacity="0.6"/>
+    <!-- Pantograph -->
+    <line x1="32" y1="0" x2="28" y2="-10" stroke="#4a7a5a" stroke-width="1.5"/>
+    <line x1="32" y1="0" x2="36" y2="-10" stroke="#4a7a5a" stroke-width="1.5"/>
+    <line x1="24" y1="-10" x2="40" y2="-10" stroke="#4a7a5a" stroke-width="1.2"/>
+    <!-- Overhead wire -->
+    <line x1="-10" y1="-10" x2="80" y2="-10" stroke="#4a7a5a" stroke-width="0.6" opacity="0.4"/>
+  </g>
+
+  <!-- Pretzel (right, much bigger, classic pretzel shape) -->
+  <g transform="translate(490,55)">
+    <!-- Classic pretzel: two loops with crossed arms -->
+    <path d="M0,28 C0,12 10,0 20,0 C30,0 35,10 30,20 L15,30 L35,20 C30,10 35,0 45,0 C55,0 65,12 65,28 C65,40 55,48 45,48 L20,48 C10,48 0,40 0,28Z" 
+          fill="#c8a050" stroke="#a08030" stroke-width="1.5" opacity="0.65"/>
+    <!-- Cross in middle -->
+    <line x1="20" y1="20" x2="45" y2="20" stroke="#a08030" stroke-width="1" opacity="0.4"/>
+    <!-- Salt crystals -->
+    <circle cx="12" cy="30" r="1.5" fill="#e8d8a0" opacity="0.6"/>
+    <circle cx="25" cy="15" r="1.5" fill="#e8d8a0" opacity="0.6"/>
+    <circle cx="40" cy="15" r="1.5" fill="#e8d8a0" opacity="0.6"/>
+    <circle cx="53" cy="30" r="1.5" fill="#e8d8a0" opacity="0.6"/>
+    <circle cx="32" cy="40" r="1.5" fill="#e8d8a0" opacity="0.6"/>
+    <circle cx="20" cy="38" r="1" fill="#e8d8a0" opacity="0.5"/>
+    <circle cx="45" cy="38" r="1" fill="#e8d8a0" opacity="0.5"/>
+  </g>
+
+  <!-- Water surface -->
+  <rect y="125" width="600" height="95" fill="url(#water)"/>
+
+  <!-- Water ripples -->
+  <path d="M0,130 Q50,125 100,131 Q150,123 200,130 Q250,122 300,129 Q350,121 400,128 Q450,120 500,127 Q550,119 600,126" fill="none" stroke="#8ac8a0" stroke-width="1" opacity="0.5"/>
+  <path d="M0,137 Q60,132 120,138 Q180,130 240,137 Q300,129 360,136 Q420,128 480,135 Q540,127 600,134" fill="none" stroke="#8ac8a0" stroke-width="0.7" opacity="0.4"/>
+
+  <!-- Sunken canoe wreck (underwater, left, bigger) -->
+  <g transform="translate(70,155)" opacity="0.5">
+    <!-- Canoe hull (upside down, broken) -->
+    <path d="M0,12 Q35,-5 70,12" fill="none" stroke="#6a5a3a" stroke-width="3" stroke-linecap="round"/>
+    <!-- Crack in hull -->
+    <line x1="30" y1="4" x2="35" y2="12" stroke="#6a5a3a" stroke-width="1"/>
+    <!-- Broken paddle floating nearby -->
+    <line x1="75" y1="5" x2="95" y2="-5" stroke="#7a6a4a" stroke-width="2.5" stroke-linecap="round"/>
+    <ellipse cx="97" cy="-6" rx="6" ry="3" fill="#7a6a4a" transform="rotate(-25,97,-6)"/>
+    <!-- Second paddle piece (broken) -->
+    <line x1="-5" y1="15" x2="10" y2="20" stroke="#7a6a4a" stroke-width="2" stroke-linecap="round"/>
+    <!-- Algae growing on wreck -->
+    <path d="M15,8 Q13,0 16,-5" fill="none" stroke="#5a9a5a" stroke-width="1.2" opacity="0.7"/>
+    <path d="M45,5 Q43,-2 46,-8" fill="none" stroke="#5a9a5a" stroke-width="1" opacity="0.6"/>
+    <path d="M55,8 Q57,2 54,-3" fill="none" stroke="#5a9a5a" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- Pike fish (underwater, right, bigger) -->
+  <g transform="translate(350,158)" opacity="0.55">
+    <!-- Body -->
+    <ellipse cx="30" cy="0" rx="32" ry="8" fill="#5a7a5a"/>
+    <!-- Pointed snout -->
+    <polygon points="62,0 75,-3 75,3" fill="#5a7a5a"/>
+    <!-- Lower jaw -->
+    <line x1="62" y1="2" x2="73" y2="2" stroke="#4a6a4a" stroke-width="0.8"/>
+    <!-- Tail fin -->
+    <polygon points="-2,0 -14,-9 -14,9" fill="#5a7a5a"/>
+    <!-- Dorsal fin -->
+    <path d="M20,-8 Q28,-15 36,-8" fill="#4a6a4a"/>
+    <!-- Pectoral fin -->
+    <path d="M40,5 Q45,12 38,10" fill="#4a6a4a" opacity="0.6"/>
+    <!-- Eye -->
+    <circle cx="58" cy="-2" r="2.5" fill="#2a4a2a"/>
+    <circle cx="59" cy="-2.5" r="1" fill="#8aba8a"/>
+    <!-- Spots/stripes -->
+    <ellipse cx="15" cy="0" rx="3" ry="1.5" fill="#6a8a6a" opacity="0.4"/>
+    <ellipse cx="30" cy="1" rx="3" ry="1.5" fill="#6a8a6a" opacity="0.4"/>
+    <ellipse cx="45" cy="-1" rx="3" ry="1.5" fill="#6a8a6a" opacity="0.4"/>
+  </g>
+
+  <!-- Small fish (background) -->
+  <g transform="translate(250,180) scale(0.4)" fill="#5a8a6a" opacity="0.3">
+    <ellipse cx="20" cy="0" rx="18" ry="5"/>
+    <polygon points="38,0 46,-2 46,2"/>
+    <polygon points="2,0 -6,-5 -6,5"/>
+  </g>
+  <g transform="translate(500,185) scale(0.35)" fill="#5a8a6a" opacity="0.25">
+    <ellipse cx="20" cy="0" rx="18" ry="5"/>
+    <polygon points="38,0 46,-2 46,2"/>
+    <polygon points="2,0 -6,-5 -6,5"/>
+  </g>
+
+  <!-- Bubbles -->
+  <circle cx="130" cy="142" r="4" fill="#b8e8c8" opacity="0.35"/>
+  <circle cx="136" cy="152" r="2.5" fill="#b8e8c8" opacity="0.28"/>
+  <circle cx="125" cy="162" r="2" fill="#b8e8c8" opacity="0.2"/>
+  <circle cx="420" cy="148" r="3" fill="#b8e8c8" opacity="0.3"/>
+  <circle cx="415" cy="158" r="2" fill="#b8e8c8" opacity="0.22"/>
+
+  <!-- Bottom gravel -->
+  <path d="M0,205 Q30,195 60,202 Q100,190 140,200 Q180,188 220,198 Q260,185 300,196 Q340,183 380,194 Q420,182 460,192 Q500,180 540,190 Q570,182 600,186 L600,220 L0,220Z" fill="#3a6a4a" opacity="0.25"/>
+
+  <!-- Title text -->
+  <text x="300" y="38" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#3a6a4a" letter-spacing="3" opacity="0.8">CLUB EUROPÉEN DE PLONGÉE</text>
+  <text x="300" y="68" text-anchor="middle" font-family="Georgia,serif" font-size="28" fill="#1a3a2d" font-weight="bold">Bulles et Aventures</text>
+  <text x="300" y="92" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#3a6a4a" font-style="italic">Avril 2026 — Gravière du Fort, Strasbourg</text>
+</svg>

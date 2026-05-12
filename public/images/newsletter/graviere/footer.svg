@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 80">
+  <defs>
+    <linearGradient id="deep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a7a5a"/>
+      <stop offset="100%" stop-color="#1a4a2d"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="80" fill="url(#deep)"/>
+
+  <!-- Bottom rocks -->
+  <path d="M0,55 Q30,42 60,50 Q90,38 130,48 Q170,35 210,46 Q250,32 290,44 Q330,30 370,42 Q410,28 450,40 Q490,26 530,38 Q560,30 600,35 L600,80 L0,80Z" fill="#1a4a2d" opacity="0.4"/>
+
+  <!-- Signpost (center) -->
+  <g transform="translate(300,8)">
+    <!-- Post -->
+    <rect x="-3" y="0" width="6" height="60" fill="#6a5a3a" rx="1"/>
+    <!-- Top sign: Gravière du Fort -->
+    <g transform="translate(0,8)">
+      <polygon points="5,0 120,-2 118,14 5,12" fill="#5a8a3a" stroke="#4a7a2a" stroke-width="0.8"/>
+      <polygon points="120,-2 128,6 118,14" fill="#4a7a2a"/>
+      <text x="58" y="9" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#fff" font-weight="bold">Gravière du Fort →</text>
+    </g>
+    <!-- Middle sign: Holtzheim (other direction) -->
+    <g transform="translate(0,22)">
+      <polygon points="-5,0 -110,-2 -108,13 -5,11" fill="#7a6a3a" stroke="#6a5a2a" stroke-width="0.8"/>
+      <polygon points="-110,-2 -118,5.5 -108,13" fill="#6a5a2a"/>
+      <text x="-55" y="9" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#fff" font-weight="bold">← Holtzheim</text>
+    </g>
+    <!-- Bottom sign: Strasbourg -->
+    <g transform="translate(0,36)">
+      <polygon points="5,0 100,-1.5 98,12 5,10" fill="#5a7a8a" stroke="#4a6a7a" stroke-width="0.8"/>
+      <polygon points="100,-1.5 107,5 98,12" fill="#4a6a7a"/>
+      <text x="48" y="8" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" fill="#fff" font-weight="bold">Strasbourg 15km →</text>
+    </g>
+  </g>
+
+  <!-- Bubbles -->
+  <circle cx="100" cy="20" r="2" fill="#8ac8a0" opacity="0.3"/>
+  <circle cx="105" cy="12" r="1.5" fill="#8ac8a0" opacity="0.2"/>
+  <circle cx="500" cy="18" r="2.5" fill="#8ac8a0" opacity="0.25"/>
+  <circle cx="495" cy="10" r="1.5" fill="#8ac8a0" opacity="0.2"/>
+
+  <!-- Small fish near signpost -->
+  <g transform="translate(180,35) scale(0.4)" fill="#5a8a6a" opacity="0.3">
+    <ellipse cx="0" cy="0" rx="15" ry="4"/>
+    <polygon points="15,0 22,-3 22,3"/>
+    <polygon points="-15,0 -20,-4 -20,4"/>
+  </g>
+</svg>
