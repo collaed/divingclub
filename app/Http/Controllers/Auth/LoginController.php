@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,7 +35,9 @@ class LoginController extends Controller
             ]);
         }
 
-        if (Auth::attempt(['primary_email' => $request->email, 'password' => $request->password], $request->boolean('remember'))) {
+        $user = User::whereRaw('LOWER(primary_email) = ?', [strtolower($request->email)])->first();
+
+        if ($user && Auth::attempt(['primary_email' => $user->primary_email, 'password' => $request->password], $request->boolean('remember'))) {
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
