@@ -60,6 +60,7 @@ class RegisterController extends Controller
                 'address_line1' => $validated['address_line1'] ?? null,
                 'postal_code' => $validated['postal_code'] ?? null,
                 'city' => $validated['city'] ?? null,
+                'country' => $validated['country'] ?? 'Luxembourg',
             ]);
 
             return $user;

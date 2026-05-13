@@ -28,6 +28,7 @@ class RegisterUserRequest extends FormRequest
             'address_line1' => 'nullable|string|max:255',
             'postal_code' => 'nullable|string|max:10',
             'city' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
             'website' => 'size:0',
             '_ts' => 'required|integer',
         ];

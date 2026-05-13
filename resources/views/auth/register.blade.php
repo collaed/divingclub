@@ -104,6 +104,16 @@
                                 <input type="text" name="city" class="form-control @error('city') is-invalid @enderror" value="{{ old('city') }}" placeholder="{{ __('City') }}">
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="country" class="form-label">{{ __('Country of residence') }}</label>
+                            <select name="country" id="country" class="form-select @error('country') is-invalid @enderror">
+                                <option value="Luxembourg" {{ old('country', 'Luxembourg') === 'Luxembourg' ? 'selected' : '' }}>Luxembourg</option>
+                                <option value="France" {{ old('country') === 'France' ? 'selected' : '' }}>France</option>
+                                <option value="Belgium" {{ old('country') === 'Belgium' ? 'selected' : '' }}>Belgium</option>
+                                <option value="Germany" {{ old('country') === 'Germany' ? 'selected' : '' }}>Germany</option>
+                            </select>
+                            @error('country') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
 
                         <button type="submit" class="btn btn-primary w-100">{{ __('Register') }}</button>
                     </form>
