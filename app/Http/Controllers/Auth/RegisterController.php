@@ -53,6 +53,13 @@ class RegisterController extends Controller
                 'user_id' => $user->id,
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+                'sex' => $validated['sex'] ?? null,
+                'phone_mobile' => $validated['phone_mobile'] ?? null,
+                'nationality' => $validated['nationality'] ?? null,
+                'address_line1' => $validated['address_line1'] ?? null,
+                'postal_code' => $validated['postal_code'] ?? null,
+                'city' => $validated['city'] ?? null,
             ]);
 
             return $user;
