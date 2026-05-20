@@ -277,3 +277,5 @@ Route::get('/worklist-browse/{type}', function (string $type) {
 
     return redirect()->route('admin.profile.show', $ids[0]);
 })->name('worklist-browse');
+Route::post('/library/{file}/rename', [LibraryController::class, 'rename'])->name('library.rename');
+Route::post('/library/{file}/move', [LibraryController::class, 'move'])->name('library.move');

@@ -2,7 +2,7 @@
     Instant search filter for tables.
     Add data-searchable to the table, and this script filters rows on keyup.
     The search input must have data-instant-search="tableId".
-    Falls back to form submit on Enter for server-side search + pagination.
+    Instant JS filtering for current page rows + debounced form submit for full backend filtering.
 --}}
 @once
 <script>
@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var table = document.getElementById(tableId);
         if (!table) return;
         var rows = table.querySelectorAll('tbody tr');
+        var debounceTimer = null;
+        var lastSubmitted = input.value;
 
         input.addEventListener('input', function() {
             var q = this.value.toLowerCase().trim();
@@ -19,6 +21,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 var text = row.textContent.toLowerCase();
                 row.style.display = (!q || text.includes(q)) ? '' : 'none';
             });
+
+            // Debounced backend submit for full filtering across all pages
+            clearTimeout(debounceTimer);
+            var currentValue = this.value;
+            debounceTimer = setTimeout(function() {
+                if (currentValue !== lastSubmitted) {
+                    lastSubmitted = currentValue;
+                    input.form.submit();
+                }
+            }, 600);
         });
     });
 });

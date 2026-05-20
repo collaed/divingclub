@@ -187,11 +187,22 @@
                                         </form>
                                     </td>
                                     <td class="text-nowrap small">{{ $f->created_at->format('d/m/Y') }}<br>{{ $f->uploader?->name }}</td>
-                                    <td class="text-end">
-                                        <form method="POST" action="{{ route('admin.library.destroy', $f) }}" class="d-inline" data-confirm="{{ __('Delete?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger py-0">✕</button>
-                                        </form>
+                                    <td class="text-end text-nowrap">
+                                        <div class="dropdown d-inline">
+                                            <button class="btn btn-sm btn-outline-secondary py-0 px-1" data-bs-toggle="dropdown" title="{{ __('Actions') }}">⋯</button>
+                                            <ul class="dropdown-menu dropdown-menu-end" style="font-size:.85rem">
+                                                <li><a class="dropdown-item" href="{{ route('admin.library.download', $f) }}">⬇ {{ __('Download') }}</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="renameFile({{ $f->id }}, '{{ addslashes($f->original_name) }}')">✏️ {{ __('Rename') }}</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="moveFile({{ $f->id }})">📁 {{ __('Move') }}</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.library.destroy', $f) }}" data-confirm="{{ __('Delete?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
+                                                        @csrf @method('DELETE')
+                                                        <button class="dropdown-item text-danger">🗑 {{ __('Delete') }}</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -281,6 +292,34 @@ document.querySelectorAll('.preview-link').forEach(link => {
         document.body.appendChild(overlay);
     });
 });
+
+// Rename file
+function renameFile(id, currentName) {
+    const newName = prompt('{{ __("New name:") }}', currentName);
+    if (!newName || newName === currentName) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/admin/library/' + id + '/rename';
+    form.innerHTML = '<input type="hidden" name="_token" value="' + document.querySelector('meta[name=csrf-token]').content + '">'
+        + '<input type="hidden" name="name" value="' + newName.replace(/"/g, '&quot;') + '">';
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Move file
+function moveFile(id) {
+    const folders = @json($folders ?? []);
+    let options = folders.map(f => '<option value="' + f + '">' + f + '</option>').join('');
+    const dest = prompt('{{ __("Move to folder:") }}\n\n' + folders.join('\n'));
+    if (!dest) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/admin/library/' + id + '/move';
+    form.innerHTML = '<input type="hidden" name="_token" value="' + document.querySelector('meta[name=csrf-token]').content + '">'
+        + '<input type="hidden" name="destination" value="' + dest.replace(/"/g, '&quot;') + '">';
+    document.body.appendChild(form);
+    form.submit();
+}
 </script>
 @endpush
 </x-admin-layout>

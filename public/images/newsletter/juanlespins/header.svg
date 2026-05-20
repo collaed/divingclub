@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5bb8e8"/>
+      <stop offset="50%" stop-color="#2898d4"/>
+      <stop offset="100%" stop-color="#0a6aaa"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0088bb"/>
+      <stop offset="40%" stop-color="#005588"/>
+      <stop offset="100%" stop-color="#002a44"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#fff8dc"/>
+      <stop offset="60%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#ffa500" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="600" height="240" fill="url(#sky)"/>
+
+  <!-- Sun with glow -->
+  <circle cx="530" cy="35" r="40" fill="url(#sun)" opacity="0.7"/>
+  <circle cx="530" cy="35" r="20" fill="#fff8dc" opacity="0.9"/>
+
+  <!-- Wispy clouds -->
+  <ellipse cx="120" cy="25" rx="40" ry="8" fill="#fff" opacity="0.3"/>
+  <ellipse cx="140" cy="22" rx="25" ry="6" fill="#fff" opacity="0.25"/>
+  <ellipse cx="350" cy="18" rx="35" ry="7" fill="#fff" opacity="0.2"/>
+
+  <!-- Distant Cap d'Antibes coastline -->
+  <path d="M0,110 Q50,105 100,108 Q150,100 200,106 Q250,98 300,104 Q350,96 400,102 Q450,94 500,100 Q550,92 600,96 L600,125 L0,125Z" fill="#3a8a5a" opacity="0.3"/>
+
+  <!-- Pine trees (Pins = Juan-les-Pins) -->
+  <g fill="#1a6a3a" opacity="0.6">
+    <!-- Umbrella pines (parasol shape) -->
+    <rect x="68" y="90" width="4" height="20" fill="#5a3a1a"/>
+    <ellipse cx="70" cy="85" rx="18" ry="10"/>
+    
+    <rect x="148" y="85" width="4" height="22" fill="#5a3a1a"/>
+    <ellipse cx="150" cy="80" rx="20" ry="11"/>
+    
+    <rect x="238" y="88" width="3" height="18" fill="#5a3a1a"/>
+    <ellipse cx="240" cy="83" rx="16" ry="9"/>
+    
+    <rect x="398" y="82" width="4" height="22" fill="#5a3a1a"/>
+    <ellipse cx="400" cy="77" rx="19" ry="10"/>
+    
+    <rect x="468" y="86" width="3" height="19" fill="#5a3a1a"/>
+    <ellipse cx="470" cy="81" rx="15" ry="9"/>
+  </g>
+
+
+  <!-- Beach/sand -->
+  <rect y="118" width="600" height="8" fill="#f5deb3" opacity="0.6"/>
+  <rect y="122" width="600" height="4" fill="#deb887" opacity="0.4"/>
+
+  <!-- Water surface -->
+  <rect y="126" width="600" height="114" fill="url(#water)"/>
+
+  <!-- Water sparkles -->
+  <path d="M0,131 Q40,127 80,132 Q120,125 160,131 Q200,124 240,130 Q280,123 320,129 Q360,122 400,128 Q440,121 480,127 Q520,120 560,126 Q580,119 600,124" fill="none" stroke="#66ccff" stroke-width="0.8" opacity="0.5"/>
+  <path d="M0,138 Q50,133 100,139 Q150,131 200,138 Q250,130 300,137 Q350,129 400,136 Q450,128 500,135 Q550,127 600,133" fill="none" stroke="#66ccff" stroke-width="0.6" opacity="0.35"/>
+
+  <!-- Gorgone (sea fan) left -->
+  <g transform="translate(80,170)" fill="none" stroke="#cc3355" stroke-width="1.2" opacity="0.5">
+    <path d="M0,30 Q2,15 0,0"/>
+    <path d="M0,25 Q-8,15 -12,5"/>
+    <path d="M0,20 Q8,10 12,2"/>
+    <path d="M0,15 Q-5,8 -8,0"/>
+    <path d="M0,10 Q5,5 8,-2"/>
+    <path d="M-8,15 Q-12,8 -15,3"/>
+    <path d="M8,10 Q12,5 14,0"/>
+  </g>
+
+  <!-- Posidonia meadow (bottom) -->
+  <g fill="#2a7a3a" opacity="0.35">
+    <path d="M0,220 Q5,200 3,185 Q8,200 10,220"/>
+    <path d="M15,220 Q18,195 16,180 Q21,195 23,220"/>
+    <path d="M30,220 Q33,202 31,190 Q36,202 38,220"/>
+    <path d="M180,220 Q183,198 181,183 Q186,198 188,220"/>
+    <path d="M195,220 Q198,205 196,192 Q201,205 203,220"/>
+    <path d="M400,220 Q403,200 401,187 Q406,200 408,220"/>
+    <path d="M415,220 Q418,203 416,190 Q421,203 423,220"/>
+    <path d="M550,220 Q553,198 551,185 Q556,198 558,220"/>
+    <path d="M565,220 Q568,205 566,193 Q571,205 573,220"/>
+  </g>
+
+  <!-- Mérou (grouper) -->
+  <g transform="translate(200,175)" fill="#5a4a3a" opacity="0.45">
+    <ellipse cx="0" cy="0" rx="16" ry="10"/>
+    <path d="M-16,0 Q-22,-6 -18,-10 L-10,-5" fill="#5a4a3a"/>
+    <path d="M-16,0 Q-22,6 -18,10 L-10,5" fill="#5a4a3a"/>
+    <circle cx="10" cy="-2" r="2" fill="#2a2a1a"/>
+    <path d="M16,-2 L20,0 L16,2" fill="#5a4a3a"/>
+  </g>
+
+  <!-- Barracuda -->
+  <g transform="translate(380,155)" fill="#8a9aaa" opacity="0.4">
+    <ellipse cx="0" cy="0" rx="25" ry="4"/>
+    <polygon points="25,0 32,-2 32,2"/>
+    <polygon points="-25,0 -32,-4 -32,4"/>
+    <circle cx="20" cy="-1" r="1.5" fill="#4a5a6a"/>
+    <!-- Stripes -->
+    <line x1="-10" y1="-3" x2="-10" y2="3" stroke="#6a7a8a" stroke-width="0.5" opacity="0.5"/>
+    <line x1="-5" y1="-3.5" x2="-5" y2="3.5" stroke="#6a7a8a" stroke-width="0.5" opacity="0.5"/>
+    <line x1="0" y1="-4" x2="0" y2="4" stroke="#6a7a8a" stroke-width="0.5" opacity="0.5"/>
+    <line x1="5" y1="-3.5" x2="5" y2="3.5" stroke="#6a7a8a" stroke-width="0.5" opacity="0.5"/>
+  </g>
+
+  <!-- Poulpe (octopus) small -->
+  <g transform="translate(480,195)" fill="#8a4a6a" opacity="0.35">
+    <ellipse cx="0" cy="0" rx="8" ry="6"/>
+    <path d="M-6,5 Q-10,12 -8,16"/>
+    <path d="M-3,6 Q-5,14 -2,17"/>
+    <path d="M2,6 Q4,14 1,17"/>
+    <path d="M5,5 Q8,12 6,16"/>
+    <circle cx="-2" cy="-1" r="1.5" fill="#4a2a3a"/>
+    <circle cx="3" cy="-1" r="1.5" fill="#4a2a3a"/>
+  </g>
+
+  <!-- Dive flag -->
+  <g transform="translate(540,130)">
+    <line x1="0" y1="0" x2="0" y2="35" stroke="#444" stroke-width="2"/>
+    <rect x="2" y="2" width="18" height="12" fill="#cc0000"/>
+    <line x1="2" y1="2" x2="20" y2="14" stroke="#fff" stroke-width="2.5"/>
+  </g>
+
+  <!-- Bubbles -->
+  <circle cx="150" cy="145" r="3.5" fill="#99ddff" opacity="0.4"/>
+  <circle cx="155" cy="155" r="2" fill="#99ddff" opacity="0.3"/>
+  <circle cx="300" cy="150" r="2.5" fill="#99ddff" opacity="0.35"/>
+  <circle cx="450" cy="148" r="3" fill="#99ddff" opacity="0.3"/>
+  <circle cx="445" cy="158" r="1.5" fill="#99ddff" opacity="0.25"/>
+
+  <!-- Title text -->
+  <text x="300" y="38" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#003366" letter-spacing="3" opacity="0.9">CLUB EUROPÉEN DE PLONGÉE</text>
+  <text x="300" y="68" text-anchor="middle" font-family="Georgia,serif" font-size="28" fill="#003366" font-weight="bold">Bulles et Aventures</text>
+  <text x="300" y="95" text-anchor="middle" font-family="Georgia,serif" font-size="20" fill="#1a5a8a" font-style="italic">Mai 2026 — Juan-les-Pins, Côte d'Azur</text>
+</svg>

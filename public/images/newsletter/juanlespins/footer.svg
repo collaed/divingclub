@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 80">
+  <defs>
+    <linearGradient id="deep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#005588"/>
+      <stop offset="100%" stop-color="#002a44"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="80" fill="url(#deep)"/>
+  <path d="M0,55 Q40,42 80,50 Q120,38 160,48 Q200,35 240,46 Q280,32 320,44 Q360,30 400,42 Q440,28 480,40 Q520,26 560,38 Q580,30 600,35 L600,80 L0,80Z" fill="#001a33" opacity="0.4"/>
+  <!-- Signpost -->
+  <g transform="translate(300,6)">
+    <rect x="-3" y="0" width="6" height="60" fill="#8b7355" rx="1"/>
+    <g transform="translate(0,8)">
+      <polygon points="5,0 135,-2 133,13 5,11" fill="#0077aa" stroke="#006699" stroke-width="0.8"/>
+      <polygon points="135,-2 143,5.5 133,13" fill="#006699"/>
+      <text x="65" y="9" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" fill="#fff" font-weight="bold">Easy Dive Juan-les-Pins →</text>
+    </g>
+    <g transform="translate(0,22)">
+      <polygon points="-5,0 -125,-2 -123,13 -5,11" fill="#cc3333" stroke="#aa2222" stroke-width="0.8"/>
+      <polygon points="-125,-2 -133,5.5 -123,13" fill="#aa2222"/>
+      <text x="-60" y="9" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" fill="#fff" font-weight="bold">← L'Enfer de Dante 🔥 55m</text>
+    </g>
+    <g transform="translate(0,36)">
+      <polygon points="5,0 110,-1.5 108,12 5,10" fill="#cc8800" stroke="#aa7700" stroke-width="0.8"/>
+      <polygon points="110,-1.5 117,5 108,12" fill="#aa7700"/>
+      <text x="52" y="8" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" fill="#fff" font-weight="bold">Cap d'Antibes ☀️ →</text>
+    </g>
+  </g>
+  <!-- Gorgone silhouette left -->
+  <g transform="translate(60,35)" fill="none" stroke="#cc5577" stroke-width="1" opacity="0.3">
+    <path d="M0,30 Q2,15 0,0"/><path d="M0,22 Q-6,12 -9,4"/><path d="M0,15 Q6,8 9,2"/>
+  </g>
+  <!-- Small fish right -->
+  <g transform="translate(530,30)" fill="#66aacc" opacity="0.3">
+    <ellipse cx="0" cy="0" rx="8" ry="3"/><polygon points="8,0 12,-2 12,2"/><polygon points="-8,0 -12,-3 -12,3"/>
+  </g>
+  <circle cx="100" cy="20" r="2" fill="#66ccff" opacity="0.3"/>
+  <circle cx="500" cy="45" r="1.5" fill="#66ccff" opacity="0.25"/>
+</svg>

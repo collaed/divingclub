@@ -163,4 +163,47 @@ class LibraryController extends Controller
 
         return response()->json(['deleted' => $files->count()]);
     }
+
+    public function rename(Request $request, LibraryFile $file): RedirectResponse
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        $oldPath = storage_path('app/public/library/'.$file->folder.'/'.$file->original_name);
+        $newName = $request->name;
+
+        // Keep extension if not provided
+        $oldExt = pathinfo($file->original_name, PATHINFO_EXTENSION);
+        $newExt = pathinfo($newName, PATHINFO_EXTENSION);
+        if (! $newExt && $oldExt) {
+            $newName .= '.'.$oldExt;
+        }
+
+        $newPath = storage_path('app/public/library/'.$file->folder.'/'.$newName);
+        if (file_exists($oldPath)) {
+            rename($oldPath, $newPath);
+        }
+        $file->update(['original_name' => $newName]);
+
+        return back()->with('success', __('File renamed.'));
+    }
+
+    public function move(Request $request, LibraryFile $file): RedirectResponse
+    {
+        $request->validate(['destination' => 'required|string']);
+        $dest = $request->destination;
+
+        $oldPath = storage_path('app/public/library/'.$file->folder.'/'.$file->original_name);
+        $newDir = storage_path('app/public/library/'.$dest);
+
+        if (! is_dir($newDir)) {
+            mkdir($newDir, 0775, true);
+        }
+
+        $newPath = $newDir.'/'.$file->original_name;
+        if (file_exists($oldPath)) {
+            rename($oldPath, $newPath);
+        }
+        $file->update(['folder' => $dest]);
+
+        return back()->with('success', __('File moved to :folder.', ['folder' => $dest]));
+    }
 }
