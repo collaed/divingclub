@@ -41,7 +41,7 @@ class CriticalPathsTest extends TestCase
         }
         MemberStatus::upsert([
             ['id' => 1, 'name' => 'Active', 'slug' => 'active'],
-        ]);
+        ], ['id']);
     }
 
     private function createUser(string $role = 'member', bool $verified = true): User
