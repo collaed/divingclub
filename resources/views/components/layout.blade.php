@@ -24,6 +24,8 @@
     @endif
 </head>
 <body class="d-flex flex-column min-vh-100">
+    <a href="#main-content" class="skip-link">{{ __('Skip to content') }}</a>
+    <div class="dc-toast-container" id="toastContainer"></div>
 
     {{-- Impersonation banner --}}
     @if(session('impersonating'))
@@ -264,12 +266,14 @@
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+            <script>dcToast('{{ addslashes(session('success')) }}', 'success');</script>
         @endif
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+            <script>dcToast('{{ addslashes(session('error')) }}', 'error');</script>
         @endif
         @if(session('warning'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -291,7 +295,7 @@
 
     {{-- Content --}}
     <main class="{{ $theme['layout_width'] ?? 'container-lg' }} my-4 flex-grow-1">
-        {{ $slot }}
+        <main id="main-content">{{ $slot }}</main>
     </main>
 
     {{-- Cookie consent banner --}}
@@ -510,6 +514,17 @@
         s.textContent='th[data-sort=asc]::after{content:" ↑";opacity:.5}th[data-sort=desc]::after{content:" ↓";opacity:.5}';
         document.head.appendChild(s);
     })();
+    </script>
+    <script>
+    function dcToast(msg, type) {
+        var c = document.getElementById('toastContainer');
+        if (!c) return;
+        var t = document.createElement('div');
+        t.className = 'dc-toast ' + (type || 'info');
+        t.textContent = msg;
+        c.appendChild(t);
+        setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 4000);
+    }
     </script>
     @stack('scripts')
 </body>
