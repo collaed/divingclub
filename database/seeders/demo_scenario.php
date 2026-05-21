@@ -66,7 +66,7 @@ foreach ($eventDefs as [$title, $type, $daysAhead, $start, $end, $loc, $max, $co
         'external_slots' => $extSlots ?? 0,
         'status' => 'published',
         'created_by' => $bureauId,
-        'description' => "Événement organisé par le CEP. Inscription obligatoire.",
+        'description' => 'Événement organisé par le CEP. Inscription obligatoire.',
     ]);
     $events->push($ev);
     echo "  📅 {$ev->title} ({$ev->event_date})\n";
@@ -102,7 +102,7 @@ foreach ($events as $ev) {
 
     $regs = EventRegistration::where('event_id', $ev->id)->where('status', 'registered')->with('user')->get();
     foreach ($regs as $reg) {
-        $comm = 'CEP-' . strtoupper(Str::random(4)) . '-' . $reg->user_id;
+        $comm = 'CEP-'.strtoupper(Str::random(4)).'-'.$reg->user_id;
         $isPaid = rand(0, 100) < 40; // 40% already paid
 
         PaymentExpected::create([
@@ -159,7 +159,7 @@ if ($partnership) {
                 'notes' => $notes,
                 'status' => $k === 0 ? 'approved' : 'pending',
             ]);
-            echo "  {$name} → {$ev->title} (" . ($k === 0 ? 'approved' : 'pending') . ")\n";
+            echo "  {$name} → {$ev->title} (".($k === 0 ? 'approved' : 'pending').")\n";
             $extIdx++;
         }
     }
@@ -177,7 +177,7 @@ foreach ($commEvents as $ev) {
             'to_email' => $reg->user->primary_email,
             'from_name' => 'CEP Bureau',
             'from_email' => 'clubcep@clubcep.eu',
-            'subject' => "Rappel: {$ev->title} le " . $ev->event_date->format('d/m'),
+            'subject' => "Rappel: {$ev->title} le ".$ev->event_date->format('d/m'),
             'body' => "Bonjour {$reg->user->detail?->first_name},\n\nRappel pour {$ev->title} le {$ev->event_date->format('d/m/Y')}.\nLieu: {$ev->location}\n\nÀ bientôt!\nLe Bureau CEP",
             'status' => 'sent',
             'direction' => 'outbound',
@@ -202,13 +202,13 @@ foreach ($diveEvents as $ev) {
     foreach ($chunks as $gi => $chunk) {
         $group = DiveGroup::create([
             'event_id' => $ev->id,
-            'name' => 'Palanquée ' . ($gi + 1),
+            'name' => 'Palanquée '.($gi + 1),
             'dive_mode' => 'exploration',
             'planned_depth' => rand(15, 35),
             'planned_duration' => rand(30, 50),
             'gas_mix' => 'Air',
             'line_number' => $gi + 1,
-            'planned_entry_time' => '09:' . str_pad($gi * 15, 2, '0', STR_PAD_LEFT),
+            'planned_entry_time' => '09:'.str_pad($gi * 15, 2, '0', STR_PAD_LEFT),
             'created_by' => $bureauId,
         ]);
 
@@ -248,9 +248,9 @@ foreach ($photoEvents as $ev) {
 // ── Summary ──
 echo "\n✅ Demo scenario complete!\n";
 echo "  Events created: {$events->count()}\n";
-echo "  Registrations: " . EventRegistration::whereIn('event_id', $events->pluck('id'))->count() . "\n";
-echo "  Payments: " . PaymentExpected::whereIn('event_id', $events->pluck('id'))->count() . "\n";
-echo "  External regs: " . ExternalRegistration::whereIn('event_id', $events->pluck('id'))->count() . "\n";
-echo "  Dive groups: " . DiveGroup::whereIn('event_id', $events->pluck('id'))->count() . "\n";
-echo "  Communications: " . EmailLog::whereIn('event_id', $events->pluck('id'))->count() . "\n";
-echo "  Photos: " . EventPhoto::whereIn('event_id', $events->pluck('id'))->count() . "\n";
+echo '  Registrations: '.EventRegistration::whereIn('event_id', $events->pluck('id'))->count()."\n";
+echo '  Payments: '.PaymentExpected::whereIn('event_id', $events->pluck('id'))->count()."\n";
+echo '  External regs: '.ExternalRegistration::whereIn('event_id', $events->pluck('id'))->count()."\n";
+echo '  Dive groups: '.DiveGroup::whereIn('event_id', $events->pluck('id'))->count()."\n";
+echo '  Communications: '.EmailLog::whereIn('event_id', $events->pluck('id'))->count()."\n";
+echo '  Photos: '.EventPhoto::whereIn('event_id', $events->pluck('id'))->count()."\n";

@@ -9,6 +9,7 @@ use App\Models\ThemeSetting;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AuditLogController extends Controller
@@ -70,7 +71,7 @@ class AuditLogController extends Controller
         return back()->with('success', __('Retention policy updated to :months months.', ['months' => $months]));
     }
 
-    public function export(Request $request): \Symfony\Component\HttpFoundation\Response
+    public function export(Request $request): Response
     {
         $query = AuditLog::with('user')->orderByDesc('created_at');
 

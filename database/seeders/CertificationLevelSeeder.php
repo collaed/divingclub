@@ -33,7 +33,9 @@ class CertificationLevelSeeder extends Seeder
 
         foreach ($data as $fedAcronym => $levels) {
             $fed = Federation::where('acronym', $fedAcronym)->first();
-            if (!$fed) continue;
+            if (! $fed) {
+                continue;
+            }
             foreach ($levels as $level) {
                 CertificationLevel::updateOrCreate(
                     ['federation_id' => $fed->id, 'code' => $level['code']],
@@ -42,7 +44,7 @@ class CertificationLevelSeeder extends Seeder
             }
         }
 
-        echo "Seeded " . CertificationLevel::count() . " certification levels across " . count($data) . " federations.\n";
+        echo 'Seeded '.CertificationLevel::count().' certification levels across '.count($data)." federations.\n";
     }
 
     private function getCertData(): array

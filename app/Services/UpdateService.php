@@ -31,7 +31,7 @@ class UpdateService
                         ->get('https://api.github.com/repos/'.self::REPO.'/tags');
 
                     if (! $response->ok() || empty($response->json())) {
-                        return null;
+                        return;
                     }
 
                     $latest = $response->json()[0]['name'] ?? null;
@@ -45,7 +45,7 @@ class UpdateService
                 }
 
                 if (! $latest) {
-                    return null;
+                    return;
                 }
 
                 // Normalize version (strip 'v' prefix)
@@ -64,7 +64,7 @@ class UpdateService
             } catch (\Throwable $e) {
                 Log::warning("Update check failed: {$e->getMessage()}");
 
-                return null;
+                return;
             }
         });
     }

@@ -71,7 +71,7 @@ return new class extends Migration
         });
 
         // Add caption to event_photos if not present
-        if (!Schema::hasColumn('event_photos', 'caption')) {
+        if (! Schema::hasColumn('event_photos', 'caption')) {
             // already exists
         }
     }

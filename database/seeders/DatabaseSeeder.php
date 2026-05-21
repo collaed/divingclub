@@ -16,6 +16,7 @@
 namespace Database\Seeders;
 
 use App\Models\MemberDetail;
+use App\Models\MemberStatus;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -47,7 +48,7 @@ class DatabaseSeeder extends Seeder
             'primary_email' => 'admin@divingclub.eu',
             'password' => Hash::make('password'),
             'role_id' => Role::where('slug', 'bureau_master')->value('id'),
-            'status_id' => \App\Models\MemberStatus::where('slug', 'actif')->value('id'),
+            'status_id' => MemberStatus::where('slug', 'actif')->value('id'),
             'email_verified_at' => now(),
         ]);
 

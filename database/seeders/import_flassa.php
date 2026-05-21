@@ -10,7 +10,6 @@ use App\Models\Document;
 use App\Models\Federation;
 use App\Models\MemberLicence;
 use App\Models\User;
-use Carbon\Carbon;
 
 echo "🏊 Importing FLASSA licences...\n\n";
 
@@ -95,6 +94,7 @@ foreach ($data as [$last, $first, $email, $licNo, $certDate, $flassaExpiry, $sta
     $user = User::where('primary_email', $email)->first();
     if (! $user) {
         echo "  ⚠️ Not found: {$first} {$last} ({$email})\n";
+
         continue;
     }
 
@@ -135,8 +135,8 @@ echo "  Non valable (flagged): {$nonValable}\n";
 
 // Summary
 echo "\n=== Final State ===\n";
-echo "  FLASSA licences: " . MemberLicence::where('federation_id', $flassa->id)->count() . "\n";
-echo "  FFESSM licences: " . MemberLicence::where('federation_id', 1)->count() . "\n";
-echo "  Valid medical (expiry > now): " . Document::where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now())->count() . "\n";
-echo "  Expired medical: " . Document::where('category', 'medical')->where('is_current', true)->where('expiry_date', '<=', now())->count() . "\n";
-echo "  Non-compliant (flagged): " . Document::where('category', 'medical')->where('is_current', true)->where('is_compliant', false)->count() . "\n";
+echo '  FLASSA licences: '.MemberLicence::where('federation_id', $flassa->id)->count()."\n";
+echo '  FFESSM licences: '.MemberLicence::where('federation_id', 1)->count()."\n";
+echo '  Valid medical (expiry > now): '.Document::where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now())->count()."\n";
+echo '  Expired medical: '.Document::where('category', 'medical')->where('is_current', true)->where('expiry_date', '<=', now())->count()."\n";
+echo '  Non-compliant (flagged): '.Document::where('category', 'medical')->where('is_current', true)->where('is_compliant', false)->count()."\n";

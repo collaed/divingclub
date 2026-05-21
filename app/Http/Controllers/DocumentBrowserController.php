@@ -21,6 +21,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class DocumentBrowserController extends Controller
 {
@@ -223,7 +224,7 @@ class DocumentBrowserController extends Controller
         return back()->with('success', __('File deleted.'));
     }
 
-    public function download(LibraryFile $file): \Symfony\Component\HttpFoundation\Response
+    public function download(LibraryFile $file): Response
     {
         // Verify visibility access
         $user = auth()->user();
@@ -233,7 +234,7 @@ class DocumentBrowserController extends Controller
         return Storage::disk('local')->download($file->path, $file->original_name);
     }
 
-    public function thumb(LibraryFile $file): \Symfony\Component\HttpFoundation\Response
+    public function thumb(LibraryFile $file): Response
     {
         $user = auth()->user();
         abort_unless(LibraryFile::visibleTo($user)->where('id', $file->id)->exists(), 403);

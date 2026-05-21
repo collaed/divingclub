@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ThemeSetting;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -45,26 +46,26 @@ return new class extends Migration
         });
 
         // Add gdpr_photo_consent flag directly on event_photos for quick checks
-        if (!Schema::hasColumn('event_photos', 'gdpr_consent')) {
+        if (! Schema::hasColumn('event_photos', 'gdpr_consent')) {
             Schema::table('event_photos', function (Blueprint $table) {
                 $table->boolean('gdpr_consent')->default(false)->after('approved');
             });
         }
 
         // Retention policy setting
-        \App\Models\ThemeSetting::firstOrCreate(
+        ThemeSetting::firstOrCreate(
             ['key' => 'audit_retention_months'],
             ['value' => '24']
         );
-        \App\Models\ThemeSetting::firstOrCreate(
+        ThemeSetting::firstOrCreate(
             ['key' => 'fb_group_id'],
             ['value' => '']
         );
-        \App\Models\ThemeSetting::firstOrCreate(
+        ThemeSetting::firstOrCreate(
             ['key' => 'fb_group_is_closed'],
             ['value' => '0']
         );
-        \App\Models\ThemeSetting::firstOrCreate(
+        ThemeSetting::firstOrCreate(
             ['key' => 'social_auto_publish'],
             ['value' => '0']
         );
@@ -76,7 +77,7 @@ return new class extends Migration
         Schema::dropIfExists('parental_consents');
         Schema::dropIfExists('guardian_links');
         if (Schema::hasColumn('event_photos', 'gdpr_consent')) {
-            Schema::table('event_photos', fn(Blueprint $t) => $t->dropColumn('gdpr_consent'));
+            Schema::table('event_photos', fn (Blueprint $t) => $t->dropColumn('gdpr_consent'));
         }
     }
 };

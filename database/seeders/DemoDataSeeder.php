@@ -63,7 +63,7 @@ class DemoDataSeeder extends Seeder
         $certTypes = ['gp', 'ent', 'sport'];
 
         foreach ($members as $i => $m) {
-            $email = strtolower($m['first'] . '.' . str_replace(' ', '', $m['last'])) . '@example.com';
+            $email = strtolower($m['first'].'.'.str_replace(' ', '', $m['last'])).'@example.com';
 
             $user = User::firstOrCreate(
                 ['primary_email' => $email],
@@ -104,7 +104,7 @@ class DemoDataSeeder extends Seeder
             if ($m['fed']) {
                 MemberLicence::firstOrCreate(
                     ['user_id' => $user->id, 'federation_id' => $m['fed']->id],
-                    ['licence_number' => strtoupper($m['fed']->acronym) . '-' . str_pad($user->id, 5, '0', STR_PAD_LEFT)]
+                    ['licence_number' => strtoupper($m['fed']->acronym).'-'.str_pad($user->id, 5, '0', STR_PAD_LEFT)]
                 );
             }
 
@@ -113,7 +113,7 @@ class DemoDataSeeder extends Seeder
                 $certLevel = CertificationLevel::where('federation_id', $m['fed']->id)->where('code', $m['cert'])->first();
                 if ($certLevel) {
                     $user->certificationLevels()->syncWithoutDetaching([
-                        $certLevel->id => ['obtained_date' => now()->subYears(rand(1, 5))->format('Y-m-d'), 'is_primary' => true, 'display_priority' => 1]
+                        $certLevel->id => ['obtained_date' => now()->subYears(rand(1, 5))->format('Y-m-d'), 'is_primary' => true, 'display_priority' => 1],
                     ]);
                 }
             }
@@ -124,18 +124,18 @@ class DemoDataSeeder extends Seeder
                 $issueDate = now()->subMonths(rand(1, 8));
 
                 // Create a fake PDF-like file
-                $fakeCert = "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>\nendobj\nxref\n0 4\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n0\n%%EOF\n% Medical Certificate for " . $m['first'] . ' ' . $m['last'] . "\n% Type: " . strtoupper($certType) . "\n% Date: " . $issueDate->format('Y-m-d');
+                $fakeCert = "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>\nendobj\nxref\n0 4\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n0\n%%EOF\n% Medical Certificate for ".$m['first'].' '.$m['last']."\n% Type: ".strtoupper($certType)."\n% Date: ".$issueDate->format('Y-m-d');
 
-                $dir = 'documents/' . $user->id;
+                $dir = 'documents/'.$user->id;
                 Storage::makeDirectory($dir);
-                $filename = 'medical_cert_' . $certType . '_' . $issueDate->format('Y') . '.pdf';
-                Storage::put($dir . '/' . $filename, $fakeCert);
+                $filename = 'medical_cert_'.$certType.'_'.$issueDate->format('Y').'.pdf';
+                Storage::put($dir.'/'.$filename, $fakeCert);
 
                 Document::firstOrCreate(
                     ['user_id' => $user->id, 'category' => 'medical_certificate', 'is_current' => true],
                     [
-                        'file_path' => $dir . '/' . $filename,
-                        'original_filename' => 'Certificat_Medical_' . strtoupper($certType) . '_' . $m['last'] . '.pdf',
+                        'file_path' => $dir.'/'.$filename,
+                        'original_filename' => 'Certificat_Medical_'.strtoupper($certType).'_'.$m['last'].'.pdf',
                         'mime_type' => 'application/pdf',
                         'size_bytes' => strlen($fakeCert),
                         'date_established' => $issueDate->format('Y-m-d'),
@@ -146,7 +146,7 @@ class DemoDataSeeder extends Seeder
                 );
             }
 
-            echo ($i + 1) . '. ' . $m['first'] . ' ' . $m['last'] . ' (' . $m['role'] . ')' . ($m['cert'] ? ' — ' . $m['cert'] : '') . PHP_EOL;
+            echo ($i + 1).'. '.$m['first'].' '.$m['last'].' ('.$m['role'].')'.($m['cert'] ? ' — '.$m['cert'] : '').PHP_EOL;
         }
     }
 }

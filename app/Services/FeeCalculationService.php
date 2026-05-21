@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\MembershipFee;
 use App\Models\MembershipFeeComponent;
 use App\Models\PaymentExpected;
+use App\Models\ThemeSetting;
 use App\Models\User;
 
 class FeeCalculationService
@@ -54,9 +55,10 @@ class FeeCalculationService
 
     public function buildCommunication(User $user, string $seasonYear, array $optionals): string
     {
-        $name = strtoupper(trim(($user->detail?->last_name ?? '') . ' ' . ($user->detail?->first_name ?? '')));
-        $opts = $optionals ? '+' . implode('+', $optionals) : '';
-        $prefix = \App\Models\ThemeSetting::get('club_short_code', config('club.id', 'CLUB'));
+        $name = strtoupper(trim(($user->detail?->last_name ?? '').' '.($user->detail?->first_name ?? '')));
+        $opts = $optionals ? '+'.implode('+', $optionals) : '';
+        $prefix = ThemeSetting::get('club_short_code', config('club.id', 'CLUB'));
+
         return "{$prefix}-{$seasonYear}-{$user->id}-{$name}{$opts}";
     }
 
@@ -67,11 +69,12 @@ class FeeCalculationService
     {
         $calc = $this->calculate($user, $seasonYear, $selectedOptionalSlugs);
         $lines = [];
-        $lines[] = ['label' => __('Membership') . ' (' . ($calc['components']['status'] ?? '') . ')', 'amount' => $calc['components']['membership']];
+        $lines[] = ['label' => __('Membership').' ('.($calc['components']['status'] ?? '').')', 'amount' => $calc['components']['membership']];
         foreach (MembershipFeeComponent::where('is_optional', true)->whereIn('slug', $selectedOptionalSlugs)->get() as $opt) {
             $lines[] = ['label' => $opt->name, 'amount' => $opt->amount];
         }
         $lines[] = ['label' => __('Total'), 'amount' => $calc['amount_due'], 'bold' => true];
+
         return $lines;
     }
 }

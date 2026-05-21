@@ -16,7 +16,7 @@ return new class extends Migration
             Schema::table('push_subscriptions', function (Blueprint $table) {
                 $table->unique('endpoint');
             });
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Index already exists
         }
     }

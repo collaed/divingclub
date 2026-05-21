@@ -84,6 +84,7 @@ foreach ($certs as $cert) {
     // already set correctly by the sample seeder — skip
     if ($establishmentDate->gt(now()->addYears(2))) {
         $alreadyCorrect++;
+
         continue;
     }
 

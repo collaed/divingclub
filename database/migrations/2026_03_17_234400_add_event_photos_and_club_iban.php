@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ThemeSetting;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -21,13 +22,13 @@ return new class extends Migration
         });
 
         // Add IBAN to theme_settings if not present
-        \App\Models\ThemeSetting::firstOrCreate(['key' => 'club_iban'], ['value' => env('CLUB_IBAN', '')]);
-        \App\Models\ThemeSetting::firstOrCreate(['key' => 'club_bic'], ['value' => '']);
+        ThemeSetting::firstOrCreate(['key' => 'club_iban'], ['value' => env('CLUB_IBAN', '')]);
+        ThemeSetting::firstOrCreate(['key' => 'club_bic'], ['value' => '']);
     }
 
     public function down(): void
     {
         Schema::dropIfExists('event_photos');
-        \App\Models\ThemeSetting::whereIn('key', ['club_iban', 'club_bic'])->delete();
+        ThemeSetting::whereIn('key', ['club_iban', 'club_bic'])->delete();
     }
 };
