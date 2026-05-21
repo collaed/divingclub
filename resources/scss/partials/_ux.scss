@@ -73,3 +73,35 @@ body {
   border-left: 4px solid var(--dc-primary, #003366);
   .dc-stat-value { font-size: 2.25rem; font-weight: 800; color: var(--dc-primary); }
 }
+
+// Smooth scroll for anchor links
+html { scroll-behavior: smooth; }
+
+// Loading state for AJAX forms
+.is-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.6;
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 24px; height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 3px solid var(--dc-primary, #003366);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: dc-spin 0.6s linear infinite;
+  }
+}
+
+// Page transition fade
+.page-enter { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+// Better dropdown animations
+.dropdown-menu {
+  animation: dropIn 0.15s ease;
+  &.show { display: block; }
+}
+@keyframes dropIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }

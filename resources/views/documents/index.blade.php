@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">@icon('📁') {{ __('Documents') }}</h4>
         @if($canManage)
-            <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#uploadPanel">
+            <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#uploadPanel">
                 @icon('⬆') {{ __('Upload') }}
             </button>
         @endif

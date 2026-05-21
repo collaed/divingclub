@@ -19,7 +19,7 @@
 
         {{-- Federations --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#fedSection">{{ __('Federations') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#fedSection">{{ __('Federations') }}</button></h2>
             <div id="fedSection" class="accordion-collapse collapse show" data-bs-parent="#clubAccordion">
                 <div class="accordion-body">
                     <table class="table table-sm">
@@ -62,7 +62,7 @@
 
         {{-- Member Statuses --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#statusSection">{{ __('Member Statuses') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#statusSection">{{ __('Member Statuses') }}</button></h2>
             <div id="statusSection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
                 <div class="accordion-body">
                     <table class="table table-sm">
@@ -94,7 +94,7 @@
 
         {{-- Membership Fees (absolute amounts per status per year) --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#feesSection">{{ __('Membership Fees (per Year)') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#feesSection">{{ __('Membership Fees (per Year)') }}</button></h2>
             <div id="feesSection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
                 <div class="accordion-body">
                     <p class="text-muted small">{{ __('Set the absolute membership fee per status per season year. These amounts are decided by the Bureau or the Annual General Meeting.') }}</p>
@@ -134,7 +134,7 @@
 
         {{-- Club Identity --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#identitySection">{{ __('Club Identity') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#identitySection">{{ __('Club Identity') }}</button></h2>
             <div id="identitySection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
                 <div class="accordion-body">
                     <p class="text-muted small">{{ __('These details appear on public pages, emails, QR codes, and payment communications.') }}</p>
@@ -246,7 +246,7 @@
 
         {{-- Banking --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bankingSection">{{ __('Banking (IBAN / SEPA)') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#bankingSection">{{ __('Banking (IBAN / SEPA)') }}</button></h2>
             <div id="bankingSection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
                 <div class="accordion-body">
                     <p class="text-muted small">{{ __('The club IBAN is used to generate EPC QR codes on the dues calculator and payment pages.') }}</p>
@@ -282,7 +282,7 @@
 
         {{-- Medical Compliance Rules --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#medRulesSection">{{ __('Medical Compliance Rules') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#medRulesSection">{{ __('Medical Compliance Rules') }}</button></h2>
             <div id="medRulesSection" class="accordion-collapse collapse show" data-bs-parent="#rulesAccordion">
                 <div class="accordion-body">
                     <p class="text-muted small">{{ __('Define which certificates are required per federation, age bracket, and type. Validity is in months from issue date.') }}</p>
@@ -346,7 +346,7 @@
 
         {{-- Equipment Maintenance Rules --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eqptRulesSection">{{ __('Equipment Maintenance Rules') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#eqptRulesSection">{{ __('Equipment Maintenance Rules') }}</button></h2>
             <div id="eqptRulesSection" class="accordion-collapse collapse" data-bs-parent="#rulesAccordion">
                 <div class="accordion-body">
                     <p class="text-muted small">{{ __('Define maintenance requirements per equipment type. Mandatory rules affect equipment compliance status.') }}</p>
@@ -402,7 +402,7 @@
 
         {{-- Theme & Appearance --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#themeSection">{{ __('Theme & Appearance') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#themeSection">{{ __('Theme & Appearance') }}</button></h2>
             <div id="themeSection" class="accordion-collapse collapse show" data-bs-parent="#appearanceAccordion">
                 <div class="accordion-body">
                     {{-- Presets --}}
@@ -532,7 +532,7 @@
 
         {{-- API Configuration Guide --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#apiSection">{{ __('API Keys & Configuration') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#apiSection">{{ __('API Keys & Configuration') }}</button></h2>
             <div id="apiSection" class="accordion-collapse collapse show" data-bs-parent="#technicalAccordion">
                 <div class="accordion-body">
                     <p class="text-muted">{{ __('API keys are stored in the .env file on the server. Below is the current status of each integration.') }}</p>
@@ -571,7 +571,7 @@
 
         {{-- Social Media Auto-Publish --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#socialSection">{{ __('Social Media Auto-Publish') }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#socialSection">{{ __('Social Media Auto-Publish') }}</button></h2>
             <div id="socialSection" class="accordion-collapse collapse" data-bs-parent="#technicalAccordion">
                 <div class="accordion-body">
                     <p class="text-muted small">{{ __('When enabled, event photos with GDPR consent will be auto-published to configured social media platforms.') }}</p>

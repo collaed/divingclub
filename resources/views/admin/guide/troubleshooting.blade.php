@@ -15,7 +15,7 @@
         'Language not switching' => '<ol><li>Click the language dropdown in the header</li><li>For authenticated users, the preference is saved to their profile</li><li>For guests, it\'s stored in the session</li><li>Check that <code>lang/{locale}/messages.php</code> exists</li></ol>',
     ] as $q => $a)
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#t{{ $loop->index }}">{{ $q }}</button></h2>
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#t{{ $loop->index }}">{{ $q }}</button></h2>
             <div id="t{{ $loop->index }}" class="accordion-collapse collapse" data-bs-parent="#troubleAccordion">
                 <div class="accordion-body">{!! $a !!}</div>
             </div>

@@ -7,7 +7,7 @@
         <div class="col-lg-10">
             {{-- Mobile sidebar (collapsible) --}}
             <div class="d-lg-none mb-3">
-                <button class="btn btn-sm btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavMobile">
+                <button class="btn btn-sm btn-outline-primary w-100" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#adminNavMobile">
                     @icon('☰') {{ __('Admin Menu') }}
                 </button>
                 <div class="collapse mt-2" id="adminNavMobile">

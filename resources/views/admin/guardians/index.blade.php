@@ -34,7 +34,7 @@
                         @endforeach
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#minor{{ $minor->id }}">{{ __('Manage') }}</button>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#minor{{ $minor->id }}">{{ __('Manage') }}</button>
                     </td>
                 </tr>
                 <tr class="collapse" id="minor{{ $minor->id }}">
