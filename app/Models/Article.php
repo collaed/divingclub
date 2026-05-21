@@ -99,7 +99,7 @@ class Article extends Model
         return $body;
     }
 
-    public function canBeEditedBy(User $user): bool
+    public function canBeEditedBy(mixed $user): bool
     {
         if ($user->can('manage articles')) {
             return true;
