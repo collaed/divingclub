@@ -71,6 +71,9 @@ class CriticalPathsTest extends TestCase
             'password' => 'Password1',
             'password_confirmation' => 'Password1',
             'website' => '',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'M',
+            'phone_mobile' => '+352691000000',
             '_ts' => time() - 5,
         ])->assertRedirect();
 
@@ -83,7 +86,10 @@ class CriticalPathsTest extends TestCase
             'first_name' => 'A', 'last_name' => 'B',
             'email' => 'not-an-email',
             'password' => 'Password1', 'password_confirmation' => 'Password1',
-            'website' => '', '_ts' => time() - 5,
+            'website' => '',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'M',
+            'phone_mobile' => '+352691000000', '_ts' => time() - 5,
         ])->assertSessionHasErrors('email');
     }
 
@@ -93,7 +99,10 @@ class CriticalPathsTest extends TestCase
             'first_name' => 'A', 'last_name' => 'B',
             'email' => 'a@b.com',
             'password' => 'short', 'password_confirmation' => 'short',
-            'website' => '', '_ts' => time() - 5,
+            'website' => '',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'M',
+            'phone_mobile' => '+352691000000', '_ts' => time() - 5,
         ])->assertSessionHasErrors('password');
     }
 

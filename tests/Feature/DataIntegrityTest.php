@@ -14,6 +14,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\FeeCalculationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
@@ -27,6 +28,11 @@ class DataIntegrityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Seed required lookup tables
+        DB::table('roles')->insertOrIgnore(['id' => 2, 'name' => 'member', 'guard_name' => 'web', 'slug' => 'member']);
+        DB::table('member_statuses')->insertOrIgnore(['id' => 1, 'name' => 'Active', 'slug' => 'actif']);
+        SpatieRole::findOrCreate('member', 'web');
+        SpatieRole::findOrCreate('bureau_master', 'web');
         Role::upsert([
             ['id' => 1, 'name' => 'Public', 'slug' => 'public'],
             ['id' => 2, 'name' => 'Member', 'slug' => 'member'],
