@@ -8,7 +8,6 @@ use App\Models\MemberStatus;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -29,13 +28,7 @@ class CriticalPathsTest extends TestCase
 
     private function seedRoles(): void
     {
-        // Use insertOrIgnore to handle both schema variants
-        DB::table('roles')->insertOrIgnore([
-            ['id' => 1, 'name' => 'public', 'guard_name' => 'web'],
-            ['id' => 2, 'name' => 'member', 'guard_name' => 'web'],
-            ['id' => 6, 'name' => 'bureau_master', 'guard_name' => 'web'],
-        ]);
-        // Create Spatie roles
+        // Create Spatie roles first (they get auto-increment IDs)
         foreach (['public', 'member', 'instructor', 'bureau_finance', 'bureau_technical', 'bureau_master'] as $r) {
             SpatieRole::findOrCreate($r, 'web');
         }
@@ -46,7 +39,7 @@ class CriticalPathsTest extends TestCase
 
     private function createUser(string $role = 'member', bool $verified = true): User
     {
-        $r = DB::table('roles')->where('name', $role)->first();
+        $r = SpatieRole::where('name', $role)->first();
         $u = User::create([
             'username' => fake()->userName(),
             'primary_email' => fake()->unique()->safeEmail(),
