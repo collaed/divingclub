@@ -36,6 +36,13 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: divingclub_test
+      DB_USERNAME: divingclub
+      DB_PASSWORD: secret
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -47,12 +54,6 @@ jobs:
       - name: Setup .env
         run: |
           cp .env.example .env
-          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=pgsql/' .env
-          sed -i 's/DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/' .env
-          sed -i 's/DB_PORT=3306/DB_PORT=5432/' .env
-          sed -i 's/DB_DATABASE=divingclub/DB_DATABASE=divingclub_test/' .env
-          sed -i 's/DB_USERNAME=divingclub/DB_USERNAME=divingclub/' .env
-          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=secret/' .env
           php artisan key:generate
       - name: Migrate
         run: php artisan migrate --force
