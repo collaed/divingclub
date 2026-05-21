@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug')->nullable()->unique();
             $table->string('description')->nullable();
             $table->timestamps();
         });
@@ -19,7 +19,7 @@ return new class extends Migration
         Schema::create('member_statuses', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug')->nullable()->unique();
             $table->decimal('fee_multiplier', 4, 2)->default(1.00);
             $table->string('description')->nullable();
             $table->timestamps();
