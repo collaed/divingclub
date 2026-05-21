@@ -32,7 +32,7 @@ class RegisterController extends Controller
         }
 
         $user = DB::transaction(function () use ($validated) {
-            $memberRoleId = Role::where('slug', 'member')->value('id') ?? DB::table('roles')->where('name', 'member')->value('id') ?? 2;
+            $memberRoleId = DB::table('roles')->where('name', 'member')->value('id') ?? 2;
 
             $user = User::create([
                 'primary_email' => $validated['email'],
