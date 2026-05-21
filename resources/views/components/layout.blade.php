@@ -46,7 +46,7 @@
         <div class="container position-relative" style="z-index:1">
             <div class="d-flex justify-content-between align-items-center">
                 <a href="/" class="dc-brand text-decoration-none d-flex align-items-center gap-2">
-                    <img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" alt="{{ __(\'Avatar\') }}" height="36" class="d-inline-block">
+                    <img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" height="36" class="d-inline-block">
                     <span>{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
                 </a>
                 <div class="text-white d-flex align-items-center gap-3">
@@ -310,7 +310,7 @@
     {{-- Footer --}}
     <footer class="dc-footer py-4 mt-auto">
         <div class="container text-center">
-            <p class="mb-1"><img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" alt="{{ __(\'Avatar\') }}" height="20" class="me-1">{{ $theme['club_full_name'] ?? 'DivingClub' }} — {{ __('Diving Club Management System') }}</p>
+            <p class="mb-1"><img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" height="20" class="me-1">{{ $theme['club_full_name'] ?? 'DivingClub' }} — {{ __('Diving Club Management System') }}</p>
             <p class="mb-0 small opacity-75">© {{ date('Y') }} — {{ __('Powered by') }} <a href="https://github.com/collaed/divingclub" class="text-white" target="_blank">DivingClub-Manager</a></p>
         </div>
     </footer>
