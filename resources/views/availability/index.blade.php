@@ -90,11 +90,11 @@
                                                 $actColor = $actColors[$actType]['color'] ?? ($ev->color_hex ?? '#6c757d');
                                                 $actText = $actColors[$actType]['text'] ?? '#fff';
                                             @endphp
-                                            <div class="flex-fill rounded px-1 text-start" style="background:{{ $actColor }};font-size:.6rem;color:{{ $actText }};min-width:0">
+                                            <div class="flex-fill rounded px-1 text-start activity-{{ $actType }}" style="font-size:.6rem;min-width:0">
                                                 <div class="d-flex align-items-center gap-1">
                                                     <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:50px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 8) }}</a>
                                                     @if($isInstructor && !$isPast)
-                                                        <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" onclick="toggleEvent({{ $ev->id }})" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
+                                                        <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" data-toggle-event="{{ $ev->id }}" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
                                                     @endif
                                                 </div>
                                                 @if($evAvails->isNotEmpty())
@@ -116,11 +116,11 @@
                                                 $actColor = $actColors[$actType]['color'] ?? ($ev->color_hex ?? '#6c757d');
                                                 $actText = $actColors[$actType]['text'] ?? '#fff';
                                             @endphp
-                                            <div class="d-block mb-1 rounded px-1 text-start" style="background:{{ $actColor }};font-size:.65rem;color:{{ $actText }}">
+                                            <div class="d-block mb-1 rounded px-1 text-start activity-{{ $actType }}" style="font-size:.65rem">
                                                 <div class="d-flex align-items-center gap-1">
                                                     <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:70px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 12) }}</a>
                                                     @if($isInstructor && !$isPast)
-                                                        <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" onclick="toggleEvent({{ $ev->id }})" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
+                                                        <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" data-toggle-event="{{ $ev->id }}" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
                                                     @endif
                                                 </div>
                                                 @if($evAvails->isNotEmpty())
@@ -185,6 +185,12 @@
 
     @if($isInstructor)
     <script>
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-toggle-event]');
+        if (!btn) return;
+        var eventId = btn.dataset.toggleEvent;
+        toggleEvent(eventId);
+    });
     function toggleEvent(eventId) {
         fetch('{{ route("availability.toggle") }}', {
             method: 'POST',
