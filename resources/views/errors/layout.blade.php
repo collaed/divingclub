@@ -27,7 +27,7 @@
         @auth
             <a href="{{ url()->previous() }}" class="err-btn ms-2">{{ __('Go Back') }}</a>
         @endauth
-        <div class="err-logo"><img src="/images/club-logo.png" alt="{{ __(\'Avatar\') }}" height="28" style="opacity:.5"></div>
+        <div class="err-logo"><img src="/images/club-logo.png" alt="{{ __("Logo") }}" height="28" style="opacity:.5"></div>
     </div>
 </body>
 </html>
