@@ -46,7 +46,7 @@
         <div class="container position-relative" style="z-index:1">
             <div class="d-flex justify-content-between align-items-center">
                 <a href="/" class="dc-brand text-decoration-none d-flex align-items-center gap-2">
-                    <img src="/images/club-logo.png" alt="" height="36" class="d-inline-block">
+                    <img src="/images/club-logo.png" alt="{{ __(\'Avatar\') }}" height="36" class="d-inline-block">
                     <span>{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
                 </a>
                 <div class="text-white d-flex align-items-center gap-3">
@@ -90,12 +90,12 @@
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('/') ? 'active fw-bold' : '' }}" href="/">{{ __('Home') }}</a>
+                        <a class="nav-link {{ request()->is('/') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="/">{{ __('Home') }}</a>
                     </li>
 
                     {{-- About — always visible --}}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('article.*') && !request()->routeIs('article.schedule') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('About') }}</a>
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('article.*') && !request()->routeIs('article.schedule') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('About') }}</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url('/article/values') }}">@icon('🤝') {{ __('Our Values') }}</a></li>
                             <li><a class="dropdown-item" href="{{ url('/article/history') }}">@icon('🏛️') {{ __('Club History') }}</a></li>
@@ -110,14 +110,14 @@
 
                     @if(!auth()->check() || !auth()->user()->detail?->certification_level)
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('trial.*') ? 'active fw-bold' : '' }}" href="{{ route('trial.show') }}">@icon('🐠') {{ __('Try Diving') }}</a>
+                        <a class="nav-link {{ request()->routeIs('trial.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="{{ route('trial.show') }}">@icon('🐠') {{ __('Try Diving') }}</a>
                     </li>
                     @endif
 
                     @auth
                         {{-- Calendar --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/training-schedule-*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/training-schedule-*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('events.index') }}">@icon('📆') {{ __('Events') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ url('/article/training-schedule-ULO7R') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
@@ -129,7 +129,7 @@
 
                         {{-- Members --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('buddies.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Members') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('buddies.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Members') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('members.directory') }}">@icon('📇') {{ __('Directory') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('members.trombinoscope') }}">@icon('📸') {{ __('Trombinoscope') }}</a></li>
@@ -139,7 +139,7 @@
 
                         {{-- Resources --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') || request()->routeIs('classifieds.*') || request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') || request()->routeIs('classifieds.*') || request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ url('/article/first-certification') }}">@icon('🎓') {{ __('First Certification') }}</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -154,7 +154,7 @@
 
                         {{-- My Account --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('profile.*') || request()->routeIs('gdpr.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('My Account') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('profile.*') || request()->routeIs('gdpr.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('My Account') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('profile.show') }}">@icon('👤') {{ __('My Profile') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('gdpr.consents') }}">@icon('🔒') {{ __('Privacy') }}</a></li>
@@ -165,7 +165,7 @@
                         {{-- Administration --}}
                         @if(auth()->user()->isBureau())
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Admin') }}</a>
+                                <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Admin') }}</a>
                                 <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" href="{{ route('admin.dashboard.index') }}">@icon('📊') {{ __('Dashboard') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
@@ -310,7 +310,7 @@
     {{-- Footer --}}
     <footer class="dc-footer py-4 mt-auto">
         <div class="container text-center">
-            <p class="mb-1"><img src="/images/club-logo.png" alt="" height="20" class="me-1">{{ $theme['club_full_name'] ?? 'DivingClub' }} — {{ __('Diving Club Management System') }}</p>
+            <p class="mb-1"><img src="/images/club-logo.png" alt="{{ __(\'Avatar\') }}" height="20" class="me-1">{{ $theme['club_full_name'] ?? 'DivingClub' }} — {{ __('Diving Club Management System') }}</p>
             <p class="mb-0 small opacity-75">© {{ date('Y') }} — {{ __('Powered by') }} <a href="https://github.com/collaed/divingclub" class="text-white" target="_blank">DivingClub-Manager</a></p>
         </div>
     </footer>

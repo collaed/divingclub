@@ -39,3 +39,7 @@ $navbar-dark-hover-color:          #ffffff;
 // DivingClub custom styles — uses CSS custom properties from ThemeService
 // ============================================================================
 
+
+// Accessibility: improve muted text contrast (WCAG AA 4.5:1)
+.text-muted { color: #5a6268 !important; }
+[data-bs-theme="dark"] .text-muted { color: #b0b0b0 !important; }

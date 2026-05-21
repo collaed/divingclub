@@ -26,3 +26,21 @@
 }
 
 // 3. User greeting in nav
+
+// Mobile: scroll hint for overflowing tables
+.table-responsive {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; width: 20px;
+    background: linear-gradient(to left, rgba(0,0,0,0.05), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  &.has-overflow::after { opacity: 1; }
+}
+@media (max-width: 768px) {
+  .table-responsive::after { opacity: 1; }
+}

@@ -19,7 +19,7 @@
     @endphp
     {{-- Bulles theme: single background image with absolutely positioned cards --}}
     <div class="newsletter-frame" style="position:relative;max-width:650px;margin:0 auto;font-size:0">
-        <img src="{{ asset('images/newsletter/bulles-bg.jpg') }}" style="width:100%;display:block" alt="">
+        <img src="{{ asset('images/newsletter/bulles-bg.jpg') }}" style="width:100%;display:block" alt="{{ __(\'Avatar\') }}">
         @if($monthLabel)
             <div style="position:absolute;top:22%;left:0;width:100%;text-align:center;font-family:Georgia,serif;font-size:clamp(16px,3.5vw,28px);color:#d4a843;text-shadow:2px 2px 6px rgba(0,0,0,0.7);font-weight:bold">{{ ucfirst($monthLabel) }}</div>
         @endif

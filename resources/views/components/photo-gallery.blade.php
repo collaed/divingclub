@@ -7,7 +7,7 @@
 <div class="pg-overlay" id="pg-{{ $galleryId ?? 'main' }}" onclick="if(event.target===this)closeGallery()">
     <button class="pg-close" onclick="closeGallery()">✕</button>
     <button class="pg-prev" onclick="pgNav(-1)">‹</button>
-    <img class="pg-img" id="pg-img-{{ $galleryId ?? 'main' }}" src="" alt="">
+    <img class="pg-img" id="pg-img-{{ $galleryId ?? 'main' }}" src="" alt="{{ __(\'Avatar\') }}">
     <button class="pg-next" onclick="pgNav(1)">›</button>
     <div class="pg-counter" id="pg-counter-{{ $galleryId ?? 'main' }}"></div>
 </div>

@@ -62,7 +62,7 @@
                 {{-- Left decorative border --}}
                 @if($isBulles)
                 <td width="45" style="background-image:url('{{ $imgBase }}/row1-left.jpg');background-size:cover;background-position:center" valign="top">
-                    <img src="{{ $imgBase }}/row1-left.jpg" width="45" style="display:block;width:45px" alt="">
+                    <img src="{{ $imgBase }}/row1-left.jpg" width="45" style="display:block;width:45px" alt="{{ __(\'Avatar\') }}">
                 </td>
                 @endif
 
@@ -74,7 +74,7 @@
                 {{-- Center decorative border --}}
                 @if($isBulles)
                 <td width="45" style="background-image:url('{{ $imgBase }}/row1-center.jpg');background-size:cover;background-position:center" valign="top">
-                    <img src="{{ $imgBase }}/row1-center.jpg" width="45" style="display:block;width:45px" alt="">
+                    <img src="{{ $imgBase }}/row1-center.jpg" width="45" style="display:block;width:45px" alt="{{ __(\'Avatar\') }}">
                 </td>
                 @endif
 
@@ -86,7 +86,7 @@
                 {{-- Right decorative border --}}
                 @if($isBulles)
                 <td width="44" style="background-image:url('{{ $imgBase }}/row1-right.jpg');background-size:cover;background-position:center" valign="top">
-                    <img src="{{ $imgBase }}/row1-right.jpg" width="44" style="display:block;width:44px" alt="">
+                    <img src="{{ $imgBase }}/row1-right.jpg" width="44" style="display:block;width:44px" alt="{{ __(\'Avatar\') }}">
                 </td>
                 @endif
             </tr>
@@ -98,7 +98,7 @@
     @if($isBulles)
     <tr>
         <td style="padding:0;font-size:0;line-height:0">
-            <img src="{{ $imgBase }}/h-separator.jpg" width="600" style="width:100%;max-width:600px;display:block;border:0" alt="">
+            <img src="{{ $imgBase }}/h-separator.jpg" width="600" style="width:100%;max-width:600px;display:block;border:0" alt="{{ __(\'Avatar\') }}">
         </td>
     </tr>
     @else
@@ -112,7 +112,7 @@
             <tr>
                 @if($isBulles)
                 <td width="45" style="background-image:url('{{ $imgBase }}/row2-left.jpg');background-size:cover;background-position:center" valign="top">
-                    <img src="{{ $imgBase }}/row2-left.jpg" width="45" style="display:block;width:45px" alt="">
+                    <img src="{{ $imgBase }}/row2-left.jpg" width="45" style="display:block;width:45px" alt="{{ __(\'Avatar\') }}">
                 </td>
                 @endif
 
@@ -122,7 +122,7 @@
 
                 @if($isBulles)
                 <td width="45" style="background-image:url('{{ $imgBase }}/row2-center.jpg');background-size:cover;background-position:center" valign="top">
-                    <img src="{{ $imgBase }}/row2-center.jpg" width="45" style="display:block;width:45px" alt="">
+                    <img src="{{ $imgBase }}/row2-center.jpg" width="45" style="display:block;width:45px" alt="{{ __(\'Avatar\') }}">
                 </td>
                 @endif
 
@@ -132,7 +132,7 @@
 
                 @if($isBulles)
                 <td width="44" style="background-image:url('{{ $imgBase }}/row2-right.jpg');background-size:cover;background-position:center" valign="top">
-                    <img src="{{ $imgBase }}/row2-right.jpg" width="44" style="display:block;width:44px" alt="">
+                    <img src="{{ $imgBase }}/row2-right.jpg" width="44" style="display:block;width:44px" alt="{{ __(\'Avatar\') }}">
                 </td>
                 @endif
             </tr>
@@ -167,7 +167,7 @@
     <tr>
         <td style="padding:4px 10px;text-align:center;font-size:0;line-height:0">
             @foreach(collect($decorations)->take(8) as $dec)
-                <img src="{{ $appUrl }}{{ $dec['src'] }}" width="32" height="32" style="display:inline-block;width:32px;height:32px;margin:2px 6px;opacity:0.35" alt="">
+                <img src="{{ $appUrl }}{{ $dec['src'] }}" width="32" height="32" style="display:inline-block;width:32px;height:32px;margin:2px 6px;opacity:0.35" alt="{{ __(\'Avatar\') }}">
             @endforeach
         </td>
     </tr>
@@ -176,7 +176,7 @@
     {{-- FOOTER IMAGE --}}
     <tr>
         <td style="padding:0;font-size:0;line-height:0">
-            <img src="{{ $imgBase }}/footer.jpg" width="600" style="width:100%;max-width:600px;display:block;border:0" alt="">
+            <img src="{{ $imgBase }}/footer.jpg" width="600" style="width:100%;max-width:600px;display:block;border:0" alt="{{ __(\'Avatar\') }}">
         </td>
     </tr>
 

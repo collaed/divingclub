@@ -125,7 +125,7 @@
 
 {{-- Sticky nav --}}
 <nav class="h3-nav" id="stickyNav">
-    <a href="#hero" class="h3-nav-brand"><img src="/images/club-logo.png" alt=""> {{ $clubName }}</a>
+    <a href="#hero" class="h3-nav-brand"><img src="/images/club-logo.png" alt="{{ __(\'Avatar\') }}"> {{ $clubName }}</a>
     <div style="display:flex;gap:.5rem;align-items:center">
         @auth
             <a href="{{ route('home') }}" class="h3-btn h3-btn-accent" style="padding:.4rem 1.2rem;font-size:.85rem">{{ __('Dashboard') }}</a>
@@ -139,11 +139,11 @@
 <section class="h3-hero" id="hero">
     <div class="h3-hero-bg">
         @foreach($photos as $i => $p)
-            <img src="{{ asset('storage/'.$p) }}" alt="" @if($i === 0) class="active" @endif loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+            <img src="{{ asset('storage/'.$p) }}" alt="{{ __(\'Avatar\') }}" @if($i === 0) class="active" @endif loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
         @endforeach
     </div>
     <div class="h3-hero-content">
-        <img src="/images/club-logo.png" alt="" height="90" style="filter:drop-shadow(0 4px 15px rgba(0,0,0,.5));margin-bottom:1rem">
+        <img src="/images/club-logo.png" alt="{{ __(\'Avatar\') }}" height="90" style="filter:drop-shadow(0 4px 15px rgba(0,0,0,.5));margin-bottom:1rem">
         <h1>{{ $clubName }}</h1>
         <p>{{ __('Dive with us in Luxembourg') }} 🤿<br><span style="font-size:.85em;opacity:.7">{{ $pctWomen }}% {{ __('women') }} · {{ $nationalities }} {{ __('nationalities') }}</span></p>
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
@@ -173,7 +173,7 @@
 @if($photos->count() >= 6)
 <div class="h3-mosaic h3-reveal">
     @foreach($photos->take(6) as $i => $p)
-        <a href="{{ asset('storage/'.$p) }}" onclick="openGallery('h3m',{{ $i }});return false"><img src="{{ asset('storage/'.$p) }}" alt="" loading="lazy"></a>
+        <a href="{{ asset('storage/'.$p) }}" onclick="openGallery('h3m',{{ $i }});return false"><img src="{{ asset('storage/'.$p) }}" alt="{{ __(\'Avatar\') }}" loading="lazy"></a>
     @endforeach
 </div>
 @include('components.photo-gallery', ['galleryId' => 'h3m'])
@@ -262,7 +262,7 @@ fetch('{{ route("photos.browse") }}').then(r=>r.json()).then(d=>{document.getEle
 <div style="display:flex;gap:0;height:180px;overflow:hidden" class="h3-reveal">
     @foreach($photos->slice(4, 4) as $i => $p)
         <a href="{{ asset('storage/'.$p) }}" onclick="openGallery('h3m',{{ $i + 4 }});return false" style="flex:1;overflow:hidden;cursor:zoom-in">
-            <img src="{{ asset('storage/'.$p) }}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;filter:brightness(.85);transition:filter .3s" onmouseover="this.style.filter='brightness(1)'" onmouseout="this.style.filter='brightness(.85)'">
+            <img src="{{ asset('storage/'.$p) }}" alt="{{ __(\'Avatar\') }}" loading="lazy" style="width:100%;height:100%;object-fit:cover;filter:brightness(.85);transition:filter .3s" onmouseover="this.style.filter='brightness(1)'" onmouseout="this.style.filter='brightness(.85)'">
         </a>
     @endforeach
 </div>
@@ -320,7 +320,7 @@ fetch('{{ route("photos.browse") }}').then(r=>r.json()).then(d=>{document.getEle
 </div>
 
 {{-- Lightbox --}}
-<div class="h3-lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" src="" alt=""></div>
+<div class="h3-lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" src="" alt="{{ __(\'Avatar\') }}"></div>
 
 @if($errors->any())
 <script>document.addEventListener('DOMContentLoaded', () => openLogin());</script>

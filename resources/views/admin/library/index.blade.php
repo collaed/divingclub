@@ -156,7 +156,7 @@
                                     <td>
                                         @if($f->hasThumb())
                                             <a href="{{ route('admin.library.download', $f) }}" class="preview-link" data-type="{{ $f->mime_type }}" data-name="{{ $f->original_name }}">
-                                                <img src="{{ route('admin.library.thumb', $f) }}" alt="" style="max-width:40px;max-height:40px;border-radius:3px;cursor:pointer" loading="lazy">
+                                                <img src="{{ route('admin.library.thumb', $f) }}" alt="{{ __(\'Avatar\') }}" style="max-width:40px;max-height:40px;border-radius:3px;cursor:pointer" loading="lazy">
                                             </a>
                                         @else
                                             @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
@@ -189,7 +189,7 @@
                                     <td class="text-nowrap small">{{ $f->created_at->format('d/m/Y') }}<br>{{ $f->uploader?->name }}</td>
                                     <td class="text-end text-nowrap">
                                         <div class="dropdown d-inline">
-                                            <button class="btn btn-sm btn-outline-secondary py-0 px-1" data-bs-toggle="dropdown" title="{{ __('Actions') }}">⋯</button>
+                                            <button class="btn btn-sm btn-outline-secondary py-0 px-1" data-bs-toggle="dropdown" title="{{ __('Actions') }}" aria-label="{{ __('Actions') }}">⋯</button>
                                             <ul class="dropdown-menu dropdown-menu-end" style="font-size:.85rem">
                                                 <li><a class="dropdown-item" href="{{ route('admin.library.download', $f) }}">⬇ {{ __('Download') }}</a></li>
                                                 <li><a class="dropdown-item" href="#" onclick="renameFile({{ $f->id }}, '{{ addslashes($f->original_name) }}')">✏️ {{ __('Rename') }}</a></li>
