@@ -1,0 +1,13 @@
+.dc-tab-content {
+  border: 1px solid #dee2e6;
+  border-top: none;
+  border-radius: 0 0 var(--dc-radius) var(--dc-radius);
+  padding: 1.5rem;
+  background: #ffffff;
+}
+
+[data-bs-theme="dark"] .dc-tab-content {
+  background: #2d2d44;
+  border-color: #555;
+}
+

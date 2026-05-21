@@ -1,0 +1,28 @@
+.table {
+  --bs-table-hover-bg: rgba(0, 51, 102, 0.04);
+  tbody tr {
+    transition: background-color 0.15s;
+    &:hover { background-color: var(--bs-table-hover-bg) !important; }
+  }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 2;
+    border-bottom: 2px solid var(--dc-primary, #003366);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #555;
+  }
+}
+[data-bs-theme="dark"] .table thead th {
+  background: #2d2d44;
+  color: #aaa;
+  border-bottom-color: #555;
+}
+[data-bs-theme="dark"] .table tbody tr:hover {
+  background-color: rgba(255,255,255,0.05) !important;
+}
+
+// 3. User greeting in nav

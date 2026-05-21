@@ -1,0 +1,32 @@
+.dc-header {
+  background: linear-gradient(135deg, var(--dc-header-start) 0%, var(--dc-primary) 40%, var(--dc-header-end) 100%);
+  position: relative;
+  overflow: visible;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('/images/underwater-pattern.svg') repeat;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+}
+
+.dc-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+
+  .dc-brand-accent {
+    color: var(--dc-accent, #ffc107);
+  }
+}
+
+.dc-navbar {
+  background: #ffffff;
+  border-bottom: 2px solid var(--dc-primary, $primary);
+  box-shadow: var(--dc-shadow);
+}
+

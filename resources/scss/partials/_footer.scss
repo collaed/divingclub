@@ -1,0 +1,20 @@
+.dc-footer {
+  background: var(--dc-footer-bg, #1a1a2e);
+  color: rgba(255, 255, 255, 0.7);
+
+  a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    &:hover { color: #ffffff; }
+  }
+}
+
+.dc-badge-compliant {
+  background-color: $success;
+  color: #fff;
+}
+
+.dc-badge-noncompliant {
+  background-color: $danger;
+  color: #fff;
+}

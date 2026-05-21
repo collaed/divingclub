@@ -1,0 +1,34 @@
+.dc-card {
+  border: var(--dc-border-width, 0) solid #dee2e6;
+  border-radius: var(--dc-radius-lg) !important;
+  box-shadow: var(--dc-shadow);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--dc-shadow-hover);
+  }
+}
+
+// Apply radius to all Bootstrap cards and common elements
+.card {
+  border-radius: var(--dc-radius-lg) !important;
+}
+.btn {
+  border-radius: var(--dc-radius) !important;
+}
+.form-control, .form-select {
+  border-radius: var(--dc-radius) !important;
+}
+.alert {
+  border-radius: var(--dc-radius) !important;
+}
+.badge {
+  border-radius: var(--dc-radius) !important;
+}
+.modal-content {
+  border-radius: var(--dc-radius-lg) !important;
+}
+.nav-tabs .nav-link {
+  border-radius: var(--dc-radius) var(--dc-radius) 0 0 !important;
+}
+

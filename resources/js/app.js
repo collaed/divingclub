@@ -48,3 +48,4 @@ function urlBase64ToUint8Array(base64String) {
     const raw = atob(base64);
     return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
+import './table-utils';

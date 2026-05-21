@@ -1,0 +1,72 @@
+
+// Impersonation banner
+.dc-impersonation-banner {
+  background: $warning;
+  color: $dark;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-weight: 600;
+  z-index: 1050;
+}
+
+// Profile tabs responsive
+@media (max-width: 768px) {
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .nav-link {
+      white-space: nowrap;
+      font-size: 0.85rem;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+}
+
+// Bubble pattern for header (subtle)
+.dc-bubbles {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    animation: float-up 8s infinite ease-in;
+
+    &:nth-child(1) { width: 40px; height: 40px; left: 10%; animation-delay: 0s; }
+    &:nth-child(2) { width: 20px; height: 20px; left: 30%; animation-delay: 2s; }
+    &:nth-child(3) { width: 30px; height: 30px; left: 60%; animation-delay: 4s; }
+    &:nth-child(4) { width: 15px; height: 15px; left: 80%; animation-delay: 1s; }
+    &:nth-child(5) { width: 25px; height: 25px; left: 45%; animation-delay: 3s; }
+  }
+}
+
+@keyframes float-up {
+  0%   { transform: translateY(100px); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(-20px); opacity: 0; }
+}
+
+// Dark mode toggle button
+.dc-dark-toggle {
+  cursor: pointer;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: var(--dc-radius);
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+  &:hover { background: rgba(255,255,255,0.1); }
+}
+
+// ============================================================================
+// UI Polish — 7 improvements
+// ============================================================================
+
+// 1. Table improvements: hover, zebra, sticky header
