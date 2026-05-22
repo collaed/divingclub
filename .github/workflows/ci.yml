@@ -55,6 +55,8 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
+          echo "VAPID_PUBLIC_KEY=BDummyPublicKeyForCITestingOnly000000000000000000000000000000000000000000000000000000000" >> .env
+          echo "VAPID_PRIVATE_KEY=dummyprivatekeyforci00000000000000000000000" >> .env
       - name: Migrate
         run: php artisan migrate --force
       - name: PHPUnit
