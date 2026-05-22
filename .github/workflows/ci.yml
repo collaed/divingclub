@@ -1,25 +1,19 @@
 name: CI
 
 on:
-  workflow_dispatch:
-#
-#  push:
-    #    branches: [main]
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
   lint:
-    runs-on:
-  workflow_dispatch:
-# ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
-          php-version:
-  workflow_dispatch:
-# '8.3'
+          php-version: '8.3'
           tools: composer:v2
       - run: composer install --no-interaction --prefer-dist
       - name: Pint (code style)
@@ -28,9 +22,7 @@ jobs:
         run: vendor/bin/phpstan analyse --no-progress
 
   test:
-    runs-on:
-  workflow_dispatch:
-# ubuntu-latest
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:16
@@ -55,9 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
-          php-version:
-  workflow_dispatch:
-# '8.3'
+          php-version: '8.3'
           extensions: pdo_pgsql, gd, zip, intl, bcmath
           tools: composer:v2
       - run: composer install --no-interaction --prefer-dist
@@ -71,16 +61,12 @@ jobs:
         run: php artisan test --compact
 
   build:
-    runs-on:
-  workflow_dispatch:
-# ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version:
-  workflow_dispatch:
-# '20'
+          node-version: '20'
           cache: 'npm'
       - run: npm ci
       - run: npm run build

@@ -13,6 +13,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RegisterController extends Controller
 {
@@ -31,7 +32,10 @@ class RegisterController extends Controller
         }
 
         $user = DB::transaction(function () use ($validated) {
-            $memberRoleId = DB::table('roles')->where('name', 'member')->value('id') ?? 2;
+            $roleTable = Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
+            $memberRoleId = DB::table($roleTable)->where('slug', 'member')->value('id')
+                ?? DB::table($roleTable)->where('name', 'member')->value('id')
+                ?? 2;
 
             $user = User::create([
                 'primary_email' => $validated['email'],

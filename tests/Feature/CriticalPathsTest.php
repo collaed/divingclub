@@ -8,6 +8,7 @@ use App\Models\MemberStatus;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -28,10 +29,13 @@ class CriticalPathsTest extends TestCase
 
     private function seedRoles(): void
     {
-        // Create Spatie roles first (they get auto-increment IDs)
+        // Create Spatie roles
         foreach (['public', 'member', 'instructor', 'bureau_finance', 'bureau_technical', 'bureau_master'] as $r) {
             SpatieRole::findOrCreate($r, 'web');
         }
+        // Seed the table that users.role_id FK references
+        $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
+        DB::table($roleTable)->insertOrIgnore(['id' => 2, 'name' => 'Member', 'slug' => 'member']);
         MemberStatus::upsert([
             ['id' => 1, 'name' => 'Active', 'slug' => 'active'],
         ], ['id']);
@@ -39,12 +43,15 @@ class CriticalPathsTest extends TestCase
 
     private function createUser(string $role = 'member', bool $verified = true): User
     {
-        $r = SpatieRole::where('name', $role)->first();
+        $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
+        $roleId = DB::table($roleTable)->where('slug', $role)->value('id')
+            ?? DB::table($roleTable)->where('name', $role)->value('id')
+            ?? 2;
         $u = User::create([
             'username' => fake()->userName(),
             'primary_email' => fake()->unique()->safeEmail(),
             'password' => 'Password1',
-            'role_id' => $r->id,
+            'role_id' => $roleId,
             'status_id' => 1,
             'email_verified_at' => $verified ? now() : null,
         ]);

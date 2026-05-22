@@ -10,7 +10,6 @@ use App\Models\MemberDetail;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
-use App\Models\Role;
 use App\Models\User;
 use App\Services\FeeCalculationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,15 +28,11 @@ class DataIntegrityTest extends TestCase
     {
         parent::setUp();
         // Seed required lookup tables
-        DB::table('roles')->insertOrIgnore(['id' => 2, 'name' => 'member', 'guard_name' => 'web', 'slug' => 'member']);
+        $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
+        DB::table($roleTable)->insertOrIgnore(['id' => 2, 'name' => 'Member', 'slug' => 'member']);
         DB::table('member_statuses')->insertOrIgnore(['id' => 1, 'name' => 'Active', 'slug' => 'actif']);
         SpatieRole::findOrCreate('member', 'web');
         SpatieRole::findOrCreate('bureau_master', 'web');
-        Role::upsert([
-            ['id' => 1, 'name' => 'Public', 'slug' => 'public'],
-            ['id' => 2, 'name' => 'Member', 'slug' => 'member'],
-            ['id' => 6, 'name' => 'Bureau Master', 'slug' => 'bureau_master'],
-        ], ['id']);
         foreach (['public', 'member', 'bureau_master'] as $r) {
             SpatieRole::findOrCreate($r, 'web');
         }
@@ -50,7 +45,10 @@ class DataIntegrityTest extends TestCase
             'username' => fake()->userName(),
             'primary_email' => fake()->unique()->safeEmail(),
             'password' => 'Password1',
-            'role_id' => 2,
+            'role_id' => DB::table(\Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles')
+                ->where('slug', 'member')->value('id')
+                ?? DB::table('roles')->where('name', 'member')->value('id')
+                ?? 2,
             'status_id' => 1,
             'email_verified_at' => now(),
         ]);
