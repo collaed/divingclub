@@ -106,6 +106,7 @@ class GdprController extends Controller
             'model_type' => 'App\\Models\\User', 'model_id' => $user->id,
             'new_values' => ['erased_at' => now()->toIso8601String()],
             'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(),
+            'created_at' => now(),
         ]);
 
         auth()->logout();
