@@ -71,6 +71,15 @@
                     <label class="form-label small mb-0">{{ __('Season') }}</label>
                     <input type="text" name="season" class="form-control form-control-sm" value="{{ $lic->season }}">
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">{{ __('Insurance') }}</label>
+                    <select name="insurance_type" class="form-select form-select-sm">
+                        <option value="">—</option>
+                        @foreach(['Loisir 1','Loisir 2','Loisir 3','Loisir 1 Top','Loisir 2 Top','Loisir 3 Top','Aucune'] as $ins)
+                            <option value="{{ $ins }}" {{ $lic->insurance_type === $ins ? 'selected' : '' }}>{{ $ins }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-md-1">
                     <label class="form-label small mb-0">{{ __('Pending') }}</label>
                     <select name="licence_request_pending" class="form-select form-select-sm">
@@ -92,6 +101,8 @@
             {{ __('Licence') }}: {{ $lic->licence_number ?? '—' }} |
             {{ __('Season') }}: {{ $lic->season ?? '—' }} |
             {{ __('Requested') }}: {{ $lic->licence_request_date?->format('d/m/Y') ?? '—' }}
+            @if($lic->insurance_type) | {{ __('Insurance') }}: <strong>{{ $lic->insurance_type }}</strong> @endif
+            @if($lic->registration_date) | {{ __('Registered') }}: {{ \Carbon\Carbon::parse($lic->registration_date)->format('d/m/Y') }} @endif
             @if($lic->licence_request_pending) <span class="badge bg-warning text-dark">{{ __('Pending') }}</span> @endif
         </div>
     </div>

@@ -9,7 +9,11 @@
 <li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid rgba(var(--bs-emphasis-color-rgb), 0.15);">
     <div class="d-flex justify-content-between align-items-start">
         <div>
-            <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</span>
+            @if($isPrivileged)
+                <a href="{{ route('admin.profile.show', $reg->user) }}" class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</a>
+            @else
+                <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</span>
+            @endif
             @if($isPrivileged && !$isCancelled)
                 <a href="{{ route('admin.profile.show', $reg->user) }}?tab=equipment" class="ms-1" title="{{ __('Equipment') }}" style="font-size:0.7rem;text-decoration:none">🔧</a>
             @endif

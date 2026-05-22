@@ -145,6 +145,7 @@ class ProfileController extends Controller
             'licence_request_date' => 'nullable|date',
             'licence_request_pending' => 'boolean',
             'season' => 'nullable|string|max:20',
+            'insurance_type' => 'nullable|string|max:50',
         ]));
 
         return back()->with('success', __('Licence updated.'))->withInput(['tab' => 'renewal']);
