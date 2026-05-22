@@ -99,6 +99,7 @@ class DataIntegrityTest extends TestCase
     /** @test */
     public function gdpr_erasure_anonymizes_all_personal_fields(): void
     {
+        $this->withoutExceptionHandling();
         $user = $this->createMember();
         $userId = $user->id;
 

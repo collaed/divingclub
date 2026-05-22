@@ -10,18 +10,27 @@ use Minishlink\WebPush\WebPush;
 
 class PushNotificationService
 {
-    private WebPush $webPush;
+    private ?WebPush $webPush = null;
 
     public function __construct()
     {
-        $this->webPush = new WebPush([
-            'VAPID' => [
-                'subject' => config('app.url'),
-                'publicKey' => config('webpush.public_key'),
-                'privateKey' => config('webpush.private_key'),
-            ],
-        ]);
-        $this->webPush->setAutomaticPadding(false);
+        $publicKey = config('webpush.public_key');
+        $privateKey = config('webpush.private_key');
+
+        if ($publicKey && $privateKey) {
+            try {
+                $this->webPush = new WebPush([
+                    'VAPID' => [
+                        'subject' => config('app.url'),
+                        'publicKey' => $publicKey,
+                        'privateKey' => $privateKey,
+                    ],
+                ]);
+                $this->webPush->setAutomaticPadding(false);
+            } catch (\Exception $e) {
+                // Invalid VAPID keys — push disabled
+            }
+        }
     }
 
     /**
@@ -37,6 +46,10 @@ class PushNotificationService
      */
     public function sendToUsers(Collection $users, string $title, string $body, ?string $url = null, ?string $icon = null): void
     {
+        if (! $this->webPush) {
+            return;
+        }
+
         $payload = json_encode([
             'title' => $title,
             'body' => $body,
