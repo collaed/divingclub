@@ -30,6 +30,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\StagingMailController;
 use App\Http\Controllers\TrialController;
+use App\Http\Controllers\TripSettlementController;
 use App\Http\Controllers\VotePublicController;
 use App\Http\Middleware\CheckLicense;
 use App\Models\EventPhoto;
@@ -300,6 +301,18 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
     Route::get('/events/{event}/dive-groups/suggest-swaps', [DiveGroupController::class, 'suggestSwaps'])->name('events.dive-groups.suggest-swaps');
     Route::get('/events/{event}/dive-groups/print', [DiveGroupController::class, 'printFiche'])->name('events.dive-groups.print');
+
+    // Trip settlement
+    Route::get('/events/{event}/settlement', [TripSettlementController::class, 'show'])->name('events.settlement');
+    Route::post('/events/{event}/settlement/receipts', [TripSettlementController::class, 'storeReceipt'])->name('events.settlement.store-receipt');
+    Route::delete('/events/{event}/settlement/receipts/{receipt}', [TripSettlementController::class, 'deleteReceipt'])->name('events.settlement.delete-receipt');
+    Route::get('/events/{event}/settlement/receipts/{receipt}/image', [TripSettlementController::class, 'receiptImage'])->name('events.settlement.receipt-image');
+    Route::get('/events/{event}/settlement/manage', [TripSettlementController::class, 'manage'])->name('events.settlement.manage');
+    Route::post('/events/{event}/settlement/receipts/{receipt}/approve', [TripSettlementController::class, 'approveReceipt'])->name('events.settlement.approve');
+    Route::post('/events/{event}/settlement/receipts/{receipt}/reject', [TripSettlementController::class, 'rejectReceipt'])->name('events.settlement.reject');
+    Route::post('/events/{event}/settlement/participants/{participant}', [TripSettlementController::class, 'updateParticipant'])->name('events.settlement.update-participant');
+    Route::post('/events/{event}/settlement/close', [TripSettlementController::class, 'closeLedger'])->name('events.settlement.close');
+    Route::post('/events/{event}/settlement/reopen', [TripSettlementController::class, 'reopenLedger'])->name('events.settlement.reopen');
 
     // Stop impersonation (must be outside bureau_master group — user is impersonated)
     Route::get('/admin/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('admin.stop-impersonation');

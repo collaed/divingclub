@@ -27,6 +27,7 @@ use App\Models\GdprConsent;
 use App\Models\PaymentExpected;
 use App\Models\Season;
 use App\Models\ThemeSetting;
+use App\Models\TripParticipant;
 use App\Models\User;
 use App\Services\FaceDetectionService;
 use App\Services\ImageQualityService;
@@ -205,8 +206,9 @@ class EventController extends Controller
             return back()->with('error', __('Event is full.'));
         }
 
-        DB::transaction(function () use ($event, $targetUser, $actor, $comment) {
+        DB::transaction(function () use ($event, $targetUser, $actor, $comment, $request) {
             $registeredBy = $targetUser->id !== $actor->id ? $actor->id : null;
+            $transitMode = $event->hasTripSettlement() ? $request->input('transit_mode') : null;
 
             if ($event->isFull()) {
                 $pos = ($event->waitingRegistrations()->max('waiting_list_position') ?? 0) + 1;
@@ -216,6 +218,7 @@ class EventController extends Controller
                     'status' => 'waiting',
                     'waiting_list_position' => $pos,
                     'comment' => $comment,
+                    'transit_mode' => $transitMode,
                     'registered_by' => $registeredBy,
                 ]);
             } else {
@@ -224,6 +227,7 @@ class EventController extends Controller
                     'user_id' => $targetUser->id,
                     'status' => 'confirmed',
                     'comment' => $comment,
+                    'transit_mode' => $transitMode,
                     'registered_by' => $registeredBy,
                 ]);
 
@@ -251,6 +255,13 @@ class EventController extends Controller
                         'status' => 'pending',
                     ]);
                 }
+            }
+
+            // Auto-create trip participant if settlement is enabled
+            if ($event->hasTripSettlement()) {
+                TripParticipant::firstOrCreate(
+                    ['event_id' => $event->id, 'user_id' => $targetUser->id]
+                );
             }
         });
 
