@@ -290,6 +290,83 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 </laravel-boost-guidelines>
 
+## Page Structure
+
+- Every authenticated page uses `x-layout` (members) or `x-admin-layout` (bureau). Exceptions: home2, home3 (public landing), welcome, fiche-securite-pdf (print).
+- Page title set via `@section('title', __('Page Name'))`.
+- Breadcrumbs on all admin pages via `x-breadcrumb`.
+- No inline `<style>` blocks — use SCSS partials. Exception: email templates and PDF views.
+- No inline `onclick` handlers — use `data-*` attributes + event delegation in JS. Exception: dark mode toggle, QR scanner, clipboard copy (simple one-liners).
+
+## Data Tables (all pages)
+
+- **Sortable headers**: All data tables must use `<x-sortable-th>` for sortable columns with ↑↓ indicators.
+- **Instant search**: Use `data-instant-search="table-id"` on search inputs for immediate JS-powered filtering without page reload.
+- **Clickable rows**: All table rows that represent a viewable entity must use `data-href` + the `clickable-rows` component. Do not add separate "View" buttons — the whole row is the link. Buttons/forms inside rows (e.g., Return, Delete) must still work without triggering row navigation.
+- **Filters**: Use Excel-style dropdowns with auto-submit, wrapped in `x-filter-bar`.
+- **Pagination**: Use `x-per-page` component, default 25 rows.
+- **Empty state**: `<p class="text-muted">{{ __('No items found.') }}</p>`
+
+## Forms & Validation
+
+- All new forms must use Form Request classes (never inline `$request->validate()` in controllers). Existing inline validation is legacy debt — bring into compliance when touching the file.
+- Labels use `__()` for translation.
+- Error display: `@error('field') <div class="invalid-feedback">{{ $message }}</div> @enderror`
+- Submit buttons: `btn btn-primary` (create/save), `btn btn-outline-danger` (delete/destructive).
+- Confirmation on destructive actions: `data-confirm="message"` attribute.
+
+## Controllers
+
+- Return type declaration on every public method.
+- Eager load relationships (`->with()`) in the controller — never lazy load in views.
+- Flash messages: `->with('success', __('...'))` on success; validation handles errors automatically.
+- Authorization: use `$this->authorize()` or `abort_unless()` for bureau actions.
+- Prefer `Model::query()` over `DB::table()`. Use `DB::` only for cross-table operations or raw performance needs.
+
+## Models
+
+- `@property` PHPDoc on all models (PHPStan level 6 enforced).
+- `@return` generics on relationships (`HasMany<Event>`).
+- Casts in `casts()` method, not `$casts` property.
+- Fillable explicitly listed — no `$guarded = []`.
+- AuditLog::create must always include `'created_at' => now()` (model has `$timestamps = false`).
+
+## JavaScript & Frontend
+
+- No inline `onclick` — use `data-*` attributes + event delegation.
+- Shared utilities in `table-utils.js` (search, sort, clickable rows).
+- Toast notifications via `showToast(message, type)`.
+- Activity type colors defined in `_planning.scss` only — never inline styles.
+
+## CSS/SCSS
+
+- Use CSS variables (`var(--dc-spacing-*)`) for spacing.
+- Dark mode via `.dark-mode` class, never `@media (prefers-color-scheme)`.
+- Bootstrap utilities first, custom CSS only when Bootstrap can't do it.
+- 11 SCSS partials: _base, _dark-mode, _header, _cards, _tabs, _footer, _bubbles, _tables, _components, _ux, _planning.
+
+## Translations & Localization
+
+- All user-facing strings wrapped in `__()` — including placeholders, titles, button labels.
+- French content in seeds/fixtures, English in code.
+- Portuguese = European Portuguese (pt-PT), not Brazilian.
+- Google Translate API: `pt` locale maps to `pt-PT`.
+
+## Testing
+
+- Every feature gets a Feature test (not Unit, unless pure logic).
+- Use model factories — not manual `::create()` in tests.
+- Test names: `test_verb_noun_condition` (e.g., `test_guest_can_register`).
+- Tests must work on both MySQL (local) and PostgreSQL (CI). Use `Schema::hasTable('legacy_roles')` for role table detection.
+
+## Git & CI
+
+- Commit prefix: `feat:`, `fix:`, `chore:`, `ci:`
+- Pint + PHPStan clean before every push.
+- All 3 CI jobs must pass (lint, test, build) before deploying.
+- No direct push to main without local test pass.
+- CI workflow: `.github/workflows/ci.yml` — do not edit with sed (rewrite cleanly if changes needed).
+
 ## Instructor Planning & Activity Types
 
 - **Activity types describe WHAT is done**, never where or when. Location and schedule are separate event fields. Do not create activity types that duplicate location (e.g., "Merl vendr.") or schedule info.
@@ -306,8 +383,8 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - **Clickable rows**: Equipment table rows link to the detail page. Use `data-href` + `clickable-rows` component. Do not add separate "View" buttons — the whole row is the link.
 - **Filters**: Equipment index must have filters for type, status, location, and a free-text size filter (searches in name). All filters use Excel-style dropdowns with auto-submit.
 
-## Tables & Lists (all pages)
+## Incremental Compliance
 
-- **Sortable headers**: All data tables must use `<x-sortable-th>` for sortable columns with ↑↓ indicators.
-- **Instant search**: Use `data-instant-search="table-id"` on search inputs for immediate JS-powered filtering without page reload.
-- **Clickable rows**: All table rows that represent a viewable entity must use `data-href` + the `clickable-rows` component. Do not add separate "View" buttons — the whole row is the link. Buttons/forms inside rows (e.g., Return, Delete) must still work without triggering row navigation.
+- New code MUST follow all rules above.
+- Existing code: bring into compliance when touching a file for a feature/fix. Do not refactor files you're not otherwise changing.
+- Priority order for cleanup: onclick handlers > missing translations > inline validation > sortable headers.
