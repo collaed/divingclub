@@ -1,6 +1,6 @@
 # DivingClub-Manager — Reverse-Engineered Requirements
 
-Generated: 2026-04-15 from codebase analysis of 56 models, 325 routes, 22 services, 66 migrations.
+Generated: 2026-05-23 from codebase analysis of 56 models, 331 routes, 27 services, 74 migrations.
 
 ---
 

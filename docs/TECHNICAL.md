@@ -2,7 +2,7 @@
 
 ## 1. Architecture Overview
 
-DivingClub-Manager is a server-rendered monolith built on the Laravel 11 framework. It follows standard Laravel conventions with minimal custom abstractions: Eloquent ORM for data access, Blade templates for rendering, and Bootstrap 5 for the UI. There is no SPA frontend — all interactivity is achieved through Blade, vanilla JavaScript, and AJAX where needed.
+DivingClub-Manager is a server-rendered monolith built on the Laravel 12 framework. It follows standard Laravel conventions with minimal custom abstractions: Eloquent ORM for data access, Blade templates for rendering, and Bootstrap 5 for the UI. There is no SPA frontend — all interactivity is achieved through Blade, vanilla JavaScript, and AJAX where needed.
 
 ### 1.1 Design Principles
 
@@ -89,7 +89,7 @@ config/
 └── (standard Laravel configs)
 
 database/
-├── migrations/                # 59 migration files
+├── migrations/                # 74 migration files
 ├── seeders/
 │   ├── DatabaseSeeder.php     # Roles, statuses, federations, certifications
 │   ├── SampleDataSeeder.php   # 20 sample members with realistic data
@@ -309,7 +309,7 @@ All tasks report heartbeats to `schedule_heartbeats` table for dashboard monitor
 
 ## 10. Testing
 
-- **138 tests, 321 assertions** — all PHPUnit feature tests
+- **233 tests, 532 assertions** — all PHPUnit feature tests
 - Run: `php artisan test --compact`
 - Tests use SQLite in-memory database with factories
 - Key test areas: authentication, registration, events, payments, medical compliance, equipment loans, voting, GDPR

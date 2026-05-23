@@ -10,7 +10,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
 - php - 8.3
-- laravel/framework (LARAVEL) - v11
+- laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
 - laravel/boost (BOOST) - v2
 - laravel/mcp (MCP) - v0
@@ -200,12 +200,12 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 === laravel/v11 rules ===
 
-# Laravel 11
+# Laravel 11+
 
 - CRITICAL: ALWAYS use `search-docs` tool for version-specific Laravel documentation and updated code examples.
-- Laravel 11 brought a new streamlined file structure which this project now uses.
+- Laravel 11 brought a new streamlined file structure which this project now uses (carried forward in Laravel 12).
 
-## Laravel 11 Structure
+## Laravel 11+ Structure
 
 - In Laravel 11, middleware are no longer registered in `app/Http/Kernel.php`.
 - Middleware are configured declaratively in `bootstrap/app.php` using `Application::configure()->withMiddleware()`.
@@ -225,7 +225,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 ## New Artisan Commands
 
-- List Artisan commands using Boost's MCP tool, if available. New commands available in Laravel 11:
+- List Artisan commands using Boost's MCP tool, if available. New commands available in Laravel 11+:
     - `php artisan make:enum`
     - `php artisan make:class`
     - `php artisan make:interface`

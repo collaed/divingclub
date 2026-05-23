@@ -321,7 +321,7 @@ The optimal path minimizes login/logout:
 ## Automated Test Coverage
 
 ```bash
-# PHPUnit backend tests (138 tests, 321 assertions)
+# PHPUnit backend tests (233 tests, 532 assertions)
 php artisan test --compact
 
 # Playwright E2E — standard suite (35 tests)

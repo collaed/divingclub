@@ -408,7 +408,7 @@ The factory uses `username` and `primary_email` (not `name` and `email`):
 
 ### Running Tests
 ```bash
-php artisan test --compact                    # All 138 tests
+php artisan test --compact                    # All 233 tests
 php artisan test --filter=FederationVisibility # Federation tests only
 php artisan test --filter=CriticalPath        # Critical path tests
 ```

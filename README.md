@@ -1,6 +1,6 @@
 # 🤿 DivingClub-Manager
 
-Open-source diving club management system. Built with Laravel 11, PHP 8.3, Blade, and Bootstrap 5. Multi-language, multi-club, mobile-ready.
+Open-source diving club management system. Built with Laravel 12, PHP 8.3, Blade, and Bootstrap 5. Multi-language, multi-club, mobile-ready.
 
 Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but designed to work for any diving club worldwide.
 
@@ -39,17 +39,17 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 
 ## Numbers
 
-- **71 database tables**
-- **320 routes**
+- **129 database tables**
+- **331 routes**
 - **15 languages**
 - **105 certification levels** across 11 federations
 - **13 article types**
 - **10 instructor activity types**
 - **6 theme presets**
 - **56 Eloquent models**
-- **133 Blade templates**
-- **20 services**
-- **138 passing tests** (321 assertions)
+- **155 Blade templates**
+- **27 services**
+- **233 passing tests** (532 assertions)
 
 ---
 
@@ -147,7 +147,7 @@ GOOGLE_MAPS_KEY=
 ```
 app/
 ├── Http/Controllers/
-│   ├── Admin/              # 23 admin controllers
+│   ├── Admin/              # 26 admin controllers
 │   ├── Auth/               # Login, Register, SocialAuth, EuLogin
 │   ├── HomeController      # Public pages, articles, home2 landing
 │   ├── EventController     # Events, registration, calendar
@@ -163,14 +163,14 @@ app/
 │   ├── LicenseService       # RSA license verification
 │   ├── ArticleTranslationService
 │   ├── PushNotificationService
-│   └── 8 more...
+│   └── 12 more...
 ├── Jobs/                   # WeeklyBackup, SendMedicalReminders
 ├── Middleware/             # CheckLicense, SetLocale, CheckRole, etc.
 database/
-├── migrations/             # 59 migration files
+├── migrations/             # 74 migration files
 ├── seeders/                # Database, Sample, Certification, Equipment
 resources/
-├── views/                  # 126 Blade templates
+├── views/                  # 155 Blade templates
 ├── scss/                   # Bootstrap 5 custom theme
 ├── js/                     # Bootstrap + Chart.js via Vite
 lang/                       # 15 locale directories
