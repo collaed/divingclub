@@ -72,7 +72,7 @@
 <nav class="h2-nav" id="stickyNav">
     <div class="container d-flex align-items-center justify-content-between">
         <a href="#hero" class="d-flex align-items-center gap-2 fw-bold" style="color:#fff">
-            <img src="/images/club-logo.png" alt="{{ __(\'Avatar\') }}" height="28"> {{ $theme['club_full_name'] ?? 'CEP' }}
+            <img src="/images/club-logo.png" height="28"> {{ $theme['club_full_name'] ?? 'CEP' }}
         </a>
         <div class="d-none d-md-flex gap-1" id="navLinks">
             @foreach($sections as $s)
@@ -97,7 +97,7 @@
         <div class="h2-hero-bg"><img src="{{ asset('storage/'.$photos->first()) }}" alt=""></div>
     @endif
     <div class="h2-hero-content">
-        <img src="/images/club-logo.png" alt="{{ __(\'Avatar\') }}" height="80" class="mb-3" style="filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))">
+        <img src="/images/club-logo.png" height="80" class="mb-3" style="filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))">
         <h1>{{ $theme['club_full_name'] ?? 'Club Européen de Plongée' }}</h1>
         <p>Plongez avec nous au Luxembourg 🤿</p>
         <div class="d-flex gap-3 justify-content-center flex-wrap">
@@ -144,7 +144,7 @@
 @if($photos->count() >= 3)
 <div class="h2-photo-strip">
     @foreach($photos->skip(1)->take(5) as $p)
-        <img src="{{ asset('storage/'.$p) }}" alt="{{ __(\'Avatar\') }}" loading="lazy">
+        <img src="{{ asset('storage/'.$p) }}" loading="lazy">
     @endforeach
 </div>
 @endif

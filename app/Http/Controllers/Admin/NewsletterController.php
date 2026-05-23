@@ -73,7 +73,7 @@ class NewsletterController extends Controller
 
     public function show(Newsletter $newsletter): RedirectResponse|View
     {
-        $newsletter->load('approvals.user', 'creator');
+        $newsletter->load('approvals.user.detail', 'creator.detail');
         $slotArticles = $newsletter->slotArticles();
 
         return view('admin.newsletters.show', compact('newsletter', 'slotArticles'));

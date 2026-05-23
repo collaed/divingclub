@@ -18,7 +18,7 @@ class AuditLogController extends Controller
 
     public function index(Request $request): RedirectResponse|StreamedResponse|View
     {
-        $query = AuditLog::with('user');
+        $query = AuditLog::with('user.detail');
 
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
@@ -73,7 +73,7 @@ class AuditLogController extends Controller
 
     public function export(Request $request): Response
     {
-        $query = AuditLog::with('user')->orderByDesc('created_at');
+        $query = AuditLog::with('user.detail')->orderByDesc('created_at');
 
         if ($request->filled('from')) {
             $query->where('created_at', '>=', $request->from);
