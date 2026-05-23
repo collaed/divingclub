@@ -18,12 +18,12 @@ class InboundMailFilter
      *
      * @return array{body: string, needs_review: bool, review_reason: ?string}
      */
-    public static function filter(string $body, ?int $eventId = null): array
+    public static function filter(string $body, ?int $eventId = null, ?string $senderEmail = null): array
     {
         $original = $body;
 
         // 1. Strip common email signatures
-        $body = static::stripSignatures($body);
+        $body = static::stripSignatures($body, $senderEmail);
 
         // 2. Strip quoted replies ("> " lines, "On ... wrote:" blocks)
         $body = static::stripQuotedReplies($body);
@@ -54,7 +54,7 @@ class InboundMailFilter
         return ['body' => $body, 'needs_review' => false, 'review_reason' => null];
     }
 
-    protected static function stripSignatures(string $body): string
+    protected static function stripSignatures(string $body, ?string $senderEmail = null): string
     {
         // Common signature markers
         $patterns = [
@@ -70,6 +70,20 @@ class InboundMailFilter
 
         foreach ($patterns as $p) {
             $body = preg_replace($p, '', $body);
+        }
+
+        // Dynamic: strip corporate signature block based on sender's email domain
+        if ($senderEmail) {
+            $domain = substr($senderEmail, strpos($senderEmail, '@') + 1);
+            $domainParts = explode('.', $domain);
+            $company = $domainParts[0] ?? '';
+
+            if ($company && strlen($company) > 2) {
+                // Strip everything after a line containing the sender's company domain/name
+                // e.g. "tti-network" in the signature block
+                $escaped = preg_quote($company, '/');
+                $body = preg_replace('/\n[^\n]*'.$escaped.'[^\n]*\n.*/si', '', $body);
+            }
         }
 
         return $body;

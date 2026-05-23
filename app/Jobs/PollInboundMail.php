@@ -233,7 +233,7 @@ class PollInboundMail implements ShouldQueue
         }
 
         // Filter inbound content before logging
-        $filtered = InboundMailFilter::filter($body, $eventId);
+        $filtered = InboundMailFilter::filter($body, $eventId, $from);
 
         EmailLog::create([
             'event_id' => $eventId,
