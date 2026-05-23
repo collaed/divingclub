@@ -101,6 +101,7 @@
                             </form>
                             <form action="{{ route('events.settlement.reject', [$event, $r]) }}" method="POST" class="d-inline">
                                 @csrf
+                                <input type="text" name="reviewer_notes" placeholder="{{ __('Reason') }}" class="form-control form-control-sm d-inline-block" style="width:120px">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">✕</button>
                             </form>
                         </td>

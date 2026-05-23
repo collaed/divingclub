@@ -128,6 +128,9 @@
                                                 <span class="badge bg-success">{{ __('Approved') }} ({{ number_format($r->approved_amount, 2) }} €)</span>
                                             @else
                                                 <span class="badge bg-danger">{{ __('Rejected') }}</span>
+                                                @if($r->reviewer_notes)
+                                                    <br><small class="text-danger">{{ $r->reviewer_notes }}</small>
+                                                @endif
                                             @endif
                                         </td>
                                         <td>
