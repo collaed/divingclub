@@ -15,7 +15,7 @@
                                     $rot = ($i - floor($ev->photos->count() / 2)) * 8;
                                     $z = $ev->photos->count() - $i;
                                 @endphp
-                                <img src="{{ $url }}" alt="{{ __(\'Avatar\') }}" loading="lazy"
+                                <img src="{{ $url }}" alt="Decoration" loading="lazy"
                                      style="position:absolute;width:120px;height:90px;object-fit:cover;border-radius:4px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transform:rotate({{ $rot }}deg);z-index:{{ $z }};transition:transform .2s"
                                      onmouseenter="this.style.zIndex=99;this.style.transform='rotate(0deg) scale(1.15)'"
                                      onmouseleave="this.style.zIndex={{ $z }};this.style.transform='rotate({{ $rot }}deg)'">

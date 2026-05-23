@@ -263,7 +263,7 @@
             const art = slots[slot];
             if (!art) return;
             const card = document.getElementById('slotContent' + slot);
-            const imgHtml = art.image ? '<img src="' + art.image + '" style="width:100%;max-height:80px;object-fit:cover;border-radius:4px" alt="{{ __(\'Avatar\') }}">' : '';
+            const imgHtml = art.image ? '<img src="' + art.image + '" style="width:100%;max-height:80px;object-fit:cover;border-radius:4px" alt="Decoration">' : '';
             if (slot <= 4) {
                 card.innerHTML = imgHtml +
                     '<div class="text-start mt-1"><strong class="small">' + escHtml(art.title) + '</strong></div>' +

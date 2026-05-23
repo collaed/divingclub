@@ -156,7 +156,7 @@
                                     <td>
                                         @if($f->hasThumb())
                                             <a href="{{ route('admin.library.download', $f) }}" class="preview-link" data-type="{{ $f->mime_type }}" data-name="{{ $f->original_name }}">
-                                                <img src="{{ route('admin.library.thumb', $f) }}" alt="{{ __(\'Avatar\') }}" style="max-width:40px;max-height:40px;border-radius:3px;cursor:pointer" loading="lazy">
+                                                <img src="{{ route('admin.library.thumb', $f) }}" alt="Decoration" style="max-width:40px;max-height:40px;border-radius:3px;cursor:pointer" loading="lazy">
                                             </a>
                                         @else
                                             @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp

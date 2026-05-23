@@ -188,7 +188,7 @@
                                 <tr>
                                     <td>
                                         @if($f->hasThumb())
-                                            <img src="{{ route('documents.thumb', $f) }}" alt="{{ __(\'Avatar\') }}" style="max-width:36px;max-height:36px;border-radius:3px" loading="lazy">
+                                            <img src="{{ route('documents.thumb', $f) }}" alt="Decoration" style="max-width:36px;max-height:36px;border-radius:3px" loading="lazy">
                                         @else
                                             @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
                                             @if(in_array($ext, ['pdf'])) @icon('📄')                                             @elseif(in_array($ext, ['doc','docx'])) @icon('📝')                                             @elseif(in_array($ext, ['xls','xlsx'])) @icon('📊')                                             @elseif(in_array($ext, ['ppt','pptx'])) @icon('📊')                                             @elseif(in_array($ext, ['zip','rar','7z'])) @icon('📦')                                             @else @icon('📎')                                             @endif
