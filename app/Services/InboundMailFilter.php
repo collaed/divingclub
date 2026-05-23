@@ -56,6 +56,76 @@ class InboundMailFilter
 
     protected static function stripSignatures(string $body, ?string $senderEmail = null): string
     {
+        // HTML payloads: use DOM parsing for surgical removal
+        if (str_contains($body, '<') && str_contains($body, '>')) {
+            $cleaned = static::stripSignaturesHtml($body, $senderEmail);
+            if ($cleaned !== null) {
+                return $cleaned;
+            }
+        }
+
+        // Plain text fallback
+        return static::stripSignaturesText($body, $senderEmail);
+    }
+
+    protected static function stripSignaturesHtml(string $html, ?string $senderEmail): ?string
+    {
+        $dom = new \DOMDocument;
+        @$dom->loadHTML('<meta charset="utf-8">'.$html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $xpath = new \DOMXPath($dom);
+        $severed = false;
+
+        // 1. Sender-specific anchor via config
+        if ($senderEmail) {
+            $domain = strtolower(substr($senderEmail, strpos($senderEmail, '@') + 1));
+            $rules = config("mail_signatures.{$domain}", []);
+            $anchor = $rules['html_anchor'] ?? $rules['text_anchor'] ?? null;
+
+            if ($anchor) {
+                $nodes = $xpath->query("//*[contains(., '{$anchor}')]");
+                if ($nodes && $nodes->length > 0) {
+                    $sigNode = $nodes->item($nodes->length - 1);
+                    static::severFromNode($sigNode);
+                    $severed = true;
+                }
+            }
+        }
+
+        // 2. Outlook reply separator (blue border-top div)
+        if (! $severed) {
+            $separators = $xpath->query("//div[contains(@style, 'border-top:solid')]");
+            if ($separators && $separators->length > 0) {
+                static::severFromNode($separators->item(0));
+                $severed = true;
+            }
+        }
+
+        if (! $severed) {
+            return null; // Fall through to text-based stripping
+        }
+
+        $result = $dom->saveHTML();
+        $result = str_replace('<meta charset="utf-8">', '', $result);
+
+        return trim($result);
+    }
+
+    protected static function severFromNode(\DOMNode $node): void
+    {
+        // Remove this node and all following siblings
+        $parent = $node->parentNode;
+        if (! $parent) {
+            return;
+        }
+
+        while ($parent->lastChild && $parent->lastChild !== $node) {
+            $parent->removeChild($parent->lastChild);
+        }
+        $parent->removeChild($node);
+    }
+
+    protected static function stripSignaturesText(string $body, ?string $senderEmail): string
+    {
         // 1. Sender-specific signature anchors (exact match — no false positives)
         if ($senderEmail) {
             $domain = strtolower(substr($senderEmail, strpos($senderEmail, '@') + 1));
