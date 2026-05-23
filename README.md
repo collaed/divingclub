@@ -285,6 +285,25 @@ Every DivingClub-Manager instance includes:
 
 ---
 
+## Testing
+
+233 PHPUnit tests (532 assertions) covering unit logic, HTTP workflows, and data integrity.
+
+```bash
+php artisan test --compact                    # Run all tests
+php artisan test --compact --filter=testName  # Run one test
+```
+
+| Layer | Files | Focus |
+|-------|-------|-------|
+| Unit (15) | Services, models, helpers | Pure logic, no DB |
+| Feature (21) | HTTP routes, auth, workflows | Full request/response cycle |
+| E2E (7) | Multi-step journeys | Against live server |
+
+See [`tests/TESTING-REQUIREMENTS.md`](tests/TESTING-REQUIREMENTS.md) for the full testing strategy, and [`docs/DEVELOPER-GUIDE.md`](docs/DEVELOPER-GUIDE.md) for developer onboarding.
+
+---
+
 ## Contributing
 
 Pull requests welcome. The codebase follows Laravel conventions with minimal custom abstractions.
