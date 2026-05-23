@@ -38,3 +38,8 @@ fulldata_clubcep.txt
 license-private.pem
 inpro
 scripts/license-private.pem
+
+# Generated content (created on server, not in git)
+public/newsletter-*.html
+public/report.html
+bootstrap/cache/*.php
