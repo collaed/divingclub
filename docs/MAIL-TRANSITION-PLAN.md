@@ -11,12 +11,12 @@ All inbound mail to `@clubcep.eu` is handled by the legacy hosting provider. Key
 | `members@clubcep.eu` | Pipe to `mailerDA.php` + copy to `all-sas@clubcep.eu` | All active members |
 | `members.b@clubcep.eu` | Pipe to `mailerDA.php` + copy to `all-sas@clubcep.eu` | Bureau members |
 | `members.m@clubcep.eu` | Pipe to `mailerDA.php` + copy to `all-sas@clubcep.eu` | Moniteurs (instructors) |
-| `sas.emmanuel@clubcep.eu` | Pipe to `mailerDA.php` + copy to `all-sas@clubcep.eu` | Emmanuel's group? |
-| `sas.etienne@clubcep.eu` | Same | Etienne's group? |
-| `sas.mariejo@clubcep.eu` | Same | Marie-Jo's group? |
-| `sas.pascale@clubcep.eu` | Same | Pascale's group? |
+| `sas.emmanuel@clubcep.eu` | Pipe to `mailerDA.php` + copy to `all-sas@clubcep.eu` | Vanity alias → Emmanuel's private email |
+| `sas.etienne@clubcep.eu` | Same | Vanity alias → Etienne's private email |
+| `sas.mariejo@clubcep.eu` | Same | Vanity alias → Marie-Jo's private email |
+| `sas.pascale@clubcep.eu` | Same | Vanity alias → Pascale's private email |
 | `mail1` through `mail10` | Forward to `mail@clubcep.eu` | Outbound sending aliases (load balancing) |
-| `all-sas@clubcep.eu` | Mailbox | Archive/CC of all forwarded mail |
+| `all-sas@clubcep.eu` | Mailbox | Club functional Gmail — receives CC of all forwarded mail, uses Gmail rules to route to bureau |
 | `vote@clubcep.eu` | Mailbox | Vote notifications |
 
 ### New System (Laravel on Hetzner VPS)
@@ -43,10 +43,10 @@ Plus-addressing supported: `cep+event.42@clubcep.eu`, `cep+bureau@clubcep.eu`.
 | `members@` → all active | `members` / `all` | ✅ Built |
 | `members.b@` → bureau | `bureau` / `members.b` | ✅ Built |
 | `members.m@` → instructors | `instructors` / `members.m` | ✅ Built |
-| `sas.emmanuel@` → ? | Not mapped | ❌ Need to determine what these resolve to |
-| `sas.etienne@` → ? | Not mapped | ❌ Same |
-| `sas.mariejo@` → ? | Not mapped | ❌ Same |
-| `sas.pascale@` → ? | Not mapped | ❌ Same |
+| `sas.emmanuel@` → ? | Not yet mapped | ⚠️ Need to add vanity alias support |
+| `sas.etienne@` → ? | Not yet mapped | ⚠️ Same |
+| `sas.mariejo@` → ? | Not yet mapped | ⚠️ Same |
+| `sas.pascale@` → ? | Not yet mapped | ⚠️ Same |
 | `mail1-10@` → outbound | Load-balanced SMTP in new system | ✅ Built (3 providers) |
 | `all-sas@` → archive | EmailLog table | ✅ Built (all forwarded mail logged) |
 | `vote@` → vote notifications | Vote system sends directly | ✅ Built |
@@ -58,9 +58,9 @@ Plus-addressing supported: `cep+event.42@clubcep.eu`, `cep+bureau@clubcep.eu`.
 
 ## Open Questions (for Eddy)
 
-1. **What are the `sas.*` aliases?** Are they personal forwarding addresses for specific instructors (Emmanuel, Etienne, Marie-Jo, Pascale)? Or do they resolve to sub-groups of members (e.g. "Pascale's pool group")?
+1. ~~**What are the `sas.*` aliases?**~~ **Resolved**: Vanity/functional aliases so bureau members don't expose personal addresses. All also CC to the club's Gmail functional mailbox (`all-sas@clubcep.eu`), which uses Gmail rules to forward to relevant bureau members.
 
-2. **Is `mailerDA.php` still actively used?** Or has all mail already been migrated to the new system's `PollInboundMail`?
+2. **Is `mailerDA.php` still actively used?** Or has all mail already been migrated to the new system's `PollInboundMail`? The script lives at `/home/clubcepe/mailForward/mailerDA.php` (not in the backup — need FTP to retrieve).
 
 3. **MX records**: Where do MX records for `clubcep.eu` currently point? The legacy shared host? If so, we need to route inbound mail to the VPS.
 
@@ -147,10 +147,10 @@ Schedule::job(new PollInboundMail)->everyMinute();
 | `members.pn2@clubcep.eu` | N2 training group | Bureau or instructor |
 | `members.pn3@clubcep.eu` | N3 training group | Bureau or instructor |
 | `cep+{tag}@clubcep.eu` | Plus-addressing (any of the above) | Per-alias |
-| `sas.emmanuel@clubcep.eu` | TBD — personal forward or group? | TBD |
-| `sas.etienne@clubcep.eu` | TBD | TBD |
-| `sas.mariejo@clubcep.eu` | TBD | TBD |
-| `sas.pascale@clubcep.eu` | TBD | TBD |
+| `sas.emmanuel@clubcep.eu` | Vanity alias → Emmanuel's private email + CC to club Gmail | Bureau |
+| `sas.etienne@clubcep.eu` | Vanity alias → Etienne's private email + CC to club Gmail | Bureau |
+| `sas.mariejo@clubcep.eu` | Vanity alias → Marie-Jo's private email + CC to club Gmail | Bureau |
+| `sas.pascale@clubcep.eu` | Vanity alias → Pascale's private email + CC to club Gmail | Bureau |
 
 ---
 
