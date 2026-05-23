@@ -160,3 +160,17 @@ Schedule::job(new PollInboundMail)->everyMinute();
 - **Rollback**: If the new system fails, revert MX to legacy host (5-minute DNS TTL during cutover).
 - **Attachment handling**: `PollInboundMail` already parses MIME multipart. Attachments are stripped from the forwarded body but the original is logged.
 - **Encoding**: MIME header decoding (UTF-8, Base64, QP) already implemented in `PollInboundMail`.
+
+## Operational Decisions (for the board)
+
+### Archival Strategy
+
+`EmailLog` stores full HTML body (truncated at 5000 chars). For a full payload archive including attachments, two options:
+- **Option A (recommended)**: Keep `all-sas@gmail.com` as a BCC on all forwarded mail. Zero code change, preserves existing searchable Gmail archive.
+- **Option B**: Store raw `.eml` files to disk and reference from `EmailLog`. Only needed if Gmail is retired.
+
+### Outbound Reply-From (vanity address on replies)
+
+When a bureau member receives a forwarded email and hits Reply, their personal address is exposed. This is the same limitation as the legacy system. Fix options:
+- **Option A (recommended)**: Bureau members add `sas.{name}@clubcep.eu` as a "Send As" alias in their personal email client (Gmail: Settings → Accounts → Add another email). One-time 2-minute setup per person. Requires SMTP auth on the VPS (Postfix with SASL).
+- **Option B**: Build a reply UI in the Laravel dashboard. Over-engineered for 4 bureau members.
