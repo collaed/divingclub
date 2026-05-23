@@ -388,3 +388,10 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - New code MUST follow all rules above.
 - Existing code: bring into compliance when touching a file for a feature/fix. Do not refactor files you're not otherwise changing.
 - Priority order for cleanup: onclick handlers > missing translations > inline validation > sortable headers.
+
+## Newsletter & Generated Content
+
+- **Newsletter theme assets** (header.jpg, footer.jpg, SVGs) belong in `public/images/newsletter/<theme>/` and ARE tracked in git.
+- **Generated newsletter HTML** (per-issue output) goes to `storage/app/public/newsletters/published/` — accessible via `/storage/newsletters/published/`.
+- **Generated artwork** (AI images, variants) goes to `storage/app/public/newsletters/` — never in `public/images/`.
+- **Rule**: Never create files in `public/` at runtime. Use `Storage::disk('public')` for all generated content.
