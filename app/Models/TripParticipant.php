@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $event_id
  * @property int $user_id
- * @property int $legs_driven
+ * @property int $driving_percentage
  * @property int $local_transit_days
  */
 class TripParticipant extends Model
@@ -17,7 +17,7 @@ class TripParticipant extends Model
     protected $fillable = [
         'event_id',
         'user_id',
-        'legs_driven',
+        'driving_percentage',
         'local_transit_days',
     ];
 

@@ -393,13 +393,13 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 - **Scope**: Only for `long_trip` events with `trip_settlement_enabled = true`. Not all events have cost-sharing.
 - **Transit mode** (`van`, `fly`, `own`) is stored on `event_registrations.transit_mode` — chosen at registration time.
-- **Trip participants** (`trip_participants` table) track `legs_driven` and `local_transit_days` per member per event. Bureau manages these values.
+- **Trip participants** (`trip_participants` table) track `driving_percentage` and `local_transit_days` per member per event. Bureau manages these values.
 - **Receipts** (`trip_receipts` table) have two categories: `general` (shared equally) and `transit` (van riders only). Status flow: `pending` → `approved`/`rejected`.
 - **5-step algorithm** in `TripSettlementService::calculate()`:
   1. Global pool: sum approved `general` receipts, divide equally among all participants.
   2. Local transit subsidy: fly-in members pay `local_daily_charge × local_transit_days`.
   3. Long-haul transit pool: sum approved `transit` receipts.
-  4. Driver bounties: `legs_driven × driver_bounty_per_leg` credited to drivers, absorbed by van pool.
+  4. Driver bounties: `driver_bounty_total` distributed by `driving_percentage` (e.g. 50%/50% for two drivers, or 30%/30%/40% for three).
   5. Final balance: `(owes) - (bounty_credit + total_paid)`. Positive = member owes club. Negative = club owes member.
 - **Money conservation**: The sum of all participant balances must equal zero. Tests verify this.
 - **Settlement status**: `open` (receipts can be submitted/approved) or `closed` (ledger locked, no changes).

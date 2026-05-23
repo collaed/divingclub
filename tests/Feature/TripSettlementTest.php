@@ -66,7 +66,7 @@ class TripSettlementTest extends TestCase
 
     public function test_transit_costs_split_among_van_riders(): void
     {
-        $event = $this->createTripEvent(['driver_bounty_per_leg' => 0, 'local_daily_charge' => 0]);
+        $event = $this->createTripEvent(['driver_bounty_total' => 0, 'local_daily_charge' => 0]);
         [$alice, $bob, $carol] = $this->createParticipants($event, 3);
 
         // Alice and Bob are van, Carol flies
@@ -102,15 +102,15 @@ class TripSettlementTest extends TestCase
 
     public function test_driver_bounty_credits_driver(): void
     {
-        $event = $this->createTripEvent(['driver_bounty_per_leg' => 100, 'local_daily_charge' => 0]);
+        $event = $this->createTripEvent(['driver_bounty_total' => 200, 'local_daily_charge' => 0]);
         [$alice, $bob] = $this->createParticipants($event, 2);
 
         $this->setTransitMode($event, $alice, 'van');
         $this->setTransitMode($event, $bob, 'van');
 
-        // Alice drove 2 legs (Lux→Lyon, Lyon→JLP)
+        // Alice did 100% of the driving
         TripParticipant::where('event_id', $event->id)->where('user_id', $alice->id)
-            ->update(['legs_driven' => 2]);
+            ->update(['driving_percentage' => 100]);
 
         // Bob paid €600 for van rental
         TripReceipt::create([
@@ -137,7 +137,7 @@ class TripSettlementTest extends TestCase
 
     public function test_local_daily_charge_subsidizes_van(): void
     {
-        $event = $this->createTripEvent(['driver_bounty_per_leg' => 0, 'local_daily_charge' => 15]);
+        $event = $this->createTripEvent(['driver_bounty_total' => 0, 'local_daily_charge' => 15]);
         [$alice, $bob, $carol] = $this->createParticipants($event, 3);
 
         $this->setTransitMode($event, $alice, 'van');
@@ -171,9 +171,9 @@ class TripSettlementTest extends TestCase
     public function test_full_scenario_lux_to_jlp(): void
     {
         // Real-world scenario: 4 people go to Juan-les-Pins
-        // 3 in van, 1 flies. 1 driver does both legs.
+        // 3 in van, 1 flies. Driver did 100% of driving.
         $event = $this->createTripEvent([
-            'driver_bounty_per_leg' => 50,
+            'driver_bounty_total' => 200,
             'local_daily_charge' => 10,
         ]);
 
@@ -184,9 +184,9 @@ class TripSettlementTest extends TestCase
         $this->setTransitMode($event, $vanB, 'van');
         $this->setTransitMode($event, $flyer, 'fly');
 
-        // Driver drove both legs (Lux→Lyon, Lyon→JLP)
+        // Driver did 100% of driving
         TripParticipant::where('event_id', $event->id)->where('user_id', $driver->id)
-            ->update(['legs_driven' => 2]);
+            ->update(['driving_percentage' => 100]);
 
         // Flyer used local van 7 days
         TripParticipant::where('event_id', $event->id)->where('user_id', $flyer->id)
@@ -203,10 +203,10 @@ class TripSettlementTest extends TestCase
         $this->assertEquals(160, $result['global_pool']);
         $this->assertEquals(40, $result['participants'][0]['global_share']);
 
-        // Transit pool = €320, bounties = €100, local subsidy = 7×10 = €70
-        // Net transit = 320 + 100 - 70 = €350 / 3 van riders = €116.67
+        // Transit pool = €320, bounties = €200, local subsidy = 7×10 = €70
+        // Net transit = 320 + 200 - 70 = €450 / 3 van riders = €150
         $this->assertEquals(320, $result['transit_pool']);
-        $this->assertEquals(100, $result['driver_bounties']);
+        $this->assertEquals(200, $result['driver_bounties']);
         $this->assertEquals(70, $result['local_subsidy']);
 
         // Verify all balances sum to zero (conservation of money)
@@ -235,7 +235,7 @@ class TripSettlementTest extends TestCase
             'event_date' => '2026-07-15',
             'end_date' => '2026-07-22',
             'trip_settlement_enabled' => true,
-            'driver_bounty_per_leg' => 100,
+            'driver_bounty_total' => 200,
             'local_daily_charge' => 15,
             'settlement_status' => 'open',
         ], $overrides));

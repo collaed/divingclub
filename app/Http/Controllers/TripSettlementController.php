@@ -127,7 +127,7 @@ class TripSettlementController extends Controller
         $this->authorizeBureau();
 
         $data = $request->validate([
-            'legs_driven' => 'required|integer|min:0|max:20',
+            'driving_percentage' => 'required|integer|min:0|max:100',
             'local_transit_days' => 'required|integer|min:0|max:30',
         ]);
 

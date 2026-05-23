@@ -38,7 +38,7 @@ class TripSettlementService
             ->get()
             ->keyBy('user_id');
 
-        $bountyPerLeg = (float) ($event->driver_bounty_per_leg ?? 0);
+        $bountyTotal = (float) ($event->driver_bounty_total ?? 0);
         $dailyCharge = (float) ($event->local_daily_charge ?? 0);
 
         // Step 1: Global Pool — shared expenses divided equally
@@ -61,8 +61,9 @@ class TripSettlementService
         $transitReceipts = $receipts->where('category', 'transit');
         $transitPool = $transitReceipts->sum('approved_amount');
 
-        // Step 4: Driver Bounties
-        $totalBounties = $participants->sum('legs_driven') * $bountyPerLeg;
+        // Step 4: Driver Bounties (distributed by percentage)
+        $totalDrivingPct = $participants->sum('driving_percentage');
+        $totalBounties = $totalDrivingPct > 0 ? $bountyTotal : 0;
 
         // Net transit cost for van passengers = transit expenses + bounties - local subsidy
         $netTransitCost = $transitPool + $totalBounties - $localSubsidy;
@@ -78,7 +79,9 @@ class TripSettlementService
         foreach ($participants as $p) {
             $mode = $registrations[$p->user_id]?->transit_mode ?? 'van';
             $isVan = $mode === 'van';
-            $bountyCredit = $p->legs_driven * $bountyPerLeg;
+            $bountyCredit = $totalDrivingPct > 0
+                ? round($bountyTotal * $p->driving_percentage / $totalDrivingPct, 2)
+                : 0;
             $localCharge = ! $isVan ? $p->local_transit_days * $dailyCharge : 0;
 
             // What this person paid (approved receipts)
@@ -97,7 +100,7 @@ class TripSettlementService
                 'user_id' => $p->user_id,
                 'name' => $detail ? $detail->first_name.' '.$detail->last_name : 'Unknown',
                 'transit_mode' => $mode,
-                'legs_driven' => $p->legs_driven,
+                'driving_percentage' => $p->driving_percentage,
                 'global_share' => $globalShare,
                 'transit_share' => $isVan ? $transitShare : 0,
                 'local_charge' => $localCharge,
