@@ -56,37 +56,49 @@ class InboundMailFilter
 
     protected static function stripSignatures(string $body, ?string $senderEmail = null): string
     {
-        // Common signature markers
+        // 1. Sender-specific signature anchors (exact match — no false positives)
+        if ($senderEmail) {
+            $domain = strtolower(substr($senderEmail, strpos($senderEmail, '@') + 1));
+            $rules = config("mail_signatures.{$domain}", []);
+
+            foreach (['text_anchor', 'html_anchor'] as $key) {
+                $anchor = $rules[$key] ?? null;
+                if ($anchor && ($pos = strpos($body, $anchor)) !== false) {
+                    return trim(substr($body, 0, $pos));
+                }
+            }
+        }
+
+        // 2. Global device/client footers
+        $globalFooters = config('mail_signatures.global_device_footers', [
+            'Sent from my iPhone', 'Sent from my iPad',
+            'Sent from my Galaxy', 'Sent from my Huawei',
+            'Envoyé de mon iPhone', 'Envoyé de mon iPad',
+            'Get Outlook for iOS', 'Get Outlook for Android',
+            'Sent from Yahoo Mail', 'Sent from Outlook for',
+        ]);
+
+        foreach ($globalFooters as $footer) {
+            if (($pos = stripos($body, $footer)) !== false) {
+                return trim(substr($body, 0, $pos));
+            }
+        }
+
+        // 3. Standard signature delimiters (fallback)
         $patterns = [
-            '/--\s*\n.*/s',                          // "-- \n" standard sig separator
-            '/\n_{3,}\n.*/s',                         // "___" line
-            '/\nCordialement[,.]?\n.*/si',            // French
-            '/\nBest regards[,.]?\n.*/si',            // English
-            '/\nKind regards[,.]?\n.*/si',
-            '/\nMit freundlichen Grüßen[,.]?\n.*/si', // German
-            '/\nSent from my (iPhone|iPad|Galaxy|Huawei|Pixel).*/si',
-            '/\nEnvoyé de mon (iPhone|iPad).*/si',
+            '/\n--\s*\n.*/s',
+            '/\n_{3,}\n.*/s',
+            '/\nCordialement[,.]?\s*\n.*/si',
+            '/\nBest regards[,.]?\s*\n.*/si',
+            '/\nKind regards[,.]?\s*\n.*/si',
+            '/\nMit freundlichen Grüßen[,.]?\s*\n.*/si',
         ];
 
         foreach ($patterns as $p) {
             $body = preg_replace($p, '', $body);
         }
 
-        // Dynamic: strip corporate signature block based on sender's email domain
-        if ($senderEmail) {
-            $domain = substr($senderEmail, strpos($senderEmail, '@') + 1);
-            $domainParts = explode('.', $domain);
-            $company = $domainParts[0] ?? '';
-
-            if ($company && strlen($company) > 2) {
-                // Strip everything after a line containing the sender's company domain/name
-                // e.g. "tti-network" in the signature block
-                $escaped = preg_quote($company, '/');
-                $body = preg_replace('/\n[^\n]*'.$escaped.'[^\n]*\n.*/si', '', $body);
-            }
-        }
-
-        return $body;
+        return trim($body);
     }
 
     protected static function stripQuotedReplies(string $body): string
