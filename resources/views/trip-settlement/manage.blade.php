@@ -8,6 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>{{ __('Trip Settlement') }} — {{ $event->title }}</h4>
         <div>
+            <a href="{{ route('events.settlement.breakdown', $event) }}" class="btn btn-outline-primary me-2" target="_blank">🖨️ {{ __('Print Breakdown') }}</a>
             @if($event->settlement_status === 'open')
                 <form action="{{ route('events.settlement.close', $event) }}" method="POST" class="d-inline">
                     @csrf

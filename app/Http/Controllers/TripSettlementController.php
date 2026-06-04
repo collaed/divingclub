@@ -167,6 +167,16 @@ class TripSettlementController extends Controller
         return response()->file($path);
     }
 
+    public function breakdown(Event $event): View
+    {
+        $this->authorizeBureau();
+        abort_unless($event->hasTripSettlement(), 404);
+
+        $settlement = $this->service->calculate($event);
+
+        return view('trip-settlement.breakdown', compact('event', 'settlement'));
+    }
+
     private function authorizeBureau(): void
     {
         abort_unless(auth()->user()->isBureau(), 403);

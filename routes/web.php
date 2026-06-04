@@ -313,6 +313,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/settlement/participants/{participant}', [TripSettlementController::class, 'updateParticipant'])->name('events.settlement.update-participant');
     Route::post('/events/{event}/settlement/close', [TripSettlementController::class, 'closeLedger'])->name('events.settlement.close');
     Route::post('/events/{event}/settlement/reopen', [TripSettlementController::class, 'reopenLedger'])->name('events.settlement.reopen');
+    Route::get('/events/{event}/settlement/breakdown', [TripSettlementController::class, 'breakdown'])->name('events.settlement.breakdown');
 
     // Stop impersonation (must be outside bureau_master group — user is impersonated)
     Route::get('/admin/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('admin.stop-impersonation');
