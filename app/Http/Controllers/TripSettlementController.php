@@ -127,9 +127,11 @@ class TripSettlementController extends Controller
     {
         $this->authorizeBureau();
 
+        $tripDays = $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1;
+
         $data = $request->validate([
             'driving_percentage' => 'required|integer|min:0|max:100',
-            'local_transit_days' => 'required|integer|min:0|max:30',
+            'local_transit_days' => 'required|integer|min:0|max:'.$tripDays,
             'transit_mode' => 'nullable|in:van,own,fly',
         ]);
 

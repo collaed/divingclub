@@ -193,9 +193,10 @@
                                     <span class="input-group-text">%</span>
                                 </div>
                                 <label class="visually-hidden" for="ltd_{{ $tp->id }}">{{ __('Local days') }}</label>
+                                @php $tripDays = $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1; @endphp
                                 <div class="input-group input-group-sm" style="width:100px">
-                                    <input type="number" id="ltd_{{ $tp->id }}" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="30" class="form-control form-control-sm" placeholder="{{ __('Days') }}">
-                                    <span class="input-group-text">{{ __('d') }}</span>
+                                    <input type="number" id="ltd_{{ $tp->id }}" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="{{ $tripDays }}" class="form-control form-control-sm" placeholder="{{ __('Days') }}">
+                                    <span class="input-group-text">/{{ $tripDays }}</span>
                                 </div>
                                 <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                             </form>
