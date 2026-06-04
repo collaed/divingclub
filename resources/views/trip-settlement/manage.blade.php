@@ -139,8 +139,16 @@
                             @if($event->settlement_status === 'open')
                             <form action="{{ route('events.settlement.update-participant', [$event, $tp]) }}" method="POST" class="d-inline-flex gap-1 align-items-center">
                                 @csrf
-                                <input type="number" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm" style="width:75px" title="{{ __('Driving %') }}">
-                                <input type="number" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="30" class="form-control form-control-sm" style="width:75px" title="{{ __('Local days') }}">
+                                <label class="visually-hidden" for="dp_{{ $tp->id }}">{{ __('Driving %') }}</label>
+                                <div class="input-group input-group-sm" style="width:100px">
+                                    <input type="number" id="dp_{{ $tp->id }}" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm" placeholder="{{ __('Drive%') }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <label class="visually-hidden" for="ltd_{{ $tp->id }}">{{ __('Local days') }}</label>
+                                <div class="input-group input-group-sm" style="width:100px">
+                                    <input type="number" id="ltd_{{ $tp->id }}" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="30" class="form-control form-control-sm" placeholder="{{ __('Days') }}">
+                                    <span class="input-group-text">{{ __('d') }}</span>
+                                </div>
                                 <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                             </form>
                             @else
