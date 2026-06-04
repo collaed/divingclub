@@ -16,13 +16,15 @@ class TripSettlementService
      *     transit_pool: float,
      *     local_subsidy: float,
      *     driver_bounties: float,
+     *     net_transit_cost: float,
      *     participants: array<int, array{
      *         user_id: int,
      *         name: string,
      *         transit_mode: string,
-     *         legs_driven: int,
+     *         driving_percentage: int,
      *         global_share: float,
      *         transit_share: float,
+     *         local_charge: float,
      *         bounty_credit: float,
      *         total_paid: float,
      *         balance: float
