@@ -313,6 +313,9 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/settlement/bureau-receipt', [TripSettlementController::class, 'bureauReceipt'])->name('events.settlement.bureau-receipt');
     Route::post('/events/{event}/settlement/update-vans', [TripSettlementController::class, 'updateVans'])->name('events.settlement.update-vans');
     Route::post('/events/{event}/settlement/participants/{participant}', [TripSettlementController::class, 'updateParticipant'])->name('events.settlement.update-participant');
+    Route::post('/events/{event}/settlement/update-day-rate', [TripSettlementController::class, 'updateDayRate'])->name('events.settlement.update-day-rate');
+    Route::put('/events/{event}/settlement/receipts/{receipt}', [TripSettlementController::class, 'updateReceipt'])->name('events.settlement.update-receipt');
+    Route::delete('/events/{event}/settlement/receipts/{receipt}/destroy', [TripSettlementController::class, 'destroyReceipt'])->name('events.settlement.destroy-receipt');
     Route::post('/events/{event}/settlement/close', [TripSettlementController::class, 'closeLedger'])->name('events.settlement.close');
     Route::post('/events/{event}/settlement/reopen', [TripSettlementController::class, 'reopenLedger'])->name('events.settlement.reopen');
     Route::get('/events/{event}/settlement/breakdown', [TripSettlementController::class, 'breakdown'])->name('events.settlement.breakdown');

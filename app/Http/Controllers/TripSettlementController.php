@@ -82,9 +82,10 @@ class TripSettlementController extends Controller
 
         $event->load('tripParticipants.user.detail', 'tripReceipts.user.detail');
         $pendingReceipts = $event->tripReceipts()->where('status', 'pending')->with('user.detail')->get();
+        $approvedReceipts = $event->tripReceipts()->whereIn('status', ['approved', 'rejected'])->with('user.detail')->latest()->get();
         $settlement = $this->service->calculate($event);
 
-        return view('trip-settlement.manage', compact('event', 'pendingReceipts', 'settlement'));
+        return view('trip-settlement.manage', compact('event', 'pendingReceipts', 'approvedReceipts', 'settlement'));
     }
 
     public function approveReceipt(Request $request, Event $event, TripReceipt $receipt): RedirectResponse
@@ -162,25 +163,88 @@ class TripSettlementController extends Controller
         abort_unless($event->hasTripSettlement(), 404);
         abort_unless($event->settlement_status === 'open', 403);
 
+        $participantIds = $event->tripParticipants()->pluck('user_id')->toArray();
+
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
             'category' => 'required|in:general,transit',
             'description' => 'required|string|max:255',
+            'user_id' => 'required|integer|in:'.implode(',', $participantIds),
+            'is_third_party' => 'nullable|boolean',
         ]);
 
         TripReceipt::create([
             'event_id' => $event->id,
-            'user_id' => auth()->id(),
+            'user_id' => $data['user_id'],
             'amount' => $data['amount'],
             'approved_amount' => $data['amount'],
             'category' => $data['category'],
             'description' => $data['description'],
+            'is_third_party' => $data['is_third_party'] ?? false,
             'status' => 'approved',
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),
         ]);
 
         return back()->with('success', __('Expense added.'));
+    }
+
+    public function updateDayRate(Request $request, Event $event): JsonResponse|RedirectResponse
+    {
+        $this->authorizeBureau();
+        abort_unless($event->settlement_status === 'open', 403);
+
+        $data = $request->validate([
+            'local_daily_charge' => 'required|numeric|min:0|max:9999',
+        ]);
+
+        $event->update(['local_daily_charge' => $data['local_daily_charge']]);
+
+        if ($request->ajax()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', __('Day rate updated.'));
+    }
+
+    public function updateReceipt(Request $request, Event $event, TripReceipt $receipt): RedirectResponse
+    {
+        $this->authorizeBureau();
+        abort_unless($event->settlement_status === 'open', 403);
+
+        $participantIds = $event->tripParticipants()->pluck('user_id')->toArray();
+
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0.01|max:99999',
+            'category' => 'required|in:general,transit',
+            'description' => 'required|string|max:255',
+            'user_id' => 'required|integer|in:'.implode(',', $participantIds),
+            'is_third_party' => 'nullable|boolean',
+        ]);
+
+        $receipt->update([
+            'amount' => $data['amount'],
+            'approved_amount' => $data['amount'],
+            'category' => $data['category'],
+            'description' => $data['description'],
+            'user_id' => $data['user_id'],
+            'is_third_party' => $data['is_third_party'] ?? false,
+        ]);
+
+        return back()->with('success', __('Expense updated.'));
+    }
+
+    public function destroyReceipt(Event $event, TripReceipt $receipt): RedirectResponse
+    {
+        $this->authorizeBureau();
+        abort_unless($event->settlement_status === 'open', 403);
+
+        if ($receipt->image_path) {
+            Storage::disk('local')->delete($receipt->image_path);
+        }
+        $receipt->delete();
+
+        return back()->with('success', __('Expense deleted.'));
     }
 
     public function updateVans(Request $request, Event $event): RedirectResponse

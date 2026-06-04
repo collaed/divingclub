@@ -117,12 +117,12 @@
     {{-- Quick Add Expense (Bureau) --}}
     @if($event->settlement_status === 'open')
     <div class="row mb-4">
-        {{-- Van Configuration --}}
+        {{-- Van Configuration + Day Rate --}}
         <div class="col-md-4">
             <div class="card dc-card h-100">
                 <div class="card-header"><h6 class="mb-0">🚐 {{ __('Vans') }}</h6></div>
                 <div class="card-body">
-                    <form action="{{ route('events.settlement.update-vans', $event) }}" method="POST" class="d-flex gap-2 align-items-end">
+                    <form action="{{ route('events.settlement.update-vans', $event) }}" method="POST" class="d-flex gap-2 align-items-end mb-3">
                         @csrf
                         <div>
                             <label class="form-label form-label-sm">{{ __('Number of vans') }}</label>
@@ -130,6 +130,16 @@
                         </div>
                         <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Set') }}</button>
                     </form>
+                    <div class="d-flex gap-2 align-items-end">
+                        <div>
+                            <label class="form-label form-label-sm">{{ __('Day rate (local transit)') }}</label>
+                            <div class="input-group input-group-sm" style="width:120px">
+                                <input type="number" step="0.01" id="day-rate-input" value="{{ $event->local_daily_charge ?? 0 }}" min="0" class="form-control form-control-sm">
+                                <span class="input-group-text">€</span>
+                            </div>
+                        </div>
+                        <span id="day-rate-status" class="text-muted small"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -140,6 +150,14 @@
                 <div class="card-body">
                     <form action="{{ route('events.settlement.bureau-receipt', $event) }}" method="POST" class="row g-2 align-items-end">
                         @csrf
+                        <div class="col-auto">
+                            <label class="form-label form-label-sm">{{ __('Member') }}</label>
+                            <select name="user_id" class="form-select form-select-sm" required>
+                                @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->user->detail?->last_name) as $tp)
+                                    <option value="{{ $tp->user_id }}">{{ $tp->user->detail?->first_name }} {{ $tp->user->detail?->last_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-auto">
                             <label class="form-label form-label-sm">{{ __('Amount') }}</label>
                             <div class="input-group input-group-sm">
@@ -158,6 +176,13 @@
                             <label class="form-label form-label-sm">{{ __('Description') }}</label>
                             <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Tolls outbound') }}" required>
                         </div>
+                        <div class="col-auto pt-4">
+                            <div class="form-check">
+                                <input type="hidden" name="is_third_party" value="0">
+                                <input type="checkbox" name="is_third_party" value="1" class="form-check-input" id="add-third-party">
+                                <label class="form-check-label form-label-sm" for="add-third-party">{{ __('Third-party invoice') }}</label>
+                            </div>
+                        </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-sm btn-primary">{{ __('Add') }}</button>
                         </div>
@@ -174,13 +199,27 @@
             <div>
                 <h5 class="mb-0 d-inline">{{ __('Participants') }}</h5>
                 @php
-                    $drivingTotal = $event->tripParticipants->sum('driving_percentage');
-                    $vanCount = collect($settlement['participants'])->where('transit_mode', 'van')->count();
+                    $vanCount = $event->van_count ?? 0;
+                    if ($vanCount > 0) {
+                        $perVan = $event->tripParticipants->where('van_number', '>', 0)->groupBy('van_number');
+                    }
                 @endphp
-                @if($drivingTotal > 0 && abs($drivingTotal - 100) > 5)
-                    <span class="badge bg-warning text-dark ms-2" title="{{ __('Should total ~100%') }}">⚠️ {{ __('Driving total') }}: {{ $drivingTotal }}%</span>
-                @elseif($drivingTotal > 0)
-                    <span class="badge bg-success ms-2">{{ __('Driving') }}: {{ $drivingTotal }}% ✓</span>
+                @if($vanCount > 0)
+                    @for($v = 1; $v <= $vanCount; $v++)
+                        @php $vanTotal = ($perVan[$v] ?? collect())->sum('driving_percentage'); @endphp
+                        @if($vanTotal > 0 && abs($vanTotal - 100) > 5)
+                            <span class="badge bg-warning text-dark ms-2" title="{{ __('Should total ~100%') }}">⚠️ {{ __('Van') }} {{ $v }}: {{ $vanTotal }}%</span>
+                        @elseif($vanTotal > 0)
+                            <span class="badge bg-success ms-2">{{ __('Van') }} {{ $v }}: {{ $vanTotal }}% ✓</span>
+                        @endif
+                    @endfor
+                @else
+                    @php $drivingTotal = $event->tripParticipants->sum('driving_percentage'); @endphp
+                    @if($drivingTotal > 0 && abs($drivingTotal - 100) > 5)
+                        <span class="badge bg-warning text-dark ms-2" title="{{ __('Should total ~100%') }}">⚠️ {{ __('Driving total') }}: {{ $drivingTotal }}%</span>
+                    @elseif($drivingTotal > 0)
+                        <span class="badge bg-success ms-2">{{ __('Driving') }}: {{ $drivingTotal }}% ✓</span>
+                    @endif
                 @endif
             </div>
             @if($event->settlement_status === 'open')
@@ -320,9 +359,167 @@
         }
     });
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Day rate AJAX save
+        const dayRateInput = document.getElementById('day-rate-input');
+        const dayRateStatus = document.getElementById('day-rate-status');
+        if (dayRateInput) {
+            let drTimeout = null;
+            dayRateInput.addEventListener('change', function() {
+                clearTimeout(drTimeout);
+                drTimeout = setTimeout(() => {
+                    const data = new FormData();
+                    data.append('_token', '{{ csrf_token() }}');
+                    data.append('local_daily_charge', dayRateInput.value);
+                    dayRateStatus.textContent = '{{ __("Saving...") }}';
+                    fetch('{{ route("events.settlement.update-day-rate", $event) }}', {
+                        method: 'POST', body: data, headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).then(r => {
+                        dayRateStatus.textContent = r.ok ? '✓' : '✕';
+                        dayRateStatus.className = r.ok ? 'text-success small' : 'text-danger small';
+                        setTimeout(() => { dayRateStatus.textContent = ''; }, 3000);
+                    });
+                }, 300);
+            });
+        }
+
+        // Edit expense modal
+        document.querySelectorAll('.edit-expense-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const form = document.getElementById('editExpenseForm');
+                form.action = '{{ url("events/".$event->id."/settlement/receipts") }}/' + id;
+                document.getElementById('edit-user-id').value = this.dataset.userId;
+                document.getElementById('edit-amount').value = this.dataset.amount;
+                document.getElementById('edit-category').value = this.dataset.category;
+                document.getElementById('edit-description').value = this.dataset.description;
+                document.getElementById('edit-third-party').checked = this.dataset.thirdParty === '1';
+                new bootstrap.Modal(document.getElementById('editExpenseModal')).show();
+            });
+        });
+    });
+    </script>
     @endif
         </div>
     </div>
+
+    {{-- All Expenses (Approved/Rejected) --}}
+    @if($approvedReceipts->isNotEmpty())
+    <div class="card dc-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{{ __('All Expenses') }} ({{ $approvedReceipts->count() }})</h5>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>{{ __('Member') }}</th>
+                        <th>{{ __('Amount') }}</th>
+                        <th>{{ __('Category') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        @if($event->settlement_status === 'open')
+                            <th>{{ __('Actions') }}</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($approvedReceipts as $r)
+                    <tr>
+                        @if($event->settlement_status === 'open' && isset($editingReceipt) && $editingReceipt == $r->id)
+                        {{-- Inline edit row is handled via JS below --}}
+                        @endif
+                        <td>{{ $r->user->detail?->first_name }} {{ $r->user->detail?->last_name }}</td>
+                        <td>{{ number_format($r->approved_amount ?? $r->amount, 2) }} €</td>
+                        <td>{{ $r->category === 'general' ? __('General') : __('Transit') }}</td>
+                        <td>{{ $r->description ?? '—' }}</td>
+                        <td>
+                            @if($r->status === 'approved')
+                                <span class="badge bg-success">{{ __('Approved') }}</span>
+                            @else
+                                <span class="badge bg-danger">{{ __('Rejected') }}</span>
+                            @endif
+                            @if($r->is_third_party)
+                                <span class="badge bg-info">{{ __('3rd party') }}</span>
+                            @endif
+                        </td>
+                        @if($event->settlement_status === 'open')
+                        <td class="text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-secondary edit-expense-btn"
+                                data-id="{{ $r->id }}"
+                                data-user-id="{{ $r->user_id }}"
+                                data-amount="{{ $r->approved_amount ?? $r->amount }}"
+                                data-category="{{ $r->category }}"
+                                data-description="{{ $r->description }}"
+                                data-third-party="{{ $r->is_third_party ? '1' : '0' }}">✏️</button>
+                            <form action="{{ route('events.settlement.destroy-receipt', [$event, $r]) }}" method="POST" class="d-inline">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="{{ __('Delete this expense?') }}">🗑️</button>
+                            </form>
+                        </td>
+                        @endif
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Edit Expense Modal --}}
+    @if($event->settlement_status === 'open')
+    <div class="modal fade" id="editExpenseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="POST" id="editExpenseForm" class="modal-content">
+                @csrf @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ __('Edit Expense') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Member') }}</label>
+                        <select name="user_id" id="edit-user-id" class="form-select" required>
+                            @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->user->detail?->last_name) as $tp)
+                                <option value="{{ $tp->user_id }}">{{ $tp->user->detail?->first_name }} {{ $tp->user->detail?->last_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Amount') }}</label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" name="amount" id="edit-amount" min="0.01" required class="form-control">
+                            <span class="input-group-text">€</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Category') }}</label>
+                        <select name="category" id="edit-category" class="form-select" required>
+                            <option value="transit">🚐 {{ __('Transit (fuel, tolls)') }}</option>
+                            <option value="general">📦 {{ __('General (shared)') }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Description') }}</label>
+                        <input type="text" name="description" id="edit-description" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="hidden" name="is_third_party" value="0">
+                            <input type="checkbox" name="is_third_party" value="1" class="form-check-input" id="edit-third-party">
+                            <label class="form-check-label" for="edit-third-party">{{ __('Third-party invoice') }}</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+    @endif
 
     {{-- Final Settlement Table --}}
     <div class="card dc-card">

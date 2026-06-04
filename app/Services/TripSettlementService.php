@@ -86,8 +86,9 @@ class TripSettlementService
                 : 0;
             $localCharge = ! $isVan ? $p->local_transit_days * $dailyCharge : 0;
 
-            // What this person paid (approved receipts)
-            $totalPaid = $receipts->where('user_id', $p->user_id)->sum('approved_amount');
+            // What this person paid (approved receipts, excluding third-party)
+            $totalPaid = $receipts->where('user_id', $p->user_id)
+                ->where('is_third_party', false)->sum('approved_amount');
 
             // What this person owes
             $owes = $globalShare + ($isVan ? $transitShare : $localCharge);

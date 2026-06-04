@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $description
  * @property string|null $image_path
  * @property string $status
+ * @property bool $is_third_party
  * @property string|null $reviewer_notes
  * @property int|null $reviewed_by
  * @property Carbon|null $reviewed_at
@@ -31,6 +32,7 @@ class TripReceipt extends Model
         'description',
         'image_path',
         'status',
+        'is_third_party',
         'reviewer_notes',
         'reviewed_by',
         'reviewed_at',
@@ -41,6 +43,7 @@ class TripReceipt extends Model
         return [
             'amount' => 'decimal:2',
             'approved_amount' => 'decimal:2',
+            'is_third_party' => 'boolean',
             'reviewed_at' => 'datetime',
         ];
     }
