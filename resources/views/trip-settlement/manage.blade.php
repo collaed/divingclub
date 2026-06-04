@@ -116,33 +116,54 @@
 
     {{-- Quick Add Expense (Bureau) --}}
     @if($event->settlement_status === 'open')
-    <div class="card dc-card mb-4">
-        <div class="card-header"><h5 class="mb-0">{{ __('Add Expense') }}</h5></div>
-        <div class="card-body">
-            <form action="{{ route('events.settlement.bureau-receipt', $event) }}" method="POST" class="row g-2 align-items-end">
-                @csrf
-                <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Amount') }}</label>
-                    <div class="input-group input-group-sm">
-                        <input type="number" step="0.01" name="amount" min="0.01" required class="form-control" style="width:100px">
-                        <span class="input-group-text">€</span>
-                    </div>
+    <div class="row mb-4">
+        {{-- Van Configuration --}}
+        <div class="col-md-4">
+            <div class="card dc-card h-100">
+                <div class="card-header"><h6 class="mb-0">🚐 {{ __('Vans') }}</h6></div>
+                <div class="card-body">
+                    <form action="{{ route('events.settlement.update-vans', $event) }}" method="POST" class="d-flex gap-2 align-items-end">
+                        @csrf
+                        <div>
+                            <label class="form-label form-label-sm">{{ __('Number of vans') }}</label>
+                            <input type="number" name="van_count" value="{{ $event->van_count ?? 0 }}" min="0" max="10" class="form-control form-control-sm" style="width:70px">
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Set') }}</button>
+                    </form>
                 </div>
-                <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Category') }}</label>
-                    <select name="category" class="form-select form-select-sm" required>
-                        <option value="transit">🚐 {{ __('Transit (fuel, tolls)') }}</option>
-                        <option value="general">📦 {{ __('General (shared)') }}</option>
-                    </select>
+            </div>
+        </div>
+        {{-- Add Expense --}}
+        <div class="col-md-8">
+            <div class="card dc-card h-100">
+                <div class="card-header"><h6 class="mb-0">{{ __('Add Expense') }}</h6></div>
+                <div class="card-body">
+                    <form action="{{ route('events.settlement.bureau-receipt', $event) }}" method="POST" class="row g-2 align-items-end">
+                        @csrf
+                        <div class="col-auto">
+                            <label class="form-label form-label-sm">{{ __('Amount') }}</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.01" name="amount" min="0.01" required class="form-control" style="width:100px">
+                                <span class="input-group-text">€</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label form-label-sm">{{ __('Category') }}</label>
+                            <select name="category" class="form-select form-select-sm" required>
+                                <option value="transit">🚐 {{ __('Transit (fuel, tolls)') }}</option>
+                                <option value="general">📦 {{ __('General (shared)') }}</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label class="form-label form-label-sm">{{ __('Description') }}</label>
+                            <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Tolls outbound') }}" required>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-sm btn-primary">{{ __('Add') }}</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="col">
-                    <label class="form-label form-label-sm">{{ __('Description') }}</label>
-                    <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Tolls outbound') }}" required>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-sm btn-primary">{{ __('Add') }}</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
     @endif
@@ -187,6 +208,14 @@
                                     <option value="own" {{ ($pResult['transit_mode'] ?? '') === 'own' ? 'selected' : '' }}>🚗</option>
                                     <option value="fly" {{ ($pResult['transit_mode'] ?? '') === 'fly' ? 'selected' : '' }}>✈️</option>
                                 </select>
+                                @if($event->van_count)
+                                <select name="van_number" class="form-select form-select-sm" style="width:75px">
+                                    <option value="">—</option>
+                                    @for($v = 1; $v <= $event->van_count; $v++)
+                                        <option value="{{ $v }}" {{ $tp->van_number == $v ? 'selected' : '' }}>Van {{ $v }}</option>
+                                    @endfor
+                                </select>
+                                @endif
                                 <label class="visually-hidden" for="dp_{{ $tp->id }}">{{ __('Driving %') }}</label>
                                 <div class="input-group input-group-sm" style="width:100px">
                                     <input type="number" id="dp_{{ $tp->id }}" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm" placeholder="{{ __('Drive%') }}">

@@ -18,6 +18,7 @@ class TripParticipant extends Model
         'event_id',
         'user_id',
         'driving_percentage',
+        'van_number',
         'local_transit_days',
     ];
 

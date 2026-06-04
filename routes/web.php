@@ -311,6 +311,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/settlement/receipts/{receipt}/approve', [TripSettlementController::class, 'approveReceipt'])->name('events.settlement.approve');
     Route::post('/events/{event}/settlement/receipts/{receipt}/reject', [TripSettlementController::class, 'rejectReceipt'])->name('events.settlement.reject');
     Route::post('/events/{event}/settlement/bureau-receipt', [TripSettlementController::class, 'bureauReceipt'])->name('events.settlement.bureau-receipt');
+    Route::post('/events/{event}/settlement/update-vans', [TripSettlementController::class, 'updateVans'])->name('events.settlement.update-vans');
     Route::post('/events/{event}/settlement/participants/{participant}', [TripSettlementController::class, 'updateParticipant'])->name('events.settlement.update-participant');
     Route::post('/events/{event}/settlement/close', [TripSettlementController::class, 'closeLedger'])->name('events.settlement.close');
     Route::post('/events/{event}/settlement/reopen', [TripSettlementController::class, 'reopenLedger'])->name('events.settlement.reopen');

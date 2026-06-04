@@ -133,11 +133,13 @@ class TripSettlementController extends Controller
             'driving_percentage' => 'required|integer|min:0|max:100',
             'local_transit_days' => 'required|integer|min:0|max:'.$tripDays,
             'transit_mode' => 'nullable|in:van,own,fly',
+            'van_number' => 'nullable|integer|min:1|max:10',
         ]);
 
         $participant->update([
             'driving_percentage' => $data['driving_percentage'],
             'local_transit_days' => $data['local_transit_days'],
+            'van_number' => $data['van_number'] ?? null,
         ]);
 
         if (isset($data['transit_mode'])) {
@@ -174,6 +176,15 @@ class TripSettlementController extends Controller
         ]);
 
         return back()->with('success', __('Expense added.'));
+    }
+
+    public function updateVans(Request $request, Event $event): RedirectResponse
+    {
+        $this->authorizeBureau();
+        $count = $request->validate(['van_count' => 'required|integer|min:0|max:10'])['van_count'];
+        $event->update(['van_count' => $count ?: null]);
+
+        return back()->with('success', __('Van count updated.'));
     }
 
     public function closeLedger(Event $event): RedirectResponse
