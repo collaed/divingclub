@@ -150,9 +150,9 @@
                 <div class="card-body">
                     <form action="{{ route('events.settlement.bureau-receipt', $event) }}" method="POST" class="row g-2 align-items-end">
                         @csrf
-                        <div class="col-auto">
+                        <div class="col-auto" id="add-member-col">
                             <label class="form-label form-label-sm">{{ __('Member') }}</label>
-                            <select name="user_id" class="form-select form-select-sm" required>
+                            <select name="user_id" id="add-user-id" class="form-select form-select-sm">
                                 @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->user->detail?->last_name) as $tp)
                                     <option value="{{ $tp->user_id }}">{{ $tp->user->detail?->first_name }} {{ $tp->user->detail?->last_name }}</option>
                                 @endforeach
@@ -395,9 +395,30 @@
                 document.getElementById('edit-category').value = this.dataset.category;
                 document.getElementById('edit-description').value = this.dataset.description;
                 document.getElementById('edit-third-party').checked = this.dataset.thirdParty === '1';
+                toggleEditMember();
                 new bootstrap.Modal(document.getElementById('editExpenseModal')).show();
             });
         });
+
+        // Third-party toggle: hide member dropdown when checked
+        const addTp = document.getElementById('add-third-party');
+        const addMemberCol = document.getElementById('add-member-col');
+        if (addTp && addMemberCol) {
+            addTp.addEventListener('change', function() {
+                addMemberCol.style.display = this.checked ? 'none' : '';
+                document.getElementById('add-user-id').disabled = this.checked;
+            });
+        }
+
+        const editTp = document.getElementById('edit-third-party');
+        const editMemberDiv = document.getElementById('edit-user-id')?.closest('.mb-3');
+        function toggleEditMember() {
+            if (editMemberDiv) {
+                editMemberDiv.style.display = editTp.checked ? 'none' : '';
+                document.getElementById('edit-user-id').disabled = editTp.checked;
+            }
+        }
+        if (editTp) editTp.addEventListener('change', toggleEditMember);
     });
     </script>
     @endif
@@ -430,7 +451,7 @@
                         @if($event->settlement_status === 'open' && isset($editingReceipt) && $editingReceipt == $r->id)
                         {{-- Inline edit row is handled via JS below --}}
                         @endif
-                        <td>{{ $r->user->detail?->first_name }} {{ $r->user->detail?->last_name }}</td>
+                        <td>{{ $r->user ? ($r->user->detail?->first_name . ' ' . $r->user->detail?->last_name) : __('Club (3rd party)') }}</td>
                         <td>{{ number_format($r->approved_amount ?? $r->amount, 2) }} €</td>
                         <td>{{ $r->category === 'general' ? __('General') : __('Transit') }}</td>
                         <td>{{ $r->description ?? '—' }}</td>

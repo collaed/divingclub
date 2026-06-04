@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property int $event_id
- * @property int $user_id
+ * @property int|null $user_id
  * @property float $amount
  * @property float|null $approved_amount
  * @property string $category

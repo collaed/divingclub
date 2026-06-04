@@ -164,23 +164,24 @@ class TripSettlementController extends Controller
         abort_unless($event->settlement_status === 'open', 403);
 
         $participantIds = $event->tripParticipants()->pluck('user_id')->toArray();
+        $isThirdParty = (bool) $request->input('is_third_party');
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
             'category' => 'required|in:general,transit',
             'description' => 'required|string|max:255',
-            'user_id' => 'required|integer|in:'.implode(',', $participantIds),
+            'user_id' => $isThirdParty ? 'nullable' : 'required|integer|in:'.implode(',', $participantIds),
             'is_third_party' => 'nullable|boolean',
         ]);
 
         TripReceipt::create([
             'event_id' => $event->id,
-            'user_id' => $data['user_id'],
+            'user_id' => $isThirdParty ? null : $data['user_id'],
             'amount' => $data['amount'],
             'approved_amount' => $data['amount'],
             'category' => $data['category'],
             'description' => $data['description'],
-            'is_third_party' => $data['is_third_party'] ?? false,
+            'is_third_party' => $isThirdParty,
             'status' => 'approved',
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),
@@ -213,12 +214,13 @@ class TripSettlementController extends Controller
         abort_unless($event->settlement_status === 'open', 403);
 
         $participantIds = $event->tripParticipants()->pluck('user_id')->toArray();
+        $isThirdParty = (bool) $request->input('is_third_party');
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
             'category' => 'required|in:general,transit',
             'description' => 'required|string|max:255',
-            'user_id' => 'required|integer|in:'.implode(',', $participantIds),
+            'user_id' => $isThirdParty ? 'nullable' : 'required|integer|in:'.implode(',', $participantIds),
             'is_third_party' => 'nullable|boolean',
         ]);
 
@@ -227,8 +229,8 @@ class TripSettlementController extends Controller
             'approved_amount' => $data['amount'],
             'category' => $data['category'],
             'description' => $data['description'],
-            'user_id' => $data['user_id'],
-            'is_third_party' => $data['is_third_party'] ?? false,
+            'user_id' => $isThirdParty ? null : $data['user_id'],
+            'is_third_party' => $isThirdParty,
         ]);
 
         return back()->with('success', __('Expense updated.'));
