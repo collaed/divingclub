@@ -7,6 +7,7 @@ use App\Models\EventRegistration;
 use App\Models\TripParticipant;
 use App\Models\TripReceipt;
 use App\Services\TripSettlementService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -123,7 +124,7 @@ class TripSettlementController extends Controller
         return back()->with('success', __('Receipt rejected.'));
     }
 
-    public function updateParticipant(Request $request, Event $event, TripParticipant $participant): RedirectResponse
+    public function updateParticipant(Request $request, Event $event, TripParticipant $participant): JsonResponse|RedirectResponse
     {
         $this->authorizeBureau();
 
@@ -146,6 +147,10 @@ class TripSettlementController extends Controller
             EventRegistration::where('event_id', $event->id)
                 ->where('user_id', $participant->user_id)
                 ->update(['transit_mode' => $data['transit_mode']]);
+        }
+
+        if ($request->ajax()) {
+            return response()->json(['ok' => true]);
         }
 
         return back()->with('success', __('Participant updated.'));

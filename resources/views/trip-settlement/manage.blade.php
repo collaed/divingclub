@@ -170,72 +170,81 @@
 
     {{-- Participants Management --}}
     <div class="card dc-card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0 d-inline">{{ __('Participants') }}</h5>
-            @php
-                $drivingTotal = $event->tripParticipants->sum('driving_percentage');
-                $vanCount = collect($settlement['participants'])->where('transit_mode', 'van')->count();
-            @endphp
-            @if($drivingTotal > 0 && abs($drivingTotal - 100) > 5)
-                <span class="badge bg-warning text-dark ms-2" title="{{ __('Should total ~100%') }}">⚠️ {{ __('Driving total') }}: {{ $drivingTotal }}%</span>
-            @elseif($drivingTotal > 0)
-                <span class="badge bg-success ms-2">{{ __('Driving') }}: {{ $drivingTotal }}% ✓</span>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0 d-inline">{{ __('Participants') }}</h5>
+                @php
+                    $drivingTotal = $event->tripParticipants->sum('driving_percentage');
+                    $vanCount = collect($settlement['participants'])->where('transit_mode', 'van')->count();
+                @endphp
+                @if($drivingTotal > 0 && abs($drivingTotal - 100) > 5)
+                    <span class="badge bg-warning text-dark ms-2" title="{{ __('Should total ~100%') }}">⚠️ {{ __('Driving total') }}: {{ $drivingTotal }}%</span>
+                @elseif($drivingTotal > 0)
+                    <span class="badge bg-success ms-2">{{ __('Driving') }}: {{ $drivingTotal }}% ✓</span>
+                @endif
+            </div>
+            @if($event->settlement_status === 'open')
+                <span id="save-status" class="text-muted small"></span>
             @endif
         </div>
         <div class="card-body table-responsive">
-            <table class="table table-sm">
+            <table class="table table-sm" id="participants-table">
                 <thead>
                     <tr>
                         <th>{{ __('Name') }}</th>
                         <th>{{ __('Mode') }}</th>
+                        @if($event->van_count)
+                            <th>{{ __('Van') }}</th>
+                        @endif
                         <th>{{ __('Driving %') }}</th>
                         <th>{{ __('Local Days') }}</th>
                         <th>{{ __('Balance') }}</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
+                    @php $tripDays = $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1; @endphp
                     @foreach($event->tripParticipants as $tp)
                     @php $pResult = collect($settlement['participants'])->firstWhere('user_id', $tp->user_id); @endphp
-                    <tr>
+                    <tr data-participant-id="{{ $tp->id }}" data-url="{{ route('events.settlement.update-participant', [$event, $tp]) }}">
                         <td>{{ $tp->user->detail?->first_name }} {{ $tp->user->detail?->last_name }}</td>
-                        <td colspan="4">
-                            @if($event->settlement_status === 'open')
-                            <form action="{{ route('events.settlement.update-participant', [$event, $tp]) }}" method="POST" class="d-inline-flex gap-1 align-items-center flex-wrap">
-                                @csrf
-                                <select name="transit_mode" class="form-select form-select-sm" style="width:80px">
-                                    <option value="van" {{ ($pResult['transit_mode'] ?? '') === 'van' ? 'selected' : '' }}>🚐</option>
-                                    <option value="own" {{ ($pResult['transit_mode'] ?? '') === 'own' ? 'selected' : '' }}>🚗</option>
-                                    <option value="fly" {{ ($pResult['transit_mode'] ?? '') === 'fly' ? 'selected' : '' }}>✈️</option>
-                                </select>
-                                @if($event->van_count)
-                                <select name="van_number" class="form-select form-select-sm" style="width:75px">
-                                    <option value="">—</option>
-                                    @for($v = 1; $v <= $event->van_count; $v++)
-                                        <option value="{{ $v }}" {{ $tp->van_number == $v ? 'selected' : '' }}>Van {{ $v }}</option>
-                                    @endfor
-                                </select>
-                                @endif
-                                <label class="visually-hidden" for="dp_{{ $tp->id }}">{{ __('Driving %') }}</label>
-                                <div class="input-group input-group-sm" style="width:100px">
-                                    <input type="number" id="dp_{{ $tp->id }}" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm" placeholder="{{ __('Drive%') }}">
-                                    <span class="input-group-text">%</span>
-                                </div>
-                                <label class="visually-hidden" for="ltd_{{ $tp->id }}">{{ __('Local days') }}</label>
-                                @php $tripDays = $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1; @endphp
-                                <div class="input-group input-group-sm" style="width:100px">
-                                    <input type="number" id="ltd_{{ $tp->id }}" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="{{ $tripDays }}" class="form-control form-control-sm" placeholder="{{ __('Days') }}" {{ ($pResult['transit_mode'] ?? '') === 'van' ? 'disabled' : '' }}>
-                                    @if(($pResult['transit_mode'] ?? '') === 'van')
-                                        <input type="hidden" name="local_transit_days" value="0">
-                                    @endif
-                                    <span class="input-group-text">/{{ $tripDays }}</span>
-                                </div>
-                                <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
-                            </form>
-                            @else
-                                {{ $tp->driving_percentage }}% / {{ $tp->local_transit_days }}d
-                            @endif
+                        @if($event->settlement_status === 'open')
+                        <td>
+                            <select name="transit_mode" class="form-select form-select-sm auto-save" style="width:80px">
+                                <option value="van" {{ ($pResult['transit_mode'] ?? '') === 'van' ? 'selected' : '' }}>🚐</option>
+                                <option value="own" {{ ($pResult['transit_mode'] ?? '') === 'own' ? 'selected' : '' }}>🚗</option>
+                                <option value="fly" {{ ($pResult['transit_mode'] ?? '') === 'fly' ? 'selected' : '' }}>✈️</option>
+                            </select>
                         </td>
+                        @if($event->van_count)
+                        <td>
+                            <select name="van_number" class="form-select form-select-sm auto-save" style="width:80px">
+                                <option value="">—</option>
+                                @for($v = 1; $v <= $event->van_count; $v++)
+                                    <option value="{{ $v }}" {{ $tp->van_number == $v ? 'selected' : '' }}>{{ $v }}</option>
+                                @endfor
+                            </select>
+                        </td>
+                        @endif
+                        <td>
+                            <div class="input-group input-group-sm" style="width:90px">
+                                <input type="number" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm auto-save">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm" style="width:90px">
+                                <input type="number" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="{{ $tripDays }}" class="form-control form-control-sm auto-save" {{ ($pResult['transit_mode'] ?? '') === 'van' ? 'disabled' : '' }}>
+                                <span class="input-group-text">/{{ $tripDays }}</span>
+                            </div>
+                        </td>
+                        @else
+                        <td>{{ ($pResult['transit_mode'] ?? '') === 'van' ? '🚐' : (($pResult['transit_mode'] ?? '') === 'fly' ? '✈️' : '🚗') }}</td>
+                        @if($event->van_count)
+                            <td>{{ $tp->van_number ? 'Van '.$tp->van_number : '—' }}</td>
+                        @endif
+                        <td>{{ $tp->driving_percentage }}%</td>
+                        <td>{{ $tp->local_transit_days }}d</td>
+                        @endif
                         <td class="{{ ($pResult['balance'] ?? 0) > 0 ? 'text-danger' : 'text-success' }}">
                             {{ number_format($pResult['balance'] ?? 0, 2) }} €
                         </td>
@@ -243,6 +252,75 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    @if($event->settlement_status === 'open')
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let saveTimeout = null;
+        const status = document.getElementById('save-status');
+
+        document.getElementById('participants-table').addEventListener('change', function(e) {
+            const el = e.target;
+            if (!el.classList.contains('auto-save')) return;
+
+            const row = el.closest('tr');
+            const url = row.dataset.url;
+
+            // Disable local_transit_days if switching to van
+            if (el.name === 'transit_mode') {
+                const ltd = row.querySelector('[name="local_transit_days"]');
+                if (ltd) {
+                    ltd.disabled = (el.value === 'van');
+                    if (el.value === 'van') ltd.value = 0;
+                }
+            }
+
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => saveRow(row, url), 300);
+        });
+
+        // Also save on blur for number inputs (typing then tabbing away)
+        document.getElementById('participants-table').addEventListener('blur', function(e) {
+            if (e.target.type === 'number' && e.target.classList.contains('auto-save')) {
+                const row = e.target.closest('tr');
+                clearTimeout(saveTimeout);
+                saveRow(row, row.dataset.url);
+            }
+        }, true);
+
+        function saveRow(row, url) {
+            const data = new FormData();
+            data.append('_token', '{{ csrf_token() }}');
+            row.querySelectorAll('[name]').forEach(el => {
+                if (!el.disabled) data.append(el.name, el.value);
+            });
+            // Ensure local_transit_days is sent as 0 if disabled
+            if (!data.has('local_transit_days')) data.append('local_transit_days', '0');
+
+            status.textContent = '{{ __("Saving...") }}';
+            status.className = 'text-muted small';
+
+            fetch(url, { method: 'POST', body: data, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => {
+                    if (r.ok) {
+                        status.textContent = '✓ {{ __("Saved") }}';
+                        status.className = 'text-success small';
+                    } else {
+                        status.textContent = '✕ {{ __("Error") }}';
+                        status.className = 'text-danger small';
+                    }
+                    setTimeout(() => { status.textContent = ''; }, 3000);
+                })
+                .catch(() => {
+                    status.textContent = '✕ {{ __("Connection error") }}';
+                    status.className = 'text-danger small';
+                });
+        }
+    });
+    </script>
+    @endif
         </div>
     </div>
 
