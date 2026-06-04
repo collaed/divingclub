@@ -337,6 +337,12 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Shared utilities in `table-utils.js` (search, sort, clickable rows).
 - Toast notifications via `showToast(message, type)`.
 - Activity type colors defined in `_planning.scss` only — never inline styles.
+- **AJAX auto-save for management tables**: When a bureau page has per-row editable fields (dropdowns, number inputs), use silent AJAX save on `change`/`blur` with a 300ms debounce — no per-row Save buttons. Show a brief "✓ Saved" status indicator. Controller methods must return JSON for AJAX requests (`$request->ajax()`) and redirect for non-AJAX (graceful degradation). Reference implementation: `trip-settlement/manage.blade.php`.
+
+### Pages that should use AJAX auto-save (when next touched):
+- `admin/settings/index` — per-section forms (27 forms, convert section-by-section)
+- `admin/dive-group-rules/index` — per-rule inline fields
+- `trip-settlement/manage` — ✅ already done
 
 ## CSS/SCSS
 
