@@ -55,8 +55,8 @@ app/                          # Application code
 ├── Enums/                    # PHP 8.1 enums
 ├── Helpers/                  # HtmlSanitizer, etc.
 ├── Http/
-│   ├── Controllers/          # 32 controllers
-│   │   ├── Admin/            # 27 admin controllers
+│   ├── Controllers/          # 62 controllers
+│   │   ├── Admin/            # 26 admin controllers
 │   │   ├── Auth/             # 4 auth controllers (Login, Register, Social, EuLogin)
 │   │   ├── Api/              # 1 API controller (FederationApi)
 │   │   └── Concerns/         # Traits (PaginatesFromRequest)
@@ -64,7 +64,7 @@ app/                          # Application code
 ├── Jobs/                     # 9 queued/scheduled jobs
 ├── Models/                   # 58 Eloquent models
 ├── Providers/                # Service providers
-├── Services/                 # 24 service classes + Homogeneity/
+├── Services/                 # 28 service classes (incl. Homogeneity/)
 └── Traits/                   # Auditable, etc.
 bootstrap/
 ├── app.php                   # Middleware, routing, exception config
@@ -86,18 +86,18 @@ routes/
 ├── api.php                   # API routes (federation endpoints)
 └── console.php               # Scheduled tasks
 tests/
-├── Feature/                  # 21 feature test files
+├── Feature/                  # 23 feature test files
 ├── Unit/                     # 15 unit test files
 └── e2e/                      # 7 end-to-end test files
 ```
 
-**Totals**: 341 routes, 58 models, 157 Blade templates, 28 services, 78 migrations, 37 test files (253 tests, 598 assertions).
+**Totals**: 341 routes, 58 models, 157 Blade templates, 28 services, 78 migrations, 38 test files (253 tests, 598 assertions).
 
 ---
 
 ## 3. Database Schema Overview
 
-The application uses **68 tables** organized into the following domains:
+The application uses **131 tables** organized into the following domains:
 
 ### Core / Members
 `users`, `member_details`, `user_emails`, `user_social_accounts`, `member_statuses`, `member_licences`, `guardian_links`, `parental_consents`, `gdpr_consents`, `user_certification_levels`, `certification_levels`, `federations`

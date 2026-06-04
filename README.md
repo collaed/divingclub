@@ -39,17 +39,17 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 
 ## Numbers
 
-- **129 database tables**
-- **331 routes**
+- **131 database tables**
+- **341 routes**
 - **15 languages**
 - **105 certification levels** across 11 federations
 - **13 article types**
 - **10 instructor activity types**
 - **6 theme presets**
-- **56 Eloquent models**
-- **155 Blade templates**
-- **27 services**
-- **233 passing tests** (532 assertions)
+- **58 Eloquent models**
+- **157 Blade templates**
+- **28 services**
+- **253 passing tests** (598 assertions)
 
 ---
 
@@ -287,7 +287,7 @@ Every DivingClub-Manager instance includes:
 
 ## Testing
 
-233 PHPUnit tests (532 assertions) covering unit logic, HTTP workflows, and data integrity.
+253 PHPUnit tests (598 assertions) covering unit logic, HTTP workflows, and data integrity.
 
 ```bash
 php artisan test --compact                    # Run all tests

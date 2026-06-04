@@ -24,13 +24,55 @@ total = base_amount × status_modifier × age_discount + Σ(optional_components)
 
 Updated by bank reconciliation or manual marking.
 
+## Fee Components (`membership_fee_components`)
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `season_id` | FK | Which season this applies to |
+| `name` | varchar | Display name (e.g. "FLASSA Licence") |
+| `slug` | varchar | Machine identifier |
+| `amount` | decimal(8,2) | Cost of this component |
+| `is_base` | bool | Whether this is the base fee (not optional) |
+| `is_optional` | bool | Whether member can opt in/out |
+| `description` | varchar | Explanation shown in calculator |
+| `sort_order` | int | Display ordering |
+
+## Bank Transactions (`bank_transactions`)
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `transaction_date` | date | When the bank processed it |
+| `amount` | decimal(10,2) | Transaction amount |
+| `communication` | varchar | SEPA communication/reference |
+| `counterparty` | varchar | Sender name |
+| `matched_payment_id` | FK | Linked payment_expected (after reconciliation) |
+| `match_score` | int | Fuzzy match confidence (0-100) |
+| `status` | varchar | unmatched, matched, confirmed, rejected |
+| `statement_ref` | varchar(100) | Bank statement reference number |
+| `confirmed_by` | FK | Bureau member who confirmed |
+
 ## SEPA QR Codes
 
-`QrCodeController` generates EPC QR codes for payments:
-- Contains club IBAN, amount, structured communication
+`QrCodeController` generates QR codes for payments in two modes:
+
+### EPC QR (Legacy) — Direct bank transfer encoding
+- Standard EPC format: `BCD\n002\n1\nSCT\n{BIC}\n{name}\n{IBAN}\nEUR{amount}\n\n{communication}`
 - Members scan with banking app → pre-filled transfer
-- Public QR at `/qr/sepa/public` (dues calculator)
-- Signed QR at `/qr/payment/signed/{token}` (specific payment)
+- Public QR at `GET /qr/sepa/public?amount=X&communication=Y` (dues calculator)
+- Per-payment QR at `GET /qr/sepa/{payment}` (authenticated, own payments or bureau)
+
+### Signed Payment QR (Anti-Quishing)
+- Encodes a **signed verification URL** instead of raw bank details
+- HMAC-SHA256 signature using `config('app.key')`
+- Payload: `{amount}|{communication}|{expires_timestamp}`
+- 30-day validity on signature
+- Scanning shows a verification page with club bank details + validity confirmation
+- Route: `GET /qr/payment/signed?amount=X&communication=Y`
+- Verification: `GET /payment/verify?a=X&c=Y&e=timestamp&s=signature`
+
+### Other QR Types
+- **vCard QR** (`GET /qr/vcard`): member's contact card
+- **Federation QR** (`GET /qr/federation/{licence}`): licence number QR for dive checks
 
 ## Bank Reconciliation
 
