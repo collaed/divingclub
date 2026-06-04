@@ -139,8 +139,8 @@
                             @if($event->settlement_status === 'open')
                             <form action="{{ route('events.settlement.update-participant', [$event, $tp]) }}" method="POST" class="d-inline-flex gap-1 align-items-center">
                                 @csrf
-                                <input type="number" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm" style="width:60px" title="{{ __('Driving %') }}">
-                                <input type="number" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="30" class="form-control form-control-sm" style="width:60px" title="{{ __('Local days') }}">
+                                <input type="number" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm" style="width:75px" title="{{ __('Driving %') }}">
+                                <input type="number" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="30" class="form-control form-control-sm" style="width:75px" title="{{ __('Local days') }}">
                                 <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                             </form>
                             @else
