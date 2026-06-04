@@ -114,9 +114,53 @@
     </div>
     @endif
 
+    {{-- Quick Add Expense (Bureau) --}}
+    @if($event->settlement_status === 'open')
+    <div class="card dc-card mb-4">
+        <div class="card-header"><h5 class="mb-0">{{ __('Add Expense') }}</h5></div>
+        <div class="card-body">
+            <form action="{{ route('events.settlement.bureau-receipt', $event) }}" method="POST" class="row g-2 align-items-end">
+                @csrf
+                <div class="col-auto">
+                    <label class="form-label form-label-sm">{{ __('Amount') }}</label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" step="0.01" name="amount" min="0.01" required class="form-control" style="width:100px">
+                        <span class="input-group-text">€</span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label form-label-sm">{{ __('Category') }}</label>
+                    <select name="category" class="form-select form-select-sm" required>
+                        <option value="transit">🚐 {{ __('Transit (fuel, tolls)') }}</option>
+                        <option value="general">📦 {{ __('General (shared)') }}</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="form-label form-label-sm">{{ __('Description') }}</label>
+                    <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Tolls outbound') }}" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-primary">{{ __('Add') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
     {{-- Participants Management --}}
     <div class="card dc-card mb-4">
-        <div class="card-header"><h5 class="mb-0">{{ __('Participants') }}</h5></div>
+        <div class="card-header">
+            <h5 class="mb-0 d-inline">{{ __('Participants') }}</h5>
+            @php
+                $drivingTotal = $event->tripParticipants->sum('driving_percentage');
+                $vanCount = collect($settlement['participants'])->where('transit_mode', 'van')->count();
+            @endphp
+            @if($drivingTotal > 0 && abs($drivingTotal - 100) > 5)
+                <span class="badge bg-warning text-dark ms-2" title="{{ __('Should total ~100%') }}">⚠️ {{ __('Driving total') }}: {{ $drivingTotal }}%</span>
+            @elseif($drivingTotal > 0)
+                <span class="badge bg-success ms-2">{{ __('Driving') }}: {{ $drivingTotal }}% ✓</span>
+            @endif
+        </div>
         <div class="card-body table-responsive">
             <table class="table table-sm">
                 <thead>
@@ -134,11 +178,15 @@
                     @php $pResult = collect($settlement['participants'])->firstWhere('user_id', $tp->user_id); @endphp
                     <tr>
                         <td>{{ $tp->user->detail?->first_name }} {{ $tp->user->detail?->last_name }}</td>
-                        <td>{{ $pResult['transit_mode'] ?? '—' }}</td>
-                        <td colspan="3">
+                        <td colspan="4">
                             @if($event->settlement_status === 'open')
-                            <form action="{{ route('events.settlement.update-participant', [$event, $tp]) }}" method="POST" class="d-inline-flex gap-1 align-items-center">
+                            <form action="{{ route('events.settlement.update-participant', [$event, $tp]) }}" method="POST" class="d-inline-flex gap-1 align-items-center flex-wrap">
                                 @csrf
+                                <select name="transit_mode" class="form-select form-select-sm" style="width:80px">
+                                    <option value="van" {{ ($pResult['transit_mode'] ?? '') === 'van' ? 'selected' : '' }}>🚐</option>
+                                    <option value="own" {{ ($pResult['transit_mode'] ?? '') === 'own' ? 'selected' : '' }}>🚗</option>
+                                    <option value="fly" {{ ($pResult['transit_mode'] ?? '') === 'fly' ? 'selected' : '' }}>✈️</option>
+                                </select>
                                 <label class="visually-hidden" for="dp_{{ $tp->id }}">{{ __('Driving %') }}</label>
                                 <div class="input-group input-group-sm" style="width:100px">
                                     <input type="number" id="dp_{{ $tp->id }}" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm" placeholder="{{ __('Drive%') }}">
