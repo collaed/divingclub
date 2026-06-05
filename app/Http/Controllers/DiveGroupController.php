@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Services\DiveGroupProposalService;
 use App\Services\Homogeneity\DiveContext;
 use App\Services\Homogeneity\HomogeneityAssessmentService;
+use App\Services\Homogeneity\HomogeneityFactor;
 use App\Services\SwapSuggestionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
@@ -44,7 +45,7 @@ class DiveGroupController extends Controller
         // Participants not yet assigned to any group
         $assignedIds = $event->diveGroups->flatMap(fn ($g) => $g->members->pluck('user_id'))->toArray();
         $unassigned = $event->registrations->where('status', 'confirmed')
-            ->filter(fn ($r) => ! in_array($r->user_id, $assignedIds));
+            ->filter(fn ($r): bool => ! in_array($r->user_id, $assignedIds));
 
         // Stale detection: groups may be invalid if registrations changed after last group edit
         $groupsStale = false;
@@ -78,7 +79,7 @@ class DiveGroupController extends Controller
             'purpose' => 'nullable|string|max:50',
         ]);
 
-        $group = DiveGroup::create([
+        DiveGroup::create([
             'event_id' => $event->id,
             'name' => $request->name ?: __('Group').' '.($event->diveGroups()->count() + 1),
             'dive_mode' => $request->dive_mode,
@@ -165,7 +166,7 @@ class DiveGroupController extends Controller
             }
 
             // Homogeneity assessment
-            $diverProfiles = $group->members->map(fn ($m) => $this->buildDiverProfile($m->user))->toArray();
+            $diverProfiles = $group->members->map(fn ($m): array => $this->buildDiverProfile($m->user))->toArray();
             $ctx = new DiveContext(
                 plannedDepth: $group->planned_depth ?? $event->diveSite?->max_depth ?? 20,
                 waterTempCelsius: $event->diveSite?->water_temperature ?? 15.0,
@@ -174,7 +175,7 @@ class DiveGroupController extends Controller
             $homogeneity[$groupKey] = [
                 'score' => $result->score,
                 'status' => $result->status->value,
-                'factors' => array_map(fn ($f) => [
+                'factors' => array_map(fn (HomogeneityFactor $f): array => [
                     'type' => $f->type->value,
                     'impact' => $f->scoreImpact,
                     'label' => $f->label,
@@ -185,7 +186,7 @@ class DiveGroupController extends Controller
         }
 
         return response()->json([
-            'valid' => empty($violations),
+            'valid' => $violations === [],
             'violations' => $violations,
             'homogeneity' => $homogeneity,
         ]);
@@ -329,7 +330,7 @@ class DiveGroupController extends Controller
             $diverFed = $diverCert?->federation?->acronym;
 
             // Find applicable rules (federation-specific first, then global)
-            $applicable = $rules->filter(function ($rule) use ($diverRank, $group, $diverFed) {
+            $applicable = $rules->filter(function ($rule) use ($diverRank, $group, $diverFed): bool {
                 if ($rule->dive_mode !== $group->dive_mode) {
                     return false;
                 }
@@ -339,7 +340,7 @@ class DiveGroupController extends Controller
 
                 // Prefer federation-specific rules
                 return $rule->scope === 'global' || $rule->scope === $diverFed;
-            })->sortByDesc(fn ($r) => $r->scope !== 'global' ? 1 : 0);
+            })->sortByDesc(fn ($r): int => $r->scope !== 'global' ? 1 : 0);
 
             $rule = $applicable->first();
             if (! $rule) {

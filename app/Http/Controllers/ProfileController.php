@@ -75,16 +75,14 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
-        if (! $viewer->isBureau()) {
-            if ($request->has('bureau_member') || $request->has('active_instructor')) {
-                abort(403);
-            }
+        if (! $viewer->isBureau() && ($request->has('bureau_member') || $request->has('active_instructor'))) {
+            abort(403);
         }
 
-        DB::transaction(function () use ($target, $validated, $viewer) {
+        DB::transaction(function () use ($target, $validated, $viewer): void {
             $target->update(array_filter([
                 'username' => $validated['username'] ?? null,
-            ], fn ($v) => $v !== null));
+            ], fn ($v): bool => $v !== null));
 
             if (isset($validated['status_id'])) {
                 $target->update(['status_id' => $validated['status_id']]);

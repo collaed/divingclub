@@ -163,11 +163,8 @@ class Event extends Model
         if ($this->status !== 'scheduled') {
             return false;
         }
-        if ($this->inscription_open_at && $this->inscription_open_at->isFuture()) {
-            return false;
-        }
 
-        return true;
+        return ! ($this->inscription_open_at && $this->inscription_open_at->isFuture());
     }
 
     public function mapsUrl(): string

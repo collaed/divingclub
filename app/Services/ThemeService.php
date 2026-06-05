@@ -9,7 +9,7 @@ class ThemeService
 {
     public static function css(): string
     {
-        $s = Cache::remember('theme_css', 300, fn () => ThemeSetting::all_settings());
+        $s = Cache::remember('theme_css', 300, fn (): array => ThemeSetting::all_settings());
 
         $style = $s['ui_style'] ?? 'rounded';
         $radius = match ($style) {
@@ -65,7 +65,7 @@ class ThemeService
 
     public static function settings(): array
     {
-        return Cache::remember('theme_settings', 300, fn () => ThemeSetting::all_settings());
+        return Cache::remember('theme_settings', 300, fn (): array => ThemeSetting::all_settings());
     }
 
     public static function presets(): array

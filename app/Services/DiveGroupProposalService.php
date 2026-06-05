@@ -47,11 +47,11 @@ class DiveGroupProposalService
         $participants = $event->registrations->where('status', 'confirmed');
 
         // Build participant profiles with rank info
-        $profiles = $participants->map(fn ($reg) => $this->buildProfile($reg->user))->keyBy('user_id');
+        $profiles = $participants->map(fn ($reg): array => $this->buildProfile($reg->user))->keyBy('user_id');
 
         // Split into potential leaders (instructors + high-rank divers) and regular divers
         $leaders = $profiles->filter(fn ($p) => $p['can_lead'])->sortByDesc('rank');
-        $divers = $profiles->filter(fn ($p) => ! $p['can_lead'])->sortBy('rank');
+        $divers = $profiles->filter(fn ($p): bool => ! $p['can_lead'])->sortBy('rank');
 
         $groups = [];
         $assigned = [];
@@ -83,7 +83,7 @@ class DiveGroupProposalService
                 }
             }
 
-            if (! empty($groupDivers)) {
+            if ($groupDivers !== []) {
                 $assigned[$leaderId] = true;
                 // Instructor-led = supervised; strong diver-led (GP/N4) = autonomous
                 $mode = $leader['category'] === 'instructor' ? 'supervised' : 'autonomous';
@@ -101,7 +101,7 @@ class DiveGroupProposalService
 
         // Phase 2: Autonomous groups — remaining N2+/PA20+ divers (rank >= 30)
         // grouped by 2-3, strongest as leader, respecting autonomous depth limits
-        $remaining = $profiles->filter(fn ($p) => ! isset($assigned[$p['user_id']]) && $p['rank'] >= 30)
+        $remaining = $profiles->filter(fn ($p): bool => ! isset($assigned[$p['user_id']]) && $p['rank'] >= 30)
             ->sortByDesc('rank')->values()->all();
 
         $i = 0;
@@ -123,7 +123,7 @@ class DiveGroupProposalService
                 $buddies[] = $remaining[$j];
             }
 
-            if (empty($buddies)) {
+            if ($buddies === []) {
                 $i++;
 
                 continue;
@@ -148,7 +148,7 @@ class DiveGroupProposalService
         }
 
         // Collect unassigned
-        $unassigned = $profiles->filter(fn ($p) => ! isset($assigned[$p['user_id']]))->values()->all();
+        $unassigned = $profiles->filter(fn ($p): bool => ! isset($assigned[$p['user_id']]))->values()->all();
 
         if (! empty($unassigned)) {
             $names = implode(', ', array_column($unassigned, 'name'));
@@ -197,18 +197,15 @@ class DiveGroupProposalService
     private function findRule(Collection $rules, array $diver, array $leader, int $maxDepth): ?DiveGroupRule
     {
         return $rules
-            ->filter(function (DiveGroupRule $rule) use ($diver, $leader, $maxDepth) {
+            ->filter(function (DiveGroupRule $rule) use ($diver, $leader, $maxDepth): bool {
                 if (! $rule->matchesDiver($diver['rank'])) {
                     return false;
                 }
                 if (! $rule->leaderSatisfied($leader['rank'], $leader['category'])) {
                     return false;
                 }
-                if ($rule->max_depth && $rule->max_depth < min($maxDepth, 20)) {
-                    return false;
-                }
 
-                return true;
+                return ! ($rule->max_depth && $rule->max_depth < min($maxDepth, 20));
             })
             ->sortByDesc('max_depth')
             ->first();

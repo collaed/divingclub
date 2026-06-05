@@ -78,7 +78,7 @@ class SeasonController extends Controller
 
     public function activate(Season $season): JsonResponse|RedirectResponse
     {
-        DB::transaction(function () use ($season) {
+        DB::transaction(function () use ($season): void {
             Season::where('is_active', true)->update(['is_active' => false]);
             $season->update(['is_active' => true]);
         });
@@ -175,7 +175,7 @@ class SeasonController extends Controller
         $schedule = $this->buildSchedule($season);
         $created = 0;
 
-        DB::transaction(function () use ($schedule, $season, &$created) {
+        DB::transaction(function () use ($schedule, $season, &$created): void {
             foreach ($schedule as $entry) {
                 if ($entry['skip']) {
                     continue;
@@ -248,7 +248,7 @@ class SeasonController extends Controller
             }
         }
 
-        usort($schedule, fn ($a, $b) => $a['date']->timestamp - $b['date']->timestamp);
+        usort($schedule, fn (array $a, array $b): int|float => $a['date']->timestamp - $b['date']->timestamp);
 
         return $schedule;
     }

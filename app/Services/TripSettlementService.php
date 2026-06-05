@@ -70,7 +70,7 @@ class TripSettlementService
         // Net transit cost for van passengers = transit expenses + bounties - local subsidy
         $netTransitCost = $transitPool + $totalBounties - $localSubsidy;
         $vanParticipants = $participants->filter(
-            fn (TripParticipant $p) => ($registrations[$p->user_id]?->transit_mode ?? 'van') === 'van'
+            fn (TripParticipant $p): bool => ($registrations[$p->user_id]?->transit_mode ?? 'van') === 'van'
         );
         $transitShare = $vanParticipants->count() > 0
             ? round($netTransitCost / $vanParticipants->count(), 2)
@@ -84,7 +84,7 @@ class TripSettlementService
             $bountyCredit = $totalDrivingPct > 0
                 ? round($bountyTotal * $p->driving_percentage / $totalDrivingPct, 2)
                 : 0;
-            $localCharge = ! $isVan ? $p->local_transit_days * $dailyCharge : 0;
+            $localCharge = $isVan ? 0 : $p->local_transit_days * $dailyCharge;
 
             // What this person paid (approved receipts, excluding third-party)
             $totalPaid = $receipts->where('user_id', $p->user_id)

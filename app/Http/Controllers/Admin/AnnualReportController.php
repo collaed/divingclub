@@ -19,7 +19,7 @@ class AnnualReportController extends Controller
         $years = range(date('Y'), (int) (User::min('created_at') ? substr(User::min('created_at'), 0, 4) : date('Y') - 3), -1);
 
         // Members over time (last 5 years)
-        $membersTrend = collect(range($year - 4, $year))->map(fn ($y) => [
+        $membersTrend = collect(range($year - 4, $year))->map(fn ($y): array => [
             'year' => $y,
             'count' => User::where('created_at', '<=', "$y-12-31")->count(),
         ]);
@@ -30,7 +30,7 @@ class AnnualReportController extends Controller
             ->groupBy('event_type')->pluck('cnt', 'event_type');
 
         // Monthly participation (confirmed registrations per month)
-        $monthlyParticipation = collect(range(1, 12))->map(function ($m) use ($year) {
+        $monthlyParticipation = collect(range(1, 12))->map(function ($m) use ($year): array {
             return [
                 'month' => $m,
                 'label' => date('M', mktime(0, 0, 0, $m)),

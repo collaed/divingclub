@@ -64,9 +64,9 @@ class EventController extends Controller
             $end = $date->copy()->endOfDay();
         }
 
-        $events = $query->where(function ($q) use ($start, $end) {
+        $events = $query->where(function ($q) use ($start, $end): void {
             $q->whereBetween('event_date', [$start, $end])
-                ->orWhere(function ($q2) use ($start, $end) {
+                ->orWhere(function ($q2) use ($start, $end): void {
                     $q2->whereNotNull('end_date')
                         ->where('event_date', '<=', $end)
                         ->where('end_date', '>=', $start);
@@ -88,7 +88,7 @@ class EventController extends Controller
             'diveGroups.members.user.certificationLevels',
         ]);
         $userReg = auth()->check() ? $event->registrations()->where('user_id', auth()->id())->first() : null;
-        $emailHistory = EmailLog::where(function ($q) use ($event) {
+        $emailHistory = EmailLog::where(function ($q) use ($event): void {
             $q->where('event_id', $event->id)
                 ->orWhere('to_email', 'like', "event-{$event->id}@%")
                 ->orWhere('alias', 'like', "event-{$event->id}@%");
@@ -206,7 +206,7 @@ class EventController extends Controller
             return back()->with('error', __('Event is full.'));
         }
 
-        DB::transaction(function () use ($event, $targetUser, $actor, $comment, $request) {
+        DB::transaction(function () use ($event, $targetUser, $actor, $comment, $request): void {
             $registeredBy = $targetUser->id !== $actor->id ? $actor->id : null;
             $transitMode = $event->hasTripSettlement() ? $request->input('transit_mode') : null;
 

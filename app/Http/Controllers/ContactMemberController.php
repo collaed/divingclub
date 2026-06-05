@@ -31,7 +31,7 @@ class ContactMemberController extends Controller
         $replyTo = $sender->primary_email;
         $senderName = $sender->username ?? $sender->primary_email;
 
-        Mail::raw($data['message'], function ($mail) use ($user, $replyTo, $senderName, $data) {
+        Mail::raw($data['message'], function ($mail) use ($user, $replyTo, $senderName, $data): void {
             $mail->to($user->primary_email)
                 ->replyTo($replyTo, $senderName)
                 ->subject($data['subject']);

@@ -49,7 +49,7 @@ class SwapSuggestionService
         $groupProfiles = [];
         $currentScores = [];
         foreach ($groups as $group) {
-            $profiles = $group->members->map(fn ($m) => $this->buildProfile($m))->all();
+            $profiles = $group->members->map(fn (object $m): array => $this->buildProfile($m))->all();
             $groupProfiles[$group->id] = $profiles;
             $result = $this->assessor->assess($profiles, $ctx);
             $currentScores[$group->id] = [
@@ -61,8 +61,9 @@ class SwapSuggestionService
 
         $suggestions = [];
         $groupIds = array_keys($groupProfiles);
+        $counter = count($groupIds);
 
-        for ($gi = 0; $gi < count($groupIds); $gi++) {
+        for ($gi = 0; $gi < $counter; $gi++) {
             for ($gj = $gi + 1; $gj < count($groupIds); $gj++) {
                 $gidA = $groupIds[$gi];
                 $gidB = $groupIds[$gj];
@@ -116,7 +117,7 @@ class SwapSuggestionService
         }
 
         // Sort by gain descending, limit
-        usort($suggestions, fn ($a, $b) => $b['gain'] <=> $a['gain']);
+        usort($suggestions, fn (array $a, array $b): int => $b['gain'] <=> $a['gain']);
         $suggestions = array_slice($suggestions, 0, $this->maxSuggestions);
 
         return [

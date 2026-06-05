@@ -48,7 +48,7 @@ class MedicalComplianceService
             $perFed[$fed->acronym] = $expiry;
         }
 
-        if (empty($perFed)) {
+        if ($perFed === []) {
             $document->update([
                 'expiry_date' => $issueDate->copy()->addMonths(12),
                 'is_compliant' => null,
@@ -60,7 +60,7 @@ class MedicalComplianceService
 
         // Document expiry = latest (most generous) across all federations
         $latestExpiry = collect($perFed)->max();
-        $notes = collect($perFed)->map(fn ($exp, $fed) => "{$fed}: {$exp->format('d/m/Y')}")->implode(' | ');
+        $notes = collect($perFed)->map(fn ($exp, $fed): string => "{$fed}: {$exp->format('d/m/Y')}")->implode(' | ');
 
         $document->update([
             'expiry_date' => $latestExpiry,

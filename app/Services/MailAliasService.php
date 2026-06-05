@@ -77,7 +77,7 @@ class MailAliasService
 
         foreach ($aliases as $alias) {
             $alias = trim($alias);
-            if (empty($alias)) {
+            if ($alias === '' || $alias === '0') {
                 continue;
             }
 
@@ -257,12 +257,12 @@ class MailAliasService
         $first = $parts[0] ?? '';
         $last = $parts[1] ?? '';
 
-        $query = User::whereHas('detail', function ($q) use ($first, $last) {
+        $query = User::whereHas('detail', function ($q) use ($first, $last): void {
             if ($last) {
                 $q->where('first_name', 'like', "{$first}%")
                     ->where('last_name', 'like', "{$last}%");
             } else {
-                $q->where(function ($w) use ($first) {
+                $q->where(function ($w) use ($first): void {
                     $w->where('first_name', 'like', "{$first}%")
                         ->orWhere('last_name', 'like', "{$first}%");
                 });
@@ -301,7 +301,7 @@ class MailAliasService
     /** List all known static aliases for the admin guide. */
     public static function staticAliases(): array
     {
-        $ex = fn ($tag) => static::mailtoAddress($tag);
+        $ex = fn (string $tag): string => static::mailtoAddress($tag);
 
         return [
             'bureau' => 'Bureau members — '.$ex('bureau'),

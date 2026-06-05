@@ -38,7 +38,7 @@ class MedicalExportController extends Controller
             'Content-Disposition' => 'attachment; filename=medical-'.$fedName.'-'.date('Y-m-d').'.csv',
         ];
 
-        $callback = function () use ($members) {
+        $callback = function () use ($members): void {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
 
@@ -116,14 +116,14 @@ class MedicalExportController extends Controller
                 }
 
                 // Skip if we already have a DB document for this user
-                $alreadyInDb = $docs->contains(fn ($doc) => strtoupper(Str::ascii($doc->user?->detail?->last_name ?? '')) === $lastName);
+                $alreadyInDb = $docs->contains(fn ($doc): bool => strtoupper(Str::ascii($doc->user?->detail?->last_name ?? '')) === $lastName);
                 if (! $alreadyInDb) {
                     $legacyFiles[] = $file;
                 }
             }
         }
 
-        if ($docs->isEmpty() && empty($legacyFiles)) {
+        if ($docs->isEmpty() && $legacyFiles === []) {
             return back()->with('error', __('No medical certificates to export.'));
         }
 

@@ -171,9 +171,9 @@ class NewsletterController extends Controller
         abort_unless($newsletter->status === 'approved', 403);
 
         $slotArticles = $newsletter->slotArticles();
-        $appUrl = config('app.url');
-        $clubName = ThemeSetting::get('club_full_name', 'Diving Club');
-        $translator = app(ArticleTranslationService::class);
+        config('app.url');
+        ThemeSetting::get('club_full_name', 'Diving Club');
+        app(ArticleTranslationService::class);
 
         // Build the email HTML
         $users = User::whereNotNull('email_verified_at')->with('detail')->get();
@@ -181,13 +181,13 @@ class NewsletterController extends Controller
         foreach ($users as $user) {
             $locale = $user->preferred_locale ?? 'fr';
 
-            $html = $this->renderEmailHtml($newsletter, $slotArticles, 'fr', $appUrl, $clubName);
+            $html = $this->renderEmailHtml($newsletter, $slotArticles, 'fr');
 
             // Append translated version if user prefers another language
             if ($locale !== 'fr') {
                 $html .= '<hr style="margin:30px 0;border-color:#ccc">';
                 $html .= '<p style="text-align:center;color:#666;font-size:12px">— '.strtoupper($locale).' —</p>';
-                $html .= $this->renderEmailHtml($newsletter, $slotArticles, $locale, $appUrl, $clubName);
+                $html .= $this->renderEmailHtml($newsletter, $slotArticles, $locale);
             }
 
             EmailLog::create([
@@ -201,7 +201,7 @@ class NewsletterController extends Controller
         }
 
         // Dispatch sending
-        dispatch(function () {
+        dispatch(function (): void {
             $queued = EmailLog::where('status', 'queued')->get();
 
             foreach ($queued as $log) {
@@ -258,7 +258,7 @@ class NewsletterController extends Controller
         return back()->with('success', __('Test email sent to :email', ['email' => $to]));
     }
 
-    private function renderEmailHtml(Newsletter $newsletter, array $slotArticles, string $locale, string $appUrl, string $clubName): string
+    private function renderEmailHtml(Newsletter $newsletter, array $slotArticles, string $locale): string
     {
         $data = $this->buildEmailData($newsletter, $locale, $slotArticles);
 

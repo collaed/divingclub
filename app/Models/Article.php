@@ -104,11 +104,8 @@ class Article extends Model
         if ($user->can('manage articles')) {
             return true;
         }
-        if (in_array($this->article_type, self::MEMBER_TYPES) && $this->author_id === $user->id) {
-            return true;
-        }
 
-        return false;
+        return in_array($this->article_type, self::MEMBER_TYPES) && $this->author_id === $user->id;
     }
 
     /** @return BelongsTo<User, $this> */

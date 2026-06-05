@@ -34,7 +34,7 @@ class DanExportService
         // Group by user
         $byUser = $diveGroupMembers->groupBy('user_id');
 
-        foreach ($byUser as $userId => $memberships) {
+        foreach ($byUser as $memberships) {
             $user = $memberships->first()->user;
             $detail = $user->detail;
 

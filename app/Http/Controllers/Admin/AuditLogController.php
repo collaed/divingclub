@@ -88,10 +88,10 @@ class AuditLogController extends Controller
         $filename = 'audit_log_'.now()->format('Y-m-d_His').'.csv';
         $headers = ['Content-Type' => 'text/csv', 'Content-Disposition' => "attachment; filename=\"$filename\""];
 
-        return response()->stream(function () use ($query) {
+        return response()->stream(function () use ($query): void {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['Time', 'User', 'Action', 'Model', 'Model ID', 'IP', 'Old Values', 'New Values']);
-            $query->chunk(500, function ($logs) use ($out) {
+            $query->chunk(500, function ($logs) use ($out): void {
                 foreach ($logs as $log) {
                     fputcsv($out, [
                         $log->created_at->toIso8601String(),

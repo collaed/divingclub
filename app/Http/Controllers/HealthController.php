@@ -91,7 +91,7 @@ class HealthController extends Controller
         // 7. App response time (total)
         $totalMs = round((microtime(true) - $start) * 1000);
 
-        $hasWarning = collect($checks)->contains(fn ($c) => ($c['status'] ?? '') === 'warn');
+        $hasWarning = collect($checks)->contains(fn ($c): bool => ($c['status'] ?? '') === 'warn');
         $issues = [];
         foreach ($checks as $name => $check) {
             if (! in_array($check['status'], ['warn', 'fail'])) {

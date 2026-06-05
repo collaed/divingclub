@@ -89,7 +89,7 @@ class MailBalancer
     /** Query Resend API for live daily/monthly quotas (cached 5 min). */
     public static function resendQuotas(): array
     {
-        return Cache::remember('resend_quotas', 300, function () {
+        return Cache::remember('resend_quotas', 300, function (): array {
             $quotas = [];
 
             foreach (['primary' => config('services.resend.key'), 'secondary' => config('services.resend.key_secondary')] as $label => $key) {

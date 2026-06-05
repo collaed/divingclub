@@ -95,23 +95,23 @@ class ImportLegacyData extends Command
 
         try {
             if (! $this->option('skip-events')) {
-                $this->importCalendarEvents($calendarUrl, $dryRun);
+                $this->importCalendarEvents($calendarUrl);
             }
 
             if (! $this->option('skip-member-updates')) {
-                $this->updateMemberDetails($rows, $dryRun);
+                $this->updateMemberDetails($rows);
             }
 
             if (! $this->option('skip-registrations')) {
-                $this->importRegistrations($rows, $dryRun);
+                $this->importRegistrations($rows);
             }
 
             if (! $this->option('skip-payments')) {
-                $this->importPayments($rows, $dryRun);
+                $this->importPayments($rows);
             }
 
             if (! $this->option('skip-licences')) {
-                $this->importLicences($rows, $dryRun);
+                $this->importLicences($rows);
             }
 
             if ($dryRun) {
@@ -157,7 +157,7 @@ class ImportLegacyData extends Command
     private function buildUserEmailMap(): void
     {
         $this->userEmailMap = User::pluck('id', 'primary_email')
-            ->mapWithKeys(fn ($id, $email) => [strtolower($email) => $id])
+            ->mapWithKeys(fn ($id, $email): array => [strtolower($email) => $id])
             ->toArray();
     }
 
@@ -173,7 +173,7 @@ class ImportLegacyData extends Command
 
     // ─── 1. Google Calendar Events ─────────────────────────────
 
-    private function importCalendarEvents(string $url, bool $dryRun): void
+    private function importCalendarEvents(string $url): void
     {
         $this->info('Importing Google Calendar events...');
 
@@ -417,7 +417,7 @@ class ImportLegacyData extends Command
 
     // ─── 2. Member Detail Updates ──────────────────────────────
 
-    private function updateMemberDetails(array $rows, bool $dryRun): void
+    private function updateMemberDetails(array $rows): void
     {
         $this->info('Updating member details from legacy data...');
 
@@ -507,7 +507,7 @@ class ImportLegacyData extends Command
 
     // ─── 3. Event Registrations ────────────────────────────────
 
-    private function importRegistrations(array $rows, bool $dryRun): void
+    private function importRegistrations(array $rows): void
     {
         $this->info('Importing event registrations from legacy inscriptions...');
 
@@ -597,7 +597,7 @@ class ImportLegacyData extends Command
 
         // Fuzzy: try matching by date and partial title
         $event = Event::where('event_date', $date)
-            ->where(function ($q) use ($title) {
+            ->where(function ($q) use ($title): void {
                 $q->where('title', $title)
                     ->orWhere('title', 'LIKE', '%'.mb_substr($title, 0, 20).'%');
             })
@@ -614,7 +614,7 @@ class ImportLegacyData extends Command
 
     // ─── 4. Payments ───────────────────────────────────────────
 
-    private function importPayments(array $rows, bool $dryRun): void
+    private function importPayments(array $rows): void
     {
         $this->info('Importing payment history...');
 
@@ -681,7 +681,7 @@ class ImportLegacyData extends Command
 
     // ─── 5. Licences ───────────────────────────────────────────
 
-    private function importLicences(array $rows, bool $dryRun): void
+    private function importLicences(array $rows): void
     {
         $this->info('Importing licence numbers...');
 

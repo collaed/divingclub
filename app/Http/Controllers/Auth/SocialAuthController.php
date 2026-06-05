@@ -136,7 +136,7 @@ class SocialAuthController extends Controller
         }
 
         // Link the social account to the authenticated user
-        DB::transaction(function () use ($pending) {
+        DB::transaction(function () use ($pending): void {
             UserSocialAccount::create([
                 'user_id' => auth()->id(),
                 'provider' => $pending['provider'],
@@ -215,7 +215,7 @@ class SocialAuthController extends Controller
             return redirect()->route('profile.show');
         }
 
-        DB::transaction(function () use ($pending) {
+        DB::transaction(function () use ($pending): void {
             UserSocialAccount::create([
                 'user_id' => $pending['user_id'],
                 'provider' => $pending['provider'],

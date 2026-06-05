@@ -57,7 +57,7 @@ class VotePublicController extends Controller
                 $selectedIds = [$request->option_id];
             }
 
-            DB::transaction(function () use ($vote, $voteToken, $selectedIds) {
+            DB::transaction(function () use ($vote, $voteToken, $selectedIds): void {
                 foreach ($selectedIds as $optId) {
                     VoteBallot::create(['vote_id' => $vote->id, 'vote_option_id' => $optId, 'token_hash' => null]);
                 }
@@ -77,7 +77,7 @@ class VotePublicController extends Controller
 
         if ($vote->allow_multiple) {
             $request->validate(['option_ids' => 'required|array|min:1', 'option_ids.*' => 'exists:vote_options,id']);
-            DB::transaction(function () use ($vote, $tokenHash, $request) {
+            DB::transaction(function () use ($vote, $tokenHash, $request): void {
                 VoteBallot::where('vote_id', $vote->id)->where('token_hash', $tokenHash)->delete();
                 foreach ($request->option_ids as $optId) {
                     VoteBallot::create(['vote_id' => $vote->id, 'vote_option_id' => $optId, 'token_hash' => $tokenHash]);

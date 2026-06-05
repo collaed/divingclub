@@ -69,7 +69,7 @@ class LegacySyncBidirectional extends Command
             $this->finishRun('ok');
 
             $this->info(($dryRun ? '[DRY RUN] ' : '').'Sync complete in '.round($runtime, 2).'s');
-            $this->table(['Table', 'Count'], collect($this->counts)->map(fn ($v, $k) => [$k, $v])->values()->toArray());
+            $this->table(['Table', 'Count'], collect($this->counts)->map(fn ($v, $k): array => [$k, $v])->values()->toArray());
 
             return self::SUCCESS;
         } catch (\Throwable $e) {
@@ -154,7 +154,7 @@ class LegacySyncBidirectional extends Command
                     'cb_country' => $row->country,
                     'cb_sexe' => $row->sex === 'M' ? 'Homme' : ($row->sex === 'F' ? 'Femme' : null),
                     'cb_peracc' => $row->emergency_contact_name,
-                ], fn ($v) => $v !== null));
+                ], fn ($v): bool => $v !== null));
 
             // Convert cotisation_years back to space-separated string
             $cotisYears = json_decode($row->cotisation_years ?? '[]', true);

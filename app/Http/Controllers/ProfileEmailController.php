@@ -47,7 +47,7 @@ class ProfileEmailController extends Controller
             return back()->with('error', __('Only verified emails can be set as primary.'))->withInput(['tab' => 'info']);
         }
 
-        DB::transaction(function () use ($email) {
+        DB::transaction(function () use ($email): void {
             UserEmail::where('user_id', $email->user_id)->update(['is_primary' => false]);
             $email->update(['is_primary' => true]);
             User::where('id', $email->user_id)->update(['primary_email' => $email->email]);

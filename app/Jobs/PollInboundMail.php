@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use IMAP\Connection;
 
 /**
  * Poll for inbound alias emails — two modes:
@@ -34,7 +35,7 @@ class PollInboundMail implements ShouldQueue
         $mode = config('services.inbound_mail.mode', 'maildir');
         $messages = $mode === 'imap' ? $this->fetchImap() : $this->fetchMaildir();
 
-        if (empty($messages)) {
+        if ($messages === []) {
             ScheduleHeartbeat::beat('inbound-mail', '0 messages');
 
             return;
@@ -137,7 +138,7 @@ class PollInboundMail implements ShouldQueue
         return $decoded ?: $subject;
     }
 
-    private function getImapBody($imap, int $num): string
+    private function getImapBody(Connection $imap, int $num): string
     {
         $struct = imap_fetchstructure($imap, $num);
 

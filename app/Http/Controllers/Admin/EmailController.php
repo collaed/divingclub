@@ -84,7 +84,7 @@ class EmailController extends Controller
         // Pre-translate subject+body per unique target locale
         $translations = []; // locale => ['subject' => ..., 'body' => ...]
         $translator = app(ArticleTranslationService::class);
-        $locales = $users->pluck('preferred_locale')->filter()->unique()->reject(fn ($l) => $l === $sourceLocale);
+        $locales = $users->pluck('preferred_locale')->filter()->unique()->reject(fn ($l): bool => $l === $sourceLocale);
 
         foreach ($locales as $locale) {
             $translations[$locale] = [
@@ -122,7 +122,7 @@ class EmailController extends Controller
         }
 
         // Dispatch actual sending via queue
-        dispatch(function () {
+        dispatch(function (): void {
             $queued = EmailLog::where('status', 'queued')->get();
             foreach ($queued as $log) {
                 if (config('app.staging_mode')) {

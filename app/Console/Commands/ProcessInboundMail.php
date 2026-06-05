@@ -124,7 +124,7 @@ class ProcessInboundMail extends Command
         $sent = 0;
         foreach ($resolved['emails'] as $email) {
             try {
-                Mail::html($body, function ($message) use ($email, $from, $subject, $resolved) {
+                Mail::html($body, function ($message) use ($email, $from, $subject, $resolved): void {
                     $message->to($email)
                         ->replyTo($from)
                         ->subject("[{$resolved['label']}] {$subject}");

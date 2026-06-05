@@ -57,8 +57,8 @@ class EmailStatsService
         // Sort subjects by count desc, recipients by status then name
         $subjects = $subjects->map(function ($recipients) {
             return $recipients->sortBy([
-                fn ($a, $b) => static::statusPriority($b['status']) <=> static::statusPriority($a['status']),
-                fn ($a, $b) => ($a['last_name'] ?? '') <=> ($b['last_name'] ?? ''),
+                fn ($a, $b): int => static::statusPriority($b['status']) <=> static::statusPriority($a['status']),
+                fn ($a, $b): int => ($a['last_name'] ?? '') <=> ($b['last_name'] ?? ''),
             ])->values();
         })->sortByDesc(fn ($r) => $r->count());
 
@@ -83,7 +83,7 @@ class EmailStatsService
             return [];
         }
 
-        return Cache::remember("mailjet_msgs_{$date}", 300, function () use ($key, $secret, $date) {
+        return Cache::remember("mailjet_msgs_{$date}", 300, function () use ($key, $secret, $date): array {
             $all = [];
             $offset = 0;
 
@@ -120,7 +120,7 @@ class EmailStatsService
             return [];
         }
 
-        return Cache::remember("resend_msgs_{$date}", 300, function () use ($keys, $date) {
+        return Cache::remember("resend_msgs_{$date}", 300, function () use ($keys, $date): array {
             $all = [];
 
             foreach ($keys as $key) {
@@ -162,9 +162,9 @@ class EmailStatsService
     /** Build email → member name lookup. */
     protected static function memberLookup(): array
     {
-        return Cache::remember('email_stats_members', 3600, function () {
+        return Cache::remember('email_stats_members', 3600, function (): array {
             $lookup = [];
-            MemberDetail::with('user')->get()->each(function ($d) use (&$lookup) {
+            MemberDetail::with('user')->get()->each(function ($d) use (&$lookup): void {
                 $email = mb_strtolower($d->user?->primary_email ?? '');
                 if ($email) {
                     $lookup[$email] = ['first_name' => $d->first_name, 'last_name' => $d->last_name];

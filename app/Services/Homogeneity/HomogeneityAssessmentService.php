@@ -69,7 +69,7 @@ class HomogeneityAssessmentService
         // Pair-wise comparisons
         for ($i = 0; $i < $count; $i++) {
             for ($j = $i + 1; $j < $count; $j++) {
-                $factors = array_merge($factors, $this->comparePair($divers[$i], $divers[$j], $ctx, $pairScale));
+                $factors = array_merge($factors, $this->comparePair($divers[$i], $divers[$j], $pairScale));
             }
         }
 
@@ -79,7 +79,7 @@ class HomogeneityAssessmentService
         // Fix #1: cap factor families to avoid opaque double penalties
         $factors = $this->capFamilies($factors);
 
-        $score = max(0, 100 + array_sum(array_map(fn (HomogeneityFactor $f) => $f->scoreImpact, $factors)));
+        $score = max(0, 100 + array_sum(array_map(fn (HomogeneityFactor $f): int => $f->scoreImpact, $factors)));
         $recommendations = $this->buildRecommendations($factors);
 
         return new HomogeneityAssessmentResult(
@@ -91,7 +91,7 @@ class HomogeneityAssessmentService
     }
 
     /** @return HomogeneityFactor[] */
-    private function comparePair(array $a, array $b, DiveContext $ctx, float $pairScale): array
+    private function comparePair(array $a, array $b, float $pairScale): array
     {
         $factors = [];
         $names = ($a['name'] ?? '?').' / '.($b['name'] ?? '?');
@@ -164,7 +164,7 @@ class HomogeneityAssessmentService
 
         // Cold + fragility
         if ($ctx->waterTempCelsius <= 10) {
-            $fragileCount = count(array_filter($divers, fn ($d) => $d['isFragile'] ?? false));
+            $fragileCount = count(array_filter($divers, fn (array $d) => $d['isFragile'] ?? false));
             if ($fragileCount > 0) {
                 $factors[] = new HomogeneityFactor(
                     type: HomogeneityFactorType::ColdFragility,
@@ -176,7 +176,7 @@ class HomogeneityAssessmentService
         }
 
         // Junior load: too many inexperienced divers
-        $juniorCount = count(array_filter($divers, fn ($d) => ($d['totalDives'] ?? 50) < 20));
+        $juniorCount = count(array_filter($divers, fn (array $d): bool => ($d['totalDives'] ?? 50) < 20));
         if ($juniorCount >= 2 && $juniorCount === count($divers)) {
             $factors[] = new HomogeneityFactor(
                 type: HomogeneityFactorType::JuniorLoad,
@@ -187,7 +187,7 @@ class HomogeneityAssessmentService
         }
 
         // Intent dispersion (3+ different intents in group)
-        $intents = array_unique(array_map(fn ($d) => $d['primaryIntent'] ?? 'exploration', $divers));
+        $intents = array_unique(array_map(fn (array $d) => $d['primaryIntent'] ?? 'exploration', $divers));
         if (count($intents) >= 3) {
             $factors[] = new HomogeneityFactor(
                 type: HomogeneityFactorType::IntentDispersion,

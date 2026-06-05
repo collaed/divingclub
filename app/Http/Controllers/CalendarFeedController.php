@@ -41,11 +41,7 @@ class CalendarFeedController extends Controller
             if ($event->location) {
                 $lines[] = 'LOCATION:'.$this->escape($event->location);
             }
-            if ($event->description) {
-                $desc = strip_tags($event->description);
-            } else {
-                $desc = '';
-            }
+            $desc = $event->description ? strip_tags($event->description) : '';
             $attendance = $event->confirmed_registrations_count.($event->max_participants ? '/'.$event->max_participants : '').' registered';
             $desc = $attendance.($desc ? '\n'.$desc : '');
             $lines[] = 'DESCRIPTION:'.$this->escape($desc);

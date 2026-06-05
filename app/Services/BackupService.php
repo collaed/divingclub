@@ -33,7 +33,7 @@ class BackupService
         $spatieDir = storage_path('app/'.str_replace(' ', '-', config('app.name', 'DivingClub')));
         $zips = glob("{$spatieDir}/*.zip");
 
-        if (empty($zips)) {
+        if ($zips === [] || $zips === false) {
             throw new \RuntimeException('Spatie backup produced no output');
         }
 
@@ -100,7 +100,7 @@ EOF',
         $files = array_merge(glob("{$this->backupDir}/backup-*.tar.gz"), glob("{$this->backupDir}/backup-*.zip"));
         rsort($files);
 
-        return array_map(function (string $path) {
+        return array_map(function (string $path): array {
             return [
                 'filename' => basename($path),
                 'path' => $path,

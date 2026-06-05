@@ -52,7 +52,7 @@ class InstructorAvailabilityController extends Controller
             ->get()
             ->groupBy(fn ($a) => $a->date->format('Y-m-d'));
 
-        $events = Event::where(function ($q) use ($start, $end) {
+        $events = Event::where(function ($q) use ($start, $end): void {
             $q->whereBetween('event_date', [$start, $end])
                 ->orWhere(fn ($q2) => $q2->where('event_date', '<=', $end)->where('end_date', '>=', $start));
         })->orderBy('event_date')->get();
@@ -109,7 +109,7 @@ class InstructorAvailabilityController extends Controller
             return response()->json(['status' => 'removed']);
         }
 
-        DB::transaction(function () use ($user, $event) {
+        DB::transaction(function () use ($user, $event): void {
             InstructorAvailability::create([
                 'user_id' => $user->id,
                 'event_id' => $event->id,

@@ -24,7 +24,7 @@ class ArticleController extends Controller
 
         // Search across title, body, and all translation titles/bodies
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('title', 'ILIKE', "%{$search}%")
                     ->orWhere('body', 'ILIKE', "%{$search}%")
                     ->orWhereHas('translations', fn ($tq) => $tq->where('title', 'ILIKE', "%{$search}%")

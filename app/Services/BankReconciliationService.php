@@ -201,7 +201,7 @@ class BankReconciliationService
             $iban = ExternalRegistration::where('event_id', $pe->event_id)
                 ->whereNotNull('external_member_iban')
                 ->pluck('external_member_iban')
-                ->first(fn ($i) => $tx->counterparty && $this->normalizeIban($i) === $this->normalizeIban($tx->counterparty));
+                ->first(fn (string $i): bool => $tx->counterparty && $this->normalizeIban($i) === $this->normalizeIban($tx->counterparty));
         }
         if ($iban && $tx->counterparty && $this->normalizeIban($iban) === $this->normalizeIban($tx->counterparty)) {
             $score += 50;

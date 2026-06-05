@@ -14,11 +14,9 @@ class EnsureEmailVerified
         }
 
         // Force password change on first login
-        if (auth()->check() && auth()->user()->must_change_password) {
-            if (! $request->routeIs('profile.show', 'profile.update.password', 'logout')) {
-                return redirect()->route('profile.show', ['tab' => 'private'])
-                    ->with('warning', __('Please change your password before continuing.'));
-            }
+        if (auth()->check() && auth()->user()->must_change_password && ! $request->routeIs('profile.show', 'profile.update.password', 'logout')) {
+            return redirect()->route('profile.show', ['tab' => 'private'])
+                ->with('warning', __('Please change your password before continuing.'));
         }
 
         return $next($request);

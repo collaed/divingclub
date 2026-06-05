@@ -43,3 +43,4 @@ scripts/license-private.pem
 public/newsletter-*.html
 public/report.html
 bootstrap/cache/*.php
+.deptrac.cache

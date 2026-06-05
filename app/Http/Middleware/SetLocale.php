@@ -25,7 +25,7 @@ class SetLocale
         $stored = ThemeSetting::get('enabled_locales');
         if ($stored) {
             $decoded = json_decode($stored, true);
-            if (is_array($decoded) && ! empty($decoded)) {
+            if (is_array($decoded) && $decoded !== []) {
                 return $decoded;
             }
         }
@@ -42,7 +42,7 @@ class SetLocale
 
         return collect($all)
             ->only($enabled)
-            ->map(fn ($v) => $v['native'] ?? $v['label'])
+            ->map(fn ($v): mixed => $v['native'] ?? $v['label'])
             ->toArray();
     }
 

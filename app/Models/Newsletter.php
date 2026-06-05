@@ -63,12 +63,12 @@ class Newsletter extends Model
         $ids = collect($this->slots ?? [])->pluck('article_id')->filter()->unique();
         $articles = Article::with('translations', 'images')->whereIn('id', $ids)->get()->keyBy('id');
 
-        return collect($this->slots ?? [])->map(fn ($s) => [
+        return collect($this->slots ?? [])->map(fn ($s): array => [
             'position' => $s['position'],
             'article' => $articles->get($s['article_id']),
             'teaser' => $s['teaser'] ?? '',
             'custom_url' => $s['custom_url'] ?? '',
             'slug' => $s['slug'] ?? '',
-        ])->filter(fn ($s) => $s['article'])->keyBy('position')->toArray();
+        ])->filter(fn ($s): ?\stdClass => $s['article'])->keyBy('position')->toArray();
     }
 }

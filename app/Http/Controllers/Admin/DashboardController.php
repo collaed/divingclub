@@ -32,7 +32,7 @@ class DashboardController extends Controller
 
         $stats = [
             'total_members' => User::count(),
-            'members_by_status' => MemberStatus::withCount('users')->get()->map(fn ($s) => ['name' => $s->name, 'count' => $s->users_count]),
+            'members_by_status' => MemberStatus::withCount('users')->get()->map(fn ($s): array => ['name' => $s->name, 'count' => $s->users_count]),
             'new_members_this_year' => User::whereYear('created_at', $season)->count(),
             'events_count' => Event::whereYear('event_date', $season)->count(),
             'avg_attendance' => round(Event::whereYear('event_date', $season)->withCount('confirmedRegistrations')->get()->avg('confirmed_registrations_count') ?? 0, 1),
@@ -107,19 +107,19 @@ class DashboardController extends Controller
 
         $headers = ['Content-Type' => 'text/csv', 'Content-Disposition' => "attachment; filename={$type}-export.csv"];
 
-        $callback = function () use ($type) {
+        $callback = function () use ($type): void {
             $out = fopen('php://output', 'w');
 
             if ($type === 'members') {
                 fputcsv($out, ['ID', 'First Name', 'Last Name', 'Email', 'Status', 'Role', 'Cert Level', 'Member Since']);
-                User::with(['detail', 'status', 'roles'])->chunk(100, function ($users) use ($out) {
+                User::with(['detail', 'status', 'roles'])->chunk(100, function ($users) use ($out): void {
                     foreach ($users as $u) {
                         fputcsv($out, [$u->id, $u->detail?->first_name, $u->detail?->last_name, $u->primary_email, $u->status?->name, $u->roles->first()?->name ?? '—', $u->detail?->certification_level, $u->detail?->adhesion_year]);
                     }
                 });
             } elseif ($type === 'payments') {
                 fputcsv($out, ['ID', 'Member', 'Type', 'Amount Due', 'Amount Paid', 'Status', 'Communication']);
-                PaymentExpected::with('user.detail')->chunk(100, function ($payments) use ($out) {
+                PaymentExpected::with('user.detail')->chunk(100, function ($payments) use ($out): void {
                     foreach ($payments as $p) {
                         fputcsv($out, [$p->id, $p->user?->name, $p->type, $p->amount_due, $p->amount_paid, $p->status, $p->communication]);
                     }

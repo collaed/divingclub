@@ -28,7 +28,7 @@ class VoteController extends Controller
 
     public function store(Request $request): RedirectResponse|View
     {
-        $request->merge(['options' => array_values(array_filter($request->input('options', []), fn ($v) => trim($v) !== ''))]);
+        $request->merge(['options' => array_values(array_filter($request->input('options', []), fn ($v): bool => trim($v) !== ''))]);
 
         $v = $request->validate([
             'title' => 'required|string|max:255',
@@ -66,7 +66,7 @@ class VoteController extends Controller
     public function show(Vote $vote): RedirectResponse|View
     {
         $vote->load(['options.ballots', 'tokens']);
-        $results = $vote->options->map(fn ($o) => ['label' => $o->label, 'count' => $o->ballots->count()]);
+        $results = $vote->options->map(fn ($o): array => ['label' => $o->label, 'count' => $o->ballots->count()]);
 
         return view('admin.votes.show', compact('vote', 'results'));
     }

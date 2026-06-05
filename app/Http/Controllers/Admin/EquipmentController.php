@@ -28,7 +28,7 @@ class EquipmentController extends Controller
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->location, fn ($q, $l) => $q->where('location', $l))
             ->when($request->size, fn ($q, $s) => $q->where('name', 'ILIKE', "%{$s}%"))
-            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s) {
+            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s): void {
                 $w->where('name', 'ILIKE', "%{$s}%")
                     ->orWhere('serial_number', 'ILIKE', "%{$s}%")
                     ->orWhere('short_number', 'ILIKE', "%{$s}%")

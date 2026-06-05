@@ -24,25 +24,6 @@ class EnrichImportedEvents extends Command
 
     protected $description = 'Enrich imported calendar events with colors, responsible, max_participants based on type patterns';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Instructor & Responsible Person Mapping
-    |--------------------------------------------------------------------------
-    | Maps old system instructor names to new system user IDs. These are the
-    | club's regular instructors who typically lead specific activity types.
-    */
-
-    // Old system instructor IDs mapped to new system user IDs
-    private array $instructorMap = [
-        'Gilles Saleten' => 130,
-        'Lahoucen Ouzbad' => 119,
-        'Eric Richard' => 128,
-        'Michel Brochard' => 61,
-        'Pietro Giancola' => 91,
-        'Vincent Girard' => 92,
-        'Keran Chaussard' => 66,
-    ];
-
     // Color mapping — matches the calendar color scheme used in the old system
     private array $typeColors = [
         'pool' => '#0077be',

@@ -22,7 +22,7 @@ class PaymentController extends Controller
     {
         $query = PaymentExpected::with('user.detail')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
-            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s) {
+            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s): void {
                 $w->where('communication', 'ILIKE', "%{$s}%")
                     ->orWhereHas('user', fn ($uq) => $uq->where('primary_email', 'ILIKE', "%{$s}%")
                         ->orWhereHas('detail', fn ($dq) => $dq->where('last_name', 'ILIKE', "%{$s}%")

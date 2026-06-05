@@ -37,6 +37,7 @@
         "nunomaduro/phpinsights": "^2.0",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.0.1",
+        "qossmic/deptrac": "^2.0",
         "rector/rector": "*"
     },
     "autoload": {

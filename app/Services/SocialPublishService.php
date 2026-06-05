@@ -24,11 +24,7 @@ class SocialPublishService
             return false;
         }
 
-        if ($photo->uploader?->hasPublicPhotosBanned()) {
-            return false;
-        }
-
-        return true;
+        return ! $photo->uploader?->hasPublicPhotosBanned();
     }
 
     /**

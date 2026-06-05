@@ -47,7 +47,7 @@ class FederationApiController extends Controller
             ->where('status', 'published')
             ->orderBy('event_date')
             ->get()
-            ->map(fn (Event $e) => [
+            ->map(fn (Event $e): array => [
                 'id' => $e->id,
                 'title' => $e->title,
                 'event_date' => $e->event_date,

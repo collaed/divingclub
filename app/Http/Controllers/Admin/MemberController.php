@@ -23,7 +23,7 @@ class MemberController extends Controller
         if ($request->filled('search')) {
             $s = $request->search;
             $op = config('database.default') === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($s) {
+            $query->where(function ($q) use ($s): void {
                 $q->where('primary_email', 'ILIKE', "%$s%")
                     ->orWhere('username', 'ILIKE', "%$s%")
                     ->orWhereHas('detail', fn ($q2) => $q2->where('first_name', 'ILIKE', "%$s%")->orWhere('last_name', 'ILIKE', "%$s%"));

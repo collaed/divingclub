@@ -29,7 +29,7 @@ class GdprController extends Controller
             [
                 'granted' => $granted,
                 'granted_at' => $granted ? now() : null,
-                'revoked_at' => ! $granted ? now() : null,
+                'revoked_at' => $granted ? null : now(),
             ]
         );
 
@@ -48,7 +48,7 @@ class GdprController extends Controller
             'licences' => $user->licences->toArray(),
             'documents' => $user->documents->map(fn ($d) => $d->only(['category', 'original_filename', 'date_established', 'created_at']))->toArray(),
             'consents' => $user->gdprConsents->toArray(),
-            'event_registrations' => $user->eventRegistrations->map(fn ($r) => [
+            'event_registrations' => $user->eventRegistrations->map(fn ($r): array => [
                 'event' => $r->event?->title,
                 'event_date' => $r->event?->event_date?->format('Y-m-d'),
                 'status' => $r->status,

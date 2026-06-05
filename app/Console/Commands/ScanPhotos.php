@@ -31,7 +31,7 @@ class ScanPhotos extends Command
 
         $query = EventPhoto::query();
         if (! $force) {
-            $query->where(function ($q) use ($doFaces, $doQuality) {
+            $query->where(function ($q) use ($doFaces, $doQuality): void {
                 if ($doFaces) {
                     $q->orWhereNull('has_faces');
                 }

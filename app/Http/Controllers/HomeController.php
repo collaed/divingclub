@@ -35,7 +35,7 @@ class HomeController extends Controller
         $user = auth()->user();
 
         // Load data for each enabled + visible widget
-        $widgets = collect($layout)->map(function ($w) use ($user) {
+        $widgets = collect($layout)->map(function (array $w) use ($user): array {
             if (! ($w['enabled'] ?? false)) {
                 return $w;
             }
@@ -58,7 +58,7 @@ class HomeController extends Controller
     {
         $slugs = ['values', 'history', 'bureau', 'member-figures', 'instructors'];
         $sections = Article::whereIn('slug', $slugs)->where('is_published', true)
-            ->get()->sortBy(fn ($a) => array_search($a->slug, $slugs))->values();
+            ->get()->sortBy(fn ($a): false|int => array_search($a->slug, $slugs))->values();
 
         $photos = EventPhoto::where('quality_score', '>=', 85)
             ->where('has_faces', false)->inRandomOrder()->limit(6)->pluck('path');
@@ -80,7 +80,7 @@ class HomeController extends Controller
             ->get();
 
         // Live member stats for the member-figures section
-        $memberStats = self::memberStats();
+        $memberStats = $this->memberStats();
 
         return view('home2', compact('sections', 'photos', 'events', 'memberStats', 'instructors', 'bureauMembers'))
             ->with('theme', ThemeService::settings());
@@ -107,7 +107,7 @@ class HomeController extends Controller
 
         // Live member statistics charts
         if ($slug === 'member-figures') {
-            $extra['memberStats'] = self::memberStats();
+            $extra['memberStats'] = $this->memberStats();
         }
 
         // Auto-translate: generate user's locale if missing, and refresh any stale translations
@@ -139,7 +139,7 @@ class HomeController extends Controller
             ->orderBy('event_date')->limit(50)->get()
             ->unique(fn ($e) => mb_strtolower($e->title))
             ->take(4)->values();
-        $stats = self::memberStats();
+        $stats = $this->memberStats();
         /** @phpstan-ignore-next-line */
         $faces = MemberDetail::whereHas('user', fn (Builder $q) => $q->role(['bureau_master', 'bureau_technical', 'bureau_finance', 'instructor']))
             ->whereHas('user.documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
@@ -175,9 +175,9 @@ class HomeController extends Controller
     }
 
     /** Cached member statistics used by index2() and member-figures article. */
-    private static function memberStats(): array
+    private function memberStats(): array
     {
-        return Cache::remember('member_stats', 3600, function () {
+        return Cache::remember('member_stats', 3600, function (): array {
             // Only count active members (paid current season or event in last 18mo)
             $currentYear = (string) (now()->month >= 9 ? now()->year + 1 : now()->year);
             $cutoff = now()->subMonths(18)->format('Y-m-d');
@@ -187,9 +187,9 @@ class HomeController extends Controller
                 'total' => $details->count(),
                 'gender' => $details->groupBy('sex')->map->count()->sortDesc(),
                 'age' => $details->filter(fn (MemberDetail $d) => $d->date_of_birth)
-                    ->groupBy(fn (MemberDetail $d) => (int) floor($d->date_of_birth->age / 10) * 10)
+                    ->groupBy(fn (MemberDetail $d): int => (int) floor($d->date_of_birth->age / 10) * 10)
                     ->map->count()->sortKeys()
-                    ->mapWithKeys(fn ($v, $k) => [$k.'-'.($k + 9) => $v]),
+                    ->mapWithKeys(fn ($v, $k): array => [$k.'-'.($k + 9) => $v]),
                 'certification' => $details->filter(fn (MemberDetail $d) => $d->certification_level)
                     ->groupBy('certification_level')->map->count()->sortDesc()->take(12),
                 'nationality' => $details->filter(fn (MemberDetail $d) => $d->nationality)

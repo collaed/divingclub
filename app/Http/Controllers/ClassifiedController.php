@@ -19,7 +19,7 @@ class ClassifiedController extends Controller
         $classifieds = Article::where('article_type', 'classified')
             ->active()->where('is_published', true)
             ->with('author.detail')
-            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s) {
+            ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s): void {
                 $w->where('title', 'ILIKE', "%{$s}%")
                     ->orWhere('body', 'ILIKE', "%{$s}%");
             }))

@@ -45,7 +45,7 @@ class SendEquipmentReminders implements ShouldQueue
             ->where('loaned_at', '<', now()->subDays($thresholdDays))
             ->whereNull('reminder_sent_at')
             ->with(['user', 'equipment'])
-            ->each(function ($loan) {
+            ->each(function ($loan): void {
                 app(PushNotificationService::class)->sendToBureau(
                     __('Long Equipment Loan'),
                     __(':item loaned to :name on :date', [

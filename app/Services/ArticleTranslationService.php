@@ -123,7 +123,7 @@ class ArticleTranslationService
 
         return $article->translations()
             ->where('auto_translated', true)
-            ->where(function ($q) use ($currentHash) {
+            ->where(function ($q) use ($currentHash): void {
                 $q->where('source_hash', '!=', $currentHash)
                     ->orWhereNull('source_hash');
             })
@@ -136,19 +136,19 @@ class ArticleTranslationService
         if (mb_strlen($text) > 4500) {
             return $this->googleTranslateChunked($text, $from, $to);
         }
-        if (empty(trim(strip_tags($text)))) {
+        if (in_array(trim(strip_tags($text)), ['', '0'], true)) {
             return $text;
         }
 
         $placeholders = [];
-        $escaped = preg_replace_callback('/\{\{[^}]+\}\}/', function ($m) use (&$placeholders) {
+        $escaped = preg_replace_callback('/\{\{[^}]+\}\}/', function ($m) use (&$placeholders): string {
             $key = '⟦TK'.count($placeholders).'⟧';
             $placeholders[$key] = $m[0];
 
             return $key;
         }, $text);
 
-        $escaped = preg_replace_callback('/<(img|video|iframe|source|hr|br)\b[^>]*\/?>/i', function ($m) use (&$placeholders) {
+        $escaped = preg_replace_callback('/<(img|video|iframe|source|hr|br)\b[^>]*\/?>/i', function ($m) use (&$placeholders): string {
             $key = '⟦TK'.count($placeholders).'⟧';
             $placeholders[$key] = $m[0];
 

@@ -1,0 +1,72 @@
+deptrac:
+  paths:
+    - app/
+
+  layers:
+    - name: Controllers
+      collectors:
+        - type: directory
+          value: app/Http/Controllers/.*
+
+    - name: Models
+      collectors:
+        - type: directory
+          value: app/Models/.*
+
+    - name: Services
+      collectors:
+        - type: directory
+          value: app/Services/.*
+
+    - name: Jobs
+      collectors:
+        - type: directory
+          value: app/Jobs/.*
+
+    - name: Middleware
+      collectors:
+        - type: directory
+          value: app/Http/Middleware/.*
+
+    - name: Requests
+      collectors:
+        - type: directory
+          value: app/Http/Requests/.*
+
+    - name: Helpers
+      collectors:
+        - type: directory
+          value: app/Helpers/.*
+
+  ruleset:
+    Controllers:
+      - Models
+      - Services
+      - Requests
+      - Helpers
+      - Jobs
+
+    Services:
+      - Models
+      - Services
+      - Helpers
+
+    Jobs:
+      - Models
+      - Services
+      - Helpers
+
+    Models:
+      - Models
+      - Helpers
+
+    Middleware:
+      - Models
+      - Services
+      - Helpers
+
+    Requests:
+      - Models
+
+    Helpers:
+      - Models

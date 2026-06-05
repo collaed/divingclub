@@ -73,7 +73,7 @@ class ImageQualityService
         $exposureScore = max(0, min(20, $exposureScore));
 
         // Also penalize if >25% of pixels are clipped (pure black/white)
-        $clipped = count(array_filter($luminances, fn ($l) => $l < 10 || $l > 245));
+        $clipped = count(array_filter($luminances, fn (float $l): bool => $l < 10 || $l > 245));
         $clipRatio = $clipped / count($luminances);
         if ($clipRatio > 0.25) {
             $exposureScore = (int) ($exposureScore * (1 - $clipRatio));
@@ -85,7 +85,7 @@ class ImageQualityService
         $satScore = min(20, (int) ($meanSat / 0.4 * 20));
 
         // 4. Contrast — std deviation of luminance (0-15 pts)
-        $lumVariance = array_sum(array_map(fn ($l) => ($l - $meanLum) ** 2, $luminances)) / count($luminances);
+        $lumVariance = array_sum(array_map(fn (float $l): float => ($l - $meanLum) ** 2, $luminances)) / count($luminances);
         $lumStdDev = sqrt($lumVariance);
         // Good contrast: stddev 40-80
         $contrastScore = min(15, (int) ($lumStdDev / 60 * 15));
@@ -127,13 +127,13 @@ class ImageQualityService
             }
         }
 
-        if (empty($values)) {
+        if ($values === []) {
             return 0;
         }
 
         $mean = array_sum($values) / count($values);
 
-        return array_sum(array_map(fn ($v) => ($v - $mean) ** 2, $values)) / count($values);
+        return array_sum(array_map(fn ($v): float|int => ($v - $mean) ** 2, $values)) / count($values);
     }
 
     private function loadImage(string $path, int $type): ?\GdImage

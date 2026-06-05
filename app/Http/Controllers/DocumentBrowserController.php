@@ -97,7 +97,7 @@ class DocumentBrowserController extends Controller
         $query = LibraryFile::visibleTo($user);
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search): void {
                 $q->where('original_name', 'ILIKE', "%{$search}%")
                     ->orWhere('description', 'ILIKE', "%{$search}%");
             });
@@ -122,7 +122,7 @@ class DocumentBrowserController extends Controller
 
         $canManage = LibraryFile::canManage($user);
 
-        $subfolders = $folders->filter(function ($f) use ($folder) {
+        $subfolders = $folders->filter(function ($f) use ($folder): bool {
             if (! $folder || $f === $folder) {
                 return false;
             }

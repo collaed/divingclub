@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // Polyfill for mb_split — missing from Wasmer PHP WASI (no mbregex)
 if (! function_exists('mb_split')) {
     function mb_split(string $pattern, string $string, int $limit = -1): array|false

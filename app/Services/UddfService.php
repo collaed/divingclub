@@ -40,7 +40,6 @@ class UddfService
     public function parse(string $xmlContent): array
     {
         $xml = new SimpleXMLElement($xmlContent);
-        $ns = $xml->getNamespaces(true);
 
         $result = ['dives' => [], 'divers' => [], 'sites' => []];
 
@@ -148,8 +147,9 @@ class UddfService
     {
         $timeAt3to6 = 0;
         $ascending = false;
+        $counter = count($samples);
 
-        for ($i = 1; $i < count($samples); $i++) {
+        for ($i = 1; $i < $counter; $i++) {
             if ($samples[$i]['depth'] < $samples[$i - 1]['depth']) {
                 $ascending = true;
             }

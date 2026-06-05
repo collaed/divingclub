@@ -16,7 +16,7 @@ class EnsureInstalled
             return $next($request);
         }
 
-        $installed = Cache::remember('app_installed', 3600, function () {
+        $installed = Cache::remember('app_installed', 3600, function (): bool {
             try {
                 return Schema::hasTable('users') && User::count() > 0;
             } catch (\Exception) {

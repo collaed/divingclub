@@ -21,7 +21,7 @@ class MembersDirectoryController extends Controller
         // Text search
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->whereHas('detail', fn ($q) => $q->where(function ($w) use ($s) {
+            $query->whereHas('detail', fn ($q) => $q->where(function ($w) use ($s): void {
                 $w->whereRaw('LOWER(first_name) like ?', ['%'.strtolower($s).'%'])
                     ->orWhereRaw('LOWER(last_name) like ?', ['%'.strtolower($s).'%']);
             }));

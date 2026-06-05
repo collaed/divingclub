@@ -105,13 +105,13 @@ class OcrMedicalCert implements ShouldQueue
             }
         }
 
-        if (empty($dates)) {
+        if ($dates === []) {
             return null;
         }
 
         // Pick the most recent date that's not in the future
         $today = date('Y-m-d');
-        $valid = array_filter($dates, fn ($d) => $d <= $today);
+        $valid = array_filter($dates, fn ($d): bool => $d <= $today);
 
         return $valid ? max($valid) : null;
     }
