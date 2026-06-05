@@ -12,12 +12,11 @@ use App\Models\User;
 use App\Services\MedicalComplianceService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
-/**
- * @group p0
- */
+#[Group('p0')]
 class MedicalComplianceServiceTest extends TestCase
 {
     use RefreshDatabase;

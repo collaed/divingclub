@@ -7,11 +7,10 @@ use App\Models\MemberStatus;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class FederationVisibilityTest extends TestCase
 {
     use RefreshDatabase;

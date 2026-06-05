@@ -9,12 +9,11 @@ use App\Models\MemberStatus;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class EquipmentLoanTest extends TestCase
 {
     use RefreshDatabase;

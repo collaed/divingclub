@@ -11,12 +11,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Group;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
-/**
- * @group p0
- */
+#[Group('p0')]
 class CriticalPathsTest extends TestCase
 {
     use RefreshDatabase;

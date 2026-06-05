@@ -4,11 +4,10 @@ namespace Tests\Unit;
 
 use App\Models\Event;
 use Carbon\Carbon;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class EventModelTest extends TestCase
 {
     public function test_type_color_returns_custom_hex_when_set(): void

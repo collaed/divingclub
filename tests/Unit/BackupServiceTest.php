@@ -3,12 +3,11 @@
 namespace Tests\Unit;
 
 use App\Services\BackupService;
+use PHPUnit\Framework\Attributes\Group;
 use ReflectionMethod;
 use Tests\TestCase;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class BackupServiceTest extends TestCase
 {
     public function test_human_size_bytes(): void

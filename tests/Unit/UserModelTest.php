@@ -5,11 +5,10 @@ namespace Tests\Unit;
 use App\Models\MemberDetail;
 use App\Models\User;
 use Carbon\Carbon;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
-/**
- * @group p0
- */
+#[Group('p0')]
 class UserModelTest extends TestCase
 {
     public function test_name_returns_full_name_when_detail_exists(): void

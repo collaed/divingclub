@@ -9,12 +9,11 @@ use App\Models\MemberStatus;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
-/**
- * @group p0
- */
+#[Group('p0')]
 class EventRegistrationWorkflowTest extends TestCase
 {
     use RefreshDatabase;

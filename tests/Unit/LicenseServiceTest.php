@@ -6,9 +6,7 @@ use App\Services\LicenseService;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class LicenseServiceTest extends TestCase
 {
     public function test_verify_rejects_empty_string(): void

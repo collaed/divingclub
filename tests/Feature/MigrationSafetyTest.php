@@ -4,16 +4,16 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-/**
- * @group p0
- */
+#[Group('p0')]
 class MigrationSafetyTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function all_migrations_run_without_error(): void
     {
         // RefreshDatabase already ran them — verify key tables exist
@@ -32,7 +32,7 @@ class MigrationSafetyTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function users_table_has_required_columns(): void
     {
         $required = ['id', 'username', 'primary_email', 'password', 'role_id', 'status_id', 'email_verified_at'];
@@ -42,7 +42,7 @@ class MigrationSafetyTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function member_details_has_privacy_fields(): void
     {
         $fields = ['first_name', 'last_name', 'date_of_birth', 'phone_mobile', 'emergency_contact_name', 'emergency_contact_phone', 'avatar_path'];
@@ -52,7 +52,7 @@ class MigrationSafetyTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function member_licences_has_federation_fields(): void
     {
         $fields = ['user_id', 'federation_id', 'licence_number', 'licence_request_date', 'licence_request_pending', 'medical_cert_expiry', 'season'];
@@ -62,13 +62,13 @@ class MigrationSafetyTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function documents_table_supports_soft_deletes(): void
     {
         $this->assertTrue(Schema::hasColumn('documents', 'deleted_at'), 'Documents must support soft deletes for GDPR');
     }
 
-    /** @test */
+    #[Test]
     public function payment_expected_has_financial_columns(): void
     {
         $fields = ['user_id', 'event_id', 'amount_due', 'amount_paid', 'status', 'communication'];
@@ -78,7 +78,7 @@ class MigrationSafetyTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function medical_compliance_rules_exist(): void
     {
         $this->assertTrue(Schema::hasTable('medical_compliance_rules'));
@@ -89,7 +89,7 @@ class MigrationSafetyTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function season_patterns_has_template_fields(): void
     {
         $fields = ['season_id', 'day_of_week', 'start_time', 'title', 'event_type', 'description', 'estimated_cost'];

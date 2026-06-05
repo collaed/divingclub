@@ -11,12 +11,11 @@ use App\Models\VoteBallot;
 use App\Models\VoteOption;
 use App\Models\VoteToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class VoteWorkflowTest extends TestCase
 {
     use RefreshDatabase;

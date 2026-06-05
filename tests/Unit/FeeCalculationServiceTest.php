@@ -5,11 +5,10 @@ namespace Tests\Unit;
 use App\Models\MemberDetail;
 use App\Models\User;
 use App\Services\FeeCalculationService;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
-/**
- * @group p0
- */
+#[Group('p0')]
 class FeeCalculationServiceTest extends TestCase
 {
     public function test_build_communication_format(): void

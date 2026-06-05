@@ -3,11 +3,10 @@
 namespace Tests\Unit;
 
 use App\Models\DiveGroupRule;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class DiveGroupRuleTest extends TestCase
 {
     public function test_matches_diver_no_cert(): void

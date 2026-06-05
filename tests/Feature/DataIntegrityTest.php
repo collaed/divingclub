@@ -14,12 +14,12 @@ use App\Models\User;
 use App\Services\FeeCalculationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
-/**
- * @group p0
- */
+#[Group('p0')]
 class DataIntegrityTest extends TestCase
 {
     use RefreshDatabase;
@@ -68,7 +68,7 @@ class DataIntegrityTest extends TestCase
 
     // ── GDPR Export Completeness ──
 
-    /** @test */
+    #[Test]
     public function gdpr_export_contains_all_personal_data(): void
     {
         $user = $this->createMember();
@@ -96,7 +96,7 @@ class DataIntegrityTest extends TestCase
 
     // ── GDPR Erasure Anonymizes Completely ──
 
-    /** @test */
+    #[Test]
     public function gdpr_erasure_anonymizes_all_personal_fields(): void
     {
         $user = $this->createMember();
@@ -117,7 +117,7 @@ class DataIntegrityTest extends TestCase
         $this->assertNull($user->password);
     }
 
-    /** @test */
+    #[Test]
     public function gdpr_erasure_deletes_documents(): void
     {
         $user = $this->createMember();
@@ -133,7 +133,7 @@ class DataIntegrityTest extends TestCase
 
     // ── Member Delete Cascades ──
 
-    /** @test */
+    #[Test]
     public function deleting_user_does_not_orphan_registrations(): void
     {
         $user = $this->createMember();
@@ -160,7 +160,7 @@ class DataIntegrityTest extends TestCase
 
     // ── Fee Calculation Determinism ──
 
-    /** @test */
+    #[Test]
     public function fee_calculation_is_deterministic(): void
     {
         if (! class_exists(FeeCalculationService::class)) {
@@ -180,7 +180,7 @@ class DataIntegrityTest extends TestCase
 
     // ── Licence Preservation During Profile Update ──
 
-    /** @test */
+    #[Test]
     public function profile_update_does_not_affect_licences(): void
     {
         $user = $this->createMember();
@@ -206,7 +206,7 @@ class DataIntegrityTest extends TestCase
 
     // ── Payment Integrity ──
 
-    /** @test */
+    #[Test]
     public function paid_payment_cannot_be_deleted_by_cancel(): void
     {
         $user = $this->createMember();
@@ -236,7 +236,7 @@ class DataIntegrityTest extends TestCase
 
     // ── Concurrent Registration Safety ──
 
-    /** @test */
+    #[Test]
     public function double_registration_does_not_create_duplicate(): void
     {
         $user = $this->createMember();

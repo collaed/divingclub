@@ -4,11 +4,10 @@ namespace Tests\Unit;
 
 use App\Models\Document;
 use Carbon\Carbon;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class DocumentModelTest extends TestCase
 {
     public function test_is_expired_when_past(): void

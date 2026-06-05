@@ -3,11 +3,10 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class TrialRequestTest extends TestCase
 {
     use RefreshDatabase;

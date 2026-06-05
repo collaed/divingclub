@@ -9,9 +9,7 @@ use App\Services\Homogeneity\HomogeneityAssessmentService;
 use App\Services\Homogeneity\HomogeneityPolicy;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group p2
- */
+#[Group('p2')]
 class HomogeneityAssessmentServiceTest extends TestCase
 {
     private HomogeneityAssessmentService $service;

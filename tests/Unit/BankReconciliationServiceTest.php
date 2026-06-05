@@ -6,9 +6,7 @@ use App\Services\BankReconciliationService;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
-/**
- * @group p1
- */
+#[Group('p1')]
 class BankReconciliationServiceTest extends TestCase
 {
     private BankReconciliationService $service;
