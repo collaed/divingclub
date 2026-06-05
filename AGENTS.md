@@ -237,6 +237,35 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - If you have modified any PHP files, you must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
 - Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
 
+=== static analysis rules ===
+
+# Static Analysis (PHPStan, Rector, Deptrac)
+
+## PHPStan (Level 6)
+
+- After modifying PHP files, run `vendor/bin/phpstan analyse --memory-limit=512M --no-progress` and ensure zero errors.
+- All new code must satisfy PHPStan level 6: explicit return types, parameter types, and no type mismatches.
+- Do not lower the PHPStan level or add broad ignoreErrors entries without approval.
+
+## Rector
+
+- Configuration is in `rector.php`. Rector enforces `declare(strict_types=1)`, typed closures, dead code removal, and PHP 8.3 idioms.
+- All new PHP files in `app/` must include `declare(strict_types=1)` at the top.
+- Do not use `compact()` in new code — pass variables explicitly to views: `return view('x', ['a' => $a])`.
+- Avoid unused variables, unreachable code, and redundant if/return patterns.
+
+## Deptrac (Architectural Boundaries)
+
+- Configuration is in `deptrac.yaml`. It enforces layer separation.
+- **Controllers** may depend on: Models, Services, Requests, Helpers, Jobs.
+- **Services** may depend on: Models, other Services, Helpers.
+- **Jobs** may depend on: Models, Services, Helpers.
+- **Models** may depend on: other Models, Helpers.
+- **Middleware** may depend on: Models, Services, Helpers.
+- **Helpers** may depend on: Models.
+- Never import Controllers from Services, Jobs, or Models. Never import Middleware from Jobs.
+- Run `vendor/bin/deptrac analyse --no-progress` to verify if you are unsure about a dependency direction.
+
 === phpunit/core rules ===
 
 # PHPUnit
