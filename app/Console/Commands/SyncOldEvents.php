@@ -420,6 +420,57 @@ class SyncOldEvents extends Command
                 $changed = true;
             }
 
+            // Sex
+            if (! $d->sex && ! empty($m['cb_sexe'])) {
+                $sex = match (mb_strtolower($m['cb_sexe'])) {
+                    'homme' => 'M', 'femme' => 'F', default => null,
+                };
+                if ($sex) {
+                    $d->sex = $sex;
+                    $changed = true;
+                }
+            }
+
+            // Phone mobile
+            if (! $d->phone_mobile && ! empty($m['cb_telgsm'])) {
+                $d->phone_mobile = $m['cb_telgsm'];
+                $changed = true;
+            }
+
+            // Address
+            if (! $d->address_line1 && ! empty($m['cb_addpriv'])) {
+                $d->address_line1 = $m['cb_addpriv'];
+                $changed = true;
+            }
+
+            // Emergency contact
+            if (! $d->emergency_contact_name && ! empty($m['cb_peracc'])) {
+                $parts = preg_split('/\s+(?=[\d+])/', trim($m['cb_peracc']), 2);
+                $d->emergency_contact_name = $parts[0] ?? $m['cb_peracc'];
+                if (! $d->emergency_contact_phone && isset($parts[1])) {
+                    $d->emergency_contact_phone = $parts[1];
+                }
+                $changed = true;
+            }
+
+            // Certification level
+            if (! $d->certification_level && ! empty($m['cb_niveauffessm'])) {
+                $d->certification_level = $m['cb_niveauffessm'];
+                $changed = true;
+            }
+
+            // Dive count
+            if (! $d->dive_count && ! empty($m['cb_nbrplon2'])) {
+                $d->dive_count = $m['cb_nbrplon2'];
+                $changed = true;
+            }
+
+            // Place of birth
+            if (! $d->place_of_birth && ! empty($m['cb_lieunaiss'])) {
+                $d->place_of_birth = $m['cb_lieunaiss'];
+                $changed = true;
+            }
+
             // Adhesion year
             if (! $d->adhesion_year) {
                 if (! empty($m['cb_adhsioncep'])) {
