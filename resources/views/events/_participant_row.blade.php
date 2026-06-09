@@ -1,20 +1,24 @@
 <!-- Participant row partial: cert level badge, medical status, audit trail, proxy cancel | ClubCEP.eu -->
 @php
-    $d = $reg->user->detail;
+    $isNonMember = $reg->isNonMember();
+    $d = $isNonMember ? null : $reg->user->detail;
     $cert = $d?->certification_level ?? '';
-    $med = app(\App\Services\MedicalComplianceService::class)->getStatus($reg->user, $event->event_date);
+    $med = $isNonMember ? ['status' => 'n/a', 'badge' => 'secondary', 'label' => 'N/A'] : app(\App\Services\MedicalComplianceService::class)->getStatus($reg->user, $event->event_date);
     $isCancelled = $reg->status === 'cancelled';
-    $medInvalid = !$isCancelled && in_array($med['status'], ['missing', 'expired']);
+    $medInvalid = !$isCancelled && !$isNonMember && in_array($med['status'], ['missing', 'expired']);
 @endphp
 <li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid rgba(var(--bs-emphasis-color-rgb), 0.15);">
     <div class="d-flex justify-content-between align-items-start">
         <div>
-            @if($isPrivileged)
+            @if($isNonMember)
+                <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->non_member_name }}</span>
+                <span class="badge bg-secondary" style="font-size:0.6rem">{{ __('non-member') }}</span>
+            @elseif($isPrivileged)
                 <a href="{{ route('admin.profile.show', $reg->user) }}" class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</a>
             @else
                 <span class="{{ $isCancelled ? 'text-muted' : '' }}">{{ $reg->user->name }}</span>
             @endif
-            @if($isPrivileged && !$isCancelled)
+            @if($isPrivileged && !$isCancelled && !$isNonMember)
                 <a href="{{ route('admin.profile.show', $reg->user) }}?tab=equipment" class="ms-1" title="{{ __('Equipment') }}" style="font-size:0.7rem;text-decoration:none">🔧</a>
             @endif
             @if($cert && ($event->levels_display || $isPrivileged))
@@ -71,10 +75,14 @@
     @endif
     {{-- Cancel button for privileged users --}}
     @auth
-        @if(!$isCancelled && $isPrivileged && $reg->user_id !== auth()->id())
-            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" class="mt-1" data-confirm="{{ __('Unregister :name?', ['name' => $reg->user->name]) }}" data-confirm-style="warning" data-confirm-btn="{{ __('Confirm') }}">
+        @if(!$isCancelled && $isPrivileged && ($isNonMember || $reg->user_id !== auth()->id()))
+            <form method="POST" action="{{ route('events.cancel-registration', $event) }}" class="mt-1" data-confirm="{{ __('Unregister :name?', ['name' => $reg->participantName()]) }}" data-confirm-style="warning" data-confirm-btn="{{ __('Confirm') }}">
                 @csrf
-                <input type="hidden" name="user_id" value="{{ $reg->user_id }}">
+                @if($isNonMember)
+                    <input type="hidden" name="registration_id" value="{{ $reg->id }}">
+                @else
+                    <input type="hidden" name="user_id" value="{{ $reg->user_id }}">
+                @endif
                 <div class="input-group input-group-sm">
                     <input type="text" name="cancel_comment" class="form-control" placeholder="{{ __('Reason') }}" style="font-size:0.7rem">
                     <button class="btn btn-danger btn-sm" style="font-size:0.7rem">✗</button>

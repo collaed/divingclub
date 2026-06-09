@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $joomla_inscription_id
  * @property int|null $event_id
  * @property int|null $user_id
+ * @property string|null $non_member_name
  * @property string|null $status
  * @property string|null $comment
  * @property string|null $registered_by
@@ -46,7 +47,7 @@ class EventRegistration extends Model
     use Auditable;
 
     protected $fillable = [
-        'joomla_inscription_id', 'event_id', 'user_id', 'status', 'comment',
+        'joomla_inscription_id', 'event_id', 'user_id', 'non_member_name', 'status', 'comment',
         'transit_mode', 'registered_by', 'waiting_list_position',
         'cancelled_at', 'cancelled_by', 'cancel_comment',
         'checked_in_at', 'checked_out_at', 'checked_in_by',
@@ -62,6 +63,18 @@ class EventRegistration extends Model
     }
 
     // ─── Relationships ────────────────────────────────────────
+
+    /** Display name: user name or non-member name. */
+    public function participantName(): string
+    {
+        return $this->user?->name ?? $this->non_member_name ?? __('Unknown');
+    }
+
+    /** Whether this registration is for a non-member (companion). */
+    public function isNonMember(): bool
+    {
+        return $this->user_id === null && $this->non_member_name !== null;
+    }
 
     /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo

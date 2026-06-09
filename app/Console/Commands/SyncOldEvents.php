@@ -219,6 +219,32 @@ class SyncOldEvents extends Command
             }
         }
 
+        // Non-member (companion) registration — no userid and no email match
+        if (! $userId && $name && ! ($i['userid'] ?? null)) {
+            $isCancelled = ! empty($i['dat_desinsc']) && $i['dat_desinsc'] !== '0000-00-00 00:00:00';
+
+            // Find who registered them
+            $registeredBy = null;
+            if ($i['autreid_insc'] ?? null) {
+                $registeredBy = $memberMap[mb_strtolower(trim($i['autreid_insc_name'] ?? ''))] ?? null;
+            }
+
+            EventRegistration::updateOrCreate(
+                ['event_id' => $event->id, 'non_member_name' => $name, 'user_id' => null],
+                [
+                    'joomla_inscription_id' => (int) ($i['cp'] ?? $i['id'] ?? 0),
+                    'status' => $isCancelled ? 'cancelled' : 'confirmed',
+                    'comment' => $i['com_insc'] ?: null,
+                    'registered_by' => $registeredBy,
+                    'created_at' => $i['dat_insc'] ? Carbon::parse($i['dat_insc']) : now(),
+                ]
+            );
+
+            $this->syncedRegs++;
+
+            return;
+        }
+
         if (! $userId) {
             $this->skippedRegs++;
             Log::info("SyncOldEvents: no match for '{$name}' (joomla uid={$i['userid']})");
@@ -443,7 +469,12 @@ class SyncOldEvents extends Command
     private function syncMedicalCerts(): void
     {
         $url = str_replace('api_sync.php', 'api_scancards.php', $this->apiUrl);
-        $since = now()->subDays(30)->format('Y-m-d');
+
+        // Use last sync date minus margin, or all time for initial sync
+        $lastSync = DB::table('theme_settings')->where('key', 'joomla_last_sync')->value('value');
+        $since = $lastSync
+            ? Carbon::parse($lastSync)->subDays(60)->format('Y-m-d')
+            : '2000-01-01';
 
         try {
             $response = Http::timeout(30)->withHeaders(['X-Sync-Key' => $this->apiKey])
@@ -464,12 +495,30 @@ class SyncOldEvents extends Command
                 continue;
             }
 
-            if (! preg_match('/^(.+?)\s+(\d+)\.(pdf|jpg|jpeg|png)$/i', $f['name'], $m)) {
+            // Filename: "Firstname LASTNAME 123.ext" — number is the joomla member id
+            if (! preg_match('/^(.+?)\s+(\d+)\.(pdf|jpg|jpeg|png|tif|tiff)$/i', $f['name'], $m)) {
                 continue;
             }
 
-            $parts = preg_split('/\s+/', trim($m[1]), 2);
-            $user = User::whereHas('detail', fn ($q) => $q->whereRaw('LOWER(first_name) = ?', [mb_strtolower($parts[0] ?? '')])->whereRaw('LOWER(last_name) = ?', [mb_strtolower($parts[1] ?? '')]))->first();
+            $fullName = trim($m[1]);
+
+            // Try matching by full name (case-insensitive)
+            $nameLower = mb_strtolower($fullName);
+            $user = User::whereHas('detail', function ($q) use ($nameLower): void {
+                $q->whereRaw('LOWER(CONCAT(first_name, \' \', last_name)) = ?', [$nameLower]);
+            })->first();
+
+            // Fallback: try reversed or partial matches
+            if (! $user) {
+                $parts = preg_split('/\s+/', $fullName, 2);
+                if (count($parts) === 2) {
+                    $user = User::whereHas('detail', fn ($q) => $q->whereRaw('LOWER(first_name) = ?', [mb_strtolower($parts[0])])->whereRaw('LOWER(last_name) = ?', [mb_strtolower($parts[1])]))->first();
+                    if (! $user) {
+                        $user = User::whereHas('detail', fn ($q) => $q->whereRaw('LOWER(first_name) = ?', [mb_strtolower($parts[1])])->whereRaw('LOWER(last_name) = ?', [mb_strtolower($parts[0])]))->first();
+                    }
+                }
+            }
+
             if (! $user) {
                 continue;
             }

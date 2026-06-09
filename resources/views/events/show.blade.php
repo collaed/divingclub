@@ -214,20 +214,62 @@
                         {{-- Register another person (bureau can always do this) --}}
                         @if(($event->isRegistrationOpen() || $isPrivileged) && $members->count())
                             <hr>
-                            <form method="POST" action="{{ route('events.register', $event) }}">
+                            <form method="POST" action="{{ route('events.register', $event) }}" id="register-other-form">
                                 @csrf
                                 <label class="form-label small fw-bold">{{ __('Register another person') }}</label>
-                                <select name="user_id" class="form-select form-select-sm mb-2" required>
-                                    <option value="">{{ __('Select member…') }}</option>
-                                    @foreach($members as $m)
-                                        @if(!$event->registrations->where('user_id', $m->id)->whereIn('status', ['confirmed','waiting'])->count())
-                                            <option value="{{ $m->id }}">{{ $m->name }}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
+                                <input type="hidden" name="user_id" id="register-user-id" value="">
+                                <input type="hidden" name="non_member_name" id="register-non-member-name" value="">
+                                <div class="position-relative mb-2">
+                                    <input type="text" id="register-combo" class="form-select form-select-sm" placeholder="{{ __('Type name or select member…') }}" autocomplete="off" required>
+                                    <div id="register-combo-dropdown" class="dropdown-menu w-100" style="max-height:200px;overflow-y:auto;font-size:0.85rem"></div>
+                                </div>
+                                @if($isPrivileged)
+                                    <div class="form-text small text-muted mb-2">{{ __('Type a name not in the list to register a non-member.') }}</div>
+                                @endif
                                 <input type="text" name="comment" class="form-control form-control-sm mb-2" placeholder="{{ __('Comment (optional)') }}">
                                 <button class="btn btn-outline-primary btn-sm w-100">{{ __('Register') }}</button>
                             </form>
+                            <script>
+                            (function() {
+                                const members = @json($members->reject(fn($m) => $event->registrations->where('user_id', $m->id)->whereIn('status', ['confirmed','waiting'])->count())->map(fn($m) => ['id' => $m->id, 'name' => $m->name])->values());
+                                const input = document.getElementById('register-combo');
+                                const dropdown = document.getElementById('register-combo-dropdown');
+                                const userIdField = document.getElementById('register-user-id');
+                                const nonMemberField = document.getElementById('register-non-member-name');
+                                const isPrivileged = {{ $isPrivileged ? 'true' : 'false' }};
+
+                                function render(filter) {
+                                    const f = filter.toLowerCase();
+                                    const matches = f ? members.filter(m => m.name.toLowerCase().includes(f)).slice(0, 15) : members.slice(0, 15);
+                                    let html = matches.map(m => `<button type="button" class="dropdown-item" data-id="${m.id}">${m.name}</button>`).join('');
+                                    if (isPrivileged && f && !matches.find(m => m.name.toLowerCase() === f)) {
+                                        html += `<button type="button" class="dropdown-item text-primary fw-bold" data-non-member="1">➕ ${filter} ({{ __('non-member') }})</button>`;
+                                    }
+                                    dropdown.innerHTML = html;
+                                    dropdown.classList.toggle('show', html.length > 0);
+                                }
+
+                                input.addEventListener('focus', () => render(input.value));
+                                input.addEventListener('input', () => { userIdField.value = ''; nonMemberField.value = ''; render(input.value); });
+                                dropdown.addEventListener('click', function(e) {
+                                    const btn = e.target.closest('[data-id],[data-non-member]');
+                                    if (!btn) return;
+                                    if (btn.dataset.id) { userIdField.value = btn.dataset.id; nonMemberField.value = ''; input.value = btn.textContent.trim(); }
+                                    else { nonMemberField.value = input.value.trim(); userIdField.value = ''; }
+                                    dropdown.classList.remove('show');
+                                });
+                                document.addEventListener('click', e => { if (!e.target.closest('#register-combo, #register-combo-dropdown')) dropdown.classList.remove('show'); });
+                                document.getElementById('register-other-form').addEventListener('submit', function(e) {
+                                    if (!userIdField.value && !nonMemberField.value) {
+                                        // If typed name doesn't match a member and user is privileged, treat as non-member
+                                        const val = input.value.trim();
+                                        if (isPrivileged && val) { nonMemberField.value = val; }
+                                        else if (!val) { e.preventDefault(); }
+                                        else { e.preventDefault(); input.classList.add('is-invalid'); }
+                                    }
+                                });
+                            })();
+                            </script>
                         @endif
                     </div>
                 </div>
@@ -238,8 +280,9 @@
                 $confirmed = $event->registrations->where('status', 'confirmed');
                 $waiting = $event->registrations->where('status', 'waiting')->sortBy('waiting_list_position');
                 $cancelled = $event->registrations->where('status', 'cancelled');
-                $instructorRegs = $confirmed->filter(fn($r) => $r->user->role_id === 3 || $r->user->detail?->active_instructor);
-                $memberRegs = $confirmed->reject(fn($r) => $r->user->role_id === 3 || $r->user->detail?->active_instructor);
+                $instructorRegs = $confirmed->filter(fn($r) => $r->user && ($r->user->role_id === 3 || $r->user->detail?->active_instructor));
+                $memberRegs = $confirmed->filter(fn($r) => $r->user && !($r->user->role_id === 3 || $r->user->detail?->active_instructor));
+                $nonMemberRegs = $confirmed->filter(fn($r) => $r->isNonMember());
             @endphp
             <div class="card dc-card mb-4">
                 <div class="card-header d-flex justify-content-between">
@@ -269,6 +312,15 @@
                         <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Members') }}</small></div>
                         <ul class="list-group list-group-flush">
                         @foreach($memberRegs as $reg)
+                            @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event])
+                        @endforeach
+                        </ul>
+                    @endif
+                    {{-- Non-members / Companions --}}
+                    @if($nonMemberRegs->count())
+                        <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Companions') }}</small></div>
+                        <ul class="list-group list-group-flush">
+                        @foreach($nonMemberRegs as $reg)
                             @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event])
                         @endforeach
                         </ul>

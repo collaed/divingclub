@@ -165,9 +165,35 @@ class EventController extends Controller
     public function register(Event $event, Request $request): RedirectResponse
     {
         $actor = auth()->user();
+        $nonMemberName = trim((string) $request->input('non_member_name'));
+        $comment = $request->input('comment');
+
+        // Non-member registration (bureau only, or bureau for past events)
+        if ($nonMemberName !== '') {
+            $isPrivileged = $actor->isBureau() || $event->instructor_id === $actor->id || in_array($actor->id, $event->assistant_ids ?? []);
+            if (! $isPrivileged) {
+                return back()->with('error', __('Only bureau members can register non-members.'));
+            }
+
+            // Check duplicate non-member by name on this event
+            if ($event->registrations()->whereNull('user_id')->where('non_member_name', $nonMemberName)->whereIn('status', ['confirmed', 'waiting'])->exists()) {
+                return back()->with('error', __(':name is already registered.', ['name' => $nonMemberName]));
+            }
+
+            EventRegistration::create([
+                'event_id' => $event->id,
+                'user_id' => null,
+                'non_member_name' => $nonMemberName,
+                'status' => 'confirmed',
+                'comment' => $comment,
+                'registered_by' => $actor->id,
+            ]);
+
+            return back()->with('success', __(':who registered successfully.', ['who' => $nonMemberName]));
+        }
+
         $targetUserId = $request->input('user_id', $actor->id);
         $targetUser = User::findOrFail($targetUserId);
-        $comment = $request->input('comment');
 
         if (! $event->isRegistrationOpen()) {
             return back()->with('error', __('Registration is not open for this event.'));
@@ -273,33 +299,42 @@ class EventController extends Controller
     public function cancelRegistration(Event $event, Request $request): RedirectResponse
     {
         $actor = auth()->user();
-        $targetUserId = $request->input('user_id', $actor->id);
-        $reg = $event->registrations()->where('user_id', $targetUserId)->whereIn('status', ['confirmed', 'waiting'])->firstOrFail();
+
+        // Non-member cancellation by registration_id
+        if ($request->filled('registration_id')) {
+            $reg = $event->registrations()->where('id', $request->input('registration_id'))->whereIn('status', ['confirmed', 'waiting'])->firstOrFail();
+        } else {
+            $targetUserId = $request->input('user_id', $actor->id);
+            $reg = $event->registrations()->where('user_id', $targetUserId)->whereIn('status', ['confirmed', 'waiting'])->firstOrFail();
+        }
+
         $wasConfirmed = $reg->status === 'confirmed';
 
         $reg->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),
-            'cancelled_by' => $actor->id !== (int) $targetUserId ? $actor->id : null,
+            'cancelled_by' => $actor->id,
             'cancel_comment' => $request->input('cancel_comment'),
         ]);
 
         // Cancel unpaid payment; flag paid ones for refund review
-        $paidPayment = PaymentExpected::where('event_id', $event->id)
-            ->where('user_id', $targetUserId)
-            ->where('status', 'paid')
-            ->exists();
-
-        PaymentExpected::where('event_id', $event->id)
-            ->where('user_id', $targetUserId)
-            ->where('status', 'pending')
-            ->delete();
-
-        if ($paidPayment) {
-            PaymentExpected::where('event_id', $event->id)
-                ->where('user_id', $targetUserId)
+        if ($reg->user_id) {
+            $paidPayment = PaymentExpected::where('event_id', $event->id)
+                ->where('user_id', $reg->user_id)
                 ->where('status', 'paid')
-                ->update(['refund_review_needed' => true]);
+                ->exists();
+
+            PaymentExpected::where('event_id', $event->id)
+                ->where('user_id', $reg->user_id)
+                ->where('status', 'pending')
+                ->delete();
+
+            if ($paidPayment) {
+                PaymentExpected::where('event_id', $event->id)
+                    ->where('user_id', $reg->user_id)
+                    ->where('status', 'paid')
+                    ->update(['refund_review_needed' => true]);
+            }
         }
 
         // Auto-promote first waiting list entry
