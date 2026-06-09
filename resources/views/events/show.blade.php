@@ -229,9 +229,13 @@
                                 <input type="text" name="comment" class="form-control form-control-sm mb-2" placeholder="{{ __('Comment (optional)') }}">
                                 <button class="btn btn-outline-primary btn-sm w-100">{{ __('Register') }}</button>
                             </form>
+                            @php
+                                $registeredIds = $event->registrations->whereIn('status', ['confirmed','waiting'])->pluck('user_id')->filter()->all();
+                                $availableMembers = $members->reject(fn($m) => in_array($m->id, $registeredIds))->map(fn($m) => ['id' => $m->id, 'name' => $m->name])->values();
+                            @endphp
                             <script>
                             (function() {
-                                const members = @json($members->reject(fn($m) => $event->registrations->where('user_id', $m->id)->whereIn('status', ['confirmed','waiting'])->count())->map(fn($m) => ['id' => $m->id, 'name' => $m->name])->values());
+                                const members = @json($availableMembers);
                                 const input = document.getElementById('register-combo');
                                 const dropdown = document.getElementById('register-combo-dropdown');
                                 const userIdField = document.getElementById('register-user-id');
