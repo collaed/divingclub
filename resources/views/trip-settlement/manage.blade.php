@@ -153,8 +153,8 @@
                         <div class="col-auto" id="add-member-col">
                             <label class="form-label form-label-sm">{{ __('Member') }}</label>
                             <select name="user_id" id="add-user-id" class="form-select form-select-sm">
-                                @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->user->detail?->last_name) as $tp)
-                                    <option value="{{ $tp->user_id }}">{{ $tp->user->detail?->first_name }} {{ $tp->user->detail?->last_name }}</option>
+                                @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->participantName()) as $tp)
+                                    <option value="{{ $tp->user_id ?? 'nm:'.$tp->id }}">{{ $tp->participantName() }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -245,7 +245,7 @@
                     @foreach($event->tripParticipants as $tp)
                     @php $pResult = collect($settlement['participants'])->firstWhere('user_id', $tp->user_id); @endphp
                     <tr data-participant-id="{{ $tp->id }}" data-url="{{ route('events.settlement.update-participant', [$event, $tp]) }}">
-                        <td>{{ $tp->user->detail?->first_name }} {{ $tp->user->detail?->last_name }}</td>
+                        <td>{{ $tp->participantName() }}@if($tp->isNonMember()) <span class="badge bg-secondary" style="font-size:0.6rem">{{ __('non-member') }}</span>@endif</td>
                         @if($event->settlement_status === 'open')
                         <td>
                             <select name="transit_mode" class="form-select form-select-sm auto-save" style="width:80px">
@@ -554,6 +554,7 @@
                         <th class="text-end">{{ __('Global') }}</th>
                         <th class="text-end">{{ __('Transit') }}</th>
                         <th class="text-end">{{ __('Bounty') }}</th>
+                        <th class="text-end">{{ __('Prepaid') }}</th>
                         <th class="text-end">{{ __('Paid') }}</th>
                         <th class="text-end">{{ __('Balance') }}</th>
                     </tr>
@@ -571,6 +572,7 @@
                         <td class="text-end">{{ number_format($p['global_share'], 2) }}</td>
                         <td class="text-end">{{ number_format($p['transit_share'] + ($p['local_charge'] ?? 0), 2) }}</td>
                         <td class="text-end">{{ $p['bounty_credit'] > 0 ? '-' . number_format($p['bounty_credit'], 2) : '—' }}</td>
+                        <td class="text-end">{{ $p['prepaid'] > 0 ? '-' . number_format($p['prepaid'], 2) : '—' }}</td>
                         <td class="text-end">{{ $p['total_paid'] > 0 ? number_format($p['total_paid'], 2) : '—' }}</td>
                         <td class="text-end fw-bold {{ $p['balance'] > 0 ? 'text-danger' : ($p['balance'] < 0 ? 'text-success' : '') }}">
                             {{ $p['balance'] >= 0 ? '' : '-' }}{{ number_format(abs($p['balance']), 2) }} €
@@ -580,7 +582,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="table-dark">
-                        <td colspan="6" class="text-end fw-bold">{{ __('Total') }}</td>
+                        <td colspan="7" class="text-end fw-bold">{{ __('Total') }}</td>
                         <td class="text-end fw-bold">{{ number_format(collect($settlement['participants'])->sum('balance'), 2) }} €</td>
                     </tr>
                 </tfoot>

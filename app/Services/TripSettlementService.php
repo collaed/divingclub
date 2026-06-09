@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Event;
 use App\Models\EventRegistration;
+use App\Models\PaymentExpected;
 use App\Models\TripParticipant;
+use Illuminate\Support\Collection;
 
 class TripSettlementService
 {
@@ -26,6 +28,7 @@ class TripSettlementService
      *         transit_share: float,
      *         local_charge: float,
      *         bounty_credit: float,
+     *         prepaid: float,
      *         total_paid: float,
      *         balance: float
      *     }>
@@ -33,12 +36,19 @@ class TripSettlementService
      */
     public function calculate(Event $event): array
     {
+        /** @var \Illuminate\Database\Eloquent\Collection<int, TripParticipant> $participants */
         $participants = $event->tripParticipants()->with('user.detail')->get();
         $receipts = $event->tripReceipts()->where('status', 'approved')->get();
-        $registrations = EventRegistration::where('event_id', $event->id)
-            ->whereIn('user_id', $participants->pluck('user_id'))
-            ->get()
-            ->keyBy('user_id');
+
+        // Build registration lookup — by user_id for members, by non_member_name for non-members
+        $registrations = EventRegistration::where('event_id', $event->id)->get();
+        $regByUser = $registrations->whereNotNull('user_id')->keyBy('user_id');
+
+        // Prepaid amounts from payment system (deposits paid before trip)
+        $prepaidByUser = PaymentExpected::query()
+            ->where('event_id', $event->id)
+            ->where('amount_paid', '>', 0)
+            ->pluck('amount_paid', 'user_id');
 
         $bountyTotal = (float) ($event->driver_bounty_total ?? 0);
         $dailyCharge = (float) ($event->local_daily_charge ?? 0);
@@ -53,7 +63,7 @@ class TripSettlementService
         // Step 2: Local Transit Subsidy — fly-in members pay daily charge
         $localSubsidy = 0;
         foreach ($participants as $p) {
-            $mode = $registrations[$p->user_id]?->transit_mode ?? 'van';
+            $mode = $this->getTransitMode($p, $regByUser, $registrations);
             if ($mode !== 'van') {
                 $localSubsidy += $p->local_transit_days * $dailyCharge;
             }
@@ -70,7 +80,7 @@ class TripSettlementService
         // Net transit cost for van passengers = transit expenses + bounties - local subsidy
         $netTransitCost = $transitPool + $totalBounties - $localSubsidy;
         $vanParticipants = $participants->filter(
-            fn (TripParticipant $p): bool => ($registrations[$p->user_id]?->transit_mode ?? 'van') === 'van'
+            fn (TripParticipant $p): bool => $this->getTransitMode($p, $regByUser, $registrations) === 'van'
         );
         $transitShare = $vanParticipants->count() > 0
             ? round($netTransitCost / $vanParticipants->count(), 2)
@@ -79,7 +89,7 @@ class TripSettlementService
         // Step 5: Final Balance per participant
         $result = [];
         foreach ($participants as $p) {
-            $mode = $registrations[$p->user_id]?->transit_mode ?? 'van';
+            $mode = $this->getTransitMode($p, $regByUser, $registrations);
             $isVan = $mode === 'van';
             $bountyCredit = $totalDrivingPct > 0
                 ? round($bountyTotal * $p->driving_percentage / $totalDrivingPct, 2)
@@ -87,27 +97,31 @@ class TripSettlementService
             $localCharge = $isVan ? 0 : $p->local_transit_days * $dailyCharge;
 
             // What this person paid (approved receipts, excluding third-party)
-            $totalPaid = $receipts->where('user_id', $p->user_id)
-                ->where('is_third_party', false)->sum('approved_amount');
+            $totalPaid = $p->user_id
+                ? $receipts->where('user_id', $p->user_id)->where('is_third_party', false)->sum('approved_amount')
+                : 0;
+
+            // Prepaid deposits from the payment system
+            $prepaid = (float) ($prepaidByUser[$p->user_id] ?? 0);
 
             // What this person owes
             $owes = $globalShare + ($isVan ? $transitShare : $localCharge);
 
-            // Credits: bounty + what they paid
-            $credits = $bountyCredit + $totalPaid;
+            // Credits: bounty + prepaid + what they paid
+            $credits = $bountyCredit + $prepaid + $totalPaid;
 
             $balance = round($owes - $credits, 2);
 
-            $detail = $p->user?->detail;
             $result[] = [
                 'user_id' => $p->user_id,
-                'name' => $detail ? $detail->first_name.' '.$detail->last_name : 'Unknown',
+                'name' => $p->participantName(),
                 'transit_mode' => $mode,
                 'driving_percentage' => $p->driving_percentage,
                 'global_share' => $globalShare,
                 'transit_share' => $isVan ? $transitShare : 0,
                 'local_charge' => $localCharge,
                 'bounty_credit' => $bountyCredit,
+                'prepaid' => $prepaid,
                 'total_paid' => (float) $totalPaid,
                 'balance' => $balance,
             ];
@@ -121,5 +135,21 @@ class TripSettlementService
             'net_transit_cost' => $netTransitCost,
             'participants' => $result,
         ];
+    }
+
+    /**
+     * @param  Collection<int, EventRegistration>  $regByUser
+     * @param  Collection<int, EventRegistration>  $allRegistrations
+     */
+    private function getTransitMode(TripParticipant $p, $regByUser, $allRegistrations): string
+    {
+        if ($p->user_id) {
+            return $regByUser[$p->user_id]?->transit_mode ?? 'van';
+        }
+
+        // Non-member: match by name
+        $reg = $allRegistrations->firstWhere('non_member_name', $p->non_member_name);
+
+        return $reg?->transit_mode ?? 'van';
     }
 }

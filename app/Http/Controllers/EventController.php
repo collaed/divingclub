@@ -189,6 +189,13 @@ class EventController extends Controller
                 'registered_by' => $actor->id,
             ]);
 
+            // Auto-create trip participant if settlement is enabled
+            if ($event->hasTripSettlement()) {
+                TripParticipant::firstOrCreate(
+                    ['event_id' => $event->id, 'non_member_name' => $nonMemberName, 'user_id' => null]
+                );
+            }
+
             return back()->with('success', __(':who registered successfully.', ['who' => $nonMemberName]));
         }
 
