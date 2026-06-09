@@ -352,6 +352,15 @@ class EventController extends Controller
             }
         }
 
+        // Remove trip participant if settlement is enabled
+        if ($event->hasTripSettlement()) {
+            if ($reg->user_id) {
+                TripParticipant::where('event_id', $event->id)->where('user_id', $reg->user_id)->delete();
+            } elseif ($reg->non_member_name) {
+                TripParticipant::where('event_id', $event->id)->where('non_member_name', $reg->non_member_name)->delete();
+            }
+        }
+
         return back()->with('success', __('Registration cancelled.'));
     }
 
