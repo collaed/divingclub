@@ -501,8 +501,8 @@
                     <div class="mb-3">
                         <label class="form-label">{{ __('Member') }}</label>
                         <select name="user_id" id="edit-user-id" class="form-select" required>
-                            @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->user->detail?->last_name) as $tp)
-                                <option value="{{ $tp->user_id }}">{{ $tp->user->detail?->first_name }} {{ $tp->user->detail?->last_name }}</option>
+                            @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->participantName()) as $tp)
+                                <option value="{{ $tp->user_id ?? 'nm:'.$tp->id }}">{{ $tp->participantName() }}</option>
                             @endforeach
                         </select>
                     </div>
