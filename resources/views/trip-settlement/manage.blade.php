@@ -230,14 +230,14 @@
             <table class="table table-sm" id="participants-table">
                 <thead>
                     <tr>
-                        <th>{{ __('Name') }}</th>
-                        <th>{{ __('Mode') }}</th>
+                        <th class="sortable-col" data-col="0" role="button">{{ __('Name') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col" data-col="1" role="button">{{ __('Mode') }} <span class="sort-icon">↕</span></th>
                         @if($event->van_count)
-                            <th>{{ __('Van') }}</th>
+                            <th class="sortable-col" data-col="2" role="button">{{ __('Van') }} <span class="sort-icon">↕</span></th>
                         @endif
-                        <th>{{ __('Driving %') }}</th>
-                        <th>{{ __('Local Days') }}</th>
-                        <th>{{ __('Balance') }}</th>
+                        <th class="sortable-col" data-col="{{ $event->van_count ? 3 : 2 }}" role="button">{{ __('Driving %') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col" data-col="{{ $event->van_count ? 4 : 3 }}" role="button">{{ __('Local Days') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col" data-col="{{ $event->van_count ? 5 : 4 }}" role="button">{{ __('Balance') }} <span class="sort-icon">↕</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -590,3 +590,49 @@
         </div>
     </div>
 </x-layout>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('participants-table');
+    if (!table) return;
+    const tbody = table.querySelector('tbody');
+    let sortCol = -1, sortAsc = true;
+
+    function getCellValue(row, col) {
+        const cell = row.cells[col];
+        if (!cell) return '';
+        const input = cell.querySelector('input[type="number"]');
+        if (input) return parseFloat(input.value) || 0;
+        const select = cell.querySelector('select');
+        if (select) return select.value;
+        return cell.textContent.trim().replace(/[€,%]/g, '').trim();
+    }
+
+    function compare(a, b, col) {
+        let va = getCellValue(a, col), vb = getCellValue(b, col);
+        const na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(va).localeCompare(String(vb), undefined, {sensitivity: 'base'});
+    }
+
+    table.querySelectorAll('.sortable-col').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function() {
+            const col = parseInt(this.dataset.col);
+            // Commit any pending auto-save first
+            const active = document.activeElement;
+            if (active && active.classList.contains('auto-save')) active.blur();
+
+            if (sortCol === col) { sortAsc = !sortAsc; }
+            else { sortCol = col; sortAsc = true; }
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort((a, b) => compare(a, b, col) * (sortAsc ? 1 : -1));
+            rows.forEach(r => tbody.appendChild(r));
+
+            // Update icons
+            table.querySelectorAll('.sort-icon').forEach(s => s.textContent = '↕');
+            this.querySelector('.sort-icon').textContent = sortAsc ? '↑' : '↓';
+        });
+    });
+});
+</script>
