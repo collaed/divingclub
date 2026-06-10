@@ -75,7 +75,18 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">{{ __('Apnea Level') }}</label>
-                <input type="text" name="apnea_level" class="form-control @error('apnea_level') is-invalid @enderror" value="{{ old('apnea_level', $d?->apnea_level) }}" placeholder="{{ __('e.g. 2* Indoor Freediver, MEF1') }}">
+                <input type="text" name="apnea_level" list="apnea-levels-list" class="form-control @error('apnea_level') is-invalid @enderror" value="{{ old('apnea_level', $d?->apnea_level) }}" placeholder="{{ __('Select or type…') }}">
+                <datalist id="apnea-levels-list">
+                    <option value="Apnéiste / Indoor Freediver 1★ CMAS">
+                    <option value="Apnéiste confirmé / Indoor Freediver 2★ CMAS">
+                    <option value="Apnéiste en eau libre / Outdoor Freediver 1★ CMAS">
+                    <option value="Apnéiste confirmé en eau libre / Outdoor Freediver 2★ CMAS">
+                    <option value="Apnéiste expert en eau libre / Outdoor Freediver 3★ CMAS">
+                    <option value="Poulpe – Apnée jeunes N2">
+                    <option value="Dauphin – Apnée jeunes N3">
+                    <option value="Initiateur Apnée">
+                    <option value="MEF1">
+                </datalist>
                 @error('apnea_level') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="mb-3">
