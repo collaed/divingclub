@@ -29,7 +29,20 @@ class TripSettlementController extends Controller
         $settlement = $this->service->calculate($event);
         $myBalance = collect($settlement['participants'])->firstWhere('user_id', $user->id);
 
-        return view('trip-settlement.show', compact('event', 'receipts', 'settlement', 'myBalance'));
+        // Find non-member companions registered by this user
+        $companionNames = EventRegistration::where('event_id', $event->id)
+            ->where('registered_by', $user->id)
+            ->whereNull('user_id')
+            ->pluck('non_member_name')
+            ->toArray();
+        /** @var array<int, array<string, mixed>> $participants */
+        $participants = $settlement['participants'];
+        $companionBalances = array_values(array_filter(
+            $participants,
+            fn ($p) => $p['user_id'] === null && in_array($p['name'], $companionNames)
+        ));
+
+        return view('trip-settlement.show', compact('event', 'receipts', 'settlement', 'myBalance', 'companionBalances'));
     }
 
     public function storeReceipt(Request $request, Event $event): RedirectResponse

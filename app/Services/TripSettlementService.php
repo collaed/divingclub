@@ -53,16 +53,26 @@ class TripSettlementService
         $bountyTotal = (float) ($event->driver_bounty_total ?? 0);
         $dailyCharge = (float) ($event->local_daily_charge ?? 0);
 
-        // Step 1: Global Pool — shared expenses divided equally
+        // Determine which participants are cancelled (they don't share costs)
+        $activeParticipants = $participants->filter(function (TripParticipant $p) use ($regByUser, $registrations): bool {
+            if ($p->user_id) {
+                return ($regByUser[$p->user_id]?->status ?? 'confirmed') !== 'cancelled';
+            }
+            $reg = $registrations->firstWhere('non_member_name', $p->non_member_name);
+
+            return ($reg?->status ?? 'confirmed') !== 'cancelled';
+        });
+
+        // Step 1: Global Pool — shared expenses divided equally among active participants
         $globalReceipts = $receipts->where('category', 'general');
         $globalPool = $globalReceipts->sum('approved_amount');
-        $globalShare = $participants->count() > 0
-            ? round($globalPool / $participants->count(), 2)
+        $globalShare = $activeParticipants->count() > 0
+            ? round($globalPool / $activeParticipants->count(), 2)
             : 0;
 
         // Step 2: Local Transit Subsidy — fly-in members pay daily charge
         $localSubsidy = 0;
-        foreach ($participants as $p) {
+        foreach ($activeParticipants as $p) {
             $mode = $this->getTransitMode($p, $regByUser, $registrations);
             if ($mode !== 'van') {
                 $localSubsidy += $p->local_transit_days * $dailyCharge;
@@ -74,12 +84,12 @@ class TripSettlementService
         $transitPool = $transitReceipts->sum('approved_amount');
 
         // Step 4: Driver Bounties (distributed by percentage)
-        $totalDrivingPct = $participants->sum('driving_percentage');
+        $totalDrivingPct = $activeParticipants->sum('driving_percentage');
         $totalBounties = $totalDrivingPct > 0 ? $bountyTotal : 0;
 
         // Net transit cost for van passengers = transit expenses + bounties - local subsidy
         $netTransitCost = $transitPool + $totalBounties - $localSubsidy;
-        $vanParticipants = $participants->filter(
+        $vanParticipants = $activeParticipants->filter(
             fn (TripParticipant $p): bool => $this->getTransitMode($p, $regByUser, $registrations) === 'van'
         );
         $transitShare = $vanParticipants->count() > 0
@@ -89,6 +99,15 @@ class TripSettlementService
         // Step 5: Final Balance per participant
         $result = [];
         foreach ($participants as $p) {
+            // Check if this participant's registration is cancelled
+            $isCancelled = false;
+            if ($p->user_id) {
+                $isCancelled = ($regByUser[$p->user_id]?->status ?? '') === 'cancelled';
+            } else {
+                $reg = $registrations->firstWhere('non_member_name', $p->non_member_name);
+                $isCancelled = ($reg?->status ?? '') === 'cancelled';
+            }
+
             $mode = $this->getTransitMode($p, $regByUser, $registrations);
             $isVan = $mode === 'van';
             $bountyCredit = $totalDrivingPct > 0
@@ -111,6 +130,28 @@ class TripSettlementService
             // Also check prepaid_amount on the participant itself (for non-members)
             $prepaid += (float) ($p->prepaid_amount ?? 0);
 
+            // Cancelled participants owe nothing — only show refund of prepaid
+            if ($isCancelled) {
+                $balance = round(0 - $prepaid - $totalPaid, 2);
+                $result[] = [
+                    'user_id' => $p->user_id,
+                    'name' => $p->participantName(),
+                    'transit_mode' => $mode,
+                    'driving_percentage' => 0,
+                    'global_share' => 0,
+                    'transit_share' => 0,
+                    'local_charge' => 0,
+                    'individual_charges' => 0,
+                    'bounty_credit' => 0,
+                    'prepaid' => $prepaid,
+                    'total_paid' => (float) $totalPaid,
+                    'balance' => $balance,
+                    'cancelled' => true,
+                ];
+
+                continue;
+            }
+
             // What this person owes
             $owes = $globalShare + ($isVan ? $transitShare : $localCharge) + $individualCharges;
 
@@ -132,6 +173,7 @@ class TripSettlementService
                 'prepaid' => $prepaid,
                 'total_paid' => (float) $totalPaid,
                 'balance' => $balance,
+                'cancelled' => false,
             ];
         }
 

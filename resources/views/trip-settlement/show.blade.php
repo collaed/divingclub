@@ -53,6 +53,29 @@
             @if($event->settlement_status === 'closed')
                 <div class="alert alert-info mt-3">{{ __('This ledger is closed. No further changes.') }}</div>
             @endif
+
+            {{-- Companion balances --}}
+            @if(!empty($companionBalances))
+                <div class="card dc-card mt-3">
+                    <div class="card-header"><h6 class="mb-0">{{ __('Your Companions') }}</h6></div>
+                    <div class="card-body">
+                        @foreach($companionBalances as $cb)
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>{{ $cb['name'] }} <span class="badge bg-secondary" style="font-size:0.6rem">{{ __('non-member') }}</span></span>
+                                <span class="{{ $cb['balance'] > 0 ? 'text-danger' : 'text-success' }} fw-bold">
+                                    {{ $cb['balance'] >= 0 ? '' : '-' }}{{ number_format(abs($cb['balance']), 2) }} €
+                                </span>
+                            </div>
+                            <small class="text-muted d-block mb-3">
+                                {{ __('Global share') }}: {{ number_format($cb['global_share'], 2) }} €
+                                @if($cb['transit_share'] > 0) • {{ __('Transit') }}: {{ number_format($cb['transit_share'], 2) }} € @endif
+                                @if(($cb['individual_charges'] ?? 0) > 0) • {{ __('Individual') }}: {{ number_format($cb['individual_charges'], 2) }} € @endif
+                                @if($cb['prepaid'] > 0) • {{ __('Prepaid') }}: -{{ number_format($cb['prepaid'], 2) }} € @endif
+                            </small>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         {{-- Submit Receipt --}}
@@ -182,8 +205,8 @@
                 </thead>
                 <tbody>
                     @foreach($settlement['participants'] as $p)
-                    <tr class="{{ $p['user_id'] === auth()->id() ? 'table-active fw-bold' : '' }}">
-                        <td>{{ $p['name'] }}</td>
+                    <tr class="{{ $p['user_id'] === auth()->id() ? 'table-active fw-bold' : '' }} {{ ($p['cancelled'] ?? false) ? 'text-decoration-line-through text-muted' : '' }}">
+                        <td>{{ $p['name'] }}@if($p['cancelled'] ?? false) <span class="badge bg-danger" style="font-size:0.6rem">{{ __('cancelled') }}</span>@endif</td>
                         <td>
                             @if($p['transit_mode'] === 'van') 🚐
                             @elseif($p['transit_mode'] === 'fly') ✈️
