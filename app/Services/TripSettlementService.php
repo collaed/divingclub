@@ -126,7 +126,7 @@ class TripSettlementService
                 : 0;
 
             // Prepaid deposits from the payment system
-            $prepaid = (float) ($prepaidByUser[$p->user_id] ?? 0);
+            $prepaid = $p->user_id ? (float) ($prepaidByUser[$p->user_id] ?? 0) : 0;
             // Also check prepaid_amount on the participant itself (for non-members)
             $prepaid += (float) ($p->prepaid_amount ?? 0);
 
