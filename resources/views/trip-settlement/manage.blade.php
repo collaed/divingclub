@@ -191,9 +191,36 @@
             </div>
         </div>
     </div>
+    {{-- Record Prepayments --}}
+    <div class="card dc-card mb-4">
+        <div class="card-header"><h6 class="mb-0">💳 {{ __('Record Prepayment') }}</h6></div>
+        <div class="card-body">
+            <form action="{{ route('events.settlement.prepayment', $event) }}" method="POST" class="row g-2 align-items-end">
+                @csrf
+                <div class="col-auto">
+                    <label class="form-label form-label-sm">{{ __('Member') }}</label>
+                    <select name="user_id" class="form-select form-select-sm" required>
+                        @foreach($event->tripParticipants->filter(fn($tp) => $tp->user_id)->sortBy(fn($tp) => $tp->participantName()) as $tp)
+                            @php $existing = \App\Models\PaymentExpected::where('event_id', $event->id)->where('user_id', $tp->user_id)->value('amount_paid'); @endphp
+                            <option value="{{ $tp->user_id }}">{{ $tp->participantName() }}{{ $existing ? ' (€'.number_format($existing, 2).')' : '' }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label form-label-sm">{{ __('Amount') }}</label>
+                    <div class="input-group input-group-sm" style="width:120px">
+                        <input type="number" step="0.01" name="amount" min="0" required class="form-control">
+                        <span class="input-group-text">€</span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-primary">{{ __('Record') }}</button>
+                </div>
+            </form>
+            <small class="text-muted mt-1 d-block">{{ __('Records a deposit/prepayment that reduces the member\'s balance.') }}</small>
+        </div>
+    </div>
     @endif
-
-    {{-- Participants Management --}}
     <div class="card dc-card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>

@@ -161,6 +161,19 @@
                     </div>
                 </div>
             @endif
+
+            {{-- Trip Settlement link --}}
+            @if($event->trip_settlement_enabled)
+                <div class="card dc-card mb-4">
+                    <div class="card-header">@icon('💰') {{ __('Trip Settlement') }}</div>
+                    <div class="card-body">
+                        <a href="{{ route('events.settlement', $event) }}" class="btn btn-outline-primary btn-sm">{{ __('View Settlement') }}</a>
+                        @if($isPrivileged)
+                            <a href="{{ route('events.settlement.manage', $event) }}" class="btn btn-primary btn-sm ms-2">{{ __('Manage Settlement') }}</a>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
 
         {{-- Sidebar: registration form, participant list, payments, communications --}}

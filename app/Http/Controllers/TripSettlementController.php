@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\EventRegistration;
+use App\Models\PaymentExpected;
 use App\Models\TripParticipant;
 use App\Models\TripReceipt;
 use App\Services\TripSettlementService;
@@ -297,6 +298,39 @@ class TripSettlementController extends Controller
         $settlement = $this->service->calculate($event);
 
         return view('trip-settlement.breakdown', compact('event', 'settlement'));
+    }
+
+    public function recordPrepayment(Event $event, Request $request): RedirectResponse|JsonResponse
+    {
+        $this->authorizeBureau();
+        abort_unless($event->hasTripSettlement(), 404);
+
+        $request->validate([
+            'user_id' => 'required|integer',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $payment = PaymentExpected::firstOrCreate(
+            ['event_id' => $event->id, 'user_id' => $request->user_id, 'type' => 'event'],
+            [
+                'season_year' => $event->event_date->format('Y'),
+                'amount_due' => $request->amount,
+                'communication' => 'PREPAY-'.$event->id.'-'.$request->user_id,
+                'status' => 'paid',
+            ]
+        );
+
+        $payment->update([
+            'amount_paid' => $request->amount,
+            'status' => $request->amount > 0 ? 'paid' : 'pending',
+            'paid_at' => $request->amount > 0 ? now() : null,
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', __('Prepayment recorded.'));
     }
 
     private function authorizeBureau(): void
