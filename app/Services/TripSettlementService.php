@@ -96,9 +96,14 @@ class TripSettlementService
                 : 0;
             $localCharge = $isVan ? 0 : $p->local_transit_days * $dailyCharge;
 
-            // What this person paid (approved receipts, excluding third-party)
+            // What this person paid (approved receipts, excluding third-party and individual)
             $totalPaid = $p->user_id
-                ? $receipts->where('user_id', $p->user_id)->where('is_third_party', false)->sum('approved_amount')
+                ? $receipts->where('user_id', $p->user_id)->where('is_third_party', false)->where('category', '!=', 'individual')->sum('approved_amount')
+                : 0;
+
+            // Individual charges assigned to this person (extras: drinks, personal costs)
+            $individualCharges = $p->user_id
+                ? (float) $receipts->where('user_id', $p->user_id)->where('category', 'individual')->sum('approved_amount')
                 : 0;
 
             // Prepaid deposits from the payment system
@@ -107,7 +112,7 @@ class TripSettlementService
             $prepaid += (float) ($p->prepaid_amount ?? 0);
 
             // What this person owes
-            $owes = $globalShare + ($isVan ? $transitShare : $localCharge);
+            $owes = $globalShare + ($isVan ? $transitShare : $localCharge) + $individualCharges;
 
             // Credits: bounty + prepaid + what they paid
             $credits = $bountyCredit + $prepaid + $totalPaid;
@@ -122,6 +127,7 @@ class TripSettlementService
                 'global_share' => $globalShare,
                 'transit_share' => $isVan ? $transitShare : 0,
                 'local_charge' => $localCharge,
+                'individual_charges' => $individualCharges,
                 'bounty_credit' => $bountyCredit,
                 'prepaid' => $prepaid,
                 'total_paid' => (float) $totalPaid,

@@ -146,12 +146,20 @@
         {{-- Add Expense --}}
         <div class="col-md-8">
             <div class="card dc-card h-100">
-                <div class="card-header"><h6 class="mb-0">{{ __('Add Expense') }}</h6></div>
+                <div class="card-header"><h6 class="mb-0">{{ __('Add Expense / Charge') }}</h6></div>
                 <div class="card-body">
                     <form action="{{ route('events.settlement.bureau-receipt', $event) }}" method="POST" class="row g-2 align-items-end">
                         @csrf
+                        <div class="col-auto">
+                            <label class="form-label form-label-sm">{{ __('Category') }}</label>
+                            <select name="category" class="form-select form-select-sm" required id="add-category">
+                                <option value="general">📦 {{ __('General (shared equally)') }}</option>
+                                <option value="transit">🚐 {{ __('Transit (van riders)') }}</option>
+                                <option value="individual">👤 {{ __('Individual charge') }}</option>
+                            </select>
+                        </div>
                         <div class="col-auto" id="add-member-col">
-                            <label class="form-label form-label-sm">{{ __('Member') }}</label>
+                            <label class="form-label form-label-sm">{{ __('Paid by / Charged to') }}</label>
                             <select name="user_id" id="add-user-id" class="form-select form-select-sm">
                                 @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->participantName()) as $tp)
                                     <option value="{{ $tp->user_id ?? 'nm:'.$tp->id }}">{{ $tp->participantName() }}</option>
@@ -165,28 +173,20 @@
                                 <span class="input-group-text">€</span>
                             </div>
                         </div>
-                        <div class="col-auto">
-                            <label class="form-label form-label-sm">{{ __('Category') }}</label>
-                            <select name="category" class="form-select form-select-sm" required>
-                                <option value="transit">🚐 {{ __('Transit (fuel, tolls)') }}</option>
-                                <option value="general">📦 {{ __('General (shared)') }}</option>
-                            </select>
-                        </div>
                         <div class="col">
                             <label class="form-label form-label-sm">{{ __('Description') }}</label>
-                            <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Tolls outbound') }}" required>
+                            <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Extra drinks bar') }}" required>
                         </div>
-                        <div class="col-auto pt-4">
-                            <div class="form-check">
-                                <input type="hidden" name="is_third_party" value="0">
-                                <input type="checkbox" name="is_third_party" value="1" class="form-check-input" id="add-third-party">
-                                <label class="form-check-label form-label-sm" for="add-third-party">{{ __('Third-party invoice') }}</label>
-                            </div>
-                        </div>
+                        <input type="hidden" name="is_third_party" value="0" id="add-third-party-val">
                         <div class="col-auto">
                             <button type="submit" class="btn btn-sm btn-primary">{{ __('Add') }}</button>
                         </div>
                     </form>
+                    <small class="text-muted mt-2 d-block">
+                        <strong>{{ __('General') }}</strong>: {{ __('split equally among all') }} •
+                        <strong>{{ __('Transit') }}</strong>: {{ __('split among van riders') }} •
+                        <strong>{{ __('Individual') }}</strong>: {{ __('charged only to the selected person') }}
+                    </small>
                 </div>
             </div>
         </div>
@@ -431,13 +431,20 @@
             });
         });
 
-        // Third-party toggle: hide member dropdown when checked
-        const addTp = document.getElementById('add-third-party');
+        // Category toggle: for individual charges, member = "charged to"; for others = "paid by"
+        const addCategory = document.getElementById('add-category');
         const addMemberCol = document.getElementById('add-member-col');
-        if (addTp && addMemberCol) {
-            addTp.addEventListener('change', function() {
-                addMemberCol.style.display = this.checked ? 'none' : '';
-                document.getElementById('add-user-id').disabled = this.checked;
+        const addThirdPartyVal = document.getElementById('add-third-party-val');
+        if (addCategory && addMemberCol) {
+            addCategory.addEventListener('change', function() {
+                const label = addMemberCol.querySelector('label');
+                if (this.value === 'individual') {
+                    label.textContent = '{{ __("Charged to") }}';
+                    addThirdPartyVal.value = '1';
+                } else {
+                    label.textContent = '{{ __("Paid by") }}';
+                    addThirdPartyVal.value = '0';
+                }
             });
         }
 
