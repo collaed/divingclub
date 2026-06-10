@@ -2,7 +2,9 @@
 @php
     $isNonMember = $reg->isNonMember();
     $d = $isNonMember ? null : $reg->user->detail;
-    $cert = $d?->certification_level ?? '';
+    $cert = in_array($event->event_type, ['apnea', 'pool_apnea'])
+        ? ($d?->apnea_level ?? '')
+        : ($d?->certification_level ?? '');
     $med = $isNonMember ? ['status' => 'n/a', 'badge' => 'secondary', 'label' => 'N/A'] : app(\App\Services\MedicalComplianceService::class)->getStatus($reg->user, $event->event_date);
     $isCancelled = $reg->status === 'cancelled';
     $medInvalid = !$isCancelled && !$isNonMember && in_array($med['status'], ['missing', 'expired']);

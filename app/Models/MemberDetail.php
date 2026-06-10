@@ -49,6 +49,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $total_dives
  * @property Carbon|null $last_dive_date
  * @property string|null $certification_level
+ * @property string|null $apnea_level
  * @property array $other_certifications
  * @property array $training_enrollments
  * @property string|null $preferred_language
@@ -65,7 +66,7 @@ class MemberDetail extends Model
     use Auditable;
     use SoftDeletes;
 
-    protected $fillable = ['user_id', 'avatar_path', 'first_name', 'last_name', 'birth_name', 'nationality', 'phone_private', 'phone_office', 'phone_mobile', 'sex', 'adhesion_year', 'bureau_member', 'active_instructor', 'instructor_bio', 'instructor_specialties', 'instructor_motivation', 'show_on_public_site', 'public_photos_banned', 'club_email', 'date_of_birth', 'place_of_birth', 'address_line1', 'address_line2', 'city', 'postal_code', 'country', 'iban', 'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship', 'brevet_date', 'dive_count', 'air_consumption', 'ease_level', 'primary_intent', 'is_photographer', 'total_dives', 'last_dive_date', 'certification_level', 'other_certifications', 'training_enrollments', 'preferred_language', 'show_icons', 'cotisation_years', 'bcd_size', 'bcd_notes'];
+    protected $fillable = ['user_id', 'avatar_path', 'first_name', 'last_name', 'birth_name', 'nationality', 'phone_private', 'phone_office', 'phone_mobile', 'sex', 'adhesion_year', 'bureau_member', 'active_instructor', 'instructor_bio', 'instructor_specialties', 'instructor_motivation', 'show_on_public_site', 'public_photos_banned', 'club_email', 'date_of_birth', 'place_of_birth', 'address_line1', 'address_line2', 'city', 'postal_code', 'country', 'iban', 'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship', 'brevet_date', 'dive_count', 'air_consumption', 'ease_level', 'primary_intent', 'is_photographer', 'total_dives', 'last_dive_date', 'certification_level', 'apnea_level', 'other_certifications', 'training_enrollments', 'preferred_language', 'show_icons', 'cotisation_years', 'bcd_size', 'bcd_notes'];
 
     protected function casts(): array
     {

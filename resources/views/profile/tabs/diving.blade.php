@@ -74,6 +74,11 @@
                 <small class="text-muted">{{ __('Use the table on the right for structured entries.') }}</small>
             </div>
             <div class="mb-3">
+                <label class="form-label">{{ __('Apnea Level') }}</label>
+                <input type="text" name="apnea_level" class="form-control @error('apnea_level') is-invalid @enderror" value="{{ old('apnea_level', $d?->apnea_level) }}" placeholder="{{ __('e.g. 2* Indoor Freediver, MEF1') }}">
+                @error('apnea_level') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="mb-3">
                 <label class="form-label">{{ __('Training Enrollments') }}</label>
                 <input type="text" name="training_enrollments" class="form-control @error('training_enrollments') is-invalid @enderror" value="{{ old('training_enrollments', $d?->training_enrollments ? implode(', ', $d->training_enrollments) : '') }}" placeholder="N4 theory, Initiateur, ...">
                 @error('training_enrollments') <div class="invalid-feedback">{{ $message }}</div> @enderror
