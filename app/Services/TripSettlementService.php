@@ -103,6 +103,8 @@ class TripSettlementService
 
             // Prepaid deposits from the payment system
             $prepaid = (float) ($prepaidByUser[$p->user_id] ?? 0);
+            // Also check prepaid_amount on the participant itself (for non-members)
+            $prepaid += (float) ($p->prepaid_amount ?? 0);
 
             // What this person owes
             $owes = $globalShare + ($isVan ? $transitShare : $localCharge);

@@ -198,11 +198,15 @@
             <form action="{{ route('events.settlement.prepayment', $event) }}" method="POST" class="row g-2 align-items-end">
                 @csrf
                 <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Member') }}</label>
-                    <select name="user_id" class="form-select form-select-sm" required>
-                        @foreach($event->tripParticipants->filter(fn($tp) => $tp->user_id)->sortBy(fn($tp) => $tp->participantName()) as $tp)
-                            @php $existing = \App\Models\PaymentExpected::where('event_id', $event->id)->where('user_id', $tp->user_id)->value('amount_paid'); @endphp
-                            <option value="{{ $tp->user_id }}">{{ $tp->participantName() }}{{ $existing ? ' (€'.number_format($existing, 2).')' : '' }}</option>
+                    <label class="form-label form-label-sm">{{ __('Participant') }}</label>
+                    <select name="participant_id" class="form-select form-select-sm" required>
+                        @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->participantName()) as $tp)
+                            @php
+                                $existing = $tp->user_id
+                                    ? \App\Models\PaymentExpected::where('event_id', $event->id)->where('user_id', $tp->user_id)->value('amount_paid')
+                                    : $tp->prepaid_amount;
+                            @endphp
+                            <option value="{{ $tp->id }}">{{ $tp->participantName() }}{{ $existing ? ' (€'.number_format((float)$existing, 2).')' : '' }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -217,7 +221,7 @@
                     <button type="submit" class="btn btn-sm btn-primary">{{ __('Record') }}</button>
                 </div>
             </form>
-            <small class="text-muted mt-1 d-block">{{ __('Records a deposit/prepayment that reduces the member\'s balance.') }}</small>
+            <small class="text-muted mt-1 d-block">{{ __('Records a deposit/prepayment that reduces the participant\'s balance.') }}</small>
         </div>
     </div>
     @endif

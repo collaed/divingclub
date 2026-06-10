@@ -306,25 +306,27 @@ class TripSettlementController extends Controller
         abort_unless($event->hasTripSettlement(), 404);
 
         $request->validate([
-            'user_id' => 'required|integer',
+            'participant_id' => 'required|integer',
             'amount' => 'required|numeric|min:0',
         ]);
 
-        $payment = PaymentExpected::firstOrCreate(
-            ['event_id' => $event->id, 'user_id' => $request->user_id, 'type' => 'event'],
-            [
-                'season_year' => $event->event_date->format('Y'),
-                'amount_due' => $request->amount,
-                'communication' => 'PREPAY-'.$event->id.'-'.$request->user_id,
-                'status' => 'paid',
-            ]
-        );
+        $tp = TripParticipant::where('event_id', $event->id)->findOrFail($request->participant_id);
 
-        $payment->update([
-            'amount_paid' => $request->amount,
-            'status' => $request->amount > 0 ? 'paid' : 'pending',
-            'paid_at' => $request->amount > 0 ? now() : null,
-        ]);
+        if ($tp->user_id) {
+            PaymentExpected::updateOrCreate(
+                ['event_id' => $event->id, 'user_id' => $tp->user_id, 'type' => 'event'],
+                [
+                    'season_year' => $event->event_date->format('Y'),
+                    'amount_due' => $request->amount,
+                    'amount_paid' => $request->amount,
+                    'status' => $request->amount > 0 ? 'paid' : 'pending',
+                    'paid_at' => $request->amount > 0 ? now() : null,
+                    'communication' => 'PREPAY-'.$event->id.'-'.$tp->user_id,
+                ]
+            );
+        } else {
+            $tp->update(['prepaid_amount' => $request->amount]);
+        }
 
         if ($request->ajax()) {
             return response()->json(['ok' => true]);
