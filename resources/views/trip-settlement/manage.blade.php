@@ -60,6 +60,25 @@
         </div>
     </div>
 
+    {{-- Net Result for the Club --}}
+    @php
+        $totalPrepaid = collect($settlement['participants'])->sum('prepaid');
+        $totalExpenses = $settlement['global_pool'] + $settlement['transit_pool'];
+        $totalRefunds = collect($settlement['participants'])->where('cancelled', true)->sum('prepaid');
+        $netResult = $totalPrepaid - $totalExpenses - $totalRefunds;
+    @endphp
+    <div class="alert {{ $netResult >= 0 ? 'alert-success' : 'alert-warning' }} d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <strong>{{ __('Club Net Result') }}:</strong>
+            {{ __('Collected') }}: {{ number_format($totalPrepaid, 2) }} €
+            — {{ __('Expenses') }}: {{ number_format($totalExpenses, 2) }} €
+            @if($totalRefunds > 0) — {{ __('Refunds') }}: {{ number_format($totalRefunds, 2) }} € @endif
+        </div>
+        <h4 class="mb-0 {{ $netResult >= 0 ? 'text-success' : 'text-danger' }}">
+            {{ $netResult >= 0 ? '+' : '' }}{{ number_format($netResult, 2) }} €
+        </h4>
+    </div>
+
     {{-- Pending Receipts --}}
     @if($pendingReceipts->isNotEmpty())
     <div class="card dc-card mb-4">
