@@ -71,17 +71,18 @@
     </dl>
 
     <h2>{{ __('Per-Participant Breakdown') }}</h2>
-    <table>
+    <table id="breakdown-table">
         <thead>
             <tr>
-                <th>{{ __('Name') }}</th>
-                <th>{{ __('Mode') }}</th>
-                <th>{{ __('Shared') }}</th>
-                <th>{{ __('Transit') }}</th>
-                <th>{{ __('Local') }}</th>
-                <th>{{ __('Bounty') }}</th>
-                <th>{{ __('Paid') }}</th>
-                <th>{{ __('Balance') }}</th>
+                <th class="sortable-col" data-col="0" role="button" style="cursor:pointer">{{ __('Name') }} <span class="sort-icon">↕</span></th>
+                <th class="sortable-col" data-col="1" role="button" style="cursor:pointer">{{ __('Mode') }} <span class="sort-icon">↕</span></th>
+                <th class="sortable-col" data-col="2" role="button" style="cursor:pointer">{{ __('Shared') }} <span class="sort-icon">↕</span></th>
+                <th class="sortable-col" data-col="3" role="button" style="cursor:pointer">{{ __('Transit') }} <span class="sort-icon">↕</span></th>
+                <th class="sortable-col" data-col="4" role="button" style="cursor:pointer">{{ __('Local') }} <span class="sort-icon">↕</span></th>
+                <th class="sortable-col" data-col="5" role="button" style="cursor:pointer">{{ __('Bounty') }} <span class="sort-icon">↕</span></th>
+                <th class="sortable-col" data-col="6" role="button" style="cursor:pointer">{{ __('Prepaid') }} <span class="sort-icon">↕</span></th>
+                <th class="sortable-col" data-col="7" role="button" style="cursor:pointer">{{ __('Paid') }} <span class="sort-icon">↕</span></th>
+                <th class="sortable-col" data-col="8" role="button" style="cursor:pointer">{{ __('Balance') }} <span class="sort-icon">↕</span></th>
             </tr>
         </thead>
         <tbody>
@@ -98,6 +99,7 @@
                     <td>{{ $p['transit_share'] > 0 ? number_format($p['transit_share'], 2) : '—' }}</td>
                     <td>{{ $p['local_charge'] > 0 ? number_format($p['local_charge'], 2) : '—' }}</td>
                     <td>{{ $p['bounty_credit'] > 0 ? '-'.number_format($p['bounty_credit'], 2) : '—' }}</td>
+                    <td>{{ $p['prepaid'] > 0 ? '-'.number_format($p['prepaid'], 2) : '—' }}</td>
                     <td>{{ $p['total_paid'] > 0 ? '-'.number_format($p['total_paid'], 2) : '—' }}</td>
                     <td class="{{ $p['balance'] > 0 ? 'positive' : ($p['balance'] < 0 ? 'negative' : 'zero') }}">
                         <strong>{{ $p['balance'] > 0 ? '+' : '' }}{{ number_format($p['balance'], 2) }} €</strong>
@@ -112,6 +114,7 @@
                 <td>{{ number_format($settlement['transit_pool'], 2) }}</td>
                 <td>{{ number_format($settlement['local_subsidy'], 2) }}</td>
                 <td>{{ number_format($settlement['driver_bounties'], 2) }}</td>
+                <td>{{ number_format(collect($settlement['participants'])->sum('prepaid'), 2) }}</td>
                 <td>{{ number_format(collect($settlement['participants'])->sum('total_paid'), 2) }}</td>
                 <td class="zero">{{ number_format(collect($settlement['participants'])->sum('balance'), 2) }} €</td>
             </tr>
@@ -130,5 +133,36 @@
             — {{ __('DRAFT — ledger still open') }}
         @endif
     </div>
+<script>
+(function() {
+    const table = document.getElementById('breakdown-table');
+    const tbody = table.querySelector('tbody');
+    let sortCol = -1, sortAsc = true;
+    function val(row, col) {
+        const text = row.cells[col].textContent.replace(/[€,—+\s]/g, '').trim();
+        const n = parseFloat(text);
+        return isNaN(n) ? text.toLowerCase() : n;
+    }
+    table.querySelectorAll('.sortable-col').forEach(th => {
+        th.addEventListener('click', function() {
+            const col = parseInt(this.dataset.col);
+            if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; }
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                const va = val(a, col), vb = val(b, col);
+                if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * (sortAsc ? 1 : -1);
+                return String(va).localeCompare(String(vb)) * (sortAsc ? 1 : -1);
+            });
+            rows.forEach(r => tbody.appendChild(r));
+            table.querySelectorAll('.sort-icon').forEach(s => s.textContent = '↕');
+            this.querySelector('.sort-icon').textContent = sortAsc ? '↑' : '↓';
+        });
+    });
+    // Hide sort icons when printing
+    const style = document.createElement('style');
+    style.textContent = '@media print { .sort-icon { display: none !important; } }';
+    document.head.appendChild(style);
+})();
+</script>
 </body>
 </html>
