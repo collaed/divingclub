@@ -164,6 +164,7 @@
 
             {{-- Trip Settlement link --}}
             @if($event->trip_settlement_enabled)
+                @php $isPrivileged ??= auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? [])); @endphp
                 <div class="card dc-card mb-4">
                     <div class="card-header">@icon('💰') {{ __('Trip Settlement') }}</div>
                     <div class="card-body">
