@@ -592,6 +592,16 @@
                         @endif
                     </tr>
                     @endforeach
+                    @if($settlement['driver_bounties'] > 0)
+                    <tr class="table-light">
+                        <td>{{ __('Club') }}</td>
+                        <td>{{ number_format($settlement['driver_bounties'], 2) }} €</td>
+                        <td>{{ __('Transit') }}</td>
+                        <td>{{ __('Driver Bounties') }} ({{ $event->tripParticipants->where('driving_percentage', '>', 0)->map(fn($tp) => $tp->participantName() . ' ' . $tp->driving_percentage . '%')->implode(', ') }})</td>
+                        <td><span class="badge bg-info">{{ __('Auto') }}</span></td>
+                        @if($event->settlement_status === 'open')<td></td>@endif
+                    </tr>
+                    @endif
                 </tbody>
             </table>
         </div>
