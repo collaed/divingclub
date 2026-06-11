@@ -493,8 +493,9 @@
                     addThirdPartyVal.value = '0';
                 }
             });
-            // Trigger initial state
-            addCategory.dispatchEvent(new Event('change'));
+            // Trigger initial state — set label
+            const initLabel = addMemberCol.querySelector('label');
+            initLabel.textContent = '{{ __("Paid by (optional)") }}';
         }
 
         const editTp = document.getElementById('edit-third-party');
