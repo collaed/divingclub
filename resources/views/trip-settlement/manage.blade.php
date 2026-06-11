@@ -641,6 +641,7 @@
                         <th>{{ __('Mode') }}</th>
                         <th class="text-end">{{ __('Global') }}</th>
                         <th class="text-end">{{ __('Transit') }}</th>
+                        <th class="text-end">{{ __('Dive Costs') }}</th>
                         <th class="text-end">{{ __('Bounty') }}</th>
                         <th class="text-end">{{ __('Prepaid') }}</th>
                         <th class="text-end">{{ __('Paid') }}</th>
@@ -659,6 +660,7 @@
                         </td>
                         <td class="text-end">{{ number_format($p['global_share'], 2) }}</td>
                         <td class="text-end">{{ number_format($p['transit_share'] + ($p['local_charge'] ?? 0), 2) }}</td>
+                        <td class="text-end">{{ ($p['individual_charges'] ?? 0) > 0 ? number_format($p['individual_charges'], 2) : '—' }}</td>
                         <td class="text-end">{{ $p['bounty_credit'] > 0 ? '-' . number_format($p['bounty_credit'], 2) : '—' }}</td>
                         <td class="text-end">{{ $p['prepaid'] > 0 ? '-' . number_format($p['prepaid'], 2) : '—' }}</td>
                         <td class="text-end">{{ $p['total_paid'] > 0 ? number_format($p['total_paid'], 2) : '—' }}</td>
@@ -670,7 +672,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="table-dark">
-                        <td colspan="7" class="text-end fw-bold">{{ __('Total') }}</td>
+                        <td colspan="8" class="text-end fw-bold">{{ __('Total') }}</td>
                         <td class="text-end fw-bold">{{ number_format(collect($settlement['participants'])->sum('balance'), 2) }} €</td>
                     </tr>
                 </tfoot>
