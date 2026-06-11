@@ -158,9 +158,8 @@ class TripSettlementService
 
             // Instructor daily subsidy (contribution to dive costs for supervising instructors)
             $instructorSubsidy = 0;
-            if ($p->is_supervising_instructor && ($event->instructor_daily_subsidy ?? 0) > 0) {
-                $diveDays = $event->dive_days ?? ($event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1);
-                $instructorSubsidy = round($event->instructor_daily_subsidy * $diveDays, 2);
+            if ($p->supervising_days > 0 && ($event->instructor_daily_subsidy ?? 0) > 0) {
+                $instructorSubsidy = round($event->instructor_daily_subsidy * $p->supervising_days, 2);
             }
 
             // What this person owes

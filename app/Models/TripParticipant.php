@@ -27,6 +27,7 @@ class TripParticipant extends Model
         'local_transit_days',
         'prepaid_amount',
         'is_supervising_instructor',
+        'supervising_days',
     ];
 
     public function event(): BelongsTo

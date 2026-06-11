@@ -156,13 +156,14 @@ class TripSettlementController extends Controller
             'transit_mode' => 'nullable|in:van,own,fly',
             'van_number' => 'nullable|integer|min:1|max:10',
             'is_supervising_instructor' => 'nullable|boolean',
+            'supervising_days' => 'nullable|integer|min:0|max:30',
         ]);
 
         $participant->update([
             'driving_percentage' => $data['driving_percentage'],
             'local_transit_days' => $data['local_transit_days'],
             'van_number' => $data['van_number'] ?? null,
-            'is_supervising_instructor' => (bool) ($data['is_supervising_instructor'] ?? $participant->is_supervising_instructor),
+            'supervising_days' => $data['supervising_days'] ?? $participant->supervising_days,
         ]);
 
         if (isset($data['transit_mode'])) {
