@@ -615,6 +615,21 @@ class TripSettlementController extends Controller
         ]);
     }
 
+    public function updateDivePricing(Event $event, Request $request): RedirectResponse
+    {
+        $this->authorizeBureau();
+        abort_unless($event->hasTripSettlement(), 404);
+
+        $data = $request->validate([
+            'dive_unit_price' => 'required|numeric|min:0',
+            'nitrox_supplement' => 'required|numeric|min:0',
+        ]);
+
+        $event->update($data);
+
+        return back()->with('success', __('Dive pricing updated.'));
+    }
+
     private function authorizeBureau(): void
     {
         abort_unless(auth()->user()->isBureau(), 403);

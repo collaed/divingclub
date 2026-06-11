@@ -319,6 +319,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/settlement/close', [TripSettlementController::class, 'closeLedger'])->name('events.settlement.close');
     Route::post('/events/{event}/settlement/reopen', [TripSettlementController::class, 'reopenLedger'])->name('events.settlement.reopen');
     Route::get('/events/{event}/settlement/export', [TripSettlementController::class, 'export'])->name('events.settlement.export');
+    Route::post('/events/{event}/settlement/update-dive-pricing', [TripSettlementController::class, 'updateDivePricing'])->name('events.settlement.update-dive-pricing');
     Route::post('/events/{event}/settlement/prepayment', [TripSettlementController::class, 'recordPrepayment'])->name('events.settlement.prepayment');
     Route::get('/events/{event}/settlement/breakdown', [TripSettlementController::class, 'breakdown'])->name('events.settlement.breakdown');
 

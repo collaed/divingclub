@@ -272,7 +272,9 @@
         </div>
     </div>
     {{-- Record Prepayments --}}
-    <div class="card dc-card mb-4">
+    <div class="row mb-4">
+    <div class="col-md-7">
+    <div class="card dc-card h-100">
         <div class="card-header"><h6 class="mb-0">💳 {{ __('Record Prepayment') }}</h6></div>
         <div class="card-body">
             <form action="{{ route('events.settlement.prepayment', $event) }}" method="POST" class="row g-2 align-items-end">
@@ -303,6 +305,35 @@
             </form>
             <small class="text-muted mt-1 d-block">{{ __('Records a deposit/prepayment that reduces the participant\'s balance.') }}</small>
         </div>
+    </div>
+    </div>
+    <div class="col-md-5">
+    <div class="card dc-card h-100">
+        <div class="card-header"><h6 class="mb-0">🤿 {{ __('Dive Pricing') }}</h6></div>
+        <div class="card-body">
+            <form action="{{ route('events.settlement.update-dive-pricing', $event) }}" method="POST" class="row g-2 align-items-end">
+                @csrf
+                <div class="col-auto">
+                    <label class="form-label form-label-sm">{{ __('Price per dive') }}</label>
+                    <div class="input-group input-group-sm" style="width:110px">
+                        <input type="number" step="0.01" name="dive_unit_price" value="{{ $event->dive_unit_price ?? 0 }}" min="0" class="form-control">
+                        <span class="input-group-text">€</span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label form-label-sm">{{ __('Nitrox supplement') }}</label>
+                    <div class="input-group input-group-sm" style="width:110px">
+                        <input type="number" step="0.01" name="nitrox_supplement" value="{{ $event->nitrox_supplement ?? 0 }}" min="0" class="form-control">
+                        <span class="input-group-text">€</span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
     </div>
     @endif
     <div class="card dc-card mb-4">
