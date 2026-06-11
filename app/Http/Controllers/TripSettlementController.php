@@ -13,6 +13,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TripSettlementController extends Controller
@@ -362,67 +365,138 @@ class TripSettlementController extends Controller
         abort_unless($event->hasTripSettlement(), 404);
 
         $settlement = $this->service->calculate($event);
-        $filename = 'settlement-'.$event->id.'-'.now()->format('Y-m-d').'.csv';
+        $receipts = $event->tripReceipts()->where('status', 'approved')->with('user.detail')->get();
+        $filename = 'settlement-'.$event->id.'-'.now()->format('Y-m-d').'.xlsx';
 
-        return response()->streamDownload(function () use ($settlement, $event): void {
-            $out = fopen('php://output', 'w');
-            // BOM for Excel UTF-8
-            fwrite($out, "\xEF\xBB\xBF");
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle(__('Settlement'));
 
-            fputcsv($out, [$event->title.' — '.__('Trip Settlement')], ';');
-            fputcsv($out, [], ';');
+        $headerFill = ['fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '003366']]];
+        $headerFont = ['font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']]];
+        $boldStyle = ['font' => ['bold' => true]];
+        $greenFont = ['font' => ['color' => ['rgb' => '008000']]];
+        $redFont = ['font' => ['color' => ['rgb' => 'CC0000']]];
 
-            // Headers
-            fputcsv($out, [
-                __('Name'), __('Mode'), __('Global Share'), __('Transit Share'),
-                __('Dive Costs'), __('Bounty Credit'), __('Prepaid'), __('Paid'),
-                __('Balance'), __('Status'),
-            ], ';');
+        // ─── Title ───
+        $sheet->setCellValue('A1', $event->title.' — '.__('Trip Settlement'));
+        $sheet->getStyle('A1')->applyFromArray($boldStyle);
+        $sheet->setCellValue('A2', __('Generated').': '.now()->format('d/m/Y H:i'));
 
-            // Data rows
-            $row = 3; // Excel row counter (after header + blank + col headers)
-            foreach ($settlement['participants'] as $p) {
-                $row++;
-                fputcsv($out, [
-                    $p['name'],
-                    $p['transit_mode'],
-                    number_format($p['global_share'], 2, '.', ''),
-                    number_format($p['transit_share'] + ($p['local_charge'] ?? 0), 2, '.', ''),
-                    number_format($p['individual_charges'] ?? 0, 2, '.', ''),
-                    number_format($p['bounty_credit'], 2, '.', ''),
-                    number_format($p['prepaid'], 2, '.', ''),
-                    number_format($p['total_paid'], 2, '.', ''),
-                    number_format($p['balance'], 2, '.', ''),
-                    ($p['cancelled'] ?? false) ? __('Cancelled') : __('Active'),
-                ], ';');
+        // ─── Summary ───
+        $row = 4;
+        $sheet->setCellValue("A{$row}", __('Global Pool'));
+        $sheet->setCellValue("B{$row}", $settlement['global_pool']);
+        $row++;
+        $sheet->setCellValue("A{$row}", __('Transit Pool'));
+        $sheet->setCellValue("B{$row}", $settlement['transit_pool'] + $settlement['driver_bounties']);
+        $row++;
+        $sheet->setCellValue("A{$row}", __('Driver Bounties'));
+        $sheet->setCellValue("B{$row}", $settlement['driver_bounties']);
+        $row++;
+        $sheet->setCellValue("A{$row}", __('Local Subsidy'));
+        $sheet->setCellValue("B{$row}", $settlement['local_subsidy']);
+        $row++;
+        $diveInvoice = $receipts->where('category', 'diving')->sum('approved_amount');
+        $sheet->setCellValue("A{$row}", __('Dive Invoice'));
+        $sheet->setCellValue("B{$row}", $diveInvoice);
+        $sheet->getStyle("A4:A{$row}")->applyFromArray($boldStyle);
+        $sheet->getStyle("B4:B{$row}")->getNumberFormat()->setFormatCode('#,##0.00 €');
+
+        // ─── Participant Ledger ───
+        $row += 2;
+        $headerRow = $row;
+        $cols = ['A' => __('Name'), 'B' => __('Mode'), 'C' => __('Global'), 'D' => __('Transit'), 'E' => __('Dive Costs'), 'F' => __('Bounty'), 'G' => __('Prepaid'), 'H' => __('Paid'), 'I' => __('Balance'), 'J' => __('Status')];
+        foreach ($cols as $col => $label) {
+            $sheet->setCellValue("{$col}{$row}", $label);
+        }
+        $sheet->getStyle("A{$row}:J{$row}")->applyFromArray(array_merge($headerFill, $headerFont));
+
+        $dataStart = $row + 1;
+        foreach ($settlement['participants'] as $p) {
+            $row++;
+            $sheet->setCellValue("A{$row}", $p['name']);
+            $sheet->setCellValue("B{$row}", $p['transit_mode']);
+            $sheet->setCellValue("C{$row}", $p['global_share']);
+            $sheet->setCellValue("D{$row}", $p['transit_share'] + ($p['local_charge'] ?? 0));
+            $sheet->setCellValue("E{$row}", $p['individual_charges'] ?? 0);
+            $sheet->setCellValue("F{$row}", $p['bounty_credit'] > 0 ? -$p['bounty_credit'] : 0);
+            $sheet->setCellValue("G{$row}", $p['prepaid'] > 0 ? -$p['prepaid'] : 0);
+            $sheet->setCellValue("H{$row}", $p['total_paid'] > 0 ? -$p['total_paid'] : 0);
+            // Balance formula: =C+D+E+F+G+H
+            $sheet->setCellValue("I{$row}", "=C{$row}+D{$row}+E{$row}+F{$row}+G{$row}+H{$row}");
+            $isCancelled = ! empty($p['cancelled']);
+            $sheet->setCellValue("J{$row}", $isCancelled ? __('Cancelled') : __('Active'));
+
+            if ($isCancelled) {
+                $sheet->getStyle("A{$row}:J{$row}")->applyFromArray(['font' => ['strikethrough' => true, 'color' => ['rgb' => '999999']]]);
             }
+        }
+        $lastRow = $row;
 
-            // Totals row with formulas
-            $lastRow = $row;
-            $dataStart = 4;
-            fputcsv($out, [
-                __('TOTALS'), '',
-                "=SUM(C{$dataStart}:C{$lastRow})",
-                "=SUM(D{$dataStart}:D{$lastRow})",
-                "=SUM(E{$dataStart}:E{$lastRow})",
-                "=SUM(F{$dataStart}:F{$lastRow})",
-                "=SUM(G{$dataStart}:G{$lastRow})",
-                "=SUM(H{$dataStart}:H{$lastRow})",
-                "=SUM(I{$dataStart}:I{$lastRow})",
-                '',
-            ], ';');
+        // Totals row
+        $row++;
+        $sheet->setCellValue("A{$row}", __('TOTALS'));
+        foreach (['C', 'D', 'E', 'F', 'G', 'H', 'I'] as $col) {
+            $sheet->setCellValue("{$col}{$row}", "=SUM({$col}{$dataStart}:{$col}{$lastRow})");
+        }
+        $sheet->getStyle("A{$row}:J{$row}")->applyFromArray($boldStyle);
 
-            // Summary
-            fputcsv($out, [], ';');
-            fputcsv($out, [__('Global Pool'), number_format($settlement['global_pool'], 2, '.', '')], ';');
-            fputcsv($out, [__('Transit Pool'), number_format($settlement['transit_pool'], 2, '.', '')], ';');
-            fputcsv($out, [__('Driver Bounties'), number_format($settlement['driver_bounties'], 2, '.', '')], ';');
-            fputcsv($out, [__('Local Subsidy'), number_format($settlement['local_subsidy'], 2, '.', '')], ';');
+        // Format numbers
+        $sheet->getStyle("C{$dataStart}:I{$row}")->getNumberFormat()->setFormatCode('#,##0.00 €');
 
-            fclose($out);
+        // Color balance column
+        for ($r = $dataStart; $r <= $lastRow; $r++) {
+            $val = $sheet->getCell("I{$r}")->getCalculatedValue();
+            if ($val > 0) {
+                $sheet->getStyle("I{$r}")->applyFromArray($redFont);
+            } elseif ($val < 0) {
+                $sheet->getStyle("I{$r}")->applyFromArray($greenFont);
+            }
+        }
+
+        // ─── Expenses Sheet ───
+        $expSheet = $spreadsheet->createSheet();
+        $expSheet->setTitle(__('Expenses'));
+        $expSheet->setCellValue('A1', __('All Expenses'));
+        $expSheet->getStyle('A1')->applyFromArray($boldStyle);
+
+        $row = 3;
+        $expCols = ['A' => __('Member'), 'B' => __('Amount'), 'C' => __('Category'), 'D' => __('Description')];
+        foreach ($expCols as $col => $label) {
+            $expSheet->setCellValue("{$col}{$row}", $label);
+        }
+        $expSheet->getStyle("A{$row}:D{$row}")->applyFromArray(array_merge($headerFill, $headerFont));
+
+        foreach ($receipts as $r) {
+            $row++;
+            $name = $r->user ? ($r->user->detail?->first_name.' '.$r->user->detail?->last_name) : __('Club');
+            $expSheet->setCellValue("A{$row}", $name);
+            $expSheet->setCellValue("B{$row}", $r->category === 'individual' ? -$r->approved_amount : $r->approved_amount);
+            $expSheet->setCellValue("C{$row}", $r->category);
+            $expSheet->setCellValue("D{$row}", $r->description ?? '');
+            if ($r->category === 'individual') {
+                $expSheet->getStyle("A{$row}:D{$row}")->applyFromArray($greenFont);
+            }
+        }
+        $expSheet->getStyle("B4:B{$row}")->getNumberFormat()->setFormatCode('#,##0.00 €');
+
+        // Auto-size columns
+        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        foreach (['A', 'B', 'C', 'D'] as $col) {
+            $expSheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer): void {
+            $writer->save('php://output');
         }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
 
