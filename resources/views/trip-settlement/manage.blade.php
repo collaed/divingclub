@@ -25,37 +25,55 @@
         </div>
     </div>
 
-    {{-- Summary Cards --}}
+    {{-- Summary Cards (click to expand composition) --}}
+    @php
+        $globalReceipts = $event->tripReceipts()->where('status','approved')->where('category','general')->get();
+        $transitReceipts = $event->tripReceipts()->where('status','approved')->where('category','transit')->get();
+        $transitTotal = $settlement['transit_pool'] + $settlement['driver_bounties'];
+    @endphp
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card dc-card text-center">
+        <div class="col-md-4">
+            <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-global">
                 <div class="card-body">
                     <h5>{{ number_format($settlement['global_pool'], 2) }} €</h5>
                     <small class="text-muted">{{ __('Global Pool') }}</small>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card dc-card text-center">
-                <div class="card-body">
-                    <h5>{{ number_format($settlement['transit_pool'], 2) }} €</h5>
-                    <small class="text-muted">{{ __('Transit Pool') }}</small>
+            <div class="collapse small mt-1" id="detail-global">
+                <div class="card card-body py-2" style="font-size:0.8rem">
+                    @foreach($globalReceipts as $r)
+                        <div class="d-flex justify-content-between"><span>{{ $r->description }}</span><span>{{ number_format($r->approved_amount, 2) }} €</span></div>
+                    @endforeach
+                    @if($globalReceipts->isEmpty())<span class="text-muted">{{ __('No receipts') }}</span>@endif
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card dc-card text-center">
+        <div class="col-md-4">
+            <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-transit">
                 <div class="card-body">
-                    <h5>{{ number_format($settlement['driver_bounties'], 2) }} €</h5>
-                    <small class="text-muted">{{ __('Driver Bounties') }}</small>
+                    <h5>{{ number_format($transitTotal, 2) }} €</h5>
+                    <small class="text-muted">{{ __('Transit Pool') }} <span class="text-muted">({{ __('incl. bounties') }} {{ number_format($settlement['driver_bounties'], 2) }} €)</span></small>
+                </div>
+            </div>
+            <div class="collapse small mt-1" id="detail-transit">
+                <div class="card card-body py-2" style="font-size:0.8rem">
+                    @foreach($transitReceipts as $r)
+                        <div class="d-flex justify-content-between"><span>{{ $r->description }}@if($r->user) <em class="text-muted">({{ $r->user->detail?->first_name }})</em>@endif</span><span>{{ number_format($r->approved_amount, 2) }} €</span></div>
+                    @endforeach
+                    <div class="d-flex justify-content-between border-top mt-1 pt-1"><span>{{ __('Driver Bounties') }}</span><span>{{ number_format($settlement['driver_bounties'], 2) }} €</span></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card dc-card text-center">
+        <div class="col-md-4">
+            <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-local">
                 <div class="card-body">
                     <h5>{{ number_format($settlement['local_subsidy'], 2) }} €</h5>
                     <small class="text-muted">{{ __('Local Subsidy') }}</small>
+                </div>
+            </div>
+            <div class="collapse small mt-1" id="detail-local">
+                <div class="card card-body py-2" style="font-size:0.8rem">
+                    <span class="text-muted">{{ __('Day rate') }}: {{ number_format($event->local_daily_charge ?? 0, 2) }} € × {{ __('days per non-van participant') }}</span>
                 </div>
             </div>
         </div>
