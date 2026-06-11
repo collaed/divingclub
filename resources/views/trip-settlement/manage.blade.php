@@ -481,6 +481,10 @@
     @if($event->settlement_status === 'open')
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Restore scroll position after auto-refresh
+        const savedY = sessionStorage.getItem('scrollY');
+        if (savedY) { window.scrollTo(0, parseInt(savedY)); sessionStorage.removeItem('scrollY'); }
+
         let saveTimeout = null;
         const status = document.getElementById('save-status');
 
@@ -532,7 +536,10 @@
                         status.className = 'text-success small';
                         // Refresh totals after a short delay (lets multiple rapid saves settle)
                         clearTimeout(window._refreshTimeout);
-                        window._refreshTimeout = setTimeout(() => location.reload(), 1500);
+                        window._refreshTimeout = setTimeout(() => {
+                            sessionStorage.setItem('scrollY', window.scrollY);
+                            location.reload();
+                        }, 1500);
                     } else {
                         status.textContent = '✕ {{ __("Error") }}';
                         status.className = 'text-danger small';
