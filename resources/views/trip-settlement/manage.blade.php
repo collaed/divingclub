@@ -304,7 +304,8 @@
                         @endif
                         <th class="sortable-col" data-col="{{ $event->van_count ? 3 : 2 }}" role="button">{{ __('Driving %') }} <span class="sort-icon">↕</span></th>
                         <th class="sortable-col" data-col="{{ $event->van_count ? 4 : 3 }}" role="button">{{ __('Local Days') }} <span class="sort-icon">↕</span></th>
-                        <th class="sortable-col" data-col="{{ $event->van_count ? 5 : 4 }}" role="button">{{ __('Balance') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col" data-col="{{ $event->van_count ? 5 : 4 }}" role="button">{{ __('Dive Costs') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col" data-col="{{ $event->van_count ? 6 : 5 }}" role="button">{{ __('Balance') }} <span class="sort-icon">↕</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -351,6 +352,7 @@
                         <td>{{ $tp->driving_percentage }}%</td>
                         <td>{{ $tp->local_transit_days }}d</td>
                         @endif
+                        <td>{{ ($pResult['individual_charges'] ?? 0) > 0 ? number_format($pResult['individual_charges'], 2) . ' €' : '—' }}</td>
                         <td class="{{ ($pResult['balance'] ?? 0) > 0 ? 'text-danger' : 'text-success' }}">
                             {{ number_format($pResult['balance'] ?? 0, 2) }} €
                         </td>
