@@ -552,6 +552,18 @@ class TripSettlementController extends Controller
             $driverList = $drivers->map(fn ($tp) => $tp->participantName().' '.$tp->driving_percentage.'%')->implode(', ');
             $es->setCellValue("D{$row}", __('Driver Bounties').' ('.$driverList.')');
         }
+        // Instructor subsidy row
+        $totalInstrSubsidy = collect($settlement['participants'])->sum('instructor_subsidy');
+        if ($totalInstrSubsidy > 0) {
+            $row++;
+            $es->setCellValue("A{$row}", __('Club'));
+            $es->setCellValue("B{$row}", $totalInstrSubsidy);
+            $es->setCellValue("C{$row}", 'diving');
+            $instrList = collect($settlement['participants'])->where('instructor_subsidy', '>', 0)
+                ->map(fn ($p) => $p['name'].' '.intval($p['instructor_subsidy'] / ($event->instructor_daily_subsidy ?: 1)).'j')
+                ->implode(', ');
+            $es->setCellValue("D{$row}", __('Instructor subsidy').' ('.$instrList.')');
+        }
         $es->getStyle("B2:B{$row}")->getNumberFormat()->setFormatCode($eurFmt);
         foreach (['A', 'B', 'C', 'D'] as $col) {
             $es->getColumnDimension($col)->setAutoSize(true);
@@ -563,7 +575,7 @@ class TripSettlementController extends Controller
         $ls = $spreadsheet->createSheet();
         $ls->setTitle(__('Settlement Ledger'));
         $row = 1;
-        $lCols = ['A' => __('Name'), 'B' => __('Mode'), 'C' => __('Global'), 'D' => __('Transit'), 'E' => __('Dive Costs'), 'F' => __('Bounty'), 'G' => __('Prepaid'), 'H' => __('Paid'), 'I' => __('Balance'), 'J' => __('Status')];
+        $lCols = ['A' => __('Name'), 'B' => __('Mode'), 'C' => __('Global'), 'D' => __('Transit'), 'E' => __('Dive Costs'), 'F' => __('Bounty'), 'G' => __('Instr. Subsidy'), 'H' => __('Prepaid'), 'I' => __('Paid'), 'J' => __('Balance'), 'K' => __('Status')];
         foreach ($lCols as $col => $label) {
             $ls->setCellValue("{$col}{$row}", $label);
         }
@@ -578,33 +590,34 @@ class TripSettlementController extends Controller
             $ls->setCellValue("D{$row}", $p['transit_share'] + ($p['local_charge'] ?? 0));
             $ls->setCellValue("E{$row}", $p['individual_charges'] ?? 0);
             $ls->setCellValue("F{$row}", $p['bounty_credit'] > 0 ? -$p['bounty_credit'] : 0);
-            $ls->setCellValue("G{$row}", $p['prepaid'] > 0 ? -$p['prepaid'] : 0);
-            $ls->setCellValue("H{$row}", $p['total_paid'] > 0 ? -$p['total_paid'] : 0);
-            $ls->setCellValue("I{$row}", "=C{$row}+D{$row}+E{$row}+F{$row}+G{$row}+H{$row}");
-            $ls->setCellValue("J{$row}", ! empty($p['cancelled']) ? __('Cancelled') : __('Active'));
+            $ls->setCellValue("G{$row}", ($p['instructor_subsidy'] ?? 0) > 0 ? -$p['instructor_subsidy'] : 0);
+            $ls->setCellValue("H{$row}", $p['prepaid'] > 0 ? -$p['prepaid'] : 0);
+            $ls->setCellValue("I{$row}", $p['total_paid'] > 0 ? -$p['total_paid'] : 0);
+            $ls->setCellValue("J{$row}", "=C{$row}+D{$row}+E{$row}+F{$row}+G{$row}+H{$row}+I{$row}");
+            $ls->setCellValue("K{$row}", ! empty($p['cancelled']) ? __('Cancelled') : __('Active'));
             if (! empty($p['cancelled'])) {
-                $ls->getStyle("A{$row}:J{$row}")->applyFromArray(['font' => ['strikethrough' => true, 'color' => ['rgb' => '999999']]]);
+                $ls->getStyle("A{$row}:K{$row}")->applyFromArray(['font' => ['strikethrough' => true, 'color' => ['rgb' => '999999']]]);
             }
         }
         $lastRow = $row;
         $row++;
         $ls->setCellValue("A{$row}", __('TOTALS'));
-        foreach (['C', 'D', 'E', 'F', 'G', 'H', 'I'] as $col) {
+        foreach (['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] as $col) {
             $ls->setCellValue("{$col}{$row}", "=SUM({$col}{$dataStart}:{$col}{$lastRow})");
         }
-        $ls->getStyle("A{$row}:J{$row}")->applyFromArray($bold);
-        $ls->getStyle("C{$dataStart}:I{$row}")->getNumberFormat()->setFormatCode($eurFmt);
+        $ls->getStyle("A{$row}:K{$row}")->applyFromArray($bold);
+        $ls->getStyle("C{$dataStart}:J{$row}")->getNumberFormat()->setFormatCode($eurFmt);
 
-        // Color balance column
+        // Color balance column (J)
         for ($r = $dataStart; $r <= $lastRow; $r++) {
-            $val = $ls->getCell("I{$r}")->getCalculatedValue();
+            $val = $ls->getCell("J{$r}")->getCalculatedValue();
             if ($val > 0) {
-                $ls->getStyle("I{$r}")->applyFromArray($red);
+                $ls->getStyle("J{$r}")->applyFromArray($red);
             } elseif ($val < 0) {
-                $ls->getStyle("I{$r}")->applyFromArray($green);
+                $ls->getStyle("J{$r}")->applyFromArray($green);
             }
         }
-        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] as $col) {
+        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'] as $col) {
             $ls->getColumnDimension($col)->setAutoSize(true);
         }
 
