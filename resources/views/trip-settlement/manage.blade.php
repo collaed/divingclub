@@ -694,6 +694,16 @@
                         @if($event->settlement_status === 'open')<td></td>@endif
                     </tr>
                     @endif
+                    @if($totalInstructorSubsidy > 0)
+                    <tr class="table-light">
+                        <td>{{ __('Club') }}</td>
+                        <td>{{ number_format($totalInstructorSubsidy, 2) }} €</td>
+                        <td>{{ __('Diving') }}</td>
+                        <td>{{ __('Instructor subsidy') }} ({{ collect($settlement['participants'])->where('instructor_subsidy', '>', 0)->map(fn($p) => $p['name'] . ' ' . intval($p['instructor_subsidy'] / $event->instructor_daily_subsidy) . 'j')->implode(', ') }})</td>
+                        <td><span class="badge bg-info">{{ __('Auto') }}</span></td>
+                        @if($event->settlement_status === 'open')<td></td>@endif
+                    </tr>
+                    @endif
                 </tbody>
             </table>
         </div>
