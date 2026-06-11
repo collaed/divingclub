@@ -66,11 +66,18 @@ class TripSettlementService
             return ($reg?->status ?? 'confirmed') !== 'cancelled';
         });
 
-        // Step 1: Global Pool — shared expenses divided equally among active participants
+        // Step 1: Global Pool — shared expenses + instructor subsidy, divided equally
         $globalReceipts = $receipts->where('category', 'general');
         $globalPool = $globalReceipts->sum('approved_amount');
+        // Instructor subsidy is a shared cost — everyone contributes to instructors' dive expenses
+        $totalInstructorSubsidy = 0;
+        $dailySubsidy = (float) ($event->instructor_daily_subsidy ?? 0);
+        if ($dailySubsidy > 0) {
+            $totalInstructorSubsidy = (float) $activeParticipants->sum('supervising_days') * $dailySubsidy;
+        }
+        $globalPoolWithSubsidy = $globalPool + $totalInstructorSubsidy;
         $globalShare = $activeParticipants->count() > 0
-            ? round($globalPool / $activeParticipants->count(), 2)
+            ? round($globalPoolWithSubsidy / $activeParticipants->count(), 2)
             : 0;
 
         // Step 2: Local Transit Subsidy — fly-in members pay daily charge
@@ -189,7 +196,7 @@ class TripSettlementService
         }
 
         return [
-            'global_pool' => (float) $globalPool,
+            'global_pool' => (float) $globalPoolWithSubsidy,
             'transit_pool' => (float) $transitPool,
             'local_subsidy' => $localSubsidy,
             'driver_bounties' => $totalBounties,

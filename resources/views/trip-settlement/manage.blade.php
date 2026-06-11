@@ -29,18 +29,21 @@
     @php
         $globalReceipts = $event->tripReceipts()->where('status','approved')->where('category','general')->with('user.detail')->get();
         $transitReceipts = $event->tripReceipts()->where('status','approved')->where('category','transit')->with('user.detail')->get();
+        $diveInvoiceReceipts = $event->tripReceipts()->where('status','approved')->where('category','diving')->get();
         $transitTotal = $settlement['transit_pool'] + $settlement['driver_bounties'];
         $activeCount = collect($settlement['participants'])->where('cancelled', false)->count();
         $vanCount = collect($settlement['participants'])->where('cancelled', false)->where('transit_mode', 'van')->count();
         $totalInstructorSubsidy = collect($settlement['participants'])->sum('instructor_subsidy');
-        $incentivesTotal = $settlement['driver_bounties'] + $totalInstructorSubsidy;
+        $totalIndividualCharged = collect($settlement['participants'])->sum('individual_charges');
+        $diveInvoiceTotal = (float) $diveInvoiceReceipts->sum('approved_amount');
     @endphp
     <div class="row mb-4">
-        <div class="col-md-4">
+        {{-- Global Pool (accommodation, shared by all) --}}
+        <div class="col-md-3">
             <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-global">
-                <div class="card-body">
-                    <h5>{{ number_format($settlement['global_pool'], 2) }} €</h5>
-                    <small class="text-muted">{{ __('Global Pool') }}</small>
+                <div class="card-body py-2">
+                    <h5 class="mb-0">{{ number_format($settlement['global_pool'] + $totalInstructorSubsidy, 2) }} €</h5>
+                    <small class="text-muted">{{ __('Shared Costs') }}</small>
                 </div>
             </div>
             <div class="collapse small mt-1" id="detail-global">
@@ -49,23 +52,24 @@
                     @foreach($globalReceipts as $r)
                         <div class="d-flex justify-content-between"><span>{{ $r->description }}</span><span>{{ number_format($r->approved_amount, 2) }} €</span></div>
                     @endforeach
-                    @if($globalReceipts->isEmpty())<span class="text-muted">{{ __('No receipts') }}</span>@endif
-                    <hr class="my-1">
-                    <div class="d-flex justify-content-between fw-bold"><span>{{ __('Total') }}</span><span>{{ number_format($settlement['global_pool'], 2) }} €</span></div>
+                    @if($totalInstructorSubsidy > 0)
+                        <div class="d-flex justify-content-between"><span>{{ __('Instructor subsidy') }} ({{ number_format($event->instructor_daily_subsidy, 0) }} €/j)</span><span>{{ number_format($totalInstructorSubsidy, 2) }} €</span></div>
+                        @foreach(collect($settlement['participants'])->where('instructor_subsidy', '>', 0) as $ip)
+                            <div class="d-flex justify-content-between text-muted ps-2"><span>{{ $ip['name'] }} ({{ intval($ip['instructor_subsidy'] / ($event->instructor_daily_subsidy ?: 1)) }}j)</span><span>{{ number_format($ip['instructor_subsidy'], 2) }} €</span></div>
+                        @endforeach
+                    @endif
                     <hr class="my-1">
                     <strong>{{ __('Division') }}:</strong>
-                    <div>{{ number_format($settlement['global_pool'], 2) }} ÷ {{ $activeCount }} {{ __('participants') }} = <strong>{{ number_format($activeCount > 0 ? $settlement['global_pool'] / $activeCount : 0, 2) }} € / {{ __('person') }}</strong></div>
+                    <div>{{ number_format($settlement['global_pool'] + $totalInstructorSubsidy, 2) }} ÷ {{ $activeCount }} = <strong>{{ number_format($activeCount > 0 ? ($settlement['global_pool'] + $totalInstructorSubsidy) / $activeCount : 0, 2) }} € / {{ __('person') }}</strong></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        {{-- Transit Pool (fuel, tolls, bounties — van riders) --}}
+        <div class="col-md-3">
             <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-transit">
-                <div class="card-body">
-                    <h5>{{ number_format($transitTotal, 2) }} €</h5>
+                <div class="card-body py-2">
+                    <h5 class="mb-0">{{ number_format($transitTotal, 2) }} €</h5>
                     <small class="text-muted">{{ __('Transit Pool') }}</small>
-                    @if($incentivesTotal > 0)
-                        <div class="mt-1"><span class="badge bg-info">{{ __('Incentives') }}: {{ number_format($incentivesTotal, 2) }} €</span></div>
-                    @endif
                 </div>
             </div>
             <div class="collapse small mt-1" id="detail-transit">
@@ -74,18 +78,9 @@
                     @foreach($transitReceipts as $r)
                         <div class="d-flex justify-content-between"><span>{{ $r->description }}@if($r->user) <em class="text-muted">({{ $r->user->detail?->first_name }})</em>@endif</span><span>{{ number_format($r->approved_amount, 2) }} €</span></div>
                     @endforeach
-                    <hr class="my-1">
-                    <strong>{{ __('Incentives') }}:</strong>
                     <div class="d-flex justify-content-between"><span>{{ __('Driver Bounties') }}</span><span>{{ number_format($settlement['driver_bounties'], 2) }} €</span></div>
-                    @if($totalInstructorSubsidy > 0)
-                        <div class="d-flex justify-content-between"><span>{{ __('Instructor subsidy') }} ({{ number_format($event->instructor_daily_subsidy, 0) }} €/j)</span><span>{{ number_format($totalInstructorSubsidy, 2) }} €</span></div>
-                        @foreach(collect($settlement['participants'])->where('instructor_subsidy', '>', 0) as $ip)
-                            <div class="d-flex justify-content-between text-muted ps-2"><span>{{ $ip['name'] }}</span><span>{{ number_format($ip['instructor_subsidy'], 2) }} €</span></div>
-                        @endforeach
-                    @endif
-                    <div class="d-flex justify-content-between fw-bold border-top mt-1 pt-1"><span>{{ __('Total incentives') }}</span><span>{{ number_format($incentivesTotal, 2) }} €</span></div>
                     <hr class="my-1">
-                    <div class="d-flex justify-content-between fw-bold"><span>{{ __('Transit total') }}</span><span>{{ number_format($transitTotal, 2) }} €</span></div>
+                    <div class="d-flex justify-content-between fw-bold"><span>{{ __('Total') }}</span><span>{{ number_format($transitTotal, 2) }} €</span></div>
                     <div class="d-flex justify-content-between text-muted"><span>− {{ __('Local Subsidy') }}</span><span>-{{ number_format($settlement['local_subsidy'], 2) }} €</span></div>
                     <div class="d-flex justify-content-between fw-bold"><span>{{ __('Net transit cost') }}</span><span>{{ number_format($settlement['net_transit_cost'], 2) }} €</span></div>
                     <hr class="my-1">
@@ -94,10 +89,36 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        {{-- Diving (invoice vs individual charges) --}}
+        <div class="col-md-3">
+            <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-diving">
+                <div class="card-body py-2">
+                    <h5 class="mb-0">{{ number_format($diveInvoiceTotal, 2) }} €</h5>
+                    <small class="text-muted">{{ __('Diving') }}</small>
+                    @if($totalIndividualCharged > 0)
+                        <div class="mt-1"><span class="badge bg-{{ $totalIndividualCharged >= $diveInvoiceTotal ? 'success' : 'warning' }}">{{ __('covered') }}: {{ number_format($totalIndividualCharged, 2) }} €</span></div>
+                    @endif
+                </div>
+            </div>
+            <div class="collapse small mt-1" id="detail-diving">
+                <div class="card card-body py-2" style="font-size:0.8rem">
+                    <strong>{{ __('Club invoice') }}:</strong>
+                    @foreach($diveInvoiceReceipts as $r)
+                        <div class="d-flex justify-content-between"><span>{{ $r->description }}</span><span>{{ number_format($r->approved_amount, 2) }} €</span></div>
+                    @endforeach
+                    @if($diveInvoiceReceipts->isEmpty())<span class="text-muted">{{ __('No invoice entered') }}</span>@endif
+                    <hr class="my-1">
+                    <div class="d-flex justify-content-between"><span>{{ __('Charged to participants') }} ({{ number_format($event->dive_unit_price ?? 0, 0) }} €/🤿 + {{ number_format($event->nitrox_supplement ?? 0, 0) }} €/EAN)</span><span class="text-success">{{ number_format($totalIndividualCharged, 2) }} €</span></div>
+                    @php $diveDelta = $totalIndividualCharged - $diveInvoiceTotal; @endphp
+                    <div class="d-flex justify-content-between fw-bold {{ $diveDelta >= 0 ? 'text-success' : 'text-danger' }}"><span>{{ __('Delta') }}</span><span>{{ $diveDelta >= 0 ? '+' : '' }}{{ number_format($diveDelta, 2) }} €</span></div>
+                </div>
+            </div>
+        </div>
+        {{-- Local Subsidy (non-van daily charge) --}}
+        <div class="col-md-3">
             <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-local">
-                <div class="card-body">
-                    <h5>{{ number_format($settlement['local_subsidy'], 2) }} €</h5>
+                <div class="card-body py-2">
+                    <h5 class="mb-0">{{ number_format($settlement['local_subsidy'], 2) }} €</h5>
                     <small class="text-muted">{{ __('Local Subsidy') }}</small>
                 </div>
             </div>

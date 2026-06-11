@@ -921,5 +921,10 @@
     "Instructor subsidy": "Subvention moniteur",
     "Incentives": "Primes",
     "Total incentives": "Total primes",
-    "Transit total": "Total transport"
+    "Transit total": "Total transport",
+    "Shared Costs": "Frais partagés",
+    "Charged to participants": "Facturé aux participants",
+    "No invoice entered": "Aucune facture saisie",
+    "Club invoice": "Facture club",
+    "Delta": "Écart"
 }
