@@ -918,5 +918,8 @@
     "Instructor subsidy/day": "Subvention moniteur/jour",
     "Instructor subsidy: daily contribution to dive costs for instructors supervising non-autonomous divers.": "Subvention moniteur : contribution journalière aux frais de plongée des moniteurs encadrant les plongeurs non autonomes.",
     "Instr.": "Monit.",
-    "Instructor subsidy": "Subvention moniteur"
+    "Instructor subsidy": "Subvention moniteur",
+    "Incentives": "Primes",
+    "Total incentives": "Total primes",
+    "Transit total": "Total transport"
 }

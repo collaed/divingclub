@@ -32,6 +32,8 @@
         $transitTotal = $settlement['transit_pool'] + $settlement['driver_bounties'];
         $activeCount = collect($settlement['participants'])->where('cancelled', false)->count();
         $vanCount = collect($settlement['participants'])->where('cancelled', false)->where('transit_mode', 'van')->count();
+        $totalInstructorSubsidy = collect($settlement['participants'])->sum('instructor_subsidy');
+        $incentivesTotal = $settlement['driver_bounties'] + $totalInstructorSubsidy;
     @endphp
     <div class="row mb-4">
         <div class="col-md-4">
@@ -60,7 +62,10 @@
             <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-transit">
                 <div class="card-body">
                     <h5>{{ number_format($transitTotal, 2) }} €</h5>
-                    <small class="text-muted">{{ __('Transit Pool') }} <span class="text-muted">({{ __('incl. bounties') }} {{ number_format($settlement['driver_bounties'], 2) }} €)</span></small>
+                    <small class="text-muted">{{ __('Transit Pool') }}</small>
+                    @if($incentivesTotal > 0)
+                        <div class="mt-1"><span class="badge bg-info">{{ __('Incentives') }}: {{ number_format($incentivesTotal, 2) }} €</span></div>
+                    @endif
                 </div>
             </div>
             <div class="collapse small mt-1" id="detail-transit">
@@ -69,9 +74,18 @@
                     @foreach($transitReceipts as $r)
                         <div class="d-flex justify-content-between"><span>{{ $r->description }}@if($r->user) <em class="text-muted">({{ $r->user->detail?->first_name }})</em>@endif</span><span>{{ number_format($r->approved_amount, 2) }} €</span></div>
                     @endforeach
-                    <div class="d-flex justify-content-between"><span>{{ __('Driver Bounties') }}</span><span>{{ number_format($settlement['driver_bounties'], 2) }} €</span></div>
                     <hr class="my-1">
-                    <div class="d-flex justify-content-between fw-bold"><span>{{ __('Total') }}</span><span>{{ number_format($transitTotal, 2) }} €</span></div>
+                    <strong>{{ __('Incentives') }}:</strong>
+                    <div class="d-flex justify-content-between"><span>{{ __('Driver Bounties') }}</span><span>{{ number_format($settlement['driver_bounties'], 2) }} €</span></div>
+                    @if($totalInstructorSubsidy > 0)
+                        <div class="d-flex justify-content-between"><span>{{ __('Instructor subsidy') }} ({{ number_format($event->instructor_daily_subsidy, 0) }} €/j)</span><span>{{ number_format($totalInstructorSubsidy, 2) }} €</span></div>
+                        @foreach(collect($settlement['participants'])->where('instructor_subsidy', '>', 0) as $ip)
+                            <div class="d-flex justify-content-between text-muted ps-2"><span>{{ $ip['name'] }}</span><span>{{ number_format($ip['instructor_subsidy'], 2) }} €</span></div>
+                        @endforeach
+                    @endif
+                    <div class="d-flex justify-content-between fw-bold border-top mt-1 pt-1"><span>{{ __('Total incentives') }}</span><span>{{ number_format($incentivesTotal, 2) }} €</span></div>
+                    <hr class="my-1">
+                    <div class="d-flex justify-content-between fw-bold"><span>{{ __('Transit total') }}</span><span>{{ number_format($transitTotal, 2) }} €</span></div>
                     <div class="d-flex justify-content-between text-muted"><span>− {{ __('Local Subsidy') }}</span><span>-{{ number_format($settlement['local_subsidy'], 2) }} €</span></div>
                     <div class="d-flex justify-content-between fw-bold"><span>{{ __('Net transit cost') }}</span><span>{{ number_format($settlement['net_transit_cost'], 2) }} €</span></div>
                     <hr class="my-1">
