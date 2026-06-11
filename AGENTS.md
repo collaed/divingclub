@@ -446,3 +446,34 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - **Generated newsletter HTML** (per-issue output) goes to `storage/app/public/newsletters/published/` — accessible via `/storage/newsletters/published/`.
 - **Generated artwork** (AI images, variants) goes to `storage/app/public/newsletters/` — never in `public/images/`.
 - **Rule**: Never create files in `public/` at runtime. Use `Storage::disk('public')` for all generated content.
+
+
+## Common Pitfalls (Hard-Won Lessons)
+
+### Adding Database Columns
+- **ALWAYS** add new columns to the model's `$fillable` array. `$model->update()` silently ignores unfillable fields.
+- After adding a column, check BOTH the migration AND the model before committing.
+
+### Blade Templates
+- **NEVER** put closures with array brackets inside `@json()` — Blade's parser confuses `['confirmed','waiting']` brackets with directive closing. Move filtering to a `@php` block above.
+- When using `$isPrivileged` or similar computed vars, ensure they're defined BEFORE first use (not just in the sidebar `@php` block).
+
+### Non-Member (null user_id) Handling
+- `Collection::firstWhere('user_id', null)` returns the FIRST null match. When multiple non-members exist, **match by name** instead: `->first(fn($p) => $p['user_id'] === null && $p['name'] === $tp->non_member_name)`
+- Any code that accesses `$something[$user_id]` as an array key will trigger deprecation when `$user_id` is null. Guard with `$user_id ? $array[$user_id] : default`.
+- Always test with at least 2 non-members to catch null-matching bugs.
+
+### Sync (SyncOldEvents)
+- The sync runs on a cron and will **overwrite** local changes. If a registration is cancelled locally but confirmed on the old site, the sync reverts it.
+- Rule: before `updateOrCreate`, check if the existing record is locally cancelled — skip if so.
+
+### Validation Rules
+- When adding a new `category` option (e.g. 'diving', 'individual'), search for ALL `in:general,transit` validation rules in the controller — there are typically 3-4 occurrences.
+- Use `grep -n "in:general" app/Http/Controllers/` to find them all.
+
+### Trip Settlement
+- Receipt categories: `general` (all share), `transit` (van riders share), `diving` (club invoice), `individual` (charged to one person).
+- `individual` receipts with `is_third_party=true` are charges TO a person (not expenses BY them). They increase what the person owes.
+- `diving` receipts are club-level invoices. They appear in accounting but don't directly affect individual balances (individual dive charges do that).
+- `instructor_daily_subsidy` × trip_days is credited to participants flagged `is_supervising_instructor`.
+- Non-member participants use `prepaid_amount` directly on `trip_participants` (no PaymentExpected for them).
