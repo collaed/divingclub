@@ -477,3 +477,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - `diving` receipts are club-level invoices. They appear in accounting but don't directly affect individual balances (individual dive charges do that).
 - `instructor_daily_subsidy` × trip_days is credited to participants flagged `is_supervising_instructor`.
 - Non-member participants use `prepaid_amount` directly on `trip_participants` (no PaymentExpected for them).
+- **Instructor subsidy** uses `supervising_days` (number, not boolean) on `trip_participants`. Being `active_instructor` is a prerequisite shown as badge, but you must set days > 0 to receive subsidy.
+- **`dive_days`** on event = number of actual diving days (may differ from trip length). Used for instructor subsidy calculation.
+- **Event `$fillable`**: when adding ANY new column to events, always add it to `$fillable` in `app/Models/Event.php`. Same for `TripParticipant`.
+- **Auto-refresh**: the manage page reloads 1.5s after any successful auto-save so totals/cards update. Don't remove this — it prevents stale data display.

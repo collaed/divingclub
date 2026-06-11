@@ -530,11 +530,13 @@
                     if (r.ok) {
                         status.textContent = '✓ {{ __("Saved") }}';
                         status.className = 'text-success small';
+                        // Refresh totals after a short delay (lets multiple rapid saves settle)
+                        clearTimeout(window._refreshTimeout);
+                        window._refreshTimeout = setTimeout(() => location.reload(), 1500);
                     } else {
                         status.textContent = '✕ {{ __("Error") }}';
                         status.className = 'text-danger small';
                     }
-                    setTimeout(() => { status.textContent = ''; }, 3000);
                 })
                 .catch(() => {
                     status.textContent = '✕ {{ __("Connection error") }}';
