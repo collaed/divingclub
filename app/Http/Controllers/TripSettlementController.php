@@ -8,6 +8,7 @@ use App\Models\PaymentExpected;
 use App\Models\TripParticipant;
 use App\Models\TripReceipt;
 use App\Services\TripSettlementService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -490,7 +491,7 @@ class TripSettlementController extends Controller
         }
         $ps->getStyle("A{$row}:G{$row}")->applyFromArray($headerStyle);
 
-        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\TripParticipant> $participants */
+        /** @var Collection<int, TripParticipant> $participants */
         $participants = $event->tripParticipants()->with('user.detail')->get();
         foreach ($participants as $tp) {
             $row++;
@@ -543,10 +544,10 @@ class TripSettlementController extends Controller
             $es->setCellValue("A{$row}", __('Club'));
             $es->setCellValue("B{$row}", $settlement['driver_bounties']);
             $es->setCellValue("C{$row}", 'transit');
-            /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\TripParticipant> $drivers */
+            /** @var Collection<int, TripParticipant> $drivers */
             $drivers = $event->tripParticipants()->where('driving_percentage', '>', 0)->get();
-            $driverList = $drivers->map(fn ($tp) => $tp->participantName() . ' ' . $tp->driving_percentage . '%')->implode(', ');
-            $es->setCellValue("D{$row}", __('Driver Bounties') . ' (' . $driverList . ')');
+            $driverList = $drivers->map(fn ($tp) => $tp->participantName().' '.$tp->driving_percentage.'%')->implode(', ');
+            $es->setCellValue("D{$row}", __('Driver Bounties').' ('.$driverList.')');
         }
         $es->getStyle("B2:B{$row}")->getNumberFormat()->setFormatCode($eurFmt);
         foreach (['A', 'B', 'C', 'D'] as $col) {

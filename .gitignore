@@ -44,3 +44,4 @@ public/newsletter-*.html
 public/report.html
 bootstrap/cache/*.php
 .deptrac.cache
+ftp_password_eddy.txt
