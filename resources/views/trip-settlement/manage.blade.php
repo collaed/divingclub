@@ -562,8 +562,8 @@
                         {{-- Inline edit row is handled via JS below --}}
                         @endif
                         <td>{{ $r->user ? ($r->user->detail?->first_name . ' ' . $r->user->detail?->last_name) : __('Club (3rd party)') }}</td>
-                        <td>{{ number_format($r->approved_amount ?? $r->amount, 2) }} €</td>
-                        <td>{{ match($r->category) { 'general' => __('General'), 'transit' => __('Transit'), 'individual' => __('Individual charge'), 'diving' => __('Diving'), default => $r->category } }}</td>
+                        <td class="{{ $r->category === 'individual' ? 'text-success' : '' }}">{{ $r->category === 'individual' ? '-' : '' }}{{ number_format($r->approved_amount ?? $r->amount, 2) }} €</td>
+                        <td><span class="{{ $r->category === 'individual' ? 'text-success fw-bold' : '' }}">{{ match($r->category) { 'general' => __('General'), 'transit' => __('Transit'), 'individual' => __('Individual charge'), 'diving' => __('Diving'), default => $r->category } }}</span></td>
                         <td>{{ $r->description ?? '—' }}</td>
                         <td>
                             @if($r->status === 'approved')
