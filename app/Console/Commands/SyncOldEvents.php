@@ -223,6 +223,14 @@ class SyncOldEvents extends Command
         if (! $userId && $name && ! ($i['userid'] ?? null)) {
             $isCancelled = ! empty($i['dat_desinsc']) && $i['dat_desinsc'] !== '0000-00-00 00:00:00';
 
+            // Don't overwrite a locally-cancelled registration with 'confirmed' from old site
+            $existing = EventRegistration::where('event_id', $event->id)->where('non_member_name', $name)->whereNull('user_id')->first();
+            if ($existing && $existing->status === 'cancelled' && ! $isCancelled) {
+                $this->syncedRegs++;
+
+                return;
+            }
+
             // Find who registered them
             $registeredBy = null;
             if ($i['autreid_insc'] ?? null) {
@@ -253,6 +261,16 @@ class SyncOldEvents extends Command
         }
 
         $isCancelled = ! empty($i['dat_desinsc']) && $i['dat_desinsc'] !== '0000-00-00 00:00:00';
+
+        // Don't overwrite a locally-cancelled registration with 'confirmed' from old site
+        if (! $isCancelled) {
+            $existing = EventRegistration::where('event_id', $event->id)->where('user_id', $userId)->first();
+            if ($existing && $existing->status === 'cancelled') {
+                $this->syncedRegs++;
+
+                return;
+            }
+        }
 
         // Match by event+user (Joomla can have multiple rows per user per event)
         EventRegistration::updateOrCreate(
