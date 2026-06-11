@@ -65,20 +65,35 @@
         $totalPrepaid = collect($settlement['participants'])->sum('prepaid');
         $totalExpenses = $settlement['global_pool'] + $settlement['transit_pool'];
         $totalRefunds = collect($settlement['participants'])->where('cancelled', true)->sum('prepaid');
-        $netResult = $totalPrepaid - $totalExpenses - $totalRefunds;
+        $totalIndividualCharged = collect($settlement['participants'])->sum('individual_charges');
+        $diveInvoice = $event->tripReceipts()->where('status', 'approved')->where('category', 'diving')->sum('approved_amount');
+        $diveDelta = $totalIndividualCharged - $diveInvoice;
+        $netResult = $totalPrepaid - $totalExpenses - $totalRefunds - $diveInvoice;
     @endphp
-    <div class="alert {{ $netResult >= 0 ? 'alert-success' : 'alert-warning' }} d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <strong>{{ __('Club Net Result') }}:</strong>
-            {{ __('Collected') }}: {{ number_format($totalPrepaid, 2) }} €
-            — {{ __('Expenses') }}: {{ number_format($totalExpenses, 2) }} €
-            @if($totalRefunds > 0) — {{ __('Refunds') }}: {{ number_format($totalRefunds, 2) }} € @endif
+    <div class="alert {{ $netResult >= 0 ? 'alert-success' : 'alert-warning' }} mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>{{ __('Club Net Result') }}:</strong>
+                {{ __('Collected') }}: {{ number_format($totalPrepaid, 2) }} €
+                — {{ __('Shared expenses') }}: {{ number_format($totalExpenses, 2) }} €
+                @if($diveInvoice > 0) — {{ __('Dive invoice') }}: {{ number_format($diveInvoice, 2) }} € @endif
+                @if($totalRefunds > 0) — {{ __('Refunds') }}: {{ number_format($totalRefunds, 2) }} € @endif
+            </div>
+            <h4 class="mb-0 {{ $netResult >= 0 ? 'text-success' : 'text-danger' }}">
+                {{ $netResult >= 0 ? '+' : '' }}{{ number_format($netResult, 2) }} €
+            </h4>
         </div>
-        <h4 class="mb-0 {{ $netResult >= 0 ? 'text-success' : 'text-danger' }}">
-            {{ $netResult >= 0 ? '+' : '' }}{{ number_format($netResult, 2) }} €
-        </h4>
+        @if($diveInvoice > 0 || $totalIndividualCharged > 0)
+            <small class="text-muted d-block mt-1">
+                🤿 {{ __('Diving') }}: {{ __('invoiced') }} {{ number_format($diveInvoice, 2) }} € — {{ __('charged to participants') }} {{ number_format($totalIndividualCharged, 2) }} €
+                @if($diveDelta >= 0)
+                    — <span class="text-success">{{ __('covered') }} (+{{ number_format($diveDelta, 2) }} €)</span>
+                @else
+                    — <span class="text-danger">{{ __('shortfall') }} ({{ number_format($diveDelta, 2) }} €)</span>
+                @endif
+            </small>
+        @endif
     </div>
-
     {{-- Pending Receipts --}}
     @if($pendingReceipts->isNotEmpty())
     <div class="card dc-card mb-4">
@@ -102,7 +117,7 @@
                     <tr>
                         <td>{{ $r->user->detail?->first_name }} {{ $r->user->detail?->last_name }}</td>
                         <td>{{ number_format($r->amount, 2) }} €</td>
-                        <td>{{ match($r->category) { 'general' => __('General'), 'transit' => __('Transit'), 'individual' => __('Individual'), default => $r->category } }}</td>
+                        <td>{{ match($r->category) { 'general' => __('General'), 'transit' => __('Transit'), 'individual' => __('Individual'), 'diving' => __('Diving'), default => $r->category } }}</td>
                         <td>{{ $r->description ?? '—' }}</td>
                         <td>
                             @if($r->image_path)
@@ -174,6 +189,7 @@
                             <select name="category" class="form-select form-select-sm" required id="add-category">
                                 <option value="general">📦 {{ __('General (shared equally)') }}</option>
                                 <option value="transit">🚐 {{ __('Transit (van riders)') }}</option>
+                                <option value="diving">🤿 {{ __('Diving (club invoice)') }}</option>
                                 <option value="individual">👤 {{ __('Individual charge') }}</option>
                             </select>
                         </div>
@@ -204,6 +220,7 @@
                     <small class="text-muted mt-2 d-block">
                         <strong>{{ __('General') }}</strong>: {{ __('split equally among all') }} •
                         <strong>{{ __('Transit') }}</strong>: {{ __('split among van riders') }} •
+                        <strong>{{ __('Diving') }}</strong>: {{ __('club invoice from dive center') }} •
                         <strong>{{ __('Individual') }}</strong>: {{ __('charged only to the selected person') }}
                     </small>
                 </div>
@@ -450,7 +467,7 @@
             });
         });
 
-        // Category toggle: for individual charges, member = "charged to"; for others = "paid by"
+        // Category toggle: for individual = "charged to"; diving = hide member; others = "paid by"
         const addCategory = document.getElementById('add-category');
         const addMemberCol = document.getElementById('add-member-col');
         const addThirdPartyVal = document.getElementById('add-third-party-val');
@@ -458,9 +475,17 @@
             addCategory.addEventListener('change', function() {
                 const label = addMemberCol.querySelector('label');
                 if (this.value === 'individual') {
+                    addMemberCol.style.display = '';
+                    document.getElementById('add-user-id').disabled = false;
                     label.textContent = '{{ __("Charged to") }}';
                     addThirdPartyVal.value = '1';
+                } else if (this.value === 'diving') {
+                    addMemberCol.style.display = 'none';
+                    document.getElementById('add-user-id').disabled = true;
+                    addThirdPartyVal.value = '1';
                 } else {
+                    addMemberCol.style.display = '';
+                    document.getElementById('add-user-id').disabled = false;
                     label.textContent = '{{ __("Paid by") }}';
                     addThirdPartyVal.value = '0';
                 }
@@ -510,7 +535,7 @@
                         @endif
                         <td>{{ $r->user ? ($r->user->detail?->first_name . ' ' . $r->user->detail?->last_name) : __('Club (3rd party)') }}</td>
                         <td>{{ number_format($r->approved_amount ?? $r->amount, 2) }} €</td>
-                        <td>{{ match($r->category) { 'general' => __('General'), 'transit' => __('Transit'), 'individual' => __('Individual'), default => $r->category } }}</td>
+                        <td>{{ match($r->category) { 'general' => __('General'), 'transit' => __('Transit'), 'individual' => __('Individual'), 'diving' => __('Diving'), default => $r->category } }}</td>
                         <td>{{ $r->description ?? '—' }}</td>
                         <td>
                             @if($r->status === 'approved')
