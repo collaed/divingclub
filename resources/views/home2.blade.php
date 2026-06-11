@@ -165,6 +165,11 @@
                 <p style="font-size:1.15rem;line-height:1.9">
                     {{ __('From the era of twin-hose regulators and Fenzy buoyancy vests to today\'s modern BCDs and dive computers, the spirit remains the same: share the passion, explore together, and welcome everyone — regardless of language or nationality.') }}
                 </p>
+                <div class="d-flex justify-content-center align-items-center gap-4 my-4">
+                    <img src="/images/logos/ffessm.png" alt="FFESSM" style="height:60px">
+                    <img src="/images/logos/cmas.svg" alt="CMAS" style="height:60px">
+                    <img src="/images/logos/flassa.png" alt="FLASSA" style="height:60px">
+                </div>
                 <div class="row g-3 my-4 text-center">
                     <div class="col-4">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Aqua-Lung_Mistral_1st_generation.jpg/220px-Aqua-Lung_Mistral_1st_generation.jpg" alt="Mistral regulator" class="rounded mb-2" style="width:100%;max-width:200px;aspect-ratio:1;object-fit:cover">

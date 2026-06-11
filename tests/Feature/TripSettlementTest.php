@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\MemberDetail;
+use App\Models\PaymentExpected;
 use App\Models\TripParticipant;
 use App\Models\TripReceipt;
 use App\Models\User;
@@ -417,6 +418,54 @@ class TripSettlementTest extends TestCase
             'is_third_party' => true,
             'description' => 'Hotel invoice',
         ]);
+    }
+
+    public function test_prepaid_deposits_reduce_balance(): void
+    {
+        $event = $this->createTripEvent(['driver_bounty_total' => 0, 'local_daily_charge' => 0]);
+        [$alice, $bob] = $this->createParticipants($event, 2);
+
+        // Alice paid €200 general expense
+        TripReceipt::create([
+            'event_id' => $event->id, 'user_id' => $alice->id,
+            'amount' => 200, 'approved_amount' => 200,
+            'category' => 'general', 'status' => 'approved',
+        ]);
+
+        // Bob prepaid €50 deposit via bank transfer
+        PaymentExpected::create([
+            'user_id' => $bob->id, 'type' => 'event', 'event_id' => $event->id,
+            'amount_due' => 100, 'amount_paid' => 50, 'status' => 'paid',
+        ]);
+
+        $result = $this->service->calculate($event);
+
+        $bobResult = collect($result['participants'])->firstWhere('user_id', $bob->id);
+        $aliceResult = collect($result['participants'])->firstWhere('user_id', $alice->id);
+
+        $this->assertEquals(50.0, $bobResult['prepaid']);
+        // Bob owes €100 global share, has €50 prepaid → balance = 50
+        $this->assertEquals(50.0, $bobResult['balance']);
+        // Alice owes €100, paid €200 → balance = -100
+        $this->assertEquals(-100.0, $aliceResult['balance']);
+        $this->assertEquals(0.0, $aliceResult['prepaid']);
+    }
+
+    public function test_prepaid_zero_when_no_payments(): void
+    {
+        $event = $this->createTripEvent(['driver_bounty_total' => 0, 'local_daily_charge' => 0]);
+        [$alice] = $this->createParticipants($event, 1);
+
+        TripReceipt::create([
+            'event_id' => $event->id, 'user_id' => $alice->id,
+            'amount' => 100, 'approved_amount' => 100,
+            'category' => 'general', 'status' => 'approved',
+        ]);
+
+        $result = $this->service->calculate($event);
+
+        $aliceResult = collect($result['participants'])->firstWhere('user_id', $alice->id);
+        $this->assertEquals(0.0, $aliceResult['prepaid']);
     }
 
     // ─── HELPERS ────────────────────────────────────────────────────────

@@ -127,7 +127,8 @@
         </div>
         @if($diveInvoice > 0 || $totalIndividualCharged > 0)
             <small class="text-muted d-block mt-1">
-                🤿 {{ __('Diving') }}: {{ __('invoiced') }} {{ number_format($diveInvoice, 2) }} € — {{ __('charged to participants') }} {{ number_format($totalIndividualCharged, 2) }} €
+                🤿 {{ __('Diving') }} ({{ number_format($event->dive_unit_price ?? 0, 0) }} €/{{ __('dive') }} + {{ number_format($event->nitrox_supplement ?? 0, 0) }} €/{{ __('nitrox') }}):
+                {{ __('invoiced') }} {{ number_format($diveInvoice, 2) }} € — {{ __('charged to participants') }} {{ number_format($totalIndividualCharged, 2) }} €
                 @if($diveDelta >= 0)
                     — <span class="text-success">{{ __('covered') }} (+{{ number_format($diveDelta, 2) }} €)</span>
                 @else
@@ -397,7 +398,19 @@
                         <td>{{ $tp->driving_percentage }}%</td>
                         <td>{{ $tp->local_transit_days }}d</td>
                         @endif
-                        <td>{{ ($pResult['individual_charges'] ?? 0) > 0 ? number_format($pResult['individual_charges'], 2) . ' €' : '—' }}</td>
+                        @php
+                            $diveReceipt = $tp->user_id ? $event->tripReceipts()->where('user_id', $tp->user_id)->where('category', 'individual')->where('description', 'like', '%dives%')->first() : null;
+                        @endphp
+                        <td title="{{ $diveReceipt?->description ?? '' }}">
+                            @if(($pResult['individual_charges'] ?? 0) > 0)
+                                {{ number_format($pResult['individual_charges'], 2) }} €
+                                @if($diveReceipt && preg_match('/(\d+) dives \+ (\d+) nitrox/', $diveReceipt->description, $dm))
+                                    <br><small class="text-muted">{{ $dm[1] }}🤿 + {{ $dm[2] }}N₂</small>
+                                @endif
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td class="{{ ($pResult['balance'] ?? 0) > 0 ? 'text-danger' : 'text-success' }}">
                             {{ number_format($pResult['balance'] ?? 0, 2) }} €
                         </td>
