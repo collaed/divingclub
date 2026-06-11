@@ -29,6 +29,7 @@ class TripSettlementService
      *         local_charge: float,
      *         individual_charges: float,
      *         bounty_credit: float,
+     *         instructor_subsidy: float,
      *         prepaid: float,
      *         total_paid: float,
      *         balance: float,
@@ -145,6 +146,7 @@ class TripSettlementService
                     'local_charge' => 0,
                     'individual_charges' => 0,
                     'bounty_credit' => 0,
+                    'instructor_subsidy' => 0,
                     'prepaid' => $prepaid,
                     'total_paid' => (float) $totalPaid,
                     'balance' => $balance,
@@ -154,11 +156,18 @@ class TripSettlementService
                 continue;
             }
 
+            // Instructor daily subsidy (contribution to dive costs for supervising instructors)
+            $instructorSubsidy = 0;
+            if ($p->is_supervising_instructor && ($event->instructor_daily_subsidy ?? 0) > 0) {
+                $tripDays = $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1;
+                $instructorSubsidy = round($event->instructor_daily_subsidy * $tripDays, 2);
+            }
+
             // What this person owes
             $owes = $globalShare + ($isVan ? $transitShare : $localCharge) + $individualCharges;
 
-            // Credits: bounty + prepaid + what they paid
-            $credits = $bountyCredit + $prepaid + $totalPaid;
+            // Credits: bounty + prepaid + what they paid + instructor subsidy
+            $credits = $bountyCredit + $prepaid + $totalPaid + $instructorSubsidy;
 
             $balance = round($owes - $credits, 2);
 
@@ -172,6 +181,7 @@ class TripSettlementService
                 'local_charge' => $localCharge,
                 'individual_charges' => $individualCharges,
                 'bounty_credit' => $bountyCredit,
+                'instructor_subsidy' => $instructorSubsidy,
                 'prepaid' => $prepaid,
                 'total_paid' => (float) $totalPaid,
                 'balance' => $balance,

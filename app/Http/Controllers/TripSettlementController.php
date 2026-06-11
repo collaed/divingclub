@@ -155,12 +155,14 @@ class TripSettlementController extends Controller
             'local_transit_days' => 'required|integer|min:0|max:'.$tripDays,
             'transit_mode' => 'nullable|in:van,own,fly',
             'van_number' => 'nullable|integer|min:1|max:10',
+            'is_supervising_instructor' => 'nullable',
         ]);
 
         $participant->update([
             'driving_percentage' => $data['driving_percentage'],
             'local_transit_days' => $data['local_transit_days'],
             'van_number' => $data['van_number'] ?? null,
+            'is_supervising_instructor' => $request->has('is_supervising_instructor'),
         ]);
 
         if (isset($data['transit_mode'])) {
@@ -623,6 +625,7 @@ class TripSettlementController extends Controller
         $data = $request->validate([
             'dive_unit_price' => 'required|numeric|min:0',
             'nitrox_supplement' => 'required|numeric|min:0',
+            'instructor_daily_subsidy' => 'required|numeric|min:0',
         ]);
 
         $event->update($data);

@@ -328,9 +328,17 @@
                     </div>
                 </div>
                 <div class="col-auto">
+                    <label class="form-label form-label-sm">{{ __('Instructor subsidy/day') }}</label>
+                    <div class="input-group input-group-sm" style="width:110px">
+                        <input type="number" step="0.01" name="instructor_daily_subsidy" value="{{ $event->instructor_daily_subsidy ?? 0 }}" min="0" class="form-control">
+                        <span class="input-group-text">€</span>
+                    </div>
+                </div>
+                <div class="col-auto">
                     <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                 </div>
             </form>
+            <small class="text-muted mt-1 d-block">{{ __('Instructor subsidy: daily contribution to dive costs for instructors supervising non-autonomous divers.') }}</small>
         </div>
     </div>
     </div>
@@ -379,8 +387,11 @@
                         @endif
                         <th class="sortable-col" data-col="{{ $event->van_count ? 3 : 2 }}" role="button">{{ __('Driving %') }} <span class="sort-icon">↕</span></th>
                         <th class="sortable-col" data-col="{{ $event->van_count ? 4 : 3 }}" role="button">{{ __('Local Days') }} <span class="sort-icon">↕</span></th>
-                        <th class="sortable-col" data-col="{{ $event->van_count ? 5 : 4 }}" role="button">{{ __('Dive Costs') }} <span class="sort-icon">↕</span></th>
-                        <th class="sortable-col" data-col="{{ $event->van_count ? 6 : 5 }}" role="button">{{ __('Balance') }} <span class="sort-icon">↕</span></th>
+                        @if($event->instructor_daily_subsidy)
+                            <th class="sortable-col" data-col="{{ $event->van_count ? 5 : 4 }}" role="button">{{ __('Instr.') }} <span class="sort-icon">↕</span></th>
+                        @endif
+                        <th class="sortable-col" data-col="{{ $event->van_count ? ($event->instructor_daily_subsidy ? 6 : 5) : ($event->instructor_daily_subsidy ? 5 : 4) }}" role="button">{{ __('Dive Costs') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col" data-col="{{ $event->van_count ? ($event->instructor_daily_subsidy ? 7 : 6) : ($event->instructor_daily_subsidy ? 6 : 5) }}" role="button">{{ __('Balance') }} <span class="sort-icon">↕</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -421,6 +432,11 @@
                                 <span class="input-group-text">/{{ $tripDays }}</span>
                             </div>
                         </td>
+                        @if($event->instructor_daily_subsidy)
+                            <td class="text-center">
+                                <input type="checkbox" name="is_supervising_instructor" value="1" class="form-check-input auto-save" {{ $tp->is_supervising_instructor ? 'checked' : '' }}>
+                            </td>
+                        @endif
                         @else
                         <td>{{ ($pResult['transit_mode'] ?? '') === 'van' ? '🚐' : (($pResult['transit_mode'] ?? '') === 'fly' ? '✈️' : '🚗') }}</td>
                         @if($event->van_count)
@@ -428,6 +444,15 @@
                         @endif
                         <td>{{ $tp->driving_percentage }}%</td>
                         <td>{{ $tp->local_transit_days }}d</td>
+                        @endif
+                        @if($event->instructor_daily_subsidy)
+                            <td class="text-center">
+                                @if($event->settlement_status === 'open')
+                                    <input type="checkbox" name="is_supervising_instructor" value="1" class="form-check-input auto-save" {{ $tp->is_supervising_instructor ? 'checked' : '' }}>
+                                @else
+                                    {{ $tp->is_supervising_instructor ? '✓' : '' }}
+                                @endif
+                            </td>
                         @endif
                         @php
                             $diveReceipt = $tp->user_id ? $event->tripReceipts()->where('user_id', $tp->user_id)->where('category', 'individual')->where('description', 'like', '%dives%')->first() : null;

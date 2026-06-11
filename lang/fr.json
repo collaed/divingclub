@@ -914,5 +914,9 @@
     "Dive Pricing": "Tarifs plongée",
     "Price per dive": "Prix par plongée",
     "Nitrox supplement": "Supplément nitrox",
-    "Dive pricing updated.": "Tarifs plongée mis à jour."
+    "Dive pricing updated.": "Tarifs plongée mis à jour.",
+    "Instructor subsidy/day": "Subvention moniteur/jour",
+    "Instructor subsidy: daily contribution to dive costs for instructors supervising non-autonomous divers.": "Subvention moniteur : contribution journalière aux frais de plongée des moniteurs encadrant les plongeurs non autonomes.",
+    "Instr.": "Monit.",
+    "Instructor subsidy": "Subvention moniteur"
 }
