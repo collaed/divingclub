@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TripSettlementController extends Controller
 {
@@ -353,6 +354,76 @@ class TripSettlementController extends Controller
         }
 
         return back()->with('success', __('Prepayment recorded.'));
+    }
+
+    public function export(Event $event): StreamedResponse
+    {
+        $this->authorizeBureau();
+        abort_unless($event->hasTripSettlement(), 404);
+
+        $settlement = $this->service->calculate($event);
+        $filename = 'settlement-'.$event->id.'-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($settlement, $event): void {
+            $out = fopen('php://output', 'w');
+            // BOM for Excel UTF-8
+            fwrite($out, "\xEF\xBB\xBF");
+
+            fputcsv($out, [$event->title.' — '.__('Trip Settlement')], ';');
+            fputcsv($out, [], ';');
+
+            // Headers
+            fputcsv($out, [
+                __('Name'), __('Mode'), __('Global Share'), __('Transit Share'),
+                __('Dive Costs'), __('Bounty Credit'), __('Prepaid'), __('Paid'),
+                __('Balance'), __('Status'),
+            ], ';');
+
+            // Data rows
+            $row = 3; // Excel row counter (after header + blank + col headers)
+            foreach ($settlement['participants'] as $p) {
+                $row++;
+                fputcsv($out, [
+                    $p['name'],
+                    $p['transit_mode'],
+                    number_format($p['global_share'], 2, '.', ''),
+                    number_format($p['transit_share'] + ($p['local_charge'] ?? 0), 2, '.', ''),
+                    number_format($p['individual_charges'] ?? 0, 2, '.', ''),
+                    number_format($p['bounty_credit'], 2, '.', ''),
+                    number_format($p['prepaid'], 2, '.', ''),
+                    number_format($p['total_paid'], 2, '.', ''),
+                    number_format($p['balance'], 2, '.', ''),
+                    ($p['cancelled'] ?? false) ? __('Cancelled') : __('Active'),
+                ], ';');
+            }
+
+            // Totals row with formulas
+            $lastRow = $row;
+            $dataStart = 4;
+            fputcsv($out, [
+                __('TOTALS'), '',
+                "=SUM(C{$dataStart}:C{$lastRow})",
+                "=SUM(D{$dataStart}:D{$lastRow})",
+                "=SUM(E{$dataStart}:E{$lastRow})",
+                "=SUM(F{$dataStart}:F{$lastRow})",
+                "=SUM(G{$dataStart}:G{$lastRow})",
+                "=SUM(H{$dataStart}:H{$lastRow})",
+                "=SUM(I{$dataStart}:I{$lastRow})",
+                '',
+            ], ';');
+
+            // Summary
+            fputcsv($out, [], ';');
+            fputcsv($out, [__('Global Pool'), number_format($settlement['global_pool'], 2, '.', '')], ';');
+            fputcsv($out, [__('Transit Pool'), number_format($settlement['transit_pool'], 2, '.', '')], ';');
+            fputcsv($out, [__('Driver Bounties'), number_format($settlement['driver_bounties'], 2, '.', '')], ';');
+            fputcsv($out, [__('Local Subsidy'), number_format($settlement['local_subsidy'], 2, '.', '')], ';');
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     private function authorizeBureau(): void

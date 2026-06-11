@@ -9,6 +9,7 @@
         <h4>{{ __('Trip Settlement') }} — {{ $event->title }}</h4>
         <div>
             <a href="{{ route('events.settlement.breakdown', $event) }}" class="btn btn-outline-primary me-2" target="_blank">🖨️ {{ __('Print Breakdown') }}</a>
+            <a href="{{ route('events.settlement.export', $event) }}" class="btn btn-outline-success me-2">📊 {{ __('Export Excel') }}</a>
             @if($event->settlement_status === 'open')
                 <form action="{{ route('events.settlement.close', $event) }}" method="POST" class="d-inline">
                     @csrf
@@ -312,7 +313,9 @@
                 <tbody>
                     @php $tripDays = $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1; @endphp
                     @foreach($event->tripParticipants as $tp)
-                    @php $pResult = collect($settlement['participants'])->firstWhere('user_id', $tp->user_id); @endphp
+                    @php $pResult = $tp->user_id
+                        ? collect($settlement['participants'])->firstWhere('user_id', $tp->user_id)
+                        : collect($settlement['participants'])->first(fn($p) => $p['user_id'] === null && $p['name'] === $tp->non_member_name); @endphp
                     <tr data-participant-id="{{ $tp->id }}" data-url="{{ route('events.settlement.update-participant', [$event, $tp]) }}">
                         <td>{{ $tp->participantName() }}@if($tp->isNonMember()) <span class="badge bg-secondary" style="font-size:0.6rem">{{ __('non-member') }}</span>@endif</td>
                         @if($event->settlement_status === 'open')
