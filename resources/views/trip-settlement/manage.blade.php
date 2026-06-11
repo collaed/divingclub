@@ -656,18 +656,18 @@
     <div class="card dc-card">
         <div class="card-header"><h5 class="mb-0">{{ __('Settlement Ledger') }}</h5></div>
         <div class="card-body table-responsive">
-            <table class="table table-sm table-striped">
+            <table class="table table-sm table-striped" id="ledger-table">
                 <thead>
                     <tr>
-                        <th>{{ __('Name') }}</th>
-                        <th>{{ __('Mode') }}</th>
-                        <th class="text-end">{{ __('Global') }}</th>
-                        <th class="text-end">{{ __('Transit') }}</th>
-                        <th class="text-end">{{ __('Dive Costs') }}</th>
-                        <th class="text-end">{{ __('Bounty') }}</th>
-                        <th class="text-end">{{ __('Prepaid') }}</th>
-                        <th class="text-end">{{ __('Paid') }}</th>
-                        <th class="text-end">{{ __('Balance') }}</th>
+                        <th class="sortable-col" data-col="0" role="button" style="cursor:pointer">{{ __('Name') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col" data-col="1" role="button" style="cursor:pointer">{{ __('Mode') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col text-end" data-col="2" role="button" style="cursor:pointer">{{ __('Global') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col text-end" data-col="3" role="button" style="cursor:pointer">{{ __('Transit') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col text-end" data-col="4" role="button" style="cursor:pointer">{{ __('Dive Costs') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col text-end" data-col="5" role="button" style="cursor:pointer">{{ __('Bounty') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col text-end" data-col="6" role="button" style="cursor:pointer">{{ __('Prepaid') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col text-end" data-col="7" role="button" style="cursor:pointer">{{ __('Paid') }} <span class="sort-icon">↕</span></th>
+                        <th class="sortable-col text-end" data-col="8" role="button" style="cursor:pointer">{{ __('Balance') }} <span class="sort-icon">↕</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -704,47 +704,49 @@
 </x-layout>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const table = document.getElementById('participants-table');
-    if (!table) return;
-    const tbody = table.querySelector('tbody');
-    let sortCol = -1, sortAsc = true;
+    function makeTableSortable(tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        const tbody = table.querySelector('tbody');
+        let sortCol = -1, sortAsc = true;
 
-    function getCellValue(row, col) {
-        const cell = row.cells[col];
-        if (!cell) return '';
-        const input = cell.querySelector('input[type="number"]');
-        if (input) return parseFloat(input.value) || 0;
-        const select = cell.querySelector('select');
-        if (select) return select.value;
-        return cell.textContent.trim().replace(/[€,%]/g, '').trim();
-    }
+        function getCellValue(row, col) {
+            const cell = row.cells[col];
+            if (!cell) return '';
+            const input = cell.querySelector('input[type="number"]');
+            if (input) return parseFloat(input.value) || 0;
+            const select = cell.querySelector('select');
+            if (select) return select.value;
+            return cell.textContent.trim().replace(/[€,%—]/g, '').trim();
+        }
 
-    function compare(a, b, col) {
-        let va = getCellValue(a, col), vb = getCellValue(b, col);
-        const na = parseFloat(va), nb = parseFloat(vb);
-        if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return String(va).localeCompare(String(vb), undefined, {sensitivity: 'base'});
-    }
+        function compare(a, b, col) {
+            let va = getCellValue(a, col), vb = getCellValue(b, col);
+            const na = parseFloat(va), nb = parseFloat(vb);
+            if (!isNaN(na) && !isNaN(nb)) return na - nb;
+            return String(va).localeCompare(String(vb), undefined, {sensitivity: 'base'});
+        }
 
-    table.querySelectorAll('.sortable-col').forEach(th => {
-        th.style.cursor = 'pointer';
-        th.addEventListener('click', function() {
-            const col = parseInt(this.dataset.col);
-            // Commit any pending auto-save first
-            const active = document.activeElement;
-            if (active && active.classList.contains('auto-save')) active.blur();
+        table.querySelectorAll('.sortable-col').forEach(th => {
+            th.style.cursor = 'pointer';
+            th.addEventListener('click', function() {
+                const col = parseInt(this.dataset.col);
+                const active = document.activeElement;
+                if (active && active.classList.contains('auto-save')) active.blur();
 
-            if (sortCol === col) { sortAsc = !sortAsc; }
-            else { sortCol = col; sortAsc = true; }
+                if (sortCol === col) { sortAsc = !sortAsc; }
+                else { sortCol = col; sortAsc = true; }
 
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            rows.sort((a, b) => compare(a, b, col) * (sortAsc ? 1 : -1));
-            rows.forEach(r => tbody.appendChild(r));
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                rows.sort((a, b) => compare(a, b, col) * (sortAsc ? 1 : -1));
+                rows.forEach(r => tbody.appendChild(r));
 
-            // Update icons
-            table.querySelectorAll('.sort-icon').forEach(s => s.textContent = '↕');
-            this.querySelector('.sort-icon').textContent = sortAsc ? '↑' : '↓';
+                table.querySelectorAll('.sort-icon').forEach(s => s.textContent = '↕');
+                this.querySelector('.sort-icon').textContent = sortAsc ? '↑' : '↓';
+            });
         });
-    });
+    }
+    makeTableSortable('participants-table');
+    makeTableSortable('ledger-table');
 });
 </script>
