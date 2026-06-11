@@ -335,6 +335,10 @@
                     </div>
                 </div>
                 <div class="col-auto">
+                    <label class="form-label form-label-sm">{{ __('Dive days') }}</label>
+                    <input type="number" name="dive_days" value="{{ $event->dive_days ?? '' }}" min="1" max="30" class="form-control form-control-sm" style="width:70px" placeholder="{{ $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1 }}">
+                </div>
+                <div class="col-auto">
                     <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
                 </div>
             </form>
@@ -398,7 +402,7 @@
                         ? collect($settlement['participants'])->firstWhere('user_id', $tp->user_id)
                         : collect($settlement['participants'])->first(fn($p) => $p['user_id'] === null && $p['name'] === $tp->non_member_name); @endphp
                     <tr data-participant-id="{{ $tp->id }}" data-url="{{ route('events.settlement.update-participant', [$event, $tp]) }}">
-                        <td>{{ $tp->participantName() }}@if($tp->isNonMember()) <span class="badge bg-secondary" style="font-size:0.6rem">{{ __('non-member') }}</span>@endif @if($tp->user?->detail?->active_instructor && $event->instructor_daily_subsidy) <span class="badge bg-primary" style="font-size:0.6rem">{{ __('Instr.') }}</span>@endif</td>
+                        <td>{{ $tp->participantName() }}@if($tp->isNonMember()) <span class="badge bg-secondary" style="font-size:0.6rem">{{ __('non-member') }}</span>@endif @if($tp->user?->detail?->active_instructor) <span class="badge bg-primary" style="font-size:0.6rem">{{ __('Instr.') }}</span>@if($event->instructor_daily_subsidy && $event->settlement_status === 'open')<input type="hidden" name="is_supervising_instructor" value="0"><input type="checkbox" name="is_supervising_instructor" value="1" class="form-check-input ms-1 auto-save" {{ $tp->is_supervising_instructor ? 'checked' : '' }} title="{{ __('Supervised') }}">@elseif($tp->is_supervising_instructor) ✓@endif @endif</td>
                         @if($event->settlement_status === 'open')
                         <td>
                             <select name="transit_mode" class="form-select form-select-sm auto-save" style="width:80px">
