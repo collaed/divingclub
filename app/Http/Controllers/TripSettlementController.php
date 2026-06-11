@@ -177,20 +177,23 @@ class TripSettlementController extends Controller
         abort_unless($event->hasTripSettlement(), 404);
         abort_unless($event->settlement_status === 'open', 403);
 
-        $participantIds = $event->tripParticipants()->pluck('user_id')->toArray();
+        $participantIds = $event->tripParticipants()->whereNotNull('user_id')->pluck('user_id')->toArray();
         $isThirdParty = (bool) $request->input('is_third_party');
+        $category = $request->input('category');
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
             'category' => 'required|in:general,transit,diving,individual',
             'description' => 'required|string|max:255',
-            'user_id' => $isThirdParty ? 'nullable' : 'required|integer|in:'.implode(',', $participantIds),
+            'user_id' => $category === 'individual' ? 'required' : 'nullable',
             'is_third_party' => 'nullable|boolean',
         ]);
 
+        $userId = ! empty($data['user_id']) ? (int) $data['user_id'] : null;
+
         TripReceipt::create([
             'event_id' => $event->id,
-            'user_id' => $isThirdParty ? null : $data['user_id'],
+            'user_id' => $userId,
             'amount' => $data['amount'],
             'approved_amount' => $data['amount'],
             'category' => $data['category'],

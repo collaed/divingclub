@@ -196,6 +196,7 @@
                         <div class="col-auto" id="add-member-col">
                             <label class="form-label form-label-sm">{{ __('Paid by / Charged to') }}</label>
                             <select name="user_id" id="add-user-id" class="form-select form-select-sm">
+                                <option value="">— {{ __('Club expense') }} —</option>
                                 @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->participantName()) as $tp)
                                     <option value="{{ $tp->user_id ?? 'nm:'.$tp->id }}">{{ $tp->participantName() }}</option>
                                 @endforeach
@@ -469,7 +470,7 @@
             });
         });
 
-        // Category toggle: for individual = "charged to"; diving = hide member; others = "paid by"
+        // Category toggle: for individual = "charged to"; diving/general/transit = hide member (club expense)
         const addCategory = document.getElementById('add-category');
         const addMemberCol = document.getElementById('add-member-col');
         const addThirdPartyVal = document.getElementById('add-third-party-val');
@@ -488,10 +489,12 @@
                 } else {
                     addMemberCol.style.display = '';
                     document.getElementById('add-user-id').disabled = false;
-                    label.textContent = '{{ __("Paid by") }}';
+                    label.textContent = '{{ __("Paid by (optional)") }}';
                     addThirdPartyVal.value = '0';
                 }
             });
+            // Trigger initial state
+            addCategory.dispatchEvent(new Event('change'));
         }
 
         const editTp = document.getElementById('edit-third-party');
