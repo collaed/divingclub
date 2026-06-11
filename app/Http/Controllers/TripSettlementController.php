@@ -52,7 +52,7 @@ class TripSettlementController extends Controller
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
-            'category' => 'required|in:general,transit',
+            'category' => 'required|in:general,transit,diving,individual',
             'description' => 'nullable|string|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
         ]);
@@ -109,7 +109,7 @@ class TripSettlementController extends Controller
 
         $data = $request->validate([
             'approved_amount' => 'required|numeric|min:0',
-            'category' => 'required|in:general,transit',
+            'category' => 'required|in:general,transit,diving,individual',
             'reviewer_notes' => 'nullable|string|max:500',
         ]);
 
@@ -182,7 +182,7 @@ class TripSettlementController extends Controller
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
-            'category' => 'required|in:general,transit',
+            'category' => 'required|in:general,transit,diving,individual',
             'description' => 'required|string|max:255',
             'user_id' => $isThirdParty ? 'nullable' : 'required|integer|in:'.implode(',', $participantIds),
             'is_third_party' => 'nullable|boolean',
@@ -232,7 +232,7 @@ class TripSettlementController extends Controller
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
-            'category' => 'required|in:general,transit',
+            'category' => 'required|in:general,transit,diving,individual',
             'description' => 'required|string|max:255',
             'user_id' => $isThirdParty ? 'nullable' : 'required|integer|in:'.implode(',', $participantIds),
             'is_third_party' => 'nullable|boolean',
