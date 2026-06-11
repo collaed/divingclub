@@ -82,7 +82,7 @@
     {{-- Net Result for the Club --}}
     @php
         $totalPrepaid = collect($settlement['participants'])->sum('prepaid');
-        $totalExpenses = $settlement['global_pool'] + $settlement['transit_pool'];
+        $totalExpenses = $settlement['global_pool'] + $settlement['transit_pool'] + $settlement['driver_bounties'];
         $totalRefunds = collect($settlement['participants'])->where('cancelled', true)->sum('prepaid');
         $totalIndividualCharged = collect($settlement['participants'])->sum('individual_charges');
         $diveInvoice = $event->tripReceipts()->where('status', 'approved')->where('category', 'diving')->sum('approved_amount');
@@ -94,7 +94,8 @@
             <div>
                 <strong>{{ __('Club Net Result') }}:</strong>
                 {{ __('Collected') }}: {{ number_format($totalPrepaid, 2) }} €
-                — {{ __('Shared expenses') }}: {{ number_format($totalExpenses, 2) }} €
+                — {{ __('Accommodation') }}: {{ number_format($settlement['global_pool'], 2) }} €
+                — {{ __('Transit') }}: {{ number_format($settlement['transit_pool'] + $settlement['driver_bounties'], 2) }} €
                 @if($diveInvoice > 0) — {{ __('Dive invoice') }}: {{ number_format($diveInvoice, 2) }} € @endif
                 @if($totalRefunds > 0) — {{ __('Refunds') }}: {{ number_format($totalRefunds, 2) }} € @endif
             </div>
