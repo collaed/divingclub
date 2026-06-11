@@ -83,7 +83,7 @@
     @php
         $totalPrepaid = collect($settlement['participants'])->sum('prepaid');
         $totalExpenses = $settlement['global_pool'] + $settlement['transit_pool'] + $settlement['driver_bounties'];
-        $totalRefunds = collect($settlement['participants'])->filter(fn($p) => $p['balance'] < 0)->sum(fn($p) => abs($p['balance']));
+        $totalRefunds = collect($settlement['participants'])->where('cancelled', true)->sum('prepaid');
         $totalIndividualCharged = collect($settlement['participants'])->sum('individual_charges');
         $diveInvoice = $event->tripReceipts()->where('status', 'approved')->where('category', 'diving')->sum('approved_amount');
         $diveDelta = $totalIndividualCharged - $diveInvoice;
