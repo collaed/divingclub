@@ -448,7 +448,7 @@
                             @if(($pResult['individual_charges'] ?? 0) > 0)
                                 {{ number_format($pResult['individual_charges'], 2) }} €
                                 @if($diveReceipt && preg_match('/(\d+) dives \+ (\d+) nitrox/', $diveReceipt->description, $dm))
-                                    <br><small class="text-muted">{{ $dm[1] }}🤿 + {{ $dm[2] }}N₂</small>
+                                    <br><small class="text-muted">{{ $dm[1] }}🤿 + {{ $dm[2] }} EAN</small>
                                 @endif
                             @else
                                 —
