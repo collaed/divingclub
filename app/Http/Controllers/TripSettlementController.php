@@ -181,11 +181,15 @@ class TripSettlementController extends Controller
         $isThirdParty = (bool) $request->input('is_third_party');
         $category = $request->input('category');
 
+        $userRule = $category === 'individual'
+            ? 'required|integer|in:'.implode(',', $participantIds)
+            : 'nullable|integer|in:'.implode(',', $participantIds);
+
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
             'category' => 'required|in:general,transit,diving,individual',
             'description' => 'required|string|max:255',
-            'user_id' => $category === 'individual' ? 'required' : 'nullable',
+            'user_id' => $userRule,
             'is_third_party' => 'nullable|boolean',
         ]);
 
