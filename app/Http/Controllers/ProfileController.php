@@ -231,6 +231,22 @@ class ProfileController extends Controller
         return back()->with('success', __('Diving info updated.'))->withInput(['tab' => 'diving']);
     }
 
+    public function updateEquipmentSizing(Request $request, User $user): RedirectResponse
+    {
+        abort_unless(auth()->id() === $user->id || auth()->user()->isBureau(), 403);
+
+        $data = $request->validate([
+            'bcd_size' => 'nullable|string|max:10',
+            'tshirt_size' => 'nullable|string|max:10',
+            'suit_brand' => 'nullable|string|max:50',
+            'suit_size' => 'nullable|string|max:20',
+        ]);
+
+        $user->detail()->updateOrCreate(['user_id' => $user->id], $data);
+
+        return back()->with('success', __('Sizing updated.'))->withInput(['tab' => 'equipment']);
+    }
+
     public function updateLanguage(UpdateProfileLanguageRequest $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();

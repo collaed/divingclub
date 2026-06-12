@@ -1,7 +1,50 @@
 @php
     $loans = $target->equipmentLoans()->whereNull('returned_at')->with('equipment')->get();
     $isBureau = $viewer->isBureau();
+    $d = $target->detail;
 @endphp
+
+{{-- Sizing preferences --}}
+<div class="card dc-card mb-4">
+    <div class="card-header"><h6 class="mb-0">{{ __('Sizing') }}</h6></div>
+    <div class="card-body">
+        <form method="POST" action="{{ route('profile.update-equipment', $target) }}" class="row g-3">
+            @csrf
+            <div class="col-auto">
+                <label class="form-label form-label-sm">{{ __('BCD Size') }}</label>
+                <select name="bcd_size" class="form-select form-select-sm">
+                    <option value="">—</option>
+                    @foreach(['XXS','XS','S','M','L','XL','XXL'] as $sz)
+                        <option value="{{ $sz }}" {{ ($d?->bcd_size ?? '') === $sz ? 'selected' : '' }}>{{ $sz }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label form-label-sm">{{ __('T-Shirt Size') }}</label>
+                <select name="tshirt_size" class="form-select form-select-sm">
+                    <option value="">—</option>
+                    @foreach(['XS','S','M','L','XL','XXL','3XL'] as $sz)
+                        <option value="{{ $sz }}" {{ ($d?->tshirt_size ?? '') === $sz ? 'selected' : '' }}>{{ $sz }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label form-label-sm">{{ __('Suit Brand') }}</label>
+                <input type="text" name="suit_brand" class="form-control form-control-sm" value="{{ $d?->suit_brand }}" placeholder="{{ __('e.g. Mares, Scubapro') }}" list="suit-brands-list">
+                <datalist id="suit-brands-list">
+                    <option value="Mares"><option value="Scubapro"><option value="Cressi"><option value="Aqualung"><option value="Beuchat"><option value="Waterproof"><option value="Bare">
+                </datalist>
+            </div>
+            <div class="col-auto">
+                <label class="form-label form-label-sm">{{ __('Suit Size') }}</label>
+                <input type="text" name="suit_size" class="form-control form-control-sm" value="{{ $d?->suit_size }}" placeholder="{{ __('e.g. ML, 5/4 L') }}" style="width:100px">
+            </div>
+            <div class="col-auto align-self-end">
+                <button class="btn btn-sm btn-primary">{{ __('Save') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <h6>{{ __('Equipment Currently on Loan') }}</h6>
 @if($loans->count())

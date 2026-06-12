@@ -167,6 +167,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/profile/federation-key/{licence}', [ProfileController::class, 'updateFederationKey'])->name('profile.update.federation-key');
     Route::post('/profile/licence/{licence}', [ProfileController::class, 'updateLicence'])->name('profile.update.licence');
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage'])->name('profile.update.language');
+    Route::post('/profile/{user}/equipment-sizing', [ProfileController::class, 'updateEquipmentSizing'])->name('profile.update-equipment');
     Route::post('/profile/document', [ProfileDocumentController::class, 'upload'])->name('profile.document.upload');
     Route::get('/profile/document/{document}', [ProfileDocumentController::class, 'download'])->name('profile.document.download');
     Route::get('/profile/document/{document}/view', [ProfileDocumentController::class, 'view'])->name('profile.document.view');
