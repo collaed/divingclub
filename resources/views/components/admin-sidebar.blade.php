@@ -1,7 +1,7 @@
 {{-- Admin sidebar navigation — replaces the mega dropdown on admin pages --}}
 <nav class="dc-admin-sidebar">
     <div class="dc-admin-group">
-        <div class="dc-admin-group-label">{{ __('People') }}</nav>
+        <div class="dc-admin-group-label">{{ __('People') }}</div>
         <div class="list-group">
             <a href="{{ route('admin.dashboard.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.dashboard.*') ? 'active' : '' }}">@icon('📊') {{ __('Dashboard') }}</a>
             <a href="{{ route('admin.members.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.members.*') ? 'active' : '' }}">@icon('👥') {{ __('Members') }}</a>
