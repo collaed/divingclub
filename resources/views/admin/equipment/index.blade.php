@@ -8,11 +8,11 @@
         $typeCounts = \App\Models\Equipment::query()->selectRaw('type, count(*) as cnt')->groupBy('type')->pluck('cnt', 'type');
         $locations = \App\Models\Equipment::query()->whereNotNull('location')->where('location', '!=', '')->distinct()->pluck('location')->sort();
     @endphp
-    <form method="GET" class="row g-2 mb-3">
-        <div class="col-md-2">
+    <form method="GET" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <div style="min-width:140px;flex:1">
             <input type="text" name="search" data-instant-search="table-equipment" class="form-control form-control-sm" placeholder="{{ __('Search name, serial, #…') }}" value="{{ request('search') }}">
         </div>
-        <div class="col-md-2">
+        <div>
             <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Types') }} ({{ $typeCounts->sum() }})</option>
                 @foreach(['bcd','regulator','tank','wetsuit','mask','fins','computer','other'] as $t)
@@ -22,7 +22,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2">
+        <div>
             <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Statuses') }}</option>
                 @foreach(['available','on_loan','maintenance_required','retired'] as $s)
@@ -30,7 +30,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2">
+        <div>
             <select name="location" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Locations') }}</option>
                 @foreach($locations as $loc)
@@ -38,10 +38,10 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2">
-            <input type="text" name="size" class="form-control form-control-sm" placeholder="{{ __('Size filter…') }}" value="{{ request('size') }}" onchange="this.form.submit()">
+        <div style="width:100px">
+            <input type="text" name="size" class="form-control form-control-sm" placeholder="{{ __('Size…') }}" value="{{ request('size') }}" onchange="this.form.submit()">
         </div>
-        <div class="col-md-2">
+        <div>
             <button class="btn btn-sm btn-outline-primary">{{ __('Filter') }}</button>
             @if(request()->hasAny(['search','type','status','location','size']))
                 <a href="{{ route('admin.equipment.index') }}" class="btn btn-sm btn-outline-secondary">✕</a>
