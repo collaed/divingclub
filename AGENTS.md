@@ -481,3 +481,9 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - **`dive_days`** on event = number of actual diving days (may differ from trip length). Used for instructor subsidy calculation.
 - **Event `$fillable`**: when adding ANY new column to events, always add it to `$fillable` in `app/Models/Event.php`. Same for `TripParticipant`.
 - **Auto-refresh**: the manage page reloads 1.5s after any successful auto-save so totals/cards update. Don't remove this — it prevents stale data display.
+- **Instructor subsidy is a SHARED cost** — it's added to the global pool (everyone pays), then credited back to the instructor. Not a transit cost.
+- **Dive pricing fields** (`dive_unit_price`, `nitrox_supplement`, `instructor_daily_subsidy`, `dive_days`) are on the `events` table and MUST be in Event `$fillable`.
+- **Auto-save + checkboxes**: unchecked checkboxes don't send values. Always add `<input type="hidden" name="field" value="0">` before the checkbox, or use a number input instead.
+- **XLSX export** must mirror the manage page structure. When adding columns/features to the UI, update the export method in `TripSettlementController::export()` too.
+- **4 summary cards**: Shared Costs (global + instructor subsidy), Transit (fuel + bounties), Diving (invoice vs charges), Local Subsidy. Instructor subsidy belongs in Shared, NOT Transit.
+- **Abbreviations**: Nitrox = EAN (Enriched Air Nitrox), never N₂ (that's nitrogen).
