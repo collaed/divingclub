@@ -714,6 +714,10 @@ class SyncOldEvents extends Command
             if (! $name) {
                 continue;
             }
+            // Skip duplicate items (we have proper K-prefix versions)
+            if (preg_match('/^Clé \d+ du local$/i', $name)) {
+                continue;
+            }
             $eq = Equipment::firstOrCreate(
                 ['name' => $name],
                 ['type' => 'other', 'condition' => 'good', 'status' => 'available', 'is_loanable' => true]
