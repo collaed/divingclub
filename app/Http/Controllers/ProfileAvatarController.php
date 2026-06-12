@@ -26,7 +26,7 @@ class ProfileAvatarController extends Controller
 
         Image::decode($request->file('avatar')->getContent())
             ->scaleDown(400, 400)
-            ->toJpeg(85)
+            ->encodeUsingMediaType('image/jpeg', quality: 85)
             ->save(Storage::disk('public')->path($path));
 
         $old = $target->detail?->avatar_path;
