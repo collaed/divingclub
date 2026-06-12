@@ -24,7 +24,7 @@ class ProfileAvatarController extends Controller
         $filename = 'avatar_'.$target->id.'.jpg';
         $path = 'avatars/'.$filename;
 
-        Image::read($request->file('avatar'))
+        Image::decode($request->file('avatar')->getContent())
             ->scaleDown(400, 400)
             ->toJpeg(85)
             ->save(Storage::disk('public')->path($path));
