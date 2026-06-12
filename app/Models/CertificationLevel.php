@@ -48,4 +48,10 @@ class CertificationLevel extends Model
     {
         return $this->code.' ('.$this->federation?->acronym.')';
     }
+
+    /** @return BelongsToMany<DivingPrerogative, $this> */
+    public function prerogatives(): BelongsToMany
+    {
+        return $this->belongsToMany(DivingPrerogative::class, 'certification_prerogatives');
+    }
 }
