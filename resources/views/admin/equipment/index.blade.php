@@ -50,15 +50,15 @@
     </form>
 
     <div class="table-responsive">
-        <table id="table-equipment" class="table table-sm table-hover">
+        <table id="table-equipment" class="table table-sm table-hover" style="table-layout:fixed">
             <thead><tr>
-                <th><x-sortable-th column="short_number" :label="'#'" /></th>
+                <th style="width:50px"><x-sortable-th column="short_number" :label="'#'" /></th>
                 <th><x-sortable-th column="name" :label="__('Name')" /></th>
-                <th><x-sortable-th column="type" :label="__('Type')" /></th>
-                <th><x-sortable-th column="location" :label="__('Location')" /></th>
-                <th><x-sortable-th column="status" :label="__('Status')" /></th>
-                <th>{{ __('Loaned To') }}</th>
-                <th><x-sortable-th column="last_seen_at" :label="__('Last Seen')" /></th>
+                <th style="width:100px"><x-sortable-th column="type" :label="__('Type')" /></th>
+                <th style="width:120px"><x-sortable-th column="location" :label="__('Location')" /></th>
+                <th style="width:140px"><x-sortable-th column="status" :label="__('Status')" /></th>
+                <th style="width:120px">{{ __('Loaned To') }}</th>
+                <th style="width:90px"><x-sortable-th column="last_seen_at" :label="__('Last Seen')" /></th>
             </tr></thead>
             <tbody>
             @foreach($equipment as $e)
