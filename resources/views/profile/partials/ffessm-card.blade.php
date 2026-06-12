@@ -20,8 +20,7 @@
     <div style="position:absolute;width:40mm;height:40mm;background:linear-gradient(135deg,rgba(0,174,239,.2),rgba(0,86,150,.1));border-radius:50%;top:15mm;left:-10mm;z-index:1"></div>
     <div style="margin-top:2mm;z-index:2">
         <div style="width:25mm;height:25mm;border-radius:50%;border:.2mm solid #ddd;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:1.2mm;padding:1mm;background:#fff">
-            <b style="font-size:3.5mm;display:block;margin-bottom:.5mm;color:#005696">FFESSM</b>
-            <span style="font-size:1.2mm;color:#005696;text-transform:uppercase">Fédération Française<br>Études &amp; Sports Sous-Marins</span>
+            <img src="/images/logos/ffessm.png" alt="FFESSM" style="width:20mm;height:20mm;object-fit:contain">
         </div>
     </div>
     <div style="margin-top:4mm;text-align:center;z-index:2;width:100%">

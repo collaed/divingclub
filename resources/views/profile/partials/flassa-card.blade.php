@@ -16,8 +16,9 @@
         {{-- Right: federation --}}
         <div style="width:28mm;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center">
             <div style="font-size:5mm;font-weight:900;text-transform:uppercase">Licence</div>
+            <img src="/images/logos/flassa.png" alt="FLASSA" style="width:22mm;height:22mm;object-fit:contain;margin-top:1mm">
             <div style="font-size:1.8mm;font-weight:700;line-height:1.3;margin-top:1mm">
-                Fédération Luxembourgeoise<br>des Activités et Sports<br>Sub-Aquatiques
+                FLASSA
             </div>
             @if($pdfDoc)
                 <a href="{{ route('profile.document.download', $pdfDoc) }}" style="font-size:1.8mm;color:#005696;text-decoration:none;border:.2mm solid #005696;border-radius:1.5mm;padding:.8mm 2mm;font-weight:600;margin-top:2mm">📄 PDF</a>
