@@ -42,7 +42,7 @@
         <div class="col-md-3">
             <div class="card dc-card text-center" role="button" data-bs-toggle="collapse" data-bs-target="#detail-global">
                 <div class="card-body py-2">
-                    <h5 class="mb-0">{{ number_format($settlement['global_pool'] + $totalInstructorSubsidy, 2) }} €</h5>
+                    <h5 class="mb-0">{{ number_format($settlement['global_pool'], 2) }} €</h5>
                     <small class="text-muted">{{ __('Shared Costs') }}</small>
                 </div>
             </div>
@@ -60,7 +60,7 @@
                     @endif
                     <hr class="my-1">
                     <strong>{{ __('Division') }}:</strong>
-                    <div>{{ number_format($settlement['global_pool'] + $totalInstructorSubsidy, 2) }} ÷ {{ $activeCount }} = <strong>{{ number_format($activeCount > 0 ? ($settlement['global_pool'] + $totalInstructorSubsidy) / $activeCount : 0, 2) }} € / {{ __('person') }}</strong></div>
+                    <div>{{ number_format($settlement['global_pool'], 2) }} ÷ {{ $activeCount }} = <strong>{{ number_format($activeCount > 0 ? $settlement['global_pool'] / $activeCount : 0, 2) }} € / {{ __('person') }}</strong></div>
                 </div>
             </div>
         </div>
