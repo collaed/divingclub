@@ -401,6 +401,8 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - All 3 CI jobs must pass (lint, test, build) before deploying.
 - No direct push to main without local test pass.
 - CI workflow: `.github/workflows/ci.yml` — do not edit with sed (rewrite cleanly if changes needed).
+- **After pushing, check CI status** with `gh run list --limit 1`. If it fails, fix before moving on. Use `gh run view <id> --log-failed` to diagnose.
+- CI runs on PostgreSQL — code must work on both MySQL (local dev) and PostgreSQL (CI). Use `Schema::hasTable('legacy_roles')` for role table detection.
 
 ## Instructor Planning & Activity Types
 
