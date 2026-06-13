@@ -47,9 +47,9 @@ class ThumbnailController extends Controller
     private function imageThumb(string $source, string $dest): bool
     {
         try {
-            Image::read($source)
+            Image::decode(file_get_contents($source))
                 ->scaleDown(200, 200)
-                ->toJpeg(75)
+                ->encodeUsingMediaType('image/jpeg', quality: 75)
                 ->save($dest);
 
             return true;
