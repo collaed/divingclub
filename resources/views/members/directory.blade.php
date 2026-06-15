@@ -3,7 +3,7 @@
 
     <form method="GET" action="{{ route('members.directory') }}" class="row g-2 mb-3">
         <div class="col-md-3">
-            <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('Search by name…') }}" value="{{ request('search') }}">
+            <input type="text" name="search" data-instant-search="members-table" class="form-control form-control-sm" placeholder="{{ __('Search by name…') }}" value="{{ request('search') }}">
         </div>
         <div class="col-md-2">
             <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -39,7 +39,7 @@
     </form>
 
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table id="members-table" class="table table-hover">
             <thead>
                 <tr>
                     <th></th>
