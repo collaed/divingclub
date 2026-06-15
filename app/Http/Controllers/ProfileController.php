@@ -258,8 +258,7 @@ class ProfileController extends Controller
 
         $validated = $request->validated();
 
-        $validated['show_icons'] = $validated['show_icons'] === '' || $validated['show_icons'] === null
-            ? null : (int) $validated['show_icons'];
+        $validated['show_icons'] = $request->has('show_icons') ? (int) $validated['show_icons'] : 0;
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
         IconHelper::flush();
