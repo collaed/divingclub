@@ -30,7 +30,7 @@ class BackupService
         Artisan::call("backup:run {$options} --disable-notifications");
 
         // Find the latest backup created by spatie (stored in storage/app/<AppName>/)
-        $spatieDir = storage_path('app/'.str_replace(' ', '-', config('app.name', 'DivingClub')));
+        $spatieDir = storage_path('app/private/'.str_replace(' ', '-', config('app.name', 'DivingClub')));
         $zips = glob("{$spatieDir}/*.zip");
 
         if ($zips === [] || $zips === false) {
