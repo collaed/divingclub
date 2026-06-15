@@ -13,6 +13,28 @@
                 <div class="col-md-2"><strong>{{ __('Model') }}</strong><br>{{ class_basename($log->model_type) }}</div>
                 <div class="col-md-2"><strong>{{ __('Model ID') }}</strong><br>{{ $log->model_id }}</div>
             </div>
+            @php
+                $subject = null;
+                try {
+                    $model = $log->model_type::find($log->model_id);
+                    if ($model) {
+                        $subject = match(class_basename($log->model_type)) {
+                            'MemberDetail' => ($model->first_name ?? '') . ' ' . ($model->last_name ?? ''),
+                            'User' => $model->detail?->first_name . ' ' . $model->detail?->last_name,
+                            'Event' => $model->title,
+                            'EventRegistration' => ($model->user?->name ?? $model->non_member_name) . ' → ' . $model->event?->title,
+                            'Equipment' => $model->name,
+                            'Article' => $model->title,
+                            'Document' => $model->original_filename,
+                            'TripReceipt' => $model->description,
+                            default => $model->name ?? $model->title ?? null,
+                        };
+                    }
+                } catch (\Throwable) {}
+            @endphp
+            @if($subject)
+                <div class="mt-2"><strong>{{ __('Subject') }}:</strong> {{ $subject }}</div>
+            @endif
             <hr>
             <div class="row">
                 <div class="col-md-6"><strong>{{ __('IP Address') }}</strong><br><code>{{ $log->ip_address ?? '—' }}</code></div>
