@@ -55,7 +55,7 @@
                 <tbody>
                     @foreach($roles as $role)
                         <tr>
-                            <td><span class="badge bg-secondary">{{ $role->name }}</span></td>
+                            <td><a href="{{ route('admin.roles.members', $role) }}" class="badge bg-secondary text-decoration-none">{{ $role->name }}</a></td>
                             <td>
                                 @foreach($role->users->take(8) as $u)
                                     <span class="small">{{ $u->detail?->first_name ?? $u->primary_email }}</span>{{ !$loop->last ? ', ' : '' }}

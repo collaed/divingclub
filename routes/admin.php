@@ -226,6 +226,9 @@ Route::post('/partnerships/registrations/{registration}/reject', [PartnershipCon
 // Roles & Permissions
 Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles.index');
 Route::put('/roles', [RolePermissionController::class, 'update'])->name('roles.update');
+Route::get('/roles/{role}/members', [RolePermissionController::class, 'members'])->name('roles.members');
+Route::post('/roles/{role}/members', [RolePermissionController::class, 'addMember'])->name('roles.add-member');
+Route::delete('/roles/{role}/members/{user}', [RolePermissionController::class, 'removeMember'])->name('roles.remove-member');
 
 // Financial Audit (réviseur aux comptes) — read-only
 Route::get('/audit-finances', [AuditorController::class, 'index'])->name('audit-finances');
