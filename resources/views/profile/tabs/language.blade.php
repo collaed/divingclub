@@ -27,7 +27,7 @@
     <div class="mb-3">
         <label class="form-label">{{ __('Show Icons') }}</label>
         <select name="show_icons" class="form-select" style="max-width: 300px;">
-            <option value="" {{ $d?->show_icons === null ? 'selected' : '' }}>{{ __('Use club default') }}</option>
+            <option value="" {{ is_null($d?->show_icons) ? 'selected' : '' }}>{{ __('Use club default') }}</option>
             <option value="1" {{ $d?->show_icons === 1 ? 'selected' : '' }}>{{ __('Always show') }}</option>
             <option value="0" {{ $d?->show_icons === 0 ? 'selected' : '' }}>{{ __('Hide') }}</option>
         </select>

@@ -83,6 +83,7 @@ class MemberDetail extends Model
             'air_consumption' => 'float',
             'ease_level' => 'float',
             'total_dives' => 'integer',
+            'show_icons' => 'integer',
         ];
     }
 
