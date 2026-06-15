@@ -457,6 +457,8 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - After adding a column, check BOTH the migration AND the model before committing.
 
 ### Blade Templates
+- **NEVER use `@icon()` inside `{{ }}`, `__()`, JavaScript strings, `innerHTML`, `onclick` handlers, or HTML attribute values.** `@icon()` is a Blade directive compiled at template level — it cannot be nested inside PHP expressions or JS. Use raw emoji characters instead (e.g. `🤿` not `@icon('🤿')`).
+- `@icon()` is ONLY safe at the start of HTML content or after `>` in tags (e.g. `<span>@icon('📧') text</span>`).
 - **NEVER** put closures with array brackets inside `@json()` — Blade's parser confuses `['confirmed','waiting']` brackets with directive closing. Move filtering to a `@php` block above.
 - When using `$isPrivileged` or similar computed vars, ensure they're defined BEFORE first use (not just in the sidebar `@php` block).
 
@@ -486,12 +488,10 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - **Instructor subsidy is a SHARED cost** — it's added to the global pool (everyone pays), then credited back to the instructor. Not a transit cost.
 - **Dive pricing fields** (`dive_unit_price`, `nitrox_supplement`, `instructor_daily_subsidy`, `dive_days`) are on the `events` table and MUST be in Event `$fillable`.
 - **Auto-save + checkboxes**: unchecked checkboxes don't send values. Always add `<input type="hidden" name="field" value="0">` before the checkbox, or use a number input instead.
+- **Select fields with nullable option**: when a `<select>` has `<option value="">Use default</option>`, empty string means null — do NOT cast `(int) ""` as that gives `0`. Use `$request->input('field') === '' ? null : (int) $request->input('field')`.
+- **Intervention Image v4 API**: use `Image::decode($content)` not `Image::read()`. Use `->encodeUsingMediaType('image/jpeg', quality: 85)` not `->toJpeg()`. Check ALL controllers using Image when upgrading.
+- **Deleted FK references**: when deleting equipment/records, orphaned loans/references cause null errors. Always guard with `@if($relation)` in blade or eager-load with `->whereHas()`.
 - **XLSX export** must mirror the manage page structure. When adding columns/features to the UI, update the export method in `TripSettlementController::export()` too.
 - **4 summary cards**: Shared Costs (global + instructor subsidy), Transit (fuel + bounties), Diving (invoice vs charges), Local Subsidy. Instructor subsidy belongs in Shared, NOT Transit.
 - **Abbreviations**: Nitrox = EAN (Enriched Air Nitrox), never N₂ (that's nitrogen).
 - **Instructor subsidy is a SHARED cost** — it's added to the global pool (everyone pays), then credited back to the instructor. Not a transit cost.
-- **Dive pricing fields** (`dive_unit_price`, `nitrox_supplement`, `instructor_daily_subsidy`, `dive_days`) are on the `events` table and MUST be in Event `$fillable`.
-- **Auto-save + checkboxes**: unchecked checkboxes don't send values. Always add `<input type="hidden" name="field" value="0">` before the checkbox, or use a number input instead.
-- **XLSX export** must mirror the manage page structure. When adding columns/features to the UI, update the export method in `TripSettlementController::export()` too.
-- **4 summary cards**: Shared Costs (global + instructor subsidy), Transit (fuel + bounties), Diving (invoice vs charges), Local Subsidy. Instructor subsidy belongs in Shared, NOT Transit.
-- **Abbreviations**: Nitrox = EAN (Enriched Air Nitrox), never N₂ (that's nitrogen).
