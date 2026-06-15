@@ -30,8 +30,9 @@ Each certification grants specific **aptitudes** — rights to dive at certain d
 | Niveau 4 / Guide de Palanquée | N4/GP | PA-60 + Guide | Can lead groups to 40m |
 | Niveau 5 / Directeur de Plongée | N5/DP | PA-60 + DP | Can direct dive operations |
 | Initiateur (E1) | E1 | PA-60 + Teach to PE-12/PE-20 | Can teach in pool/0-6m, assist in 0-20m |
-| Moniteur Fédéral 1° (E2) | MF1/E2 | PA-60 + Teach to PE-20 + Guide 40m | Can teach N1, guide to 40m |
-| Moniteur Fédéral 2° (E3) | MF2/E3 | PA-60 + Teach to PE-40 + Guide 60m | Can teach N2, guide to 60m |
+| N4 + Initiateur (E2) | E2 | PA-60 + Teach to PE-20 + Guide 40m | Can teach N1, guide to 40m |
+| Moniteur Fédéral 1° (E3) | MF1/E3 | PA-60 + Teach to PE-40 + Guide 40m | Can teach N2, guide to 40m |
+| Moniteur Fédéral 2° (E4) | MF2/E4 | PA-60 + Teach to PE-60 + Guide 60m | Can teach N3, guide to 60m |
 
 ## Dive Group (Palanquée) Rules
 
@@ -70,10 +71,10 @@ Each certification grants specific **aptitudes** — rights to dive at certain d
 | Level | Code | Can Teach/Guide | Depth Limit |
 |-------|------|-----------------|-------------|
 | Initiateur | E1 | Assist teaching in 0-6m, teach PE-12 | 6m (teach), assists to 20m |
-| Moniteur Fédéral 1° | E2/MF1 | Teach N1 (PE-20), guide to 40m | 40m |
-| Moniteur Fédéral 2° | E3/MF2 | Teach N2 (PE-40), guide to 60m | 60m |
-| Moniteur National 1° | E4/MN1 | Teach N3, guide to 60m, PE-60 | 60m |
-| Moniteur National 2° | E5/MN2 | Train instructors | 60m |
+| N4 + Initiateur | E2/GP+Init | Teach N1 (PE-20), guide to 40m | 40m |
+| Moniteur Fédéral 1° | E3/MF1 | Teach N2 (PE-40), guide to 40m | 40m |
+| Moniteur Fédéral 2° | E4/MF2 | Teach N3, guide to 60m, PE-60 | 60m |
+| Moniteur National | E5/MN | Train instructors | 60m |
 
 ## Nitrox Qualifications
 

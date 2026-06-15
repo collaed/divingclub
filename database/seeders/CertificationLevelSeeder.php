@@ -65,11 +65,11 @@ class CertificationLevelSeeder extends Seeder
                 ['code' => 'N4', 'name' => 'Niveau 4 — Guide de Palanquée', 'category' => 'diver', 'rank' => 70, 'equivalence_group' => 'cmas_3s_gp'],
                 ['code' => 'N5', 'name' => 'Niveau 5 — Directeur de Plongée', 'category' => 'diver', 'rank' => 80, 'equivalence_group' => null],
                 // Instructor levels
-                ['code' => 'E1', 'name' => 'Initiateur — Enseignant Niveau 1', 'category' => 'instructor', 'rank' => 100, 'equivalence_group' => 'instr_1'],
-                ['code' => 'E2', 'name' => 'Moniteur Fédéral 1er degré', 'category' => 'instructor', 'rank' => 110, 'equivalence_group' => 'instr_2'],
-                ['code' => 'E3', 'name' => 'Moniteur Fédéral 2ème degré', 'category' => 'instructor', 'rank' => 120, 'equivalence_group' => 'instr_3'],
-                ['code' => 'E4', 'name' => 'Moniteur National 1er degré', 'category' => 'instructor', 'rank' => 130, 'equivalence_group' => 'instr_4'],
-                ['code' => 'E5', 'name' => 'Moniteur National 2ème degré', 'category' => 'instructor', 'rank' => 140, 'equivalence_group' => null],
+                ['code' => 'E1', 'name' => 'Initiateur', 'category' => 'instructor', 'rank' => 100, 'equivalence_group' => 'instr_1'],
+                ['code' => 'E2', 'name' => 'Initiateur + Guide de Palanquée (N4+Init)', 'category' => 'instructor', 'rank' => 110, 'equivalence_group' => 'instr_2'],
+                ['code' => 'E3', 'name' => 'Moniteur Fédéral 1er degré (MF1)', 'category' => 'instructor', 'rank' => 120, 'equivalence_group' => 'instr_3'],
+                ['code' => 'E4', 'name' => 'Moniteur Fédéral 2ème degré (MF2)', 'category' => 'instructor', 'rank' => 130, 'equivalence_group' => 'instr_4'],
+                ['code' => 'E5', 'name' => 'Moniteur National (MN)', 'category' => 'instructor', 'rank' => 140, 'equivalence_group' => null],
                 // Specialties
                 ['code' => 'NITROX', 'name' => 'Qualification Nitrox', 'category' => 'specialty', 'rank' => 200, 'equivalence_group' => 'nitrox'],
                 ['code' => 'NITROX_C', 'name' => 'Qualification Nitrox Confirmé', 'category' => 'specialty', 'rank' => 210, 'equivalence_group' => 'nitrox_adv'],

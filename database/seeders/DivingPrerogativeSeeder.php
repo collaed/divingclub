@@ -25,10 +25,10 @@ class DivingPrerogativeSeeder extends Seeder
             ['code' => 'PA-60', 'name' => 'Plongeur Autonome 60m', 'type' => 'autonomous', 'max_depth' => 60, 'requires_adult' => true],
             ['code' => 'GP', 'name' => 'Guide de Palanquée', 'type' => 'guide', 'max_depth' => 40, 'requires_adult' => true],
             ['code' => 'GP-60', 'name' => 'Guide de Palanquée 60m', 'type' => 'guide', 'max_depth' => 60, 'requires_adult' => true],
-            ['code' => 'E1', 'name' => 'Enseignement Niveau 1 (Initiateur)', 'type' => 'teach', 'max_depth' => 6, 'requires_adult' => true],
-            ['code' => 'E2', 'name' => 'Enseignement Niveau 2 (MF1)', 'type' => 'teach', 'max_depth' => 40, 'requires_adult' => true],
-            ['code' => 'E3', 'name' => 'Enseignement Niveau 3 (MF2)', 'type' => 'teach', 'max_depth' => 60, 'requires_adult' => true],
-            ['code' => 'E4', 'name' => 'Enseignement Niveau 4 (MN1)', 'type' => 'teach', 'max_depth' => 60, 'requires_adult' => true],
+            ['code' => 'E1', 'name' => 'Enseignement Initiateur', 'type' => 'teach', 'max_depth' => 6, 'requires_adult' => true],
+            ['code' => 'E2', 'name' => 'Enseignement N4+Init (PE-20, guide 40m)', 'type' => 'teach', 'max_depth' => 40, 'requires_adult' => true],
+            ['code' => 'E3', 'name' => 'Enseignement MF1 (PE-40, guide 40m)', 'type' => 'teach', 'max_depth' => 40, 'requires_adult' => true],
+            ['code' => 'E4', 'name' => 'Enseignement MF2 (PE-60, guide 60m)', 'type' => 'teach', 'max_depth' => 60, 'requires_adult' => true],
             ['code' => 'DP', 'name' => 'Directeur de Plongée', 'type' => 'guide', 'max_depth' => 60, 'requires_adult' => true],
         ];
 
