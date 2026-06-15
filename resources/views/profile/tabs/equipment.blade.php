@@ -52,6 +52,7 @@
         <thead><tr><th>{{ __('Item') }}</th><th>{{ __('Type') }}</th><th>{{ __('Since') }}</th>@if($isBureau)<th></th>@endif</tr></thead>
         <tbody>
         @foreach($loans as $loan)
+            @if($loan->equipment)
             <tr>
                 <td>{{ $loan->equipment->name }}</td>
                 <td><span class="badge bg-secondary">{{ ucfirst($loan->equipment->type) }}</span></td>
@@ -60,6 +61,7 @@
                 <td><form method="POST" action="{{ route('admin.equipment.return', $loan) }}" class="d-inline">@csrf<button class="btn btn-sm btn-outline-success py-0">{{ __('Return') }}</button></form></td>
                 @endif
             </tr>
+            @endif
         @endforeach
         </tbody>
     </table>
