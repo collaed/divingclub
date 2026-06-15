@@ -170,34 +170,35 @@
                                         <li><a class="dropdown-item" href="{{ route('admin.dashboard.index') }}">@icon('📊') {{ __('Dashboard') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         {{-- People --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.members.index') }}">{{ __('Members') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.guardians.index') }}">@icon('👨‍👧') {{ __('Minors & Consent') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">@icon('🐠') {{ __('Trial Requests') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.members.index') }}">👥 {{ __('Members') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.guardians.index') }}">👨‍👧 {{ __('Minors & Consent') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">🐠 {{ __('Trial Requests') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         {{-- Finance --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.seasons.index') }}">{{ __('Seasons') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.payments.index') }}">{{ __('Payments') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.seasons.index') }}">📅 {{ __('Seasons') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.payments.index') }}">💶 {{ __('Payments') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         {{-- Content --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.articles.index') }}">{{ __('Articles') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.links.index') }}">{{ __('Links') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.library.index') }}">@icon('📁') {{ __('Documents') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.email.index') }}">{{ __('Email') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.articles.index') }}">📝 {{ __('Articles') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.links.index') }}">🔗 {{ __('Links') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.library.index') }}">📁 {{ __('Documents') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.email.index') }}">📧 {{ __('Email') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">📬 {{ __('Newsletters') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.email-stats') }}">📊 {{ __('Email Stats') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.votes.index') }}">{{ __('Votes') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.votes.index') }}">🗳️ {{ __('Votes') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         {{-- Diving --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.equipment.index') }}">{{ __('Equipment') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.equipment.index') }}">🔧 {{ __('Equipment') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">🤿 {{ __('Dive Sites') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">📋 {{ __('Dive Group Rules') }}</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         {{-- System --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">{{ __('Audit Log') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.backups.index') }}">@icon('💾') {{ __('Backups') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">📜 {{ __('Audit Log') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.backups.index') }}">💾 {{ __('Backups') }}</a></li>
                                         <li><a class="dropdown-item" href="/horizon" target="_blank">⏱️ {{ __('Queue Monitor') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">@icon('⚙️') {{ __('Settings') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">🔐 {{ __('Roles & Permissions') }}</a></li>                                        <li><a class="dropdown-item" href="{{ route('admin.guide.index') }}">@icon('📖') {{ __('Admin Guide') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">⚙️ {{ __('Settings') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">🔐 {{ __('Roles & Permissions') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.guide.index') }}">📖 {{ __('Admin Guide') }}</a></li>
                                         @can('view finances')
                                         <li><a class="dropdown-item" href="{{ route('admin.audit-finances') }}">📋 {{ __('Financial Audit') }}</a></li>
                                         @endcan                                        <li><a class="dropdown-item" href="{{ route('admin.annual-report') }}">@icon('📊') {{ __('Annual Report') }}</a></li>
