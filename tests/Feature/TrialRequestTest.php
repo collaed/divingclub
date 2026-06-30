@@ -37,7 +37,7 @@ class TrialRequestTest extends TestCase
             'first_name' => 'Bot',
             'last_name' => 'Spam',
             'email' => 'bot@spam.com',
-            'website' => 'http://spam.com', // honeypot filled = bot
+            'website' => 'https://spam.com', // honeypot filled = bot
             '_ts' => time() - 5,
         ]);
 

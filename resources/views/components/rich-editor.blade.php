@@ -1,7 +1,7 @@
 {{-- TinyMCE 6 rich editor — include once per page, then add class="tinymce" to any textarea --}}
 @once
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.6/tinymce.min.js" integrity="sha384-zFzebFBjO2w19oyogAFilUklY4d79QgCG5KxflEIHzc03UVoZ7hTQ9MsM334s4yD" crossorigin="anonymous" referrerpolicy="origin"></script>
 <script>
 tinymce.init({
     selector: 'textarea.tinymce',

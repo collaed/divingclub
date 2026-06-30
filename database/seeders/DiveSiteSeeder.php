@@ -60,7 +60,7 @@ class DiveSiteSeeder extends Seeder
                 'access_notes' => 'Rue du Pont à Rieu, 7500 Tournai. Managed by Association Tournaisienne de Plongée. Reservation recommended.',
                 'facilities' => 'Changing rooms, O2 kit, defibrillator on site.',
                 'nearest_hospital' => 'CHRU de Lille — Hôpital Roger Salengro, Avenue Oscar Lambert 2, 59037 Lille Cedex, France. Tel: +33 3 20 44 55 50. Hyperbaric chamber.',
-                'website_url' => 'http://www.aquasubtournai.net',
+                'website_url' => 'https://www.aquasubtournai.net',
                 'is_active' => true,
             ],
             [

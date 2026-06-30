@@ -151,7 +151,7 @@
                             </div></div>
                         </div>
                     </div>
-                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
                     <script>
                     const palette = ['#003366','#0066cc','#3399ff','#66ccff','#99ddff','#ccf0ff','#ff9933','#ff6600','#cc3300','#993300','#669966','#339933','#006600','#996699','#663366'];
                     const stats = @json($memberStats);
