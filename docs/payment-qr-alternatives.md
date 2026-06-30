@@ -1,91 +1,75 @@
-# Payment QR Alternatives — Design Notes
+# Payment QR — The Trust Problem
 
 ## Status: Parked (branch `feature/payment-qr-alternatives`)
 
-## Problem
+## The Real Issue
 
-EPC QR codes (SEPA Credit Transfer QR — "scan to pay" directly in banking apps) are being phased out or restricted by banks due to **quishing** (QR phishing). Attackers print fake QR codes over legitimate ones, redirecting payments to rogue IBANs.
+The problem isn't QR format or content — it's **trust infrastructure**. Banks are moving toward a model where payment-initiating QR codes must come from **domains/issuers the bank has a pre-established relationship with**.
 
-**Wero** (European Payments Initiative) is the designated successor but requires a commercial agreement and per-transaction fees — not viable for a small club.
+The reasoning:
+- Banks need to know the QR issuer keeps logs and can be held accountable
+- Transactions initiated from "trusted" QR sources can be reversed without the bank bearing liability
+- A small club's domain (even with HTTPS + HMAC) won't be on any bank's allowlist without a commercial contract
 
-## Current Implementation (main branch)
+### Timeline
 
-The app already mitigated quishing by switching from raw EPC QR to a **signed URL approach**:
+1. **Now (2026):** EPC QR codes still work in most banking apps, but some banks (ING, KBC) have started ignoring/warning on them
+2. **Near future:** Banking apps will stop auto-filling payment details from arbitrary QR scans
+3. **Eventually:** Only QRs from registered PSPs (Wero, Payconiq, bank-certified portals) will trigger the "pre-fill transfer" flow
 
-1. QR encodes a URL (not bank details) → `https://yourclub.lu/pay/verify?a=180&c=CEP-2026-SMITH&e=...&s=HMAC`
-2. User scans → lands on the club's HTTPS page (TLS proves identity)
-3. Page shows payment details (IBAN, amount, communication) for manual entry
-4. HMAC signature prevents URL tampering, 30-day expiry
+### What this means for a small club
 
-This is already safer than raw EPC, but it still requires the member to manually type IBAN + communication into their banking app.
+No matter how cleverly we sign or format our QR, **banking apps won't trust it** without a commercial relationship between the club (or its PSP) and the bank. The options are:
 
-## Alternatives Explored
+| Option | Cost | Friction | Future-proof |
+|--------|------|----------|--------------|
+| Raw EPC QR | Free | Low (while it works) | ❌ Dying |
+| Signed URL QR → info page | Free | Medium (manual copy) | ✅ Always works |
+| Wero / R2P via PSP | €10-30/month + per-tx | Low | ✅ But expensive |
+| Stripe/Mollie payment link | 1.5-3% per tx | Low | ✅ But expensive |
 
-### 1. Structured Payment Reference (current best option — no integration needed)
+## Current Implementation
 
-Most Luxembourg/EU banking apps allow **pre-filling a payment** if you provide details in a recognized format. The key insight: the member doesn't need a QR at all if the payment details are **copy-paste friendly**.
+We already have the best free option: **signed URL QR → verified payment info page**.
 
-**Approach:**
-- Display payment details with individual "copy" buttons (IBAN, amount, communication)
-- Use the structured communication format: `+++123/4567/89012+++` (Belgian/Lux format)
-- Some banking apps recognize this format when pasted into the communication field
+```
+Member scans QR → opens https://club.lu/pay/verify?a=180&c=CEP-2026-SMITH&s=HMAC
+    → sees IBAN, BIC, amount, communication
+    → copies details into banking app manually
+```
 
-**Effort:** Minimal — just UX improvement on the existing verification page.
+The QR is just a convenient way to get to the payment instruction page — it doesn't (and can't) trigger a bank transfer directly.
 
-### 2. Deep Links to Banking Apps (research needed)
+## What We Keep
 
-Some banks support URL schemes to pre-fill transfers:
-- **Payconiq by Bancontact** — QR-based, but requires merchant agreement
-- **Apple Pay / Google Pay** — not for bank transfers
-- **Banking app deep links** — bank-specific, no standard exists
+- **Signed URL QR** — the QR encodes a URL, not bank details. Safe from quishing.
+- **Verification page** — shows payment details with copy buttons, TLS proves club identity.
+- **Legacy EPC routes** — kept but hidden. Still work for the (shrinking) set of banking apps that accept them.
 
-Luxembourg banks (BCEE, BIL, BGL, Raiffeisen, ING) don't publish deep link schemas.
+## What We Could Improve (low effort, on main)
 
-**Verdict:** Not viable without per-bank agreements.
+1. **Copy-to-clipboard UX** — individual buttons for IBAN, amount, communication on the verification page
+2. **"I've paid" button** — member self-declares, bureau sees it as a hint during reconciliation
+3. **Structured communication** — use `+++123/4567/89012+++` format (recognized by some Belgian/Lux banking apps)
+4. **Print-friendly layout** — some members will want to type details from a printout
 
-### 3. Request-to-Pay (SEPA R2P / SRTP)
+## What We Won't Do (unless the economics change)
 
-EU standard for sending payment requests. The payer's bank presents the request and they approve.
-- Requires the club to have a PSP (Payment Service Provider) that supports R2P
-- Monthly fees + per-request fees
-- Not yet widely supported by consumer banking apps in Luxembourg (2026)
+- Wero integration (requires PSP contract)
+- Stripe/Mollie (3% on €180 = €5.40/member, €430/year for 80 members)
+- Bank-specific deep links (no published APIs in Luxembourg)
+- Request-to-Pay (not supported by consumer banks in Lux yet)
 
-**Verdict:** Too early and too expensive for a small club.
+## Re-evaluate When
 
-### 4. Payment Links (Mollie, Stripe, etc.)
-
-Generate a payment link → member pays via card or iDEAL-like flow.
-- Stripe: 1.5% + €0.25 per SEPA Direct Debit, or 2.9% for card
-- Mollie: similar pricing
-- Adds a proper payment flow with confirmation
-
-**Verdict:** Overkill for annual dues. The 1.5-3% fee on a €180 membership = €2.70-5.40/member. Adds up for 80+ members.
-
-### 5. Keep Signed URL QR + Improve UX (recommended)
-
-The current signed-URL approach is fine. Improve it:
-- Add a "Copy all details" button that copies formatted text to clipboard
-- Add individual copy buttons for IBAN, BIC, amount, communication
-- Display a QR that links to the verification page (already done)
-- On the verification page, show a visual mock of what the bank transfer should look like
-- Add a "Mark as paid" button (self-declaration) so the bureau knows to expect the transfer
-
-## Decision
-
-**Keep signed URL approach on main.** It's already anti-quishing safe and doesn't depend on any third-party payment system.
-
-**Improvements to make (can be done on main):**
-1. Better copy-to-clipboard UX on the payment verification page
-2. Structured communication format for easier recognition
-3. "I've paid" self-declaration button
-
-**EPC QR code routes (`sepaPublic`, `sepa`) remain** but are not prominently offered in the UI. They still work for members whose banks accept them.
+- Wero launches a "non-profit / association" tier with flat pricing
+- A Luxembourg PSP offers R2P for < €5/month
+- A standardized "payment request" deep link emerges across banking apps
 
 ## Files Involved
 
-- `app/Http/Controllers/QrCodeController.php` — all QR generation logic
+- `app/Http/Controllers/QrCodeController.php` — all QR generation
 - `resources/views/payment-verify.blade.php` — verification landing page
-- `resources/views/cotisation.blade.php` — dues calculator with QR display
+- `resources/views/cotisation.blade.php` — dues calculator with QR
 - `resources/views/profile/tabs/renewal.blade.php` — payment info in profile
-- `resources/views/events/show.blade.php` — event payment QR
 - `routes/web.php` — QR routes (lines 73-75, 235-237)
