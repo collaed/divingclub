@@ -23,7 +23,7 @@
         <script defer src="{{ config('services.umami.url') }}/dive" data-website-id="{{ config('services.umami.id') }}"></script>
     @endif
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 layout-{{ $theme['site_layout'] ?? 'default' }}">
     <a href="#main-content" class="skip-link">{{ __('Skip to content') }}</a>
     <div class="dc-toast-container" id="toastContainer"></div>
 
@@ -117,10 +117,10 @@
                     @auth
                         {{-- Calendar --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/training-schedule-*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/horaire-regulier-*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('events.index') }}">@icon('📆') {{ __('Events') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ url('/article/training-schedule-ULO7R') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url('/article/horaire-regulier-P2M16') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
                                 @if(auth()->user()->isBureau() || auth()->user()->hasRole('instructor'))
                                     <li><a class="dropdown-item" href="{{ route('availability.index') }}">@icon('📅') {{ __('Instructor Availability') }}</a></li>
                                 @endif
@@ -485,9 +485,10 @@
     {{-- Client-side table sorting --}}
     <script>
     (function(){
-        document.querySelectorAll('table[data-searchable] thead th, table.table thead th').forEach(function(th,ci){
+        document.querySelectorAll('table[data-searchable] thead th, table.table thead th').forEach(function(th){
             var tbl=th.closest('table');
             if(!tbl||th.dataset.noSort!==undefined) return;
+            var ci=Array.from(th.parentElement.children).indexOf(th);
             th.style.cursor='pointer';
             th.style.userSelect='none';
             th.title='{{ __("Click to sort") }}';

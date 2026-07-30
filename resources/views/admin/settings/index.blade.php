@@ -417,6 +417,28 @@
                         </div>
                     </form>
 
+                    {{-- Site Layout --}}
+                    <h6>{{ __('Site Layout') }}</h6>
+                    <p class="text-muted small mb-2">{{ __('Controls the overall header, navigation, and page structure. Affects all visitors.') }}</p>
+                    <div class="row g-3 mb-4">
+                        @foreach(\App\Services\ThemeService::layoutPresets() as $key => $meta)
+                            <div class="col-md-4">
+                                <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                                    @csrf
+                                    <input type="hidden" name="site_layout" value="{{ $key }}">
+                                    <button type="submit" class="w-100 text-start p-3 border rounded {{ ($themeSettings['site_layout'] ?? 'default') === $key ? 'border-primary bg-primary bg-opacity-10' : 'bg-white' }}" style="cursor:pointer">
+                                        <div class="fw-bold mb-1">{{ $meta['icon'] }} {{ $meta['label'] }}
+                                            @if(($themeSettings['site_layout'] ?? 'default') === $key)
+                                                <span class="badge bg-primary ms-1">{{ __('Active') }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="text-muted small">{{ $meta['desc'] }}</div>
+                                    </button>
+                                </form>
+                            </div>
+                        @endforeach
+                    </div>
+
                     {{-- UI Style presets --}}
                     <h6>{{ __('UI Style') }}</h6>
                     <div class="d-flex flex-wrap gap-2 mb-3">

@@ -89,4 +89,39 @@ class ThemeService
             'compact' => ['label' => 'Compact', 'desc' => 'Smaller text, tight spacing, minimal rounding — data-dense'],
         ];
     }
+
+    /**
+     * Layout presets control the overall site structure:
+     * header style, navigation placement, footer density, and visual hierarchy.
+     *
+     * @return array<string, array{label: string, desc: string, icon: string}>
+     */
+    public static function layoutPresets(): array
+    {
+        return [
+            'default' => [
+                'label' => 'Default',
+                'desc' => 'Gradient header with bubbles, sticky navbar below, playful diving club feel',
+                'icon' => '🫧',
+            ],
+            'professional' => [
+                'label' => 'Professional',
+                'desc' => 'Slim top bar with logo, integrated navigation, no bubbles — corporate / federation style',
+                'icon' => '🏢',
+            ],
+            'minimal' => [
+                'label' => 'Minimal',
+                'desc' => 'Clean white header, borderless navigation, maximum content space — modern SaaS feel',
+                'icon' => '✨',
+            ],
+        ];
+    }
+
+    /** Get the active site layout key. */
+    public static function activeLayout(): string
+    {
+        $settings = static::settings();
+
+        return $settings['site_layout'] ?? 'default';
+    }
 }
