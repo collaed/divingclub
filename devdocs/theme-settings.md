@@ -89,3 +89,75 @@ Supported via `[data-bs-theme="dark"]` CSS selector (Bootstrap 5.3 color mode). 
 ## Logo Upload
 
 `POST /admin/settings/logo` — stores image in `theme/` on public disk, saves path to `theme_settings.logo_image`.
+
+
+
+## Site Layouts
+
+Admins can switch between three site-wide layout variants that control header style, navigation appearance, footer density, and overall visual hierarchy. The layout is applied as a CSS body class (`layout-{name}`) — no template changes, pure CSS override.
+
+### 3 Layout Presets
+
+| Layout | Body Class | Header | Nav | Cards | Footer | Feel |
+|--------|-----------|--------|-----|-------|--------|------|
+| Default | `layout-default` | Gradient + bubbles | Sticky white bar, border-bottom | Rounded, shadow | Dark bg, centered | Playful diving club |
+| Professional | `layout-professional` | Solid primary, slim | Grey bar, underline indicators | 1px border, uppercase headers | Dark slim strip | Corporate / federation |
+| Minimal | `layout-minimal` | White, borderless | Transparent, pill-shaped links | Borderless, floating shadow | Light grey, barely there | Modern SaaS |
+
+### How It Works
+
+```
+ThemeService::layoutPresets()    → defines available options
+ThemeService::activeLayout()     → returns validated current layout key
+ThemeServiceProvider             → injects $theme into layout view
+layout.blade.php                 → <body class="layout-{{ activeLayout() }}">
+_layouts.scss                    → CSS overrides scoped to body.layout-{name}
+```
+
+### State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Default : initial (no DB entry)
+    Default --> Professional : admin selects
+    Default --> Minimal : admin selects
+    Professional --> Default : admin selects
+    Professional --> Minimal : admin selects
+    Minimal --> Default : admin selects
+    Minimal --> Professional : admin selects
+```
+
+### Component Interactions
+
+```mermaid
+flowchart LR
+    A[Admin Settings UI] -->|POST site_layout| B[SettingsController]
+    B -->|validate against layoutPresets| C[ThemeSetting::set]
+    C -->|cache flush| D[Cache::forget]
+    D --> E[Next page load]
+    E --> F[ThemeServiceProvider]
+    F -->|activeLayout| G[layout.blade.php]
+    G -->|body class| H[_layouts.scss overrides]
+```
+
+### Adding a New Layout
+
+1. Add entry to `ThemeService::layoutPresets()` with `label`, `desc`, `icon`
+2. Add CSS block in `resources/scss/partials/_layouts.scss` as `body.layout-{key} { ... }`
+3. Add dark mode override as `[data-bs-theme="dark"] body.layout-{key} { ... }`
+4. Add mobile responsive rules within the layout block
+5. Run `npm run build` — no migration needed, the key is stored as a string
+
+### Validation
+
+- `SettingsController::updateTheme()` rejects any `site_layout` value not in `layoutPresets()` keys
+- `ThemeService::activeLayout()` falls back to `'default'` if DB contains an invalid value
+- The body class is rendered via `activeLayout()` (never raw DB value) for XSS safety
+
+### Dark Mode Compatibility
+
+Each layout has a corresponding `[data-bs-theme="dark"] body.layout-{name}` block that adjusts backgrounds, borders, and text colors for the dark theme. The `data-bs-theme` attribute lives on `<html>`, the layout class on `<body>`.
+
+### Admin UI Location
+
+Settings → Appearance tab → "Site Layout" section (between Menu Icons and UI Style). Three card-style buttons with `aria-pressed` for screen reader support.

@@ -135,6 +135,7 @@ The REQUIREMENTS.md was overwritten from 486 lines (v2) to 143 lines (current) d
 |----|------------|--------|-------|
 | 5.1 | Responsive navbar with theme | ✅ Done | |
 | 5.2 | Footer with cookie consent | ✅ Done | |
+| 5.3 | Site layout variants | ✅ Done | 3 layouts (default, professional, minimal) switchable from admin |
 
 ### §6. Cross-Cutting Concerns
 
@@ -175,6 +176,7 @@ The REQUIREMENTS.md was overwritten from 486 lines (v2) to 143 lines (current) d
 | Bureau worklist | 3 | Developer domain knowledge |
 | Parental consent system | 3 | Developer domain knowledge |
 | UI style presets + dark mode | 3 | Developer domain knowledge |
+| Site layout variants (professional, minimal) | 3 | Developer domain knowledge |
 | FFESSM fiche de sécurité | 4 | Developer domain knowledge |
 | UDDF/DAN dive data export | 4 | Developer domain knowledge |
 | Homepage widget system (drag-and-drop) | 4 | Developer domain knowledge |

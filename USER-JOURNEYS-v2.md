@@ -348,6 +348,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
     - **Medical Compliance Rules**: adds rules per federation (e.g. FFESSM: GP cert every 12 months for under-40, GP + ENT every 12 months for 40+)
     - **Equipment Maintenance Rules**: adds rules (e.g. regulator service every 12 months, BCD inspection every 24 months)
     - **Theme & Appearance**: picks a preset (Ocean), customizes colors, uploads the club logo, sets club full name "Club Européen de Plongée"
+    - **Site Layout**: selects the layout variant (Default for a playful club feel, Professional for a federation-style corporate look, or Minimal for a modern SaaS feel) — takes effect immediately for all visitors
     - **Article Type Backgrounds**: sets subtle background colors for each article type
     - **Banking**: enters the club IBAN, BIC, beneficiary name for SEPA QR codes
 12. Reads the **Admin Guide** (14 pages) for reference
@@ -947,6 +948,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 66. Bulk download selected files as ZIP from the document library
 67. Search documents by name or description across all folders
 68. Preview images and PDFs inline (lightbox overlay) in the document library
+69. Switch site layout between Default (playful diving club), Professional (corporate/federation), and Minimal (modern SaaS) — instant effect, no code deploy needed
 
 ### Members
 69. Search the club document library by file name or description

@@ -23,7 +23,7 @@
         <script defer src="{{ config('services.umami.url') }}/dive" data-website-id="{{ config('services.umami.id') }}"></script>
     @endif
 </head>
-<body class="d-flex flex-column min-vh-100 layout-{{ $theme['site_layout'] ?? 'default' }}">
+<body class="d-flex flex-column min-vh-100 layout-{{ \App\Services\ThemeService::activeLayout() }}">
     <a href="#main-content" class="skip-link">{{ __('Skip to content') }}</a>
     <div class="dc-toast-container" id="toastContainer"></div>
 

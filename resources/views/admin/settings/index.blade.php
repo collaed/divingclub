@@ -420,19 +420,20 @@
                     {{-- Site Layout --}}
                     <h6>{{ __('Site Layout') }}</h6>
                     <p class="text-muted small mb-2">{{ __('Controls the overall header, navigation, and page structure. Affects all visitors.') }}</p>
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-4" role="group" aria-label="{{ __('Site Layout') }}">
                         @foreach(\App\Services\ThemeService::layoutPresets() as $key => $meta)
+                            @php $isActive = ($themeSettings['site_layout'] ?? 'default') === $key; @endphp
                             <div class="col-md-4">
                                 <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                                     @csrf
                                     <input type="hidden" name="site_layout" value="{{ $key }}">
-                                    <button type="submit" class="w-100 text-start p-3 border rounded {{ ($themeSettings['site_layout'] ?? 'default') === $key ? 'border-primary bg-primary bg-opacity-10' : 'bg-white' }}" style="cursor:pointer">
-                                        <div class="fw-bold mb-1">{{ $meta['icon'] }} {{ $meta['label'] }}
-                                            @if(($themeSettings['site_layout'] ?? 'default') === $key)
+                                    <button type="submit" class="w-100 text-start p-3 border rounded {{ $isActive ? 'border-primary bg-primary bg-opacity-10' : '' }}" aria-pressed="{{ $isActive ? 'true' : 'false' }}" title="{{ __($meta['desc']) }}">
+                                        <div class="fw-bold mb-1">{{ $meta['icon'] }} {{ __($meta['label']) }}
+                                            @if($isActive)
                                                 <span class="badge bg-primary ms-1">{{ __('Active') }}</span>
                                             @endif
                                         </div>
-                                        <div class="text-muted small">{{ $meta['desc'] }}</div>
+                                        <div class="text-muted small">{{ __($meta['desc']) }}</div>
                                     </button>
                                 </form>
                             </div>

@@ -1,12 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\ThemeSetting;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Manages theme configuration: CSS custom properties, color presets,
+ * UI style presets, and site layout variants.
+ *
+ * All settings are stored in the `theme_settings` table and cached for 5 minutes.
+ */
 class ThemeService
 {
+    /** Generate inline CSS custom properties from theme settings. */
     public static function css(): string
     {
         $s = Cache::remember('theme_css', 300, fn (): array => ThemeSetting::all_settings());
@@ -63,11 +72,13 @@ class ThemeService
             .'}';
     }
 
+    /** @return array<string, string> All theme settings as key-value pairs. */
     public static function settings(): array
     {
         return Cache::remember('theme_settings', 300, fn (): array => ThemeSetting::all_settings());
     }
 
+    /** @return array<string, array<string, string>> Color presets (ocean, coral, lagoon, abyss, tropical, arctic). */
     public static function presets(): array
     {
         return [
@@ -80,6 +91,7 @@ class ThemeService
         ];
     }
 
+    /** @return array<string, array{label: string, desc: string}> UI shape/density presets (rounded, sharp, classic, compact). */
     public static function stylePresets(): array
     {
         return [
@@ -117,11 +129,12 @@ class ThemeService
         ];
     }
 
-    /** Get the active site layout key. */
+    /** Get the active site layout key (validated against known presets). */
     public static function activeLayout(): string
     {
         $settings = static::settings();
+        $layout = $settings['site_layout'] ?? 'default';
 
-        return $settings['site_layout'] ?? 'default';
+        return array_key_exists($layout, static::layoutPresets()) ? $layout : 'default';
     }
 }

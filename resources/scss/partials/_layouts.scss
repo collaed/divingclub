@@ -145,13 +145,21 @@ body.layout-professional {
     background: transparent;
   }
 
-  // Alert: cleaner
+  // Alert: cleaner — left border inherits from Bootstrap alert color
   .alert {
-    border-left: 4px solid;
+    border-left: 4px solid currentColor;
     border-radius: 0 var(--dc-radius) var(--dc-radius) 0 !important;
     border-top: none;
     border-right: none;
     border-bottom: none;
+  }
+
+  // Mobile: remove bottom-border indicator, use standard mobile nav
+  @media (max-width: 991.98px) {
+    .dc-navbar .nav-link {
+      border-bottom: none;
+      padding: 0.5rem 1rem;
+    }
   }
 
   // User pill: more corporate
@@ -174,8 +182,8 @@ body.layout-professional {
 }
 
 // Professional dark mode
-[data-bs-theme="dark"] body.layout-professional,
-body.layout-professional[data-bs-theme="dark"] {
+// Note: data-bs-theme is on <html>, body.layout-* is on <body>
+[data-bs-theme="dark"] body.layout-professional {
 
   .dc-navbar {
     background: #1e293b;
@@ -400,11 +408,23 @@ body.layout-minimal {
     font-size: 0.8rem;
     opacity: 0.7;
   }
+
+  // Mobile: reduce pill padding, stack naturally
+  @media (max-width: 991.98px) {
+    .dc-navbar .nav-link {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+    }
+    .btn {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
 }
 
 // Minimal dark mode
-[data-bs-theme="dark"] body.layout-minimal,
-body.layout-minimal[data-bs-theme="dark"] {
+// Note: data-bs-theme is on <html>, body.layout-* is on <body>
+[data-bs-theme="dark"] body.layout-minimal {
 
   .dc-header {
     background: #0f172a !important;

@@ -287,6 +287,20 @@ services:
 | 3 | Change club name | Name updated in header, footer, emails, QR codes |
 | 4 | Paste license key | "License valid until [date]" shown. Member limit raised |
 
+### Site Layout Variants
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Switch to "Professional" layout | Header becomes slim solid bar, no bubbles, nav has grey background with underline indicators, card headers are uppercase, footer is a slim strip |
+| 2 | Switch to "Minimal" layout | Header is white with dark text, nav links are pill-shaped, cards are borderless with soft shadows, footer is light grey, buttons are pill-shaped |
+| 3 | Switch back to "Default" | Gradient header with bubbles returns, standard sticky navbar, normal card and footer styling |
+| 4 | Toggle dark mode while on Professional | Dark nav background, light text, accent-colored active indicators, dark card headers |
+| 5 | Toggle dark mode while on Minimal | Dark header, pill nav with dark backgrounds, subtle card shadows, dark footer |
+| 6 | Check mobile (< 992px) on Professional | Nav border-bottom indicators removed, standard collapsed nav works |
+| 7 | Check mobile (< 992px) on Minimal | Pill nav spacing reduced, buttons have reduced padding |
+| 8 | Submit invalid layout value via devtools | Error flash "Invalid site layout." — layout unchanged |
+| 9 | Verify active badge and aria-pressed | Only the active layout card shows "Active" badge and aria-pressed="true" |
+| 10 | Verify cache invalidation | After switching, refresh in incognito — new layout visible (no stale cache) |
+
 ### Inter-Club Federation
 | # | Action | Expected Result |
 |---|--------|-----------------|

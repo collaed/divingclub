@@ -245,6 +245,16 @@ services:
 | 3 | Change club name | Name updated in header, footer, emails, QR codes |
 | 4 | Paste license key | "License valid until [date]" shown. Member limit raised |
 
+### Site Layout Variants
+| # | Action | Expected Result |
+|---|--------|-----------------|
+| 1 | Switch to "Professional" layout | Header becomes slim solid bar, no bubbles, nav has grey background with underline indicators, card headers are uppercase |
+| 2 | Switch to "Minimal" layout | Header is white with dark text, nav links are pill-shaped, cards are borderless, buttons are pill-shaped |
+| 3 | Switch back to "Default" | Gradient header with bubbles returns, standard styling |
+| 4 | Toggle dark mode on Professional/Minimal | Dark variants render correctly (appropriate backgrounds, text colors, borders) |
+| 5 | Check mobile (< 992px) | Collapsed nav works correctly on all layouts |
+| 6 | Submit invalid layout value via devtools | Error flash, layout unchanged |
+
 ### Inter-Club Federation
 | # | Action | Expected Result |
 |---|--------|-----------------|

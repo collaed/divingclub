@@ -150,6 +150,15 @@ class SettingsController extends Controller
             $locales = array_intersect($request->input('enabled_locales', []), array_keys(config('languages', [])));
             ThemeSetting::set('enabled_locales', json_encode(array_values($locales)));
         }
+
+        // Validate constrained values
+        if ($request->has('site_layout') && ! array_key_exists($request->input('site_layout'), ThemeService::layoutPresets())) {
+            return back()->with('error', __('Invalid site layout.'));
+        }
+        if ($request->has('ui_style') && ! array_key_exists($request->input('ui_style'), ThemeService::stylePresets())) {
+            return back()->with('error', __('Invalid UI style.'));
+        }
+
         foreach ($allowed as $key) {
             if ($request->has($key)) {
                 ThemeSetting::set($key, $request->input($key));
