@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * ClubCEP.eu — Custom user provider that maps 'email' to 'primary_email'
  * for password reset and other credential lookups, since the users table

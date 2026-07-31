@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * License verification for installations exceeding the free tier (100 members).
  *

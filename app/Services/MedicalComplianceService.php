@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Medical certificate compliance — per-federation evaluation.
  *

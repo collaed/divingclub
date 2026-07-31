@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Carbon\Carbon;
@@ -18,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class VoteToken extends Model
 {
-    protected $fillable = ['vote_id', 'user_id', 'token', 'is_consumed', 'consumed_at'];
+    protected $fillable = ['vote_id', 'vote_group_id', 'user_id', 'token', 'is_consumed', 'consumed_at'];
 
     protected function casts(): array
     {
@@ -29,6 +31,12 @@ class VoteToken extends Model
     public function vote(): BelongsTo
     {
         return $this->belongsTo(Vote::class);
+    }
+
+    /** @return BelongsTo<VoteGroup, $this> */
+    public function voteGroup(): BelongsTo
+    {
+        return $this->belongsTo(VoteGroup::class);
     }
 
     /** @return BelongsTo<User, $this> */

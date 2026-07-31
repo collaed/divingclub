@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Member-facing document browser with upload for instructors/bureau.
  *
@@ -15,6 +17,8 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\EventPhoto;
 use App\Models\LibraryFile;
+use App\Services\FaceDetectionService;
+use App\Services\ImageQualityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -72,21 +76,76 @@ class DocumentBrowserController extends Controller
     public function galleryUpload(Request $request, Event $event): RedirectResponse|View
     {
         $request->validate([
-            'photos.*' => 'required|image|max:10240',
+            'photos.*' => 'required|file|max:102400|mimes:jpg,jpeg,png,gif,webp,heic,heif,mp4,mov,avi,webm,zip',
         ]);
 
+        $stored = 0;
         foreach ($request->file('photos', []) as $file) {
-            EventPhoto::create([
-                'event_id' => $event->id,
-                'uploaded_by' => auth()->id(),
-                'path' => $file->store('event-photos/'.$event->id, 'public'),
-                'gdpr_consent' => true,
-                'approved' => true,
-                'quality_score' => 50,
-            ]);
+            $mime = $file->getMimeType();
+
+            if ($mime === 'application/zip' || $file->getClientOriginalExtension() === 'zip') {
+                $tempDir = sys_get_temp_dir().'/gallery_zip_'.uniqid();
+                mkdir($tempDir, 0755, true);
+                $zip = new \ZipArchive;
+                if ($zip->open($file->getRealPath()) === true) {
+                    $zip->extractTo($tempDir);
+                    $zip->close();
+                    $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tempDir, \FilesystemIterator::SKIP_DOTS));
+                    foreach ($files as $f) {
+                        if (! $f->isFile() || str_contains($f->getPathname(), '__MACOSX')) {
+                            continue;
+                        }
+                        $fMime = mime_content_type($f->getPathname());
+                        if (! str_starts_with($fMime, 'image/') && ! str_starts_with($fMime, 'video/')) {
+                            continue;
+                        }
+                        $ext = pathinfo($f->getFilename(), PATHINFO_EXTENSION) ?: 'jpg';
+                        $path = 'event-photos/'.$event->id.'/'.uniqid().'.'.$ext;
+                        Storage::disk('public')->put($path, file_get_contents($f->getPathname()));
+                        $this->createScoredPhoto($event, $path, $fMime, str_starts_with($fMime, 'image/') ? $f->getPathname() : null);
+                        $stored++;
+                    }
+                }
+                // Cleanup
+                $items = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tempDir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+                foreach ($items as $item) {
+                    $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+                }
+                rmdir($tempDir);
+            } else {
+                $path = $file->store('event-photos/'.$event->id, 'public');
+                $this->createScoredPhoto($event, $path, $mime, str_starts_with($mime, 'image/') ? $file->getRealPath() : null);
+                $stored++;
+            }
         }
 
-        return back()->with('success', __('Photos uploaded.'));
+        return back()->with('success', __(':count file(s) uploaded.', ['count' => $stored]));
+    }
+
+    private function createScoredPhoto(Event $event, string $path, string $mime, ?string $imagePath): void
+    {
+        $score = 50;
+        $hasFaces = null;
+
+        if ($imagePath) {
+            try {
+                $score = app(ImageQualityService::class)->score($imagePath);
+                $hasFaces = app(FaceDetectionService::class)->hasFaces($imagePath);
+            } catch (\Throwable) {
+                // Services unavailable — keep defaults
+            }
+        }
+
+        EventPhoto::create([
+            'event_id' => $event->id,
+            'uploaded_by' => auth()->id(),
+            'path' => $path,
+            'mime_type' => $mime,
+            'has_faces' => $hasFaces,
+            'gdpr_consent' => true,
+            'approved' => true,
+            'quality_score' => $score,
+        ]);
     }
 
     public function index(Request $request): \Illuminate\Contracts\View\View|RedirectResponse

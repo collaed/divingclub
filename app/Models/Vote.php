@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Carbon\Carbon;
@@ -29,7 +31,7 @@ class Vote extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['title', 'description', 'mode', 'allow_multiple', 'allow_change', 'num_positions', 'min_vote_pct', 'is_public', 'status', 'opens_at', 'closes_at', 'created_by'];
+    protected $fillable = ['title', 'description', 'mode', 'allow_multiple', 'allow_change', 'num_positions', 'min_vote_pct', 'is_public', 'status', 'opens_at', 'closes_at', 'created_by', 'vote_group_id'];
 
     protected function casts(): array
     {
@@ -64,6 +66,12 @@ class Vote extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** @return BelongsTo<VoteGroup, $this> */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(VoteGroup::class, 'vote_group_id');
     }
 
     public function isOpen(): bool

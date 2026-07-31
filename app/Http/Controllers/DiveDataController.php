@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Dive data import/export: UDDF upload, UDDF download, DAN DL7 export.
  *

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Event;
@@ -41,7 +43,7 @@ class TripSettlementService
     {
         /** @var \Illuminate\Database\Eloquent\Collection<int, TripParticipant> $participants */
         $participants = $event->tripParticipants()->with('user.detail')->get();
-        $receipts = $event->tripReceipts()->where('status', 'approved')->get();
+        $receipts = $event->tripReceipts()->where('status', 'approved')->where('category', '!=', 'memo')->get();
 
         // Build registration lookup — by user_id for members, by non_member_name for non-members
         $registrations = EventRegistration::where('event_id', $event->id)->get();
@@ -67,7 +69,7 @@ class TripSettlementService
         });
 
         // Step 1: Global Pool — shared expenses + instructor subsidy, divided equally
-        $globalReceipts = $receipts->where('category', 'general');
+        $globalReceipts = $receipts->where('category', 'general')->filter(fn ($r) => ! str_starts_with($r->description ?? '', '[AUTO]'));
         $globalPool = $globalReceipts->sum('approved_amount');
         // Instructor subsidy is a shared cost — everyone contributes to instructors' dive expenses
         $totalInstructorSubsidy = 0;
@@ -135,6 +137,14 @@ class TripSettlementService
                 ? (float) $receipts->where('user_id', $p->user_id)->where('category', 'individual')->sum('approved_amount')
                 : 0;
 
+            $diveCharges = $p->user_id
+                ? (float) $receipts->where('user_id', $p->user_id)->where('category', 'individual')
+                    ->filter(fn ($r) => preg_match('/dive|plong|nitrox|EAN/i', $r->description ?? ''))
+                    ->sum('approved_amount')
+                : 0;
+
+            $otherCharges = $individualCharges - $diveCharges;
+
             // Prepaid deposits from the payment system
             $prepaid = $p->user_id ? (float) ($prepaidByUser[$p->user_id] ?? 0) : 0;
             // Also check prepaid_amount on the participant itself (for non-members)
@@ -186,6 +196,8 @@ class TripSettlementService
                 'transit_share' => $isVan ? $transitShare : 0,
                 'local_charge' => $localCharge,
                 'individual_charges' => $individualCharges,
+                'dive_charges' => $diveCharges,
+                'other_charges' => $otherCharges,
                 'bounty_credit' => $bountyCredit,
                 'instructor_subsidy' => $instructorSubsidy,
                 'prepaid' => $prepaid,

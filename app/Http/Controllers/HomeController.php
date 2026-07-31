@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Public-facing homepage and CMS article rendering.
  *
@@ -116,9 +118,6 @@ class HomeController extends Controller
         try {
             if ($locale !== 'fr' && ! $article->translations->contains('locale', $locale)) {
                 $svc->translate($article, $locale);
-            }
-            foreach ($article->translations->where('stale', true) as $stale) {
-                $svc->translate($article, $stale->locale);
             }
             $article->load('translations');
         } catch (\Throwable) {

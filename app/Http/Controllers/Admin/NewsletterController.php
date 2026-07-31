@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -13,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Mail;
 
 class NewsletterController extends Controller
@@ -239,8 +242,12 @@ class NewsletterController extends Controller
     }
 
     /** Render email preview in an iframe-friendly standalone page. */
-    public function preview(Newsletter $newsletter): RedirectResponse|View
+    public function preview(Newsletter $newsletter): RedirectResponse|View|Response
     {
+        if ($newsletter->published_html) {
+            return response($newsletter->published_html)->header('Content-Type', 'text/html');
+        }
+
         $data = $this->buildEmailData($newsletter, 'fr');
 
         return view('admin.newsletters.themes.email', $data);

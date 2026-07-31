@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Post-import enrichment of calendar events imported from Google Calendar.
  *

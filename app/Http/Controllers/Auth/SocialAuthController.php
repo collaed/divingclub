@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Social (OAuth) authentication: redirect, callback, and pending link confirmation.
  *

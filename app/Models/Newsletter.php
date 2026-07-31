@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Carbon\Carbon;
@@ -23,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Newsletter extends Model
 {
     protected $fillable = [
-        'title', 'month', 'background_image', 'slots', 'decorations', 'status', 'created_by', 'sent_at',
+        'title', 'month', 'background_image', 'slots', 'decorations', 'published_html', 'status', 'created_by', 'sent_at',
     ];
 
     protected function casts(): array
@@ -69,6 +71,6 @@ class Newsletter extends Model
             'teaser' => $s['teaser'] ?? '',
             'custom_url' => $s['custom_url'] ?? '',
             'slug' => $s['slug'] ?? '',
-        ])->filter(fn ($s): ?\stdClass => $s['article'])->keyBy('position')->toArray();
+        ])->filter(fn ($s): bool => $s['article'] !== null)->keyBy('position')->toArray();
     }
 }

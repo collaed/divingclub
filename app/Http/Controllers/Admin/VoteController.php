@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailLog;
 use App\Models\User;
 use App\Models\Vote;
 use App\Models\VoteOption;
@@ -73,7 +76,9 @@ class VoteController extends Controller
 
     public function generateTokens(Vote $vote): RedirectResponse
     {
-        $users = User::whereNotNull('email_verified_at')->get();
+        $users = User::whereNotNull('email_verified_at')
+            ->whereHas('status', fn ($q) => $q->where('slug', '!=', 'former'))
+            ->get();
         $created = 0;
 
         foreach ($users as $user) {
@@ -88,6 +93,39 @@ class VoteController extends Controller
         }
 
         return back()->with('success', __(':count tokens generated.', ['count' => $created]));
+    }
+
+    public function sendTokens(Vote $vote): RedirectResponse
+    {
+        $tokens = $vote->tokens()->with('user')->get();
+        $sent = 0;
+
+        foreach ($tokens as $voteToken) {
+            $user = $voteToken->user;
+            if (! $user || ! $user->primary_email) {
+                continue;
+            }
+
+            $url = route('vote.show', $voteToken->token);
+
+            EmailLog::create([
+                'event_id' => null,
+                'user_id' => $user->id,
+                'to_email' => $user->primary_email,
+                'from_name' => config('mail.from.name'),
+                'from_email' => config('mail.from.address'),
+                'subject' => __('Your voting link: :title', ['title' => $vote->title]),
+                'body' => view('emails.vote-token', ['vote' => $vote, 'url' => $url, 'user' => $user])->render(),
+                'template_slug' => 'vote-token-'.$vote->id,
+                'status' => 'queued',
+                'direction' => 'out',
+                'authorized' => true,
+                'created_at' => now(),
+            ]);
+            $sent++;
+        }
+
+        return back()->with('success', __(':count voting links queued for sending.', ['count' => $sent]));
     }
 
     public function open(Vote $vote): RedirectResponse

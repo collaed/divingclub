@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Library file with role-based visibility (public, members, instructors, bureau).
  *

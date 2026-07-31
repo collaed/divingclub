@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Middleware: block new member registration when license is invalid.
  *

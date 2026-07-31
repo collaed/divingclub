@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Scan existing event photos for faces and rescore quality.
  *

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Helpers\HtmlSanitizer;
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
+use App\Jobs\TranslateArticle;
 use App\Models\Article;
 use App\Models\ArticleImage;
 use App\Models\Vote;
@@ -121,8 +124,10 @@ class ArticleController extends Controller
         $article->update(collect($validated)->except(['gallery', 'gallery_captions', 'gallery_layouts', 'delete_images'])->toArray());
         $this->storeGallery($request, $article);
 
-        // Mark existing translations as stale (will be re-translated lazily on next access)
+        // Mark existing translations as stale, then re-translate after 2 min debounce
         ArticleTranslationService::markStaleIfChanged($article);
+        TranslateArticle::dispatch($article->id, ArticleTranslationService::sourceHash($article))
+            ->delay(now()->addMinutes(2));
 
         return redirect()->route('admin.articles.edit', $article)->with('success', __('Article updated.'));
     }

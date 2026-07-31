@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * UDDF (Universal Dive Data Format) import and export service.
  *

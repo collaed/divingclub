@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * QR code generation: vCard, SEPA EPC, federation licence, and signed payment URLs.
  *

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Models\Event;
@@ -57,7 +59,7 @@ class TripSettlementController extends Controller
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
-            'category' => 'required|in:general,transit,diving,individual',
+            'category' => 'required|in:general,transit,diving,individual,memo',
             'description' => 'nullable|string|max:255',
             'image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
         ]);
@@ -114,7 +116,7 @@ class TripSettlementController extends Controller
 
         $data = $request->validate([
             'approved_amount' => 'required|numeric|min:0',
-            'category' => 'required|in:general,transit,diving,individual',
+            'category' => 'required|in:general,transit,diving,individual,memo',
             'reviewer_notes' => 'nullable|string|max:500',
         ]);
 
@@ -195,7 +197,7 @@ class TripSettlementController extends Controller
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
-            'category' => 'required|in:general,transit,diving,individual',
+            'category' => 'required|in:general,transit,diving,individual,memo',
             'description' => 'required|string|max:255',
             'user_id' => $userRule,
             'is_third_party' => 'nullable|boolean',
@@ -215,6 +217,10 @@ class TripSettlementController extends Controller
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),
         ]);
+
+        if ($data['category'] === 'individual') {
+            $this->syncClubOnsitePayments($event);
+        }
 
         return back()->with('success', __('Expense added.'));
     }
@@ -247,7 +253,7 @@ class TripSettlementController extends Controller
 
         $data = $request->validate([
             'amount' => 'required|numeric|min:0.01|max:99999',
-            'category' => 'required|in:general,transit,diving,individual',
+            'category' => 'required|in:general,transit,diving,individual,memo',
             'description' => 'required|string|max:255',
             'user_id' => $isThirdParty ? 'nullable' : 'required|integer|in:'.implode(',', $participantIds),
             'is_third_party' => 'nullable|boolean',
@@ -262,6 +268,8 @@ class TripSettlementController extends Controller
             'is_third_party' => $isThirdParty,
         ]);
 
+        $this->syncClubOnsitePayments($event);
+
         return back()->with('success', __('Expense updated.'));
     }
 
@@ -274,6 +282,8 @@ class TripSettlementController extends Controller
             Storage::disk('local')->delete($receipt->image_path);
         }
         $receipt->delete();
+
+        $this->syncClubOnsitePayments($event);
 
         return back()->with('success', __('Expense deleted.'));
     }
@@ -646,6 +656,61 @@ class TripSettlementController extends Controller
         $event->update($data);
 
         return back()->with('success', __('Dive pricing updated.'));
+    }
+
+    /**
+     * Auto-maintain a "memo" receipt showing the club advanced money for individual charges.
+     * Category "memo" is never counted in any settlement pool — purely for audit trail.
+     */
+    private function syncClubOnsitePayments(Event $event): void
+    {
+        $individualReceipts = $event->tripReceipts()
+            ->where('status', 'approved')
+            ->where('category', 'individual')
+            ->where(function ($q): void {
+                $q->where('description', 'not like', '%dive%')
+                    ->where('description', 'not like', '%plong%')
+                    ->where('description', 'not like', '%nitrox%')
+                    ->where('description', 'not like', '%EAN%');
+            })
+            ->with('user.detail')
+            ->get();
+
+        $aggregator = $event->tripReceipts()
+            ->where('category', 'memo')
+            ->where('description', 'like', '[AUTO]%')
+            ->first();
+
+        if ($individualReceipts->isEmpty()) {
+            $aggregator?->delete();
+
+            return;
+        }
+
+        $total = $individualReceipts->sum('approved_amount');
+        $lines = $individualReceipts->map(function ($r) {
+            $name = $r->user?->detail?->first_name ?? $r->user?->username ?? '?';
+
+            return "{$name}: {$r->description} ({$r->approved_amount} €)";
+        })->implode('; ');
+        $description = "[AUTO] Club advanced: {$lines}";
+
+        if ($aggregator) {
+            $aggregator->update(['amount' => $total, 'approved_amount' => $total, 'description' => $description]);
+        } else {
+            TripReceipt::create([
+                'event_id' => $event->id,
+                'user_id' => null,
+                'amount' => $total,
+                'approved_amount' => $total,
+                'category' => 'memo',
+                'description' => $description,
+                'is_third_party' => false,
+                'status' => 'approved',
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
+        }
     }
 
     private function authorizeBureau(): void

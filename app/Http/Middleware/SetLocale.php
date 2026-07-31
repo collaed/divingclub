@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Middleware: set application locale from user preference, session, or browser.
  *

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Legacy data import from the old Joomla/Community Builder system and Google Calendar.
  *

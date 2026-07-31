@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Event CRUD, registration, cancellation, and photo management.
  *
@@ -38,6 +40,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -389,7 +392,7 @@ class EventController extends Controller
     public function uploadPhoto(Request $request, Event $event): RedirectResponse
     {
         $request->validate([
-            'photos.*' => 'required|image|max:10240',
+            'photos.*' => 'required|file|max:102400|mimes:jpg,jpeg,png,gif,webp,heic,heif,mp4,mov,avi,webm,zip',
             'caption' => 'nullable|string|max:255',
             'gdpr_consent' => 'required|accepted',
         ]);
@@ -402,41 +405,169 @@ class EventController extends Controller
         }
 
         $dupes = 0;
+        $stored = 0;
+
         foreach ($request->file('photos', []) as $file) {
-            $realPath = $file->getRealPath();
-            $fileHash = hash_file('xxh3', $realPath);
+            $mime = $file->getMimeType();
 
-            // Skip duplicate (same hash already exists for this event)
-            if (EventPhoto::where('event_id', $event->id)->where('file_hash', $fileHash)->exists()) {
-                $dupes++;
-
-                continue;
+            if ($mime === 'application/zip' || $file->getClientOriginalExtension() === 'zip') {
+                [$zipStored, $zipDupes] = $this->processZipUpload($file, $event, $request->caption);
+                $stored += $zipStored;
+                $dupes += $zipDupes;
+            } else {
+                $result = $this->processMediaFile($file->getRealPath(), $file->getMimeType(), $event, $request->caption, $file);
+                if ($result === 'dupe') {
+                    $dupes++;
+                } elseif ($result === 'stored') {
+                    $stored++;
+                }
             }
+        }
 
-            $path = $file->store('event-photos/'.$event->id, 'public');
+        $msg = __(':count file(s) uploaded.', ['count' => $stored]);
+        if ($dupes > 0) {
+            $msg .= ' '.__(':count duplicate(s) skipped.', ['count' => $dupes]);
+        }
 
-            // Quality score (sharpness, exposure, saturation, contrast, resolution)
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Extract a zip and process each image/video inside.
+     *
+     * @return array{int, int} [stored, dupes]
+     */
+    private function processZipUpload(UploadedFile $zipFile, Event $event, ?string $caption): array
+    {
+        $stored = 0;
+        $dupes = 0;
+        $tempDir = sys_get_temp_dir().'/event_zip_'.uniqid();
+        mkdir($tempDir, 0755, true);
+
+        $zip = new \ZipArchive;
+        if ($zip->open($zipFile->getRealPath()) === true) {
+            $zip->extractTo($tempDir);
+            $zip->close();
+
+            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($tempDir, \FilesystemIterator::SKIP_DOTS));
+            foreach ($files as $file) {
+                if (! $file->isFile()) {
+                    continue;
+                }
+                // Skip macOS resource fork files
+                if (str_contains($file->getPathname(), '__MACOSX')) {
+                    continue;
+                }
+
+                $mime = mime_content_type($file->getPathname());
+                if (! str_starts_with($mime, 'image/') && ! str_starts_with($mime, 'video/')) {
+                    continue;
+                }
+
+                $result = $this->processMediaFile($file->getPathname(), $mime, $event, $caption);
+                if ($result === 'dupe') {
+                    $dupes++;
+                } elseif ($result === 'stored') {
+                    $stored++;
+                }
+            }
+        }
+
+        // Cleanup temp dir
+        $this->removeDirectory($tempDir);
+
+        return [$stored, $dupes];
+    }
+
+    /**
+     * Store a single image or video file as an EventPhoto.
+     *
+     * @return string 'stored'|'dupe'|'skipped'
+     */
+    private function processMediaFile(string $realPath, string $mime, Event $event, ?string $caption, ?UploadedFile $uploadedFile = null): string
+    {
+        $fileHash = hash_file('xxh3', $realPath);
+
+        if (EventPhoto::where('event_id', $event->id)->where('file_hash', $fileHash)->exists()) {
+            return 'dupe';
+        }
+
+        // Store the file
+        if ($uploadedFile) {
+            $path = $uploadedFile->store('event-photos/'.$event->id, 'public');
+        } else {
+            $ext = match (true) {
+                str_contains($mime, 'jpeg') => 'jpg',
+                str_contains($mime, 'png') => 'png',
+                str_contains($mime, 'gif') => 'gif',
+                str_contains($mime, 'webp') => 'webp',
+                str_contains($mime, 'heic'), str_contains($mime, 'heif') => 'heic',
+                str_contains($mime, 'mp4') => 'mp4',
+                str_contains($mime, 'quicktime') => 'mov',
+                str_contains($mime, 'webm') => 'webm',
+                str_contains($mime, 'avi') => 'avi',
+                default => pathinfo($realPath, PATHINFO_EXTENSION) ?: 'bin',
+            };
+            $storagePath = 'event-photos/'.$event->id.'/'.uniqid().'.'.$ext;
+            Storage::disk('public')->put($storagePath, file_get_contents($realPath));
+            $path = $storagePath;
+        }
+
+        $isVideo = str_starts_with($mime, 'video/');
+        $score = 50;
+        $hasFaces = null;
+        $duration = null;
+
+        if ($isVideo) {
+            $duration = $this->getVideoDuration(Storage::disk('public')->path($path));
+        } else {
             $score = app(ImageQualityService::class)->score($realPath);
-
-            // Face detection — photos with faces are hidden from public/anonymous pages
             $hasFaces = app(FaceDetectionService::class)->hasFaces($realPath);
+        }
 
-            $photo = EventPhoto::create([
-                'event_id' => $event->id,
-                'uploaded_by' => auth()->id(),
-                'path' => $path,
-                'caption' => $request->caption,
-                'quality_score' => $score,
-                'has_faces' => $hasFaces,
-                'gdpr_consent' => true,
-                'file_hash' => $fileHash,
-            ]);
+        $photo = EventPhoto::create([
+            'event_id' => $event->id,
+            'uploaded_by' => auth()->id(),
+            'path' => $path,
+            'mime_type' => $mime,
+            'duration' => $duration,
+            'caption' => $caption,
+            'quality_score' => $score,
+            'has_faces' => $hasFaces,
+            'gdpr_consent' => true,
+            'file_hash' => $fileHash,
+        ]);
 
-            // Auto-publish to social media if eligible
+        if (! $isVideo) {
             app(SocialPublishService::class)->publishToFacebook($photo);
         }
 
-        return back()->with('success', $dupes ? __('Photos uploaded. :count duplicate(s) skipped.', ['count' => $dupes]) : __('Photos uploaded.'));
+        return 'stored';
+    }
+
+    /** Get video duration in seconds via ffprobe, or null if unavailable. */
+    private function getVideoDuration(string $path): ?int
+    {
+        $cmd = sprintf('ffprobe -v quiet -show_entries format=duration -of csv=p=0 %s 2>/dev/null', escapeshellarg($path));
+        $output = trim((string) shell_exec($cmd));
+
+        return $output !== '' ? (int) round((float) $output) : null;
+    }
+
+    /** Recursively remove a directory. */
+    private function removeDirectory(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+        $items = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($items as $item) {
+            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+        }
+        rmdir($dir);
     }
 
     public function deletePhoto(Event $event, EventPhoto $photo): RedirectResponse

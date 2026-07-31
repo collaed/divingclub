@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * DAN DL7 (Dive Log version 7) export service.
  *

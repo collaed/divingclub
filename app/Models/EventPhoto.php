@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Event photo with quality scoring, face detection, and GDPR consent tracking.
  *
@@ -29,17 +31,24 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property bool $approved
  * @property bool $gdpr_consent
  * @property string|null $file_hash
+ * @property string|null $mime_type
+ * @property int|null $duration
  * @property int $view_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 class EventPhoto extends Model
 {
-    protected $fillable = ['event_id', 'uploaded_by', 'path', 'thumbnail_path', 'caption', 'quality_score', 'has_faces', 'approved', 'gdpr_consent', 'file_hash', 'view_count'];
+    protected $fillable = ['event_id', 'uploaded_by', 'path', 'mime_type', 'duration', 'thumbnail_path', 'caption', 'quality_score', 'has_faces', 'approved', 'gdpr_consent', 'file_hash', 'view_count'];
 
     protected function casts(): array
     {
-        return ['approved' => 'boolean', 'gdpr_consent' => 'boolean', 'has_faces' => 'boolean', 'view_count' => 'integer'];
+        return ['approved' => 'boolean', 'gdpr_consent' => 'boolean', 'has_faces' => 'boolean', 'view_count' => 'integer', 'duration' => 'integer'];
+    }
+
+    public function isVideo(): bool
+    {
+        return str_starts_with($this->mime_type ?? '', 'video/');
     }
 
     /** @return BelongsTo<Event, $this> */

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * EU Login (ECAS) authentication via CAS protocol.
  *

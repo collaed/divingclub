@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Dive group (palanquée) management with Trello-style board UI.
  *
