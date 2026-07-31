@@ -53,7 +53,7 @@
 ## CSS / SCSS
 
 - Bootstrap 5 utilities first, custom SCSS only when needed
-- 11 SCSS partials in `resources/scss/`
+- 12 SCSS partials in `resources/scss/`
 - CSS variables: `var(--dc-spacing-*)`
 - Dark mode via `.dark-mode` class (never `@media prefers-color-scheme`)
 - No inline styles (exception: email templates, PDF views)
@@ -115,3 +115,45 @@
 
 - `AuditLog::create()` must include `'created_at' => now()` (model has `$timestamps = false`)
 - Track: user_id, action, model_type, model_id, changes (JSON)
+
+## Trip Settlement & Accounting
+
+- **Double-entry visibility**: Every financial operation must show both sides of the transaction. When the club advances money on behalf of a member, two records must exist:
+  - An `individual` charge to the member (increases what they owe)
+  - A `memo` category receipt (audit trail showing the club paid out)
+- **Category `memo`**: Never counted in any settlement pool. Excluded from `TripSettlementService` calculations. Purely for audit/bookkeeping visibility.
+- **Auto-sync**: When non-diving individual charges are created/edited/deleted, a single `[AUTO]` memo receipt is auto-maintained summarizing all club advances.
+- **Dive charges vs other individual charges**: The diving section header only compares dive-related individual charges (matching `dive|plong|nitrox|EAN` in description) against the dive invoice. Non-dive individual charges (bar tabs, transport, etc.) are shown separately.
+- **`[AUTO]` prefix**: Marks system-managed receipts. Never manually edit these — they're regenerated on every change.
+- **Categories**: `general` (shared equally), `transit` (van riders), `diving` (club invoice from dive center), `individual` (charged to one person), `memo` (audit-only, no financial impact)
+- **`is_third_party` boolean**: Marks invoices paid by the club to external vendors (not member out-of-pocket expenses)
+
+## Newsletter System
+
+- **Dual storage**: Newsletters have both structured `slots` (article references for the admin editor) AND `published_html` (the exact email that was sent, for visual archive)
+- **Static hosting**: Newsletters are also hosted as static HTML on `clubcep.ecb.pm` with bilingual FR/EN article pages. FR is default, EN via link in bottom-right corner of each card.
+- **Article naming**: Static files use numeric IDs (`{month_prefix}{position}.html`, e.g. `401.html` for June slot 1). Index pages: `{month}-index.html`.
+- **Graphic elements** for the email template (per theme folder):
+  - `header.jpg` (600×150px) — top banner
+  - `footer.jpg` (600×120px) — bottom banner
+  - `row1-left.jpg` / `row2-left.jpg` (45×300px) — left decorative wall
+  - `row1-center.jpg` / `row2-center.jpg` (45×300px) — center column separator
+  - `row1-right.jpg` / `row2-right.jpg` (44×300px) — right decorative wall
+  - `h-separator.jpg` (600×35px) — horizontal divider between rows
+- **Translation debounce**: Article translations are dispatched with a 2-minute delay after save. Rapid edits don't trigger redundant translations — only the final version gets translated.
+- **Article roles** (planned): Stable identifier for menu-linked articles so renaming/translating titles doesn't break navigation.
+
+## Voting System
+
+- **Vote Groups**: Bundle multiple questions into one ballot (e.g. "Approve accounts" + "Elect board"). One token per member grants access to all questions.
+- **Token generation**: Excludes former members (`status.slug = 'former'`). Uses `vote_group_id` on `vote_tokens`.
+- **Election mode**: Anonymous (`token_hash`), irreversible, `num_positions` limits selections. Results hidden until vote is closed.
+- **Simple mode**: Allows vote change, shows live results if `is_public`.
+- **Consumed tokens**: Voter sees their previous choices grayed out with submission timestamp. No re-submission unless `allow_change`.
+- **Staging emails**: When `STAGING_USE_SMTP=false`, emails get status `staging_captured` immediately (visible in `/staging-mail`).
+
+## UI Standards
+
+- **All tables are client-side sortable**: The global JS in `layout.blade.php` makes every `table.table thead th` clickable to sort. Column index is computed per-table (not global). Use `data-no-sort` on a `<th>` to opt out.
+- **Photo uploads**: Accept images, videos (MP4/MOV/AVI/WebM), and ZIP archives. Max 100MB per file. ZIP extraction skips `__MACOSX`. Dedup via `xxh3` file hash. Quality scoring + face detection run on images.
+- **Forms with dynamic options**: Use "Add option" buttons with max limits, preset buttons for common patterns (Yes/No/Abstain). Remove buttons (✕) on all but the minimum required items.

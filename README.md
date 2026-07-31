@@ -39,17 +39,17 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 
 ## Numbers
 
-- **131 database tables**
-- **341 routes**
+- **134 database tables**
+- **365 routes**
 - **15 languages**
 - **105 certification levels** across 11 federations
 - **13 article types**
 - **10 instructor activity types**
-- **6 theme presets**
-- **58 Eloquent models**
-- **157 Blade templates**
-- **28 services**
-- **267 passing tests** (634 assertions)
+- **6 theme presets + 3 site layouts**
+- **60 Eloquent models**
+- **164 Blade templates**
+- **23 services**
+- **280 passing tests** (670 assertions)
 
 ---
 
@@ -153,7 +153,7 @@ app/
 │   ├── EventController     # Events, registration, calendar
 │   ├── ProfileController   # Member profiles
 │   └── InstructorAvailabilityController
-├── Models/                 # 56 Eloquent models
+├── Models/                 # 60 Eloquent models
 ├── Services/
 │   ├── FeeCalculationService
 │   ├── BankReconciliationService

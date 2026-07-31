@@ -1,6 +1,6 @@
 # 🤿 DivingClub-Manager
 
-Open-source diving club management system. Built with Laravel 11, PHP 8.3, Blade, and Bootstrap 5. Multi-language, multi-club, mobile-ready.
+Open-source diving club management system. Built with Laravel 12, PHP 8.3, Blade, and Bootstrap 5. Multi-language, multi-club, mobile-ready.
 
 Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but designed to work for any diving club worldwide.
 
@@ -30,7 +30,7 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 | **GDPR** | Consent management, JSON data export, right-to-erasure with anonymization |
 | **Auth** | Registration, login with lockout, email verification, password reset, OAuth (5 providers), EU Login (CAS), impersonation |
 | **i18n** | 15 locales: English, French, German, Luxembourgish, Portuguese, Italian, Dutch, Spanish, Polish, Hungarian, Romanian, Greek, Estonian, Slovak, Finnish |
-| **Theme** | 6 presets (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic), custom colors, logo upload, dark mode |
+| **Theme** | 6 presets (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic), custom colors, logo upload, dark mode, 3 site layouts (Default, Professional, Minimal) |
 | **Homepage** | Configurable widget layout with drag-and-drop: hero slideshow, articles, upcoming events, photo gallery, quick links, custom HTML. Per-widget visibility (public/members/instructors/bureau) |
 | **Multi-Club** | Dynamic club identity (name, address, IBAN, warehouse GPS, training locations), no hardcoded values |
 | **License** | RSA-signed license system, free tier up to 100 members, 13-month default expiry |
@@ -39,16 +39,16 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 
 ## Numbers
 
-- **72 database tables**
-- **325 routes**
+- **134 database tables**
+- **365 routes**
 - **15 languages**
 - **105 certification levels** across 11 federations
 - **13 article types**
 - **10 instructor activity types**
-- **6 theme presets**
-- **56 Eloquent models**
-- **133 Blade templates**
-- **21 services**
+- **6 theme presets + 3 site layouts**
+- **60 Eloquent models**
+- **164 Blade templates**
+- **23 services**
 - **3 email providers** (load-balanced)
 - **138 passing tests** (321 assertions)
 

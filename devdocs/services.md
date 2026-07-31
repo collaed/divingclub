@@ -1,4 +1,4 @@
-## services.md — Business Logic Services (28 classes)
+## services.md — Business Logic Services (23 classes)
 
 ## Core Domain Services
 
@@ -89,7 +89,7 @@ RSA-signed license verification. Free tier ≤100 members, paid above.
 - `memberCount()` → current active member count
 
 ### ThemeService
-6 visual presets (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic) + custom colors + dark mode.
+6 visual presets (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic) + custom colors + dark mode + 3 site layouts (Default, Professional, Minimal).
 - `css()` → generated CSS variables string
 - `settings()` → current theme config from DB
 - `presets()` → available preset definitions
