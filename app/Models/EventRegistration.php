@@ -18,6 +18,7 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -47,6 +48,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class EventRegistration extends Model
 {
     use Auditable;
+    use HasFactory;
 
     protected $fillable = [
         'joomla_inscription_id', 'event_id', 'user_id', 'non_member_name', 'status', 'comment',

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -46,6 +47,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class DiveSite extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['name', 'country', 'region', 'latitude', 'longitude', 'max_depth', 'water_type', 'conditions', 'marine_life', 'safety_notes', 'access_notes', 'facilities', 'food_options', 'nearest_hospital', 'emergency_phone', 'vhf_channel', 'required_safety_equipment', 'nearest_hyperbaric_chamber', 'hyperbaric_phone', 'hospital_distance_km', 'hyperbaric_distance_km', 'website_url', 'entry_fee', 'booking_url', 'image_path', 'map_image_path', 'site_plan_path', 'safety_docs_folder', 'is_active'];
 
     protected function casts(): array

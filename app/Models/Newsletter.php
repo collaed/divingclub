@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,6 +25,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Newsletter extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'title', 'month', 'background_image', 'slots', 'decorations', 'published_html', 'status', 'created_by', 'sent_at',
     ];
