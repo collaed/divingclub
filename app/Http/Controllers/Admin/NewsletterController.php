@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreNewsletterRequest;
 use App\Models\Article;
 use App\Models\EmailLog;
 use App\Models\Newsletter;
@@ -39,21 +40,9 @@ class NewsletterController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse|View
+    public function store(StoreNewsletterRequest $request): RedirectResponse|View
     {
-        $v = $request->validate([
-            'title' => 'required|string|max:255',
-            'month' => 'required|string|max:7',
-            'background_image' => 'nullable|image|max:5120',
-            'background_preset' => 'nullable|string|max:50',
-            'slots' => 'required|array|min:1',
-            'slots.*.position' => 'required|integer|between:1,5',
-            'slots.*.article_id' => 'required|exists:articles,id',
-            'slots.*.article_type' => 'nullable|string|max:30',
-            'slots.*.teaser' => 'nullable|string|max:500',
-            'slots.*.custom_url' => 'nullable|string|max:500',
-            'slots.*.slug' => 'nullable|string|max:255',
-        ]);
+        $v = $request->validated();
 
         $bg = $request->input('background_preset', 'default-bulles');
         if ($request->hasFile('background_image')) {
@@ -92,23 +81,11 @@ class NewsletterController extends Controller
         return view('admin.newsletters.compose', compact('newsletter', 'articles'));
     }
 
-    public function update(Request $request, Newsletter $newsletter): RedirectResponse
+    public function update(StoreNewsletterRequest $request, Newsletter $newsletter): RedirectResponse
     {
         abort_if($newsletter->status === 'sent', 403);
 
-        $v = $request->validate([
-            'title' => 'required|string|max:255',
-            'month' => 'required|string|max:7',
-            'background_image' => 'nullable|image|max:5120',
-            'background_preset' => 'nullable|string|max:50',
-            'slots' => 'required|array|min:1',
-            'slots.*.position' => 'required|integer|between:1,5',
-            'slots.*.article_id' => 'required|exists:articles,id',
-            'slots.*.article_type' => 'nullable|string|max:30',
-            'slots.*.teaser' => 'nullable|string|max:500',
-            'slots.*.custom_url' => 'nullable|string|max:500',
-            'slots.*.slug' => 'nullable|string|max:255',
-        ]);
+        $v = $request->validated();
 
         $bg = $request->input('background_preset') ?: $newsletter->background_image;
         if ($request->hasFile('background_image')) {

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSeasonHolidayRequest;
+use App\Http\Requests\StoreSeasonPatternRequest;
+use App\Http\Requests\StoreSeasonRequest;
 use App\Models\Event;
 use App\Models\Season;
 use App\Models\SeasonHoliday;
@@ -13,7 +16,6 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class SeasonController extends Controller
@@ -32,14 +34,9 @@ class SeasonController extends Controller
         return view('admin.seasons.form', ['season' => new Season, 'previousSeasons' => $previousSeasons]);
     }
 
-    public function store(Request $request): JsonResponse|RedirectResponse|View
+    public function store(StoreSeasonRequest $request): JsonResponse|RedirectResponse|View
     {
-        $v = $request->validate([
-            'year' => 'required|integer|min:2000',
-            'name' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-        ]);
+        $v = $request->validated();
 
         $season = Season::create($v);
 
@@ -89,14 +86,9 @@ class SeasonController extends Controller
     }
 
     // Holiday management
-    public function storeHoliday(Request $request, Season $season): JsonResponse|RedirectResponse|View
+    public function storeHoliday(StoreSeasonHolidayRequest $request, Season $season): JsonResponse|RedirectResponse|View
     {
-        $v = $request->validate([
-            'name' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'is_adhoc' => 'boolean',
-        ]);
+        $v = $request->validated();
         $v['is_adhoc'] = $request->boolean('is_adhoc');
         $holiday = $season->holidays()->create($v);
 
@@ -126,19 +118,9 @@ class SeasonController extends Controller
     }
 
     // Pattern management
-    public function storePattern(Request $request, Season $season): JsonResponse|RedirectResponse|View
+    public function storePattern(StoreSeasonPatternRequest $request, Season $season): JsonResponse|RedirectResponse|View
     {
-        $v = $request->validate([
-            'day_of_week' => 'required|integer|min:0|max:6',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i',
-            'event_type' => 'required|in:pool,dive,training,theory,social',
-            'title' => 'required|string|max:255',
-            'location' => 'nullable|string|max:500',
-            'max_participants' => 'nullable|integer|min:1',
-            'registration_opens_days_before' => 'nullable|integer|min:1',
-            'color_hex' => 'nullable|string|max:7',
-        ]);
+        $v = $request->validated();
         $pattern = $season->patterns()->create($v);
 
         if ($request->wantsJson()) {
