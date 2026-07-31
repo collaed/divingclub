@@ -20,6 +20,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Helpers\HtmlSanitizer;
+use App\Http\Requests\StoreEventRequest;
+use App\Http\Requests\UploadEventPhotoRequest;
 use App\Models\DiveSite;
 use App\Models\EmailLog;
 use App\Models\Event;
@@ -114,10 +116,10 @@ class EventController extends Controller
         return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites, 'locationSuggestions' => $locationSuggestions]);
     }
 
-    public function store(Request $request): RedirectResponse|View
+    public function store(StoreEventRequest $request): RedirectResponse|View
     {
         $this->authorizeBureau();
-        $data = $this->validateEvent($request);
+        $data = $request->validated();
         $data['description'] = HtmlSanitizer::clean($data['description'] ?? '');
         $data['created_by'] = auth()->id();
         $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
@@ -149,10 +151,10 @@ class EventController extends Controller
         return view('events.form', compact('event', 'seasons', 'instructors', 'diveSites', 'locationSuggestions'));
     }
 
-    public function update(Request $request, Event $event): RedirectResponse
+    public function update(StoreEventRequest $request, Event $event): RedirectResponse
     {
         $this->authorizeEventEdit($event);
-        $data = $this->validateEvent($request);
+        $data = $request->validated();
         $data['description'] = HtmlSanitizer::clean($data['description'] ?? '');
         $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
         $event->update($data);
@@ -389,13 +391,8 @@ class EventController extends Controller
     // Only confirmed participants with photo_publication GDPR consent can upload.
     // Photos are auto-scored by quality heuristic and published to social media.
 
-    public function uploadPhoto(Request $request, Event $event): RedirectResponse
+    public function uploadPhoto(UploadEventPhotoRequest $request, Event $event): RedirectResponse
     {
-        $request->validate([
-            'photos.*' => 'required|file|max:102400|mimes:jpg,jpeg,png,gif,webp,heic,heif,mp4,mov,avi,webm,zip',
-            'caption' => 'nullable|string|max:255',
-            'gdpr_consent' => 'required|accepted',
-        ]);
 
         // GDPR: check photo_publication consent
         $consent = GdprConsent::where('user_id', auth()->id())
@@ -583,40 +580,6 @@ class EventController extends Controller
     }
 
     // ─── Authorization & Helpers ──────────────────────────────
-
-    private function validateEvent(Request $request): array
-    {
-        return $request->validate([
-            'title' => 'required|string|max:255',
-            'color_hex' => 'nullable|string|max:7',
-            'event_type' => 'required|in:pool,dive,training,theory,social',
-            'event_date' => 'required|date',
-            'event_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i',
-            'end_date' => 'nullable|date|after_or_equal:event_date',
-            'location' => 'nullable|string|max:500',
-            'description' => 'nullable|string',
-            'responsible_id' => 'nullable|exists:users,id',
-            'max_participants' => 'nullable|integer|min:1',
-            'waiting_list_enabled' => 'boolean',
-            'inscription_open_at' => 'nullable|date',
-            'inscriptions_closed' => 'boolean',
-            'levels_display' => 'boolean',
-            'confirmation_required' => 'boolean',
-            'estimated_cost' => 'nullable|numeric|min:0',
-            'deposit_1_date' => 'nullable|date',
-            'deposit_1_amount' => 'nullable|numeric|min:0',
-            'deposit_2_date' => 'nullable|date',
-            'deposit_2_amount' => 'nullable|numeric|min:0',
-            'deposit_3_date' => 'nullable|date',
-            'deposit_3_amount' => 'nullable|numeric|min:0',
-            'instructor_id' => 'nullable|exists:users,id',
-            'permissions_expire_date' => 'nullable|date',
-            'status' => 'nullable|in:scheduled,cancelled,completed',
-            'season_id' => 'nullable|exists:seasons,id',
-            'dive_site_id' => 'nullable|exists:dive_sites,id',
-        ]);
-    }
 
     private function authorizeBureau(): void
     {
