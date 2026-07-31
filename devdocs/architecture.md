@@ -6,7 +6,7 @@
 - Blade templates (server-rendered), Bootstrap 5, SCSS (12 partials)
 - Vanilla JS (event delegation, no framework), Vite bundler
 - MySQL 8 (local dev), PostgreSQL 16 (CI), PostgreSQL 14 (staging)
-- PHPUnit 11 (280 tests, 670 assertions)
+- PHPUnit 11 (308 tests, 723 assertions)
 
 ## Numbers
 
@@ -15,8 +15,8 @@
 | Database tables | 134 |
 | Eloquent models | 60 |
 | Controllers | 64 (27 admin, 31 member, 4 auth, 1 API, 1 health) |
-| Services | 23 |
-| Form Requests | 21 |
+| Services | 24 |
+| Form Requests | 33 |
 | Blade views | 164 |
 | Routes | 365 |
 | Migrations | 95 |
@@ -24,8 +24,8 @@
 | Jobs | 10 |
 | Commands | 9 |
 | Locales | 15 |
-| Factories | 1 (UserFactory) |
-| Feature tests | 26 |
+| Factories | 15 |
+| Feature tests | 33 |
 | Unit tests | 15 |
 | E2E tests (pytest) | 7 |
 
@@ -42,18 +42,18 @@ app/
 │   │   ├── Api/            # FederationApiController
 │   │   └── *.php           # 31 member-facing controllers
 │   ├── Middleware/         # 7 middleware (CheckRole, SetLocale, CheckLicense...)
-│   └── Requests/           # 21 form request validation classes
+│   └── Requests/           # 33 form request validation classes
 ├── Jobs/                   # 10 queued/scheduled jobs
 ├── Models/                 # 60 Eloquent models
 ├── Providers/              # Service providers (Theme, App, Route)
-├── Services/               # 23 business logic services
+├── Services/               # 24 business logic services
 ├── Traits/                 # Auditable trait
 bootstrap/
 ├── app.php                 # Middleware registration, routing config
 ├── providers.php           # Service provider list
 config/                     # Laravel + custom config (club, mail_signatures)
 database/
-├── factories/              # Model factories (UserFactory only — expansion planned)
+├── factories/              # 15 model factories (User, Event, Equipment, Article, etc.)
 ├── migrations/             # 95 migration files
 ├── seeders/                # Database, Sample, Certification, Equipment seeders
 lang/                       # 15 locale directories (en, fr, de, lb, pt, it, nl, es, pl, hu, ro, el, et, sk, fi)
@@ -73,7 +73,7 @@ routes/
 ├── api.php                 # Federation partner API
 ├── console.php             # Scheduled tasks (11 scheduled entries)
 tests/
-├── Feature/                # 26 test files (HTTP integration)
+├── Feature/                # 33 test files (HTTP integration)
 ├── Unit/                   # 15 test files (pure logic)
 ├── e2e/                    # 7 pytest files (full browser journeys)
 ```
@@ -102,9 +102,10 @@ Browser → Vite-hashed assets (CSS/JS)
 - **No SPA** — server-rendered Blade, vanilla JS for interactivity
 - **No Livewire/Alpine** — event delegation + `data-*` attributes sufficient at this scale
 - **Bootstrap 5 + SCSS** — not Tailwind (project started with Bootstrap, consistent throughout)
-- **Services for business logic** — larger operations extracted to services; some controllers still hold complex logic (see RELEASE-PLAN-CONSISTENCY.md)
-- **Form Request classes** — 21 Form Request classes exist; legacy inline validation remains in ~40 controllers (migration planned)
+- **Services for business logic** — larger operations extracted to services (24 total); EventRegistrationService handles the full registration flow
+- **Form Request classes** — 33 Form Request classes cover all major controllers; some legacy inline validation remains in smaller controllers (migration ongoing)
 - **Multi-DB** — code must work on MySQL and PostgreSQL (Schema facade, no raw SQL)
 - **Eager loading in controllers** — never lazy-load in views (prevent N+1)
 - **3 site layouts** — Default (playful), Professional (corporate), Minimal (SaaS) — switchable from admin
 - **Deptrac layer enforcement** — Controllers → Services → Models; Jobs → Services → Models; 0 violations
+- **strict_types everywhere** — all 185+ files in app/ have `declare(strict_types=1)`

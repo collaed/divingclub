@@ -1,4 +1,4 @@
-## services.md — Business Logic Services (23 classes)
+## services.md — Business Logic Services (24 classes)
 
 ## Core Domain Services
 
@@ -12,6 +12,13 @@ Computes annual membership fees. Formula: `base_amount × status_modifier × age
 ### MedicalComplianceService
 Enforces per-federation medical certificate rules. Checks age brackets, expiry dates.
 - `isCompliant(User, ?atDate)` → bool (can they dive on that date?)
+
+### EventRegistrationService
+Handles event registration, cancellation, and waiting list promotion. Extracted from EventController.
+- `registerMember(Event, User target, User actor, ?comment, ?transitMode)` → {success, message, warning}
+- `registerNonMember(Event, name, ?comment, User actor)` → {success, message}
+- `cancel(Event, EventRegistration, User actor, ?cancelComment)` → {success, message}
+- Internally handles: medical compliance gate, waiting list, deposit payment generation, trip participant sync
 - `getStatus(User, ?atDate)` → {compliant, expires_at, days_remaining, rule_source}
 - `evaluateCertificate(Document)` → processes an uploaded medical cert, updates expiry tracking
 
@@ -137,8 +144,9 @@ Aggregates email delivery statistics.
 
 ## Dependencies Between Services
 
-- `EventController` → `MedicalComplianceService` (registration gate)
-- `EventController` → `TripSettlementService` (via TripSettlementController)
+- `EventController` → `EventRegistrationService` (register, cancel, waitlist)
+- `EventRegistrationService` → `MedicalComplianceService` (registration gate)
+- `TripSettlementController` → `TripSettlementService`
 - `PaymentController` → `FeeCalculationService`, `BankReconciliationService`
 - `EmailController` → `MailBalancer`, `MailAliasService`
 - `PollInboundMail` → `MailAliasService`, `InboundMailFilter`

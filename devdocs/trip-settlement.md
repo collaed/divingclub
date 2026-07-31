@@ -18,6 +18,9 @@ Only for `long_trip` events with `trip_settlement_enabled = true`. Handles share
 
 - `general` — shared equally among ALL participants (groceries, group dinners, communal deposits)
 - `transit` — shared only among VAN riders (fuel, tolls, van rental, parking)
+- `diving` — club-level dive invoices (dive center charges); appears in accounting but individual charges use `individual`
+- `individual` — charged to a specific participant (e.g. extra dives, personal expenses); with `is_third_party=true`, it's a charge TO the person (increases what they owe)
+- `memo` — audit trail only; never counted in any settlement pool (e.g. auto-generated club advance records)
 
 ## Receipt Status Flow
 

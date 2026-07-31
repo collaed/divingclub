@@ -48,8 +48,8 @@ Originally developed for the Club Européen de Plongée (CEP) in Luxembourg, but
 - **6 theme presets + 3 site layouts**
 - **60 Eloquent models**
 - **164 Blade templates**
-- **23 services**
-- **280 passing tests** (670 assertions)
+- **24 services**
+- **308 passing tests** (723 assertions)
 
 ---
 

@@ -203,9 +203,9 @@ These are refactoring/architecture improvements, not functional requirements.
 | REQ-02 | Introduce authorization policies | High | 🟡 Form Request authorize() methods enforce role checks for admin endpoints |
 | REQ-03 | Expand test coverage (>80% routes) | High | 🟡 134 tests exist, but many routes untested |
 | REQ-04 | Break up fat controllers (<200 lines) | High | ❌ Not started |
-| REQ-05 | Remove inline closures from routes | High | ❌ Not started |
-| REQ-06 | Extract business logic to services | Medium | 🟡 Some services exist (FeeCalculation, BankReconciliation, Medical, Backup, Theme, License, ArticleTranslation, MailAlias) |
-| REQ-07 | Create model factories | Medium | ❌ Only UserFactory exists |
+| REQ-05 | Remove inline closures from routes | High | 🟡 Admin routes done (6 closures moved to controllers); 7 auth closures remain in web.php |
+| REQ-06 | Extract business logic to services | Medium | ✅ Done — 24 services: FeeCalculation, BankReconciliation, Medical, Backup, Theme, License, ArticleTranslation, MailAlias, EventRegistration, TripSettlement, Homogeneity, etc. |
+| REQ-07 | Create model factories | Medium | ✅ Done — 15 factories (User, Event, MemberDetail, Equipment, Article, PaymentExpected, EmailLog, ThemeSetting, TripParticipant, TripReceipt, Vote, DiveSite, Season, Newsletter, EventRegistration) |
 | REQ-08 | Rate limiting on sensitive endpoints | Medium | ✅ Done — 12 throttled routes: login, register, password reset, trial, contact, vote, verification, cron (4) |
 | REQ-09 | Secure cron endpoints (no GET secrets) | Medium | ✅ Done — accepts X-Cron-Key header (preferred) or query param (backward compat), rate limited, null-safe |
 | REQ-10 | Consistent authorization pattern | Medium | ❌ Not started |
