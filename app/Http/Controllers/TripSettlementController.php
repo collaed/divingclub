@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ApproveReceiptRequest;
+use App\Http\Requests\BureauReceiptRequest;
+use App\Http\Requests\RecordPrepaymentRequest;
+use App\Http\Requests\StoreReceiptRequest;
+use App\Http\Requests\UpdateDivePricingRequest;
+use App\Http\Requests\UpdateParticipantRequest;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\PaymentExpected;
@@ -52,17 +58,12 @@ class TripSettlementController extends Controller
         return view('trip-settlement.show', compact('event', 'receipts', 'settlement', 'myBalance', 'companionBalances'));
     }
 
-    public function storeReceipt(Request $request, Event $event): RedirectResponse
+    public function storeReceipt(StoreReceiptRequest $request, Event $event): RedirectResponse
     {
         abort_unless($event->hasTripSettlement(), 404);
         abort_unless($event->settlement_status === 'open', 403);
 
-        $data = $request->validate([
-            'amount' => 'required|numeric|min:0.01|max:99999',
-            'category' => 'required|in:general,transit,diving,individual,memo',
-            'description' => 'nullable|string|max:255',
-            'image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
-        ]);
+        $data = $request->validated();
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -109,16 +110,12 @@ class TripSettlementController extends Controller
         return view('trip-settlement.manage', compact('event', 'pendingReceipts', 'approvedReceipts', 'settlement'));
     }
 
-    public function approveReceipt(Request $request, Event $event, TripReceipt $receipt): RedirectResponse
+    public function approveReceipt(ApproveReceiptRequest $request, Event $event, TripReceipt $receipt): RedirectResponse
     {
         $this->authorizeBureau();
         abort_unless($event->settlement_status === 'open', 403);
 
-        $data = $request->validate([
-            'approved_amount' => 'required|numeric|min:0',
-            'category' => 'required|in:general,transit,diving,individual,memo',
-            'reviewer_notes' => 'nullable|string|max:500',
-        ]);
+        $data = $request->validated();
 
         $receipt->update([
             'approved_amount' => $data['approved_amount'],
@@ -146,20 +143,11 @@ class TripSettlementController extends Controller
         return back()->with('success', __('Receipt rejected.'));
     }
 
-    public function updateParticipant(Request $request, Event $event, TripParticipant $participant): JsonResponse|RedirectResponse
+    public function updateParticipant(UpdateParticipantRequest $request, Event $event, TripParticipant $participant): JsonResponse|RedirectResponse
     {
         $this->authorizeBureau();
 
-        $tripDays = $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1;
-
-        $data = $request->validate([
-            'driving_percentage' => 'required|integer|min:0|max:100',
-            'local_transit_days' => 'required|integer|min:0|max:'.$tripDays,
-            'transit_mode' => 'nullable|in:van,own,fly',
-            'van_number' => 'nullable|integer|min:1|max:10',
-            'is_supervising_instructor' => 'nullable|boolean',
-            'supervising_days' => 'nullable|integer|min:0|max:30',
-        ]);
+        $data = $request->validated();
 
         $participant->update([
             'driving_percentage' => $data['driving_percentage'],
@@ -181,27 +169,14 @@ class TripSettlementController extends Controller
         return back()->with('success', __('Participant updated.'));
     }
 
-    public function bureauReceipt(Request $request, Event $event): RedirectResponse
+    public function bureauReceipt(BureauReceiptRequest $request, Event $event): RedirectResponse
     {
         $this->authorizeBureau();
         abort_unless($event->hasTripSettlement(), 404);
         abort_unless($event->settlement_status === 'open', 403);
 
-        $participantIds = $event->tripParticipants()->whereNotNull('user_id')->pluck('user_id')->toArray();
+        $data = $request->validated();
         $isThirdParty = (bool) $request->input('is_third_party');
-        $category = $request->input('category');
-
-        $userRule = $category === 'individual'
-            ? 'required|integer|in:'.implode(',', $participantIds)
-            : 'nullable|integer|in:'.implode(',', $participantIds);
-
-        $data = $request->validate([
-            'amount' => 'required|numeric|min:0.01|max:99999',
-            'category' => 'required|in:general,transit,diving,individual,memo',
-            'description' => 'required|string|max:255',
-            'user_id' => $userRule,
-            'is_third_party' => 'nullable|boolean',
-        ]);
 
         $userId = ! empty($data['user_id']) ? (int) $data['user_id'] : null;
 
@@ -338,32 +313,28 @@ class TripSettlementController extends Controller
         return view('trip-settlement.breakdown', compact('event', 'settlement'));
     }
 
-    public function recordPrepayment(Event $event, Request $request): RedirectResponse|JsonResponse
+    public function recordPrepayment(Event $event, RecordPrepaymentRequest $request): RedirectResponse|JsonResponse
     {
         $this->authorizeBureau();
         abort_unless($event->hasTripSettlement(), 404);
 
-        $request->validate([
-            'participant_id' => 'required|integer',
-            'amount' => 'required|numeric|min:0',
-        ]);
-
-        $tp = TripParticipant::where('event_id', $event->id)->findOrFail($request->participant_id);
+        $tp = TripParticipant::where('event_id', $event->id)->findOrFail($request->validated('participant_id'));
+        $amount = (float) $request->validated('amount');
 
         if ($tp->user_id) {
             PaymentExpected::updateOrCreate(
                 ['event_id' => $event->id, 'user_id' => $tp->user_id, 'type' => 'event'],
                 [
                     'season_year' => $event->event_date->format('Y'),
-                    'amount_due' => $request->amount,
-                    'amount_paid' => $request->amount,
-                    'status' => $request->amount > 0 ? 'paid' : 'pending',
-                    'paid_at' => $request->amount > 0 ? now() : null,
+                    'amount_due' => $amount,
+                    'amount_paid' => $amount,
+                    'status' => $amount > 0 ? 'paid' : 'pending',
+                    'paid_at' => $amount > 0 ? now() : null,
                     'communication' => 'PREPAY-'.$event->id.'-'.$tp->user_id,
                 ]
             );
         } else {
-            $tp->update(['prepaid_amount' => $request->amount]);
+            $tp->update(['prepaid_amount' => $amount]);
         }
 
         if ($request->ajax()) {
@@ -641,19 +612,12 @@ class TripSettlementController extends Controller
         ]);
     }
 
-    public function updateDivePricing(Event $event, Request $request): RedirectResponse
+    public function updateDivePricing(Event $event, UpdateDivePricingRequest $request): RedirectResponse
     {
         $this->authorizeBureau();
         abort_unless($event->hasTripSettlement(), 404);
 
-        $data = $request->validate([
-            'dive_unit_price' => 'required|numeric|min:0',
-            'nitrox_supplement' => 'required|numeric|min:0',
-            'instructor_daily_subsidy' => 'required|numeric|min:0',
-            'dive_days' => 'nullable|integer|min:1|max:30',
-        ]);
-
-        $event->update($data);
+        $event->update($request->validated());
 
         return back()->with('success', __('Dive pricing updated.'));
     }
