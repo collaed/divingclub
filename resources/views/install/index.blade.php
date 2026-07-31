@@ -56,21 +56,21 @@
                     <div class="mysql-fields" id="mysqlFields">
                         <div class="row g-2 mb-2">
                             <div class="col-8">
-                                <input type="text" name="db_host" class="form-control" placeholder="Host (127.0.0.1)" value="{{ old('db_host', '127.0.0.1') }}">
+                                <input type="text" name="db_host" class="form-control" placeholder="{{ __('Host (127.0.0.1)') }}" value="{{ old('db_host', '127.0.0.1') }}">
                             </div>
                             <div class="col-4">
-                                <input type="number" name="db_port" class="form-control" placeholder="Port (3306)" value="{{ old('db_port', '3306') }}">
+                                <input type="number" name="db_port" class="form-control" placeholder="{{ __('Port (3306)') }}" value="{{ old('db_port', '3306') }}">
                             </div>
                         </div>
                         <div class="mb-2">
-                            <input type="text" name="db_database" class="form-control" placeholder="Database name" value="{{ old('db_database', 'divingclub') }}">
+                            <input type="text" name="db_database" class="form-control" placeholder="{{ __('Database name') }}" value="{{ old('db_database', 'divingclub') }}">
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <input type="text" name="db_username" class="form-control" placeholder="Username" value="{{ old('db_username', 'root') }}">
+                                <input type="text" name="db_username" class="form-control" placeholder="{{ __('Username') }}" value="{{ old('db_username', 'root') }}">
                             </div>
                             <div class="col-6">
-                                <input type="password" name="db_password" class="form-control" placeholder="Password">
+                                <input type="password" name="db_password" class="form-control" placeholder="{{ __('Password') }}">
                             </div>
                         </div>
                     </div>
@@ -93,10 +93,10 @@
 
                     <h5 class="mb-3">4. Admin Account</h5>
                     <div class="mb-2">
-                        <input type="email" name="admin_email" class="form-control" placeholder="Admin email" value="{{ old('admin_email') }}" required>
+                        <input type="email" name="admin_email" class="form-control" placeholder="{{ __('Admin email') }}" value="{{ old('admin_email') }}" required>
                     </div>
                     <div class="mb-4">
-                        <input type="password" name="admin_password" class="form-control" placeholder="Admin password (min 8 chars)" required minlength="8">
+                        <input type="password" name="admin_password" class="form-control" placeholder="{{ __('Admin password (min 8 chars)') }}" required minlength="8">
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg w-100">
