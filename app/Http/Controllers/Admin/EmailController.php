@@ -176,4 +176,28 @@ class EmailController extends Controller
             default => collect(),
         };
     }
+
+    public function approve(EmailLog $emailLog): RedirectResponse
+    {
+        abort_unless(auth()->user()->can('send email'), 403);
+        $emailLog->update(['status' => 'forwarded', 'authorized' => true, 'error' => null]);
+
+        return back()->with('success', __('Communication approved.'));
+    }
+
+    public function reject(EmailLog $emailLog): RedirectResponse
+    {
+        abort_unless(auth()->user()->can('send email'), 403);
+        $emailLog->update(['status' => 'rejected', 'authorized' => false]);
+
+        return back()->with('success', __('Communication rejected.'));
+    }
+
+    public function destroyLog(EmailLog $emailLog): RedirectResponse
+    {
+        abort_unless(auth()->user()->can('send email'), 403);
+        $emailLog->delete();
+
+        return back()->with('success', __('Communication deleted.'));
+    }
 }

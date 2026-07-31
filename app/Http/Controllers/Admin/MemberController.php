@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Spatie\Permission\Models\Role;
 
 class MemberController extends Controller
@@ -86,5 +87,12 @@ class MemberController extends Controller
         }
 
         return redirect()->route('admin.members.index')->with('success', __('Impersonation ended.'));
+    }
+
+    public function sendReset(User $user): RedirectResponse
+    {
+        Password::sendResetLink(['email' => $user->primary_email]);
+
+        return back()->with('success', __('Password reset link sent to :email', ['email' => $user->primary_email]));
     }
 }

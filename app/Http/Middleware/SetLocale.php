@@ -13,6 +13,7 @@
 namespace App\Http\Middleware;
 
 use App\Helpers\IconHelper;
+use App\Helpers\LocaleHelper;
 use App\Models\ThemeSetting;
 use Closure;
 use Illuminate\Http\Request;
@@ -22,16 +23,7 @@ class SetLocale
     /** Get the list of enabled locale codes. */
     public static function enabledLocales(): array
     {
-        $stored = ThemeSetting::get('enabled_locales');
-        if ($stored) {
-            $decoded = json_decode($stored, true);
-            if (is_array($decoded) && $decoded !== []) {
-                return $decoded;
-            }
-        }
-
-        // Fallback: all locales from config
-        return array_keys(config('languages', ['en' => []]));
+        return LocaleHelper::enabledLocales();
     }
 
     /** Get enabled locales with their labels (for the language selector). */

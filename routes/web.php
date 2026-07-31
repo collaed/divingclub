@@ -31,6 +31,7 @@ use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\StagingMailController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\TripSettlementController;
+use App\Http\Controllers\VoteGroupPublicController;
 use App\Http\Controllers\VotePublicController;
 use App\Http\Middleware\CheckLicense;
 use App\Models\EventPhoto;
@@ -38,6 +39,7 @@ use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
@@ -349,3 +351,5 @@ if (app()->environment('local', 'staging', 'acceptance', 'testing')) {
 // Public voting (token-based, no login required)
 Route::get('/vote/{token}', [VotePublicController::class, 'show'])->name('vote.show');
 Route::post('/vote/{token}', [VotePublicController::class, 'cast'])->middleware('throttle:10,1')->name('vote.cast');
+Route::get('/vote-group/{token}', [VoteGroupPublicController::class, 'show'])->name('vote-group.show');
+Route::post('/vote-group/{token}', [VoteGroupPublicController::class, 'cast'])->middleware('throttle:10,1')->name('vote-group.cast');

@@ -20,6 +20,7 @@ use App\Services\MailBalancer;
 use App\Services\ScheduleHeartbeat;
 use App\Services\UpdateService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
@@ -130,5 +131,39 @@ class DashboardController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function systemUpdate(): RedirectResponse
+    {
+        abort_unless(auth()->user()->can('manage settings'), 403);
+        $result = UpdateService::applyUpdate();
+
+        return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+    }
+
+    public function worklistBrowse(string $type): RedirectResponse
+    {
+        $ids = match ($type) {
+            'flassa' => User::whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
+                ->whereHas('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FFESSM')))
+                ->whereDoesntHave('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FLASSA')))
+                ->pluck('id')->toArray(),
+            'birthdays' => MemberDetail::whereNotNull('date_of_birth')
+                ->get()->filter(fn ($d) => $d->date_of_birth->isBirthday() || ($d->date_of_birth->copy()->year(now()->year)->between(now(), now()->addDays(14))))
+                ->pluck('user_id')->toArray(),
+            'no_medical' => User::whereDoesntHave('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true))
+                ->whereHas('detail')->pluck('id')->toArray(),
+            'unverified' => User::whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->whereNull('verified_at'))
+                ->pluck('id')->toArray(),
+            default => [],
+        };
+
+        if (empty($ids)) {
+            return redirect()->route('admin.members.index')->with('info', __('No members in this list.'));
+        }
+
+        session(['profile_list' => $ids]);
+
+        return redirect()->route('admin.profile.show', $ids[0]);
     }
 }

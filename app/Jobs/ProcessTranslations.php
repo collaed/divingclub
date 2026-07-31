@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Http\Middleware\SetLocale;
+use App\Helpers\LocaleHelper;
 use App\Models\Article;
 use App\Models\ArticleTranslation;
 use App\Services\ArticleTranslationService;
@@ -18,7 +18,7 @@ class ProcessTranslations implements ShouldQueue
 
     public function handle(): void
     {
-        $locales = SetLocale::enabledLocales();
+        $locales = LocaleHelper::enabledLocales();
         $svc = app(ArticleTranslationService::class);
 
         $new = Article::whereDoesntHave('translations')->where('is_published', true)->oldest()->first();

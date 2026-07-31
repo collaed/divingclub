@@ -26,14 +26,10 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ThumbnailController;
 use App\Http\Controllers\Admin\TrialRequestController;
 use App\Http\Controllers\Admin\VoteController;
+use App\Http\Controllers\Admin\VoteGroupController;
 use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\HomepageLayoutController;
 use App\Http\Controllers\ProfileController;
-use App\Models\EmailLog;
-use App\Models\MemberDetail;
-use App\Models\User;
-use App\Services\UpdateService;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
 // Members management
@@ -44,11 +40,7 @@ Route::get('/members/{user}/profile', [ProfileController::class, 'show'])->name(
 Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');
 Route::post('/members/{user}/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
 Route::post('/members/{user}/impersonate', [MemberController::class, 'impersonate'])->name('impersonate');
-Route::post('/members/{user}/send-reset', function (User $user) {
-    Password::sendResetLink(['email' => $user->primary_email]);
-
-    return back()->with('success', __('Password reset link sent to :email', ['email' => $user->primary_email]));
-})->name('send-reset');
+Route::post('/members/{user}/send-reset', [MemberController::class, 'sendReset'])->name('send-reset');
 
 // Articles & Links
 Route::resource('articles', ArticleController::class)->except('show');
@@ -158,12 +150,7 @@ Route::delete('/settings/membership-fee/{fee}', [SettingsController::class, 'des
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 Route::get('/dashboard/export', [DashboardController::class, 'exportCsv'])->name('dashboard.export');
-Route::post('/system/update', function () {
-    abort_unless(auth()->user()->can('manage settings'), 403);
-    $result = UpdateService::applyUpdate();
-
-    return back()->with($result['success'] ? 'success' : 'error', $result['message']);
-})->name('system.update');
+Route::post('/system/update', [DashboardController::class, 'systemUpdate'])->name('system.update');
 
 // Admin Guide
 Route::get('/guide', [GuideController::class, 'index'])->name('guide.index');
@@ -209,6 +196,17 @@ Route::get('/votes/create', [VoteController::class, 'create'])->name('votes.crea
 Route::post('/votes', [VoteController::class, 'store'])->name('votes.store');
 Route::get('/votes/{vote}', [VoteController::class, 'show'])->name('votes.show');
 Route::post('/votes/{vote}/tokens', [VoteController::class, 'generateTokens'])->name('votes.generate-tokens');
+Route::post('/votes/{vote}/send-tokens', [VoteController::class, 'sendTokens'])->name('votes.send-tokens');
+
+// Vote Groups
+Route::get('/vote-groups', [VoteGroupController::class, 'index'])->name('vote-groups.index');
+Route::get('/vote-groups/create', [VoteGroupController::class, 'create'])->name('vote-groups.create');
+Route::post('/vote-groups', [VoteGroupController::class, 'store'])->name('vote-groups.store');
+Route::get('/vote-groups/{voteGroup}', [VoteGroupController::class, 'show'])->name('vote-groups.show');
+Route::post('/vote-groups/{voteGroup}/tokens', [VoteGroupController::class, 'generateTokens'])->name('vote-groups.generate-tokens');
+Route::post('/vote-groups/{voteGroup}/send-tokens', [VoteGroupController::class, 'sendTokens'])->name('vote-groups.send-tokens');
+Route::post('/vote-groups/{voteGroup}/open', [VoteGroupController::class, 'open'])->name('vote-groups.open');
+Route::post('/vote-groups/{voteGroup}/close', [VoteGroupController::class, 'close'])->name('vote-groups.close');
 Route::post('/votes/{vote}/open', [VoteController::class, 'open'])->name('votes.open');
 Route::post('/votes/{vote}/close', [VoteController::class, 'close'])->name('votes.close');
 Route::post('/votes/{vote}/cancel', [VoteController::class, 'cancel'])->name('votes.cancel');
@@ -234,51 +232,11 @@ Route::delete('/roles/{role}/members/{user}', [RolePermissionController::class, 
 Route::get('/audit-finances', [AuditorController::class, 'index'])->name('audit-finances');
 
 // Email log moderation
-Route::post('/email/{emailLog}/approve', function (EmailLog $emailLog) {
-    abort_unless(auth()->user()->can('send email'), 403);
-    $emailLog->update(['status' => 'forwarded', 'authorized' => true, 'error' => null]);
-
-    return back()->with('success', __('Communication approved.'));
-})->name('email.approve');
-
-Route::post('/email/{emailLog}/reject', function (EmailLog $emailLog) {
-    abort_unless(auth()->user()->can('send email'), 403);
-    $emailLog->update(['status' => 'rejected', 'authorized' => false]);
-
-    return back()->with('success', __('Communication rejected.'));
-})->name('email.reject');
-
-Route::delete('/email/{emailLog}', function (EmailLog $emailLog) {
-    abort_unless(auth()->user()->can('send email'), 403);
-    $emailLog->delete();
-
-    return back()->with('success', __('Communication deleted.'));
-})->name('email.destroy');
+Route::post('/email/{emailLog}/approve', [EmailController::class, 'approve'])->name('email.approve');
+Route::post('/email/{emailLog}/reject', [EmailController::class, 'reject'])->name('email.reject');
+Route::delete('/email/{emailLog}', [EmailController::class, 'destroyLog'])->name('email.destroy');
 
 // Worklist browse — stores member IDs in session for prev/next navigation
-Route::get('/worklist-browse/{type}', function (string $type) {
-    $ids = match ($type) {
-        'flassa' => User::whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
-            ->whereHas('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FFESSM')))
-            ->whereDoesntHave('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FLASSA')))
-            ->pluck('id')->toArray(),
-        'birthdays' => MemberDetail::whereNotNull('date_of_birth')
-            ->get()->filter(fn ($d) => $d->date_of_birth->isBirthday() || ($d->date_of_birth->copy()->year(now()->year)->between(now(), now()->addDays(14))))
-            ->pluck('user_id')->toArray(),
-        'no_medical' => User::whereDoesntHave('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true))
-            ->whereHas('detail')->pluck('id')->toArray(),
-        'unverified' => User::whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->whereNull('verified_at'))
-            ->pluck('id')->toArray(),
-        default => [],
-    };
-
-    if (empty($ids)) {
-        return redirect()->route('admin.members.index')->with('info', __('No members in this list.'));
-    }
-
-    session(['profile_list' => $ids]);
-
-    return redirect()->route('admin.profile.show', $ids[0]);
-})->name('worklist-browse');
+Route::get('/worklist-browse/{type}', [DashboardController::class, 'worklistBrowse'])->name('worklist-browse');
 Route::post('/library/{file}/rename', [LibraryController::class, 'rename'])->name('library.rename');
 Route::post('/library/{file}/move', [LibraryController::class, 'move'])->name('library.move');
