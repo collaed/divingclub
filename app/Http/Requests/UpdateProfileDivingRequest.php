@@ -26,6 +26,7 @@ class UpdateProfileDivingRequest extends FormRequest
             'primary_intent' => 'nullable|string|in:exploration,photography,training,deep,wreck,night,drift',
             'is_photographer' => 'nullable|boolean',
             'certification_level' => 'nullable|string|max:50',
+            'apnea_level' => 'nullable|string|max:50',
             'other_certifications' => 'nullable|string',
             'training_enrollments' => 'nullable|string',
         ];

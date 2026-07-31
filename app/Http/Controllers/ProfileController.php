@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Helpers\IconHelper;
+use App\Http\Requests\UpdatePasswordRequest;
+use App\Http\Requests\UpdateProfileDivingRequest;
+use App\Http\Requests\UpdateProfileInfoRequest;
 use App\Http\Requests\UpdateProfileLanguageRequest;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
@@ -107,7 +110,7 @@ class ProfileController extends Controller
         return back()->with('success', __('Profile updated.'))->withInput(['tab' => 'info']);
     }
 
-    public function updatePrivate(Request $request, ?User $user = null): RedirectResponse
+    public function updatePrivate(UpdateProfileInfoRequest $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? $viewer;
@@ -116,20 +119,7 @@ class ProfileController extends Controller
             abort(403);
         }
 
-        $validated = $request->validate([
-            'date_of_birth' => 'nullable|date',
-            'place_of_birth' => 'nullable|string|max:255',
-            'address_line1' => 'nullable|string|max:255',
-            'address_line2' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'postal_code' => 'nullable|string|max:20',
-            'country' => 'nullable|string|max:100',
-            'iban' => 'nullable|string|max:34',
-            'emergency_contact_name' => 'nullable|string|max:255',
-            'emergency_contact_phone' => 'nullable|string|max:50',
-            'emergency_contact_relationship' => 'nullable|string|max:100',
-            'brevet_date' => 'nullable|date',
-        ]);
+        $validated = $request->validated();
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
 
@@ -188,7 +178,7 @@ class ProfileController extends Controller
         return back()->with('success', $msg)->withInput(['tab' => 'renewal']);
     }
 
-    public function updateDiving(Request $request, ?User $user = null): RedirectResponse
+    public function updateDiving(UpdateProfileDivingRequest $request, ?User $user = null): RedirectResponse
     {
         $viewer = auth()->user();
         $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
@@ -209,19 +199,7 @@ class ProfileController extends Controller
             return back()->with('success', __('Instructor profile updated.'))->withInput(['tab' => 'diving']);
         }
 
-        $validated = $request->validate([
-            'dive_count' => 'nullable|integer|min:0',
-            'total_dives' => 'nullable|integer|min:0',
-            'last_dive_date' => 'nullable|date',
-            'air_consumption' => 'nullable|numeric|min:0|max:1',
-            'ease_level' => 'nullable|numeric|min:0|max:1',
-            'primary_intent' => 'nullable|string|in:exploration,photography,training,deep,wreck,night,drift',
-            'is_photographer' => 'nullable|boolean',
-            'certification_level' => 'nullable|string|max:50',
-            'apnea_level' => 'nullable|string|max:50',
-            'other_certifications' => 'nullable|string',
-            'training_enrollments' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $validated['other_certifications'] = isset($validated['other_certifications']) && $validated['other_certifications']
             ? array_map('trim', explode(',', $validated['other_certifications'])) : [];
@@ -268,14 +246,9 @@ class ProfileController extends Controller
         return back()->with('success', __('Language preference updated.'))->withInput(['tab' => 'language']);
     }
 
-    public function updatePassword(Request $request): RedirectResponse
+    public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
     {
-        $request->validate([
-            'current_password' => 'required|current_password',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        auth()->user()->update(['password' => bcrypt($request->password)]);
+        auth()->user()->update(['password' => bcrypt($request->validated('password'))]);
 
         return back()->with('success', __('Password updated.'))->withInput(['tab' => 'private']);
     }
