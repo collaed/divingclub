@@ -24,12 +24,17 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
+        $memberRoleId = \Illuminate\Support\Facades\DB::table($roleTable)->where('slug', 'member')->value('id') ?? 2;
+
         return [
             'username' => fake()->userName(),
             'primary_email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role_id' => $memberRoleId,
+            'status_id' => 1,
         ];
     }
 
