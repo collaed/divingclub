@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $background_image
  * @property array $slots
  * @property array $decorations
+ * @property string|null $published_html
  * @property string|null $status
  * @property string|null $created_by
  * @property Carbon|null $sent_at

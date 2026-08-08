@@ -14,7 +14,7 @@ class ImportPastNewsletters extends Command
 
     protected $description = 'Import April/May/June 2026 newsletters from static HTML files';
 
-    /** @var array<string, array{title: string, slug: string, type: string, teaser: string}> */
+    /** @var array<int, array{title: string, slug: string, type: string, teaser: string}> */
     private array $aprilArticles = [
         '201' => ['title' => 'Un mot du Président', 'slug' => 'mot-du-president-avril-2026', 'type' => 'news', 'teaser' => 'Le Printemps est de retour — TODI, Gravière, Juan-les-Pins… Bonnes plongées !'],
         '202' => ['title' => 'Le Nitrox, pour vous ?', 'slug' => 'nitrox-pour-vous-avril-2026', 'type' => 'training', 'teaser' => 'Avantages, compromis, Simple vs Avancé. Tout savoir avant de se lancer.'],
@@ -23,7 +23,7 @@ class ImportPastNewsletters extends Command
         '205' => ['title' => "Règles d'or du binôme", 'slug' => 'regles-or-binome-avril-2026', 'type' => 'safety', 'teaser' => '6 règles essentielles pour plonger en sécurité.'],
     ];
 
-    /** @var array<string, array{title: string, slug: string, type: string, teaser: string}> */
+    /** @var array<int, array{title: string, slug: string, type: string, teaser: string}> */
     private array $mayArticles = [
         '301' => ['title' => 'Les Maldives, entre rêve et réalité', 'slug' => 'maldives-reve-realite-mai-2026', 'type' => 'trip_report', 'teaser' => "Par Pascale Lucietto — 5 ans d'instructeur PADI aux Maldives."],
         '302' => ['title' => 'Baptêmes — Relais pour la Vie', 'slug' => 'baptemes-relais-vie-mai-2026', 'type' => 'news', 'teaser' => 'Des jeunes découvrent la plongée pour une bonne cause.'],
@@ -32,7 +32,7 @@ class ImportPastNewsletters extends Command
         '305' => ['title' => 'La flottabilité parfaite', 'slug' => 'flottabilite-parfaite-mai-2026', 'type' => 'training', 'teaser' => 'Trouver votre lestage idéal — les 2 tests faciles.'],
     ];
 
-    /** @var array<string, array{title: string, slug: string, type: string, teaser: string}> */
+    /** @var array<int, array{title: string, slug: string, type: string, teaser: string}> */
     private array $juneArticles = [
         '401' => ['title' => 'Grand Match : Gravière du Fort', 'slug' => 'grand-match-graviere-du-fort-juin-2026', 'type' => 'trip_report', 'teaser' => 'La fraîcheur du fond vs la chaleur humaine — et la chaleur gagne.'],
         '402' => ['title' => 'La Mise à Jour (Ennuyeuse Mais Nécessaire)', 'slug' => 'mise-a-jour-club-juin-2026', 'type' => 'news', 'teaser' => 'Finances, van FLASSA, fin des km, ASBL…'],
