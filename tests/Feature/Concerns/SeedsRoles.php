@@ -5,6 +5,7 @@ namespace Tests\Feature\Concerns;
 use App\Models\MemberDetail;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 /**
@@ -28,7 +29,7 @@ trait SeedsRoles
         // Give bureau_master all permissions used in admin tests
         $permissions = ['manage seasons', 'manage events', 'manage members', 'manage settings', 'send email', 'view finances'];
         foreach ($permissions as $p) {
-            \Spatie\Permission\Models\Permission::findOrCreate($p, 'web');
+            Permission::findOrCreate($p, 'web');
         }
         $bureauRole->syncPermissions($permissions);
     }

@@ -50,7 +50,7 @@ class AdminArticleTest extends TestCase
 
     public function test_bureau_can_update_article(): void
     {
-        $article = \App\Models\Article::create([
+        $article = Article::create([
             'title' => 'Original', 'slug' => 'original-'.uniqid(),
             'body' => '<p>Body.</p>', 'article_type' => 'news',
             'is_published' => true, 'author_id' => $this->admin->id,
@@ -72,7 +72,7 @@ class AdminArticleTest extends TestCase
 
     public function test_bureau_can_delete_article(): void
     {
-        $article = \App\Models\Article::create([
+        $article = Article::create([
             'title' => 'Delete Me', 'slug' => 'delete-me-'.uniqid(),
             'body' => '<p>Delete.</p>', 'article_type' => 'news',
             'is_published' => true, 'author_id' => $this->admin->id,
@@ -83,6 +83,6 @@ class AdminArticleTest extends TestCase
             ->assertRedirect();
 
         // Article uses soft-delete
-        $this->assertNull(\App\Models\Article::find($article->id));
+        $this->assertNull(Article::find($article->id));
     }
 }

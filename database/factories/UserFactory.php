@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -25,7 +26,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
-        $memberRoleId = \Illuminate\Support\Facades\DB::table($roleTable)->where('slug', 'member')->value('id') ?? 2;
+        $memberRoleId = DB::table($roleTable)->where('slug', 'member')->value('id') ?? 2;
 
         return [
             'username' => fake()->userName(),

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\MemberDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Concerns\SeedsRoles;
@@ -79,5 +78,4 @@ class AdminMemberControllerTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('success');
     }
-
 }

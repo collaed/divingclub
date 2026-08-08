@@ -30,7 +30,7 @@ class AdminSeasonTest extends TestCase
 
     public function test_bureau_can_add_holiday(): void
     {
-        $season = \App\Models\Season::create(['year' => 2098, 'name' => 'Test', 'start_date' => '2098-09-01', 'end_date' => '2099-07-31']);
+        $season = Season::create(['year' => 2098, 'name' => 'Test', 'start_date' => '2098-09-01', 'end_date' => '2099-07-31']);
 
         $this->actingAs($this->admin)
             ->post(route('admin.seasons.holiday.store', $season), [
@@ -45,7 +45,7 @@ class AdminSeasonTest extends TestCase
 
     public function test_bureau_can_add_pattern(): void
     {
-        $season = \App\Models\Season::create(['year' => 2097, 'name' => 'Test2', 'start_date' => '2097-09-01', 'end_date' => '2098-07-31']);
+        $season = Season::create(['year' => 2097, 'name' => 'Test2', 'start_date' => '2097-09-01', 'end_date' => '2098-07-31']);
 
         $this->actingAs($this->admin)
             ->post(route('admin.seasons.pattern.store', $season), [
