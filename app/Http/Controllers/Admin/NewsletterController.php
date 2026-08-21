@@ -280,6 +280,7 @@ class NewsletterController extends Controller
             'articleBaseUrl' => ThemeSetting::get('newsletter_article_base_url') ?: config('app.url'),
             'clubName' => ThemeSetting::get('club_full_name', 'Diving Club'),
             'theme' => $themeFolder,
+            'newsletterFont' => ThemeSetting::get('newsletter_font', 'clean'),
             'monthLabel' => $monthLabel,
             'unsubscribeUrl' => null,
             'decorations' => $newsletter->decorations ?? [],

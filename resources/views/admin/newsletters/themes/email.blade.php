@@ -17,6 +17,18 @@
         'arctic'   => ['bg' => '#37474f', 'card' => '#455a64', 'title' => '#e0e0e0', 'text' => '#ccc'],
         default    => ['bg' => '#003366', 'card' => '#ffffff', 'title' => '#003366', 'text' => '#555'],
     };
+
+    // Font configuration
+    $fontKey = $newsletterFont ?? 'clean';
+    $fontMap = [
+        'clean'   => ['family' => "'IBM Plex Sans', Arial, sans-serif", 'import' => 'IBM+Plex+Sans:wght@400;600;700'],
+        'classic' => ['family' => "'Libre Baskerville', Georgia, serif", 'import' => 'Libre+Baskerville:wght@400;700'],
+        'sharp'   => ['family' => "'JetBrains Mono', Courier New, monospace", 'import' => 'JetBrains+Mono:wght@400;600;700'],
+        'modern'  => ['family' => "'DM Sans', Arial, sans-serif", 'import' => 'DM+Sans:wght@400;500;700'],
+    ];
+    $fontConfig = $fontMap[$fontKey] ?? $fontMap['clean'];
+    $fontFamily = $fontConfig['family'];
+    $fontImport = $fontConfig['import'];
 @endphp
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -24,9 +36,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $newsletter->title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family={{ $fontImport }}&display=swap" rel="stylesheet">
     <!--[if mso]><style>table{border-collapse:collapse;}td{font-family:Arial,sans-serif;}</style><![endif]-->
 </head>
-<body style="margin:0;padding:0;background:#e8f0f5;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%">
+<body style="margin:0;padding:0;background:#e8f0f5;font-family:{{ $fontFamily }};-webkit-text-size-adjust:100%">
 
 {{-- Outer wrapper --}}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e8f0f5">
@@ -49,7 +62,7 @@
     @if($monthLabel && !$isBulles)
     <tr>
         <td align="center" style="padding:8px 0 4px;background:{{ $colors['bg'] }}">
-            <span style="font-family:Georgia,serif;font-size:18px;color:#d4a843;font-style:italic">{{ ucfirst($monthLabel) }}</span>
+            <span style="font-family:{{ $fontFamily }};font-size:18px;color:#d4a843;font-style:italic">{{ ucfirst($monthLabel) }}</span>
         </td>
     </tr>
     @endif
@@ -68,7 +81,7 @@
 
                 {{-- Slot 1 --}}
                 <td width="50%" valign="top" style="padding:8px">
-                    @include('admin.newsletters.themes._slot_card', ['pos' => 1, 'slotArticles' => $slotArticles, 'locale' => $locale, 'appUrl' => $appUrl, 'colors' => $colors, 'readMore' => $readMore])
+                    @include('admin.newsletters.themes._slot_card', ['pos' => 1, 'slotArticles' => $slotArticles, 'locale' => $locale, 'appUrl' => $appUrl, 'colors' => $colors, 'readMore' => $readMore, 'fontFamily' => $fontFamily])
                 </td>
 
                 {{-- Center decorative border --}}
@@ -80,7 +93,7 @@
 
                 {{-- Slot 2 --}}
                 <td width="50%" valign="top" style="padding:8px">
-                    @include('admin.newsletters.themes._slot_card', ['pos' => 2, 'slotArticles' => $slotArticles, 'locale' => $locale, 'appUrl' => $appUrl, 'colors' => $colors, 'readMore' => $readMore])
+                    @include('admin.newsletters.themes._slot_card', ['pos' => 2, 'slotArticles' => $slotArticles, 'locale' => $locale, 'appUrl' => $appUrl, 'colors' => $colors, 'readMore' => $readMore, 'fontFamily' => $fontFamily])
                 </td>
 
                 {{-- Right decorative border --}}
@@ -117,7 +130,7 @@
                 @endif
 
                 <td width="50%" valign="top" style="padding:8px">
-                    @include('admin.newsletters.themes._slot_card', ['pos' => 3, 'slotArticles' => $slotArticles, 'locale' => $locale, 'appUrl' => $appUrl, 'colors' => $colors, 'readMore' => $readMore])
+                    @include('admin.newsletters.themes._slot_card', ['pos' => 3, 'slotArticles' => $slotArticles, 'locale' => $locale, 'appUrl' => $appUrl, 'colors' => $colors, 'readMore' => $readMore, 'fontFamily' => $fontFamily])
                 </td>
 
                 @if($isBulles)
@@ -127,7 +140,7 @@
                 @endif
 
                 <td width="50%" valign="top" style="padding:8px">
-                    @include('admin.newsletters.themes._slot_card', ['pos' => 4, 'slotArticles' => $slotArticles, 'locale' => $locale, 'appUrl' => $appUrl, 'colors' => $colors, 'readMore' => $readMore])
+                    @include('admin.newsletters.themes._slot_card', ['pos' => 4, 'slotArticles' => $slotArticles, 'locale' => $locale, 'appUrl' => $appUrl, 'colors' => $colors, 'readMore' => $readMore, 'fontFamily' => $fontFamily])
                 </td>
 
                 @if($isBulles)
@@ -154,7 +167,7 @@
                 <table role="presentation" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.9);border-radius:6px">
                 <tr>
                     <td style="padding:10px 24px">
-                        <a href="{{ $url5 }}" style="color:{{ $colors['title'] }};font-weight:bold;text-decoration:none;font-size:14px;font-family:Georgia,serif">{{ $icon5 }} {{ e($t5['title']) }}</a>
+                        <a href="{{ $url5 }}" style="color:{{ $colors['title'] }};font-weight:bold;text-decoration:none;font-size:14px;font-family:{{ $fontFamily }}">{{ $icon5 }} {{ e($t5['title']) }}</a>
                     </td>
                 </tr>
                 </table>
@@ -185,7 +198,7 @@
 {{-- TEXT FOOTER --}}
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
 <tr>
-    <td align="center" style="padding:20px 10px;font-size:11px;color:#999;font-family:Arial,sans-serif">
+    <td align="center" style="padding:20px 10px;font-size:11px;color:#999;font-family:{{ $fontFamily }}">
         {{ e($clubName) }} — <a href="{{ $appUrl }}" style="color:#999">{{ $appUrl }}</a><br>
         @if($unsubscribeUrl ?? false)
             <a href="{{ $unsubscribeUrl }}" style="color:#999;text-decoration:underline">{{ $locale === 'fr' ? 'Se désabonner' : __('Unsubscribe') }}</a>

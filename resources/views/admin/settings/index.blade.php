@@ -237,6 +237,17 @@
                                 <input type="url" name="newsletter_article_base_url" class="form-control form-control-sm" value="{{ $themeSettings['newsletter_article_base_url'] ?? '' }}" placeholder="https://www.clubcep.eu">
                                 <div class="form-text">{{ __('e.g. https://www.clubcep.eu — article links will become https://www.clubcep.eu/article/slug') }}</div>
                             </div>
+                            <div class="col-md-8">
+                                <label class="form-label">{{ __('Newsletter Font') }}</label>
+                                @php $currentFont = $themeSettings['newsletter_font'] ?? 'clean'; @endphp
+                                <select name="newsletter_font" class="form-select form-select-sm">
+                                    <option value="clean" @selected($currentFont === 'clean')>Clean — IBM Plex Sans</option>
+                                    <option value="classic" @selected($currentFont === 'classic')>Classic — Libre Baskerville</option>
+                                    <option value="sharp" @selected($currentFont === 'sharp')>Sharp — JetBrains Mono</option>
+                                    <option value="modern" @selected($currentFont === 'modern')>Modern — DM Sans</option>
+                                </select>
+                                <div class="form-text">{{ __('Font used in email newsletters. Clean is the default.') }}</div>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Newsletter Settings') }}</button>
                     </form>

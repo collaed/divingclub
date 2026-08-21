@@ -1,6 +1,6 @@
 {{--
     Reusable article card for newsletter email slots.
-    Variables: $pos, $slotArticles, $locale, $appUrl, $articleBaseUrl, $colors, $readMore
+    Variables: $pos, $slotArticles, $locale, $appUrl, $articleBaseUrl, $colors, $readMore, $fontFamily
 --}}
 @if(isset($slotArticles[$pos]))
     @php
@@ -17,6 +17,7 @@
         }
         $enUrl = $baseUrl . '/article/' . $article->slug;
         $hasEnTranslation = $article->translations->contains('locale', 'en');
+        $cardFont = $fontFamily ?? "'IBM Plex Sans', Arial, sans-serif";
     @endphp
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{{ $colors['card'] }};border-radius:6px;overflow:hidden">
         @if($hasImg)
@@ -29,11 +30,11 @@
         </tr>
         @endif
         <tr>
-            <td style="padding:12px;{{ $pos <= 4 ? 'height:150px;' : '' }}" valign="top">
-                <a href="{{ $url }}" style="text-decoration:none;color:{{ $colors['title'] }}">
+            <td style="padding:12px;font-family:{{ $cardFont }};{{ $pos <= 4 ? 'height:150px;' : '' }}" valign="top">
+                <a href="{{ $url }}" style="text-decoration:none;color:{{ $colors['title'] }};font-family:{{ $cardFont }}">
                     <strong style="font-size:14px;line-height:1.3;display:block;margin-bottom:6px">{{ $icon }} {{ e($t['title']) }}</strong>
                 </a>
-                <p style="margin:0 0 8px;font-size:12px;color:{{ $colors['text'] }};line-height:1.5">{{ $teaser }}</p>
+                <p style="margin:0 0 8px;font-size:12px;color:{{ $colors['text'] }};line-height:1.5;font-family:{{ $cardFont }}">{{ $teaser }}</p>
                 <table width="100%" cellpadding="0" cellspacing="0"><tr>
                     <td align="left" style="padding:0">
                         @if($hasEnTranslation)
