@@ -120,7 +120,7 @@
                             <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/horaire-regulier-*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('events.index') }}">@icon('📆') {{ __('Events') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ url('/article/horaire-regulier-P2M16') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url('/article/horaire-regulier-uViG0') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
                                 @if(auth()->user()->isBureau() || auth()->user()->hasRole('instructor'))
                                     <li><a class="dropdown-item" href="{{ route('availability.index') }}">@icon('📅') {{ __('Instructor Availability') }}</a></li>
                                 @endif

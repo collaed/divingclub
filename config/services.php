@@ -18,6 +18,10 @@ return [
         'key' => env('ONEMIN_AI_KEY'),
     ],
 
+    'deepl' => [
+        'key' => env('DEEPL_API_KEY'),
+    ],
+
     // Inbound mail processing
     // Mode 'maildir': reads from local Maildir (no extra services needed)
     // Mode 'imap': connects to remote mailbox (when mail is on another server)

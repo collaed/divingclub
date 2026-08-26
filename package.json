@@ -19,6 +19,7 @@
         "@popperjs/core": "^2.11.8",
         "bootstrap": "^5.3.8",
         "chart.js": "^4.5.1",
+        "flatpickr": "4.6.13",
         "sass": "^1.98.0"
     }
 }

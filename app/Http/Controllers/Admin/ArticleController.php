@@ -13,6 +13,7 @@ use App\Models\ArticleImage;
 use App\Models\Vote;
 use App\Services\ArticleTranslationService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -107,7 +108,6 @@ class ArticleController extends Controller
             'delete_images.*' => 'exists:article_images,id',
         ]);
 
-        $validated['slug'] = Str::slug($validated['title']).'-'.Str::random(5);
         $validated['is_published'] = $request->boolean('is_published');
         $validated['is_public'] = $request->boolean('is_public');
         $validated['body'] = HtmlSanitizer::clean($validated['body']);
@@ -130,6 +130,17 @@ class ArticleController extends Controller
             ->delay(now()->addMinutes(2));
 
         return redirect()->route('admin.articles.edit', $article)->with('success', __('Article updated.'));
+    }
+
+    public function togglePublish(Request $request, Article $article): RedirectResponse|JsonResponse
+    {
+        $article->update(['is_published' => ! $article->is_published]);
+
+        if ($request->ajax()) {
+            return response()->json(['is_published' => $article->is_published]);
+        }
+
+        return redirect()->route('admin.articles.index')->with('success', __('Article updated.'));
     }
 
     public function destroy(Article $article): RedirectResponse

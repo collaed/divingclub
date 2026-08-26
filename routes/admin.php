@@ -45,6 +45,7 @@ Route::post('/members/{user}/send-reset', [MemberController::class, 'sendReset']
 // Articles & Links
 Route::resource('articles', ArticleController::class)->except('show');
 Route::post('articles/{article}/translate', [ArticleController::class, 'translate'])->name('articles.translate');
+Route::patch('articles/{article}/toggle-publish', [ArticleController::class, 'togglePublish'])->name('articles.toggle-publish');
 Route::resource('links', LinkController::class)->only(['index', 'store', 'destroy']);
 
 // Newsletters
@@ -125,6 +126,7 @@ Route::post('/seasons/{season}/holidays', [SeasonController::class, 'storeHolida
 Route::delete('/seasons/holidays/{holiday}', [SeasonController::class, 'destroyHoliday'])->name('seasons.holiday.destroy');
 Route::post('/seasons/{season}/patterns', [SeasonController::class, 'storePattern'])->name('seasons.pattern.store');
 Route::delete('/seasons/patterns/{pattern}', [SeasonController::class, 'destroyPattern'])->name('seasons.pattern.destroy');
+Route::put('/seasons/patterns/{pattern}', [SeasonController::class, 'updatePattern'])->name('seasons.pattern.update');
 Route::get('/seasons/{season}/preview', [SeasonController::class, 'previewGeneration'])->name('seasons.preview');
 Route::post('/seasons/{season}/generate', [SeasonController::class, 'generateEvents'])->name('seasons.generate');
 

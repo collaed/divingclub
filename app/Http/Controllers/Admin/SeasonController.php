@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class SeasonController extends Controller
@@ -141,6 +142,74 @@ class SeasonController extends Controller
         }
 
         return back()->with('success', __('Pattern removed.'));
+    }
+
+    public function updatePattern(Request $request, SeasonPattern $pattern): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'day_of_week' => 'required|integer|min:0|max:6',
+            'start_time' => 'required|string|max:5',
+            'end_time' => 'nullable|string|max:5',
+            'event_type' => 'required|string|max:50',
+            'title' => 'required|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'max_participants' => 'nullable|integer|min:1',
+            'estimated_cost' => 'nullable|numeric|min:0',
+            'registration_opens_days_before' => 'nullable|integer|min:1',
+            'registration_closes_days_before' => 'nullable|integer|min:0',
+            'color_hex' => 'nullable|string|max:7',
+            'whatsapp_group_url' => 'nullable|url|max:500',
+            'propagate' => 'boolean',
+        ]);
+
+        $propagate = $request->boolean('propagate');
+        $patternFields = collect($validated)->except('propagate')->toArray();
+
+        $pattern->update($patternFields);
+
+        // Propagate changes to future events in this season matching this pattern's day
+        if ($propagate && $pattern->season_id) {
+            $carbonDay = ((int) $pattern->day_of_week + 1) % 7;
+            $propagatableFields = collect($patternFields)->only([
+                'event_type', 'title', 'location', 'description', 'max_participants',
+                'estimated_cost', 'color_hex', 'whatsapp_group_url',
+            ])->filter(fn ($v) => $v !== null || in_array($v, ['description', 'whatsapp_group_url']))->toArray();
+
+            // Map pattern fields to event fields
+            $eventUpdates = [];
+            foreach ($propagatableFields as $key => $value) {
+                $eventUpdates[$key] = $value;
+            }
+
+            // Also propagate time changes
+            if (isset($patternFields['start_time'])) {
+                $eventUpdates['event_time'] = $patternFields['start_time'];
+            }
+            if (array_key_exists('end_time', $patternFields)) {
+                $eventUpdates['end_time'] = $patternFields['end_time'];
+            }
+
+            $updated = Event::where('season_id', $pattern->season_id)
+                ->where('event_date', '>=', now()->toDateString())
+                ->whereRaw('EXTRACT(DOW FROM event_date) = ?', [$carbonDay])
+                ->update($eventUpdates);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'ok' => true,
+                'pattern' => $pattern->fresh(),
+                'events_updated' => $propagate ? ($updated ?? 0) : 0,
+            ]);
+        }
+
+        $msg = __('Pattern updated.');
+        if ($propagate && isset($updated) && $updated > 0) {
+            $msg .= ' '.__(':count future events updated.', ['count' => $updated]);
+        }
+
+        return back()->with('success', $msg);
     }
 
     // Generate events preview

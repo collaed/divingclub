@@ -106,5 +106,12 @@
         <a href="{{ route('admin.articles.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
     </form>
 
+    @if($article->exists)
+        <form method="POST" action="{{ route('admin.articles.destroy', $article) }}" class="d-inline ms-2" data-confirm="{{ __('Are you sure you want to delete this article?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn btn-outline-danger">{{ __('Delete Article') }}</button>
+        </form>
+    @endif
+
     <x-rich-editor />
 </x-admin-layout>

@@ -305,7 +305,7 @@
                         <h5>📅 {{ __('Useful Links') }}</h5>
                         <ul class="list-unstyled">
                             <li class="mb-2"><a href="{{ route('events.index') }}">📆 {{ __('Events Calendar') }}</a></li>
-                            <li class="mb-2"><a href="{{ route('article.show', 'training-schedule-ULO7R') }}">🗓️ {{ __('Training Schedule') }}</a></li>
+                            <li class="mb-2"><a href="{{ route('article.show', 'horaire-regulier-uViG0') }}">🗓️ {{ __('Training Schedule') }}</a></li>
                             <li class="mb-2"><a href="{{ route('trial.show') }}">🐠 {{ __('Try Diving') }}</a></li>
                             <li class="mb-2"><a href="{{ route('dues.show') }}">💶 {{ __('Membership Fees') }}</a></li>
                         </ul>

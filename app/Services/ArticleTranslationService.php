@@ -7,9 +7,38 @@ namespace App\Services;
 use App\Models\Article;
 use App\Models\ArticleTranslation;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ArticleTranslationService
 {
+    /**
+     * DeepL language code mapping.
+     * DeepL uses uppercase codes and some differ from our app locales.
+     */
+    private const DEEPL_LANG_MAP = [
+        'en' => 'EN-GB',
+        'de' => 'DE',
+        'fr' => 'FR',
+        'lb' => 'DE', // Luxembourgish not supported — fall back to German
+        'pt' => 'PT-PT',
+        'it' => 'IT',
+        'nl' => 'NL',
+        'es' => 'ES',
+        'pl' => 'PL',
+        'hu' => 'HU',
+        'ro' => 'RO',
+        'el' => 'EL',
+        'et' => 'ET',
+        'sk' => 'SK',
+        'fi' => 'FI',
+    ];
+
+    private const DEEPL_SOURCE_MAP = [
+        'fr' => 'FR',
+        'en' => 'EN',
+        'de' => 'DE',
+    ];
+
     /**
      * Translate an article to the given locale.
      * Tracks source hash and word counts for quality validation.
@@ -25,8 +54,8 @@ class ArticleTranslationService
             return $existing;
         }
 
-        $title = $this->googleTranslate($article->title, $sourceLocale, $targetLocale);
-        $body = $this->googleTranslate($article->body, $sourceLocale, $targetLocale);
+        $title = $this->deeplTranslate($article->title, $sourceLocale, $targetLocale);
+        $body = $this->deeplTranslate($article->body, $sourceLocale, $targetLocale);
 
         // Validate: if API returned null for both, it's a failure
         if (! $title && ! $body) {
@@ -100,7 +129,7 @@ class ArticleTranslationService
      */
     public function translateText(string $text, string $from, string $to): ?string
     {
-        return $this->googleTranslate($text, $from, $to);
+        return $this->deeplTranslate($text, $from, $to);
     }
 
     /** Compute a hash of the article source content for change detection. */
@@ -132,89 +161,65 @@ class ArticleTranslationService
             ->update(['stale' => true]);
     }
 
-    protected function googleTranslate(string $text, string $from, string $to): ?string
+    /**
+     * Translate text using DeepL API.
+     * Handles HTML natively via tag_handling parameter.
+     */
+    protected function deeplTranslate(string $text, string $from, string $to): ?string
     {
-        // Chunk long texts to stay under Google's ~5000 char limit
-        if (mb_strlen($text) > 4500) {
-            return $this->googleTranslateChunked($text, $from, $to);
-        }
         if (in_array(trim(strip_tags($text)), ['', '0'], true)) {
             return $text;
         }
 
-        $placeholders = [];
-        $escaped = preg_replace_callback('/\{\{[^}]+\}\}/', function ($m) use (&$placeholders): string {
-            $key = '⟦TK'.count($placeholders).'⟧';
-            $placeholders[$key] = $m[0];
+        $apiKey = config('services.deepl.key');
+        if (! $apiKey) {
+            Log::warning('DeepL API key not configured');
 
-            return $key;
-        }, $text);
+            return null;
+        }
 
-        $escaped = preg_replace_callback('/<(img|video|iframe|source|hr|br)\b[^>]*\/?>/i', function ($m) use (&$placeholders): string {
-            $key = '⟦TK'.count($placeholders).'⟧';
-            $placeholders[$key] = $m[0];
+        $targetLang = self::DEEPL_LANG_MAP[$to] ?? strtoupper($to);
+        $sourceLang = self::DEEPL_SOURCE_MAP[$from] ?? strtoupper($from);
 
-            return $key;
-        }, $escaped);
+        // Luxembourgish is not supported by DeepL — skip
+        if ($to === 'lb') {
+            return null;
+        }
+
+        // Determine API endpoint (free vs pro key)
+        $baseUrl = str_ends_with($apiKey, ':fx')
+            ? 'https://api-free.deepl.com/v2/translate'
+            : 'https://api.deepl.com/v2/translate';
 
         try {
-            $response = Http::get('https://translate.googleapis.com/translate_a/single', [
-                'client' => 'gtx',
-                'sl' => $from,
-                'tl' => $to === 'pt' ? 'pt-PT' : $to,
-                'dt' => 't',
-                'q' => $escaped,
+            $response = Http::withHeaders([
+                'Authorization' => 'DeepL-Auth-Key '.$apiKey,
+            ])->asForm()->post($baseUrl, [
+                'text' => $text,
+                'source_lang' => $sourceLang,
+                'target_lang' => $targetLang,
+                'tag_handling' => 'html',
+                'split_sentences' => 'nonewlines',
             ]);
 
             if (! $response->ok()) {
+                Log::warning('DeepL API error', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'target' => $to,
+                ]);
+
                 return null;
             }
 
             $data = $response->json();
-            $translated = '';
-            foreach ($data[0] ?? [] as $segment) {
-                $translated .= $segment[0] ?? '';
-            }
+            $translated = $data['translations'][0]['text'] ?? null;
 
-            if (! $translated) {
-                return null;
-            }
+            return $translated ?: null;
+        } catch (\Throwable $e) {
+            Log::warning('DeepL translation failed', ['error' => $e->getMessage(), 'target' => $to]);
 
-            return str_replace(array_keys($placeholders), array_values($placeholders), $translated);
-        } catch (\Throwable) {
             return null;
         }
-    }
-
-    protected function googleTranslateChunked(string $text, string $from, string $to): ?string
-    {
-        // Split on paragraph boundaries
-        $parts = preg_split('/(<\/p>|<\/h[1-6]>|<br\s*\/?>)/i', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
-        $chunks = [];
-        $current = '';
-
-        foreach ($parts as $part) {
-            if (mb_strlen($current.$part) > 4000 && $current !== '') {
-                $chunks[] = $current;
-                $current = $part;
-            } else {
-                $current .= $part;
-            }
-        }
-        if ($current !== '') {
-            $chunks[] = $current;
-        }
-
-        $translated = '';
-        foreach ($chunks as $chunk) {
-            $result = $this->googleTranslate($chunk, $from, $to);
-            if ($result === null) {
-                return null;
-            }
-            $translated .= $result;
-            usleep(300000); // 300ms between chunks
-        }
-
-        return $translated;
     }
 }

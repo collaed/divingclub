@@ -49,3 +49,4 @@ function urlBase64ToUint8Array(base64String) {
     return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 import './table-utils';
+import './datepicker';

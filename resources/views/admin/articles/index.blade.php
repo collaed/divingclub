@@ -47,10 +47,14 @@
             <tbody>
                 @forelse($articles as $a)
                     @php $m = $a->typeMeta(); @endphp
-                    <tr class="{{ $a->isExpired() ? 'text-muted' : '' }}" style="cursor:pointer" onclick="if(!event.target.closest('button,form,a'))window.location='{{ route('admin.articles.edit', $a) }}'">
+                    <tr class="{{ $a->isExpired() ? 'text-muted' : '' }}" style="cursor:pointer" onclick="if(!event.target.closest('button,form,a,input,.form-check'))window.location='{{ route('admin.articles.edit', $a) }}'">
                         <td><span class="badge" style="background:{{ $m['color'] }}">{{ $m['icon'] }} {{ __($m['label']) }}</span></td>
                         <td>{{ $a->title }}@if($a->vote_id) <span class="badge bg-info ms-1">@icon('🗳')️</span>@endif</td>
-                        <td>{!! $a->is_published ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>' !!}</td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input toggle-publish" data-url="{{ route('admin.articles.toggle-publish', $a) }}" {{ $a->is_published ? 'checked' : '' }}>
+                            </div>
+                        </td>
                         <td>{!! $a->is_public ? '<span class="badge bg-info">Public</span>' : '<span class="badge bg-warning text-dark">Members</span>' !!}</td>
                         <td>{{ $a->expires_at?->format('d/m/Y') ?? '—' }}</td>
                         <td>{{ $a->updated_at->format('d/m/Y H:i') }}</td>
@@ -72,3 +76,32 @@
 </x-admin-layout>
 
 @include("components.clickable-rows")
+
+@push('scripts')
+<script>
+document.querySelectorAll('.toggle-publish').forEach(function(el) {
+    el.addEventListener('change', function(e) {
+        e.stopPropagation();
+        const url = this.dataset.url;
+        fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(function(res) {
+            if (!res.ok) throw new Error('Failed');
+            return res.json();
+        }).then(function(data) {
+            if (typeof showToast === 'function') {
+                showToast(data.is_published ? '{{ __("Published") }}' : '{{ __("Unpublished") }}', 'success');
+            }
+        }).catch(function() {
+            el.checked = !el.checked;
+            if (typeof showToast === 'function') showToast('{{ __("Error") }}', 'danger');
+        });
+    });
+});
+</script>
+@endpush
