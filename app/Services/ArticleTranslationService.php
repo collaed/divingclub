@@ -126,15 +126,19 @@ class ArticleTranslationService
 
     /**
      * Translate arbitrary text — routes to the appropriate provider.
-     * DeepL for supported languages, Cloudflare M2M-100 for Luxembourgish.
+     * Cloudflare M2M-100 primary (daily quota resets), DeepL as fallback (lifetime quota).
      */
     public function translateText(string $text, string $from, string $to): ?string
     {
-        if ($to === 'lb') {
-            return $this->cloudflareTranslate($text, $from, $to);
+        // Try Cloudflare first (free daily quota resets)
+        $result = $this->cloudflareTranslate($text, $from, $to);
+
+        // Fall back to DeepL if Cloudflare failed (not for lb — DeepL doesn't support it)
+        if ($result === null && $to !== 'lb') {
+            $result = $this->deeplTranslate($text, $from, $to);
         }
 
-        return $this->deeplTranslate($text, $from, $to);
+        return $result;
     }
 
     /** Compute a hash of the article source content for change detection. */
