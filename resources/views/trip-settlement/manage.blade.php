@@ -36,6 +36,8 @@
         $totalInstructorSubsidy = collect($settlement['participants'])->sum('instructor_subsidy');
         $totalIndividualCharged = collect($settlement['participants'])->sum('individual_charges');
         $diveInvoiceTotal = (float) $diveInvoiceReceipts->sum('approved_amount');
+        $diveRelatedIndividual = (float) $event->tripReceipts()->where('status','approved')->where('category','individual')->where(function($q) { $q->where('description','like','%dive%')->orWhere('description','like','%plong%')->orWhere('description','like','%nitrox%')->orWhere('description','like','%EAN%'); })->sum('approved_amount');
+        $nonDiveIndividual = $totalIndividualCharged - $diveRelatedIndividual;
     @endphp
     <div class="row mb-4">
         {{-- Global Pool (accommodation, shared by all) --}}
@@ -95,8 +97,8 @@
                 <div class="card-body py-2">
                     <h5 class="mb-0">{{ number_format($diveInvoiceTotal, 2) }} €</h5>
                     <small class="text-muted">{{ __('Diving') }}</small>
-                    @if($totalIndividualCharged > 0)
-                        <div class="mt-1"><span class="badge bg-{{ $totalIndividualCharged >= $diveInvoiceTotal ? 'success' : 'warning' }}">{{ __('covered') }}: {{ number_format($totalIndividualCharged, 2) }} €</span></div>
+                    @if($diveRelatedIndividual > 0)
+                        <div class="mt-1"><span class="badge bg-{{ $diveRelatedIndividual >= $diveInvoiceTotal ? 'success' : 'warning' }}">{{ __('covered') }}: {{ number_format($diveRelatedIndividual, 2) }} €</span></div>
                     @endif
                 </div>
             </div>
@@ -108,8 +110,8 @@
                     @endforeach
                     @if($diveInvoiceReceipts->isEmpty())<span class="text-muted">{{ __('No invoice entered') }}</span>@endif
                     <hr class="my-1">
-                    <div class="d-flex justify-content-between"><span>{{ __('Charged to participants') }} ({{ number_format($event->dive_unit_price ?? 0, 0) }} €/🤿 + {{ number_format($event->nitrox_supplement ?? 0, 0) }} €/EAN)</span><span class="text-success">{{ number_format($totalIndividualCharged, 2) }} €</span></div>
-                    @php $diveDelta = $totalIndividualCharged - $diveInvoiceTotal; @endphp
+                    <div class="d-flex justify-content-between"><span>{{ __('Charged to participants') }} ({{ number_format($event->dive_unit_price ?? 0, 0) }} €/🤿 + {{ number_format($event->nitrox_supplement ?? 0, 0) }} €/EAN)</span><span class="text-success">{{ number_format($diveRelatedIndividual, 2) }} €</span></div>
+                    @php $diveDelta = $diveRelatedIndividual - $diveInvoiceTotal; @endphp
                     <div class="d-flex justify-content-between fw-bold {{ $diveDelta >= 0 ? 'text-success' : 'text-danger' }}"><span>{{ __('Delta') }}</span><span>{{ $diveDelta >= 0 ? '+' : '' }}{{ number_format($diveDelta, 2) }} €</span></div>
                 </div>
             </div>
@@ -143,7 +145,7 @@
         $totalRefunds = collect($settlement['participants'])->where('cancelled', true)->sum('prepaid');
         $totalIndividualCharged = collect($settlement['participants'])->sum('individual_charges');
         $diveInvoice = $event->tripReceipts()->where('status', 'approved')->where('category', 'diving')->sum('approved_amount');
-        $diveDelta = $totalIndividualCharged - $diveInvoice;
+        $diveDelta = $diveRelatedIndividual - $diveInvoice;
         $netResult = $totalPrepaid - $totalExpenses - $totalRefunds - $diveInvoice;
     @endphp
     <div class="alert {{ $netResult >= 0 ? 'alert-success' : 'alert-warning' }} mb-4">
@@ -160,10 +162,10 @@
                 {{ $netResult >= 0 ? '+' : '' }}{{ number_format($netResult, 2) }} €
             </h4>
         </div>
-        @if($diveInvoice > 0 || $totalIndividualCharged > 0)
+        @if($diveInvoice > 0 || $diveRelatedIndividual > 0)
             <small class="text-muted d-block mt-1">
                 🤿 {{ __('Diving') }} ({{ number_format($event->dive_unit_price ?? 0, 0) }} €/{{ __('dive') }} + {{ number_format($event->nitrox_supplement ?? 0, 0) }} €/{{ __('nitrox') }}):
-                {{ __('invoiced') }} {{ number_format($diveInvoice, 2) }} € — {{ __('charged to participants') }} {{ number_format($totalIndividualCharged, 2) }} €
+                {{ __('invoiced') }} {{ number_format($diveInvoice, 2) }} € — {{ __('charged to participants') }} {{ number_format($diveRelatedIndividual, 2) }} €
                 @if($diveDelta >= 0)
                     — <span class="text-success">{{ __('covered') }} (+{{ number_format($diveDelta, 2) }} €)</span>
                 @else
@@ -209,6 +211,8 @@
                                 <select name="category" class="form-select form-select-sm" style="width:100px">
                                     <option value="general" {{ $r->category === 'general' ? 'selected' : '' }}>{{ __('General') }}</option>
                                     <option value="transit" {{ $r->category === 'transit' ? 'selected' : '' }}>{{ __('Transit') }}</option>
+                                    <option value="individual" {{ $r->category === 'individual' ? 'selected' : '' }}>{{ __('Individual charge') }}</option>
+                                    <option value="diving" {{ $r->category === 'diving' ? 'selected' : '' }}>{{ __('Diving') }}</option>
                                 </select>
                                 <button type="submit" class="btn btn-sm btn-success">✓</button>
                             </form>
@@ -292,6 +296,12 @@
                             <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Extra drinks bar') }}" required>
                         </div>
                         <input type="hidden" name="is_third_party" value="0" id="add-third-party-val">
+                        <div class="col-auto align-self-end">
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="add-third-party-cb" onchange="document.getElementById('add-third-party-val').value = this.checked ? '1' : '0'">
+                                <label class="form-check-label small" for="add-third-party-cb">{{ __('Club invoiced') }}</label>
+                            </div>
+                        </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-sm btn-primary">{{ __('Add') }}</button>
                         </div>
@@ -480,13 +490,16 @@
                             $diveReceipt = $tp->user_id ? $event->tripReceipts()->where('user_id', $tp->user_id)->where('category', 'individual')->where('description', 'like', '%dives%')->first() : null;
                         @endphp
                         <td title="{{ $diveReceipt?->description ?? '' }}">
-                            @if(($pResult['individual_charges'] ?? 0) > 0)
-                                {{ number_format($pResult['individual_charges'], 2) }} €
+                            @if(($pResult['dive_charges'] ?? 0) > 0)
+                                {{ number_format($pResult['dive_charges'], 2) }} €
                                 @if($diveReceipt && preg_match('/(\d+) dives \+ (\d+) nitrox/', $diveReceipt->description, $dm))
                                     <br><small class="text-muted">{{ $dm[1] }}🤿 + {{ $dm[2] }} EAN</small>
                                 @endif
                             @else
                                 —
+                            @endif
+                            @if(($pResult['other_charges'] ?? 0) > 0)
+                                <br><small class="text-warning" title="{{ __('Non-diving charges') }}">+{{ number_format($pResult['other_charges'], 2) }} €</small>
                             @endif
                         </td>
                         <td class="{{ ($pResult['balance'] ?? 0) > 0 ? 'text-danger' : 'text-success' }}">
@@ -621,19 +634,23 @@
         if (addCategory && addMemberCol) {
             addCategory.addEventListener('change', function() {
                 const label = addMemberCol.querySelector('label');
+                const cb = document.getElementById('add-third-party-cb');
                 if (this.value === 'individual') {
                     addMemberCol.style.display = '';
                     document.getElementById('add-user-id').disabled = false;
                     label.textContent = '{{ __("Charged to") }}';
-                    addThirdPartyVal.value = '1';
+                    cb.checked = false;
+                    addThirdPartyVal.value = '0';
                 } else if (this.value === 'diving') {
                     addMemberCol.style.display = 'none';
                     document.getElementById('add-user-id').disabled = true;
+                    cb.checked = true;
                     addThirdPartyVal.value = '1';
                 } else {
                     addMemberCol.style.display = '';
                     document.getElementById('add-user-id').disabled = false;
                     label.textContent = '{{ __("Paid by (optional)") }}';
+                    cb.checked = false;
                     addThirdPartyVal.value = '0';
                 }
             });
@@ -684,8 +701,12 @@
                         {{-- Inline edit row is handled via JS below --}}
                         @endif
                         <td>{{ $r->user ? ($r->user->detail?->first_name . ' ' . $r->user->detail?->last_name) : __('Club (3rd party)') }}</td>
-                        <td class="{{ $r->category === 'individual' ? 'text-success' : '' }}">{{ $r->category === 'individual' ? '-' : '' }}{{ number_format($r->approved_amount ?? $r->amount, 2) }} €</td>
-                        <td><span class="{{ $r->category === 'individual' ? 'text-success fw-bold' : '' }}">{{ match($r->category) { 'general' => __('General'), 'transit' => __('Transit'), 'individual' => __('Individual charge'), 'diving' => __('Diving'), default => $r->category } }}</span></td>
+                        <td class="{{ $r->category === 'individual' ? 'text-success' : ($r->category === 'memo' ? 'text-info' : '') }}">{{ $r->category === 'individual' ? '-' : '' }}{{ number_format($r->approved_amount ?? $r->amount, 2) }} €</td>
+                        <td><span class="{{ $r->category === 'individual' ? 'text-success fw-bold' : ($r->category === 'memo' ? 'text-info' : '') }}">{{ match($r->category) { 'general' => __('General'), 'transit' => __('Transit'), 'individual' => __('Individual charge'), 'diving' => __('Diving'), 'memo' => __('📝 Memo (audit)'), default => $r->category } }}</span>
+                            @if($r->category === 'individual' && ! preg_match('/dive|plong|nitrox|EAN/i', $r->description ?? ''))
+                                <br><small class="text-muted">⬅ {{ __('club advanced, member owes') }}</small>
+                            @endif
+                        </td>
                         <td>{{ $r->description ?? '—' }}</td>
                         <td>
                             @if($r->status === 'approved')
@@ -768,8 +789,10 @@
                     <div class="mb-3">
                         <label class="form-label">{{ __('Category') }}</label>
                         <select name="category" id="edit-category" class="form-select" required>
+                            <option value="individual">👤 {{ __('Individual charge') }}</option>
                             <option value="transit">🚐 {{ __('Transit (fuel, tolls)') }}</option>
                             <option value="general">📦 {{ __('General (shared)') }}</option>
+                            <option value="diving">🤿 {{ __('Diving') }}</option>
                         </select>
                     </div>
                     <div class="mb-3">

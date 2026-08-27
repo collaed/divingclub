@@ -17,6 +17,19 @@
                         @if($vote->allow_multiple) · {{ __('You may select multiple options.') }} @endif
                     </p>
 
+                    @if($voteToken->is_consumed && ! $vote->allow_change)
+                        <div class="alert alert-success">
+                            <strong>✅ {{ __('Your vote has already been recorded.') }}</strong><br>
+                            <small class="text-muted">{{ __('Submitted on') }} {{ $voteToken->consumed_at?->format('d/m/Y H:i') }}</small>
+                        </div>
+                        @foreach($vote->options as $opt)
+                            <div class="form-check mb-2">
+                                <input type="{{ $vote->allow_multiple ? 'checkbox' : 'radio' }}" class="form-check-input" disabled {{ in_array($opt->id, $currentBallots) ? 'checked' : '' }}>
+                                <label class="form-check-label text-muted">{{ $opt->label }}</label>
+                            </div>
+                        @endforeach
+                    @else
+
                     @if($currentBallots && $vote->allow_change)
                         <div class="alert alert-info small">{{ __('You have already voted. Submitting again will update your choices.') }}</div>
                     @endif
@@ -37,9 +50,10 @@
                             {{ $vote->mode === 'election' ? __('Cast Vote (irreversible)') : ($currentBallots ? __('Update Vote') : __('Submit Vote')) }}
                         </button>
                     </form>
+                    @endif
 
                     {{-- Public results --}}
-                    @if($vote->is_public)
+                    @if($vote->is_public && ($vote->mode !== 'election' || $vote->status === 'closed'))
                         @php $totalVotes = $vote->ballots()->count(); @endphp
                         @if($totalVotes > 0)
                             <hr>

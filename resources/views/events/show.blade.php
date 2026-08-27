@@ -570,7 +570,7 @@
                                 @csrf
                                 <div class="row g-2">
                                     <div class="col">
-                                        <input type="file" name="photos[]" class="form-control form-control-sm" accept="image/*" multiple required>
+                                        <input type="file" name="photos[]" class="form-control form-control-sm" accept="image/*,video/mp4,video/quicktime,video/webm,video/x-msvideo,application/zip,application/x-zip-compressed,.zip,.mov,.mp4" multiple required>
                                     </div>
                                     <div class="col-auto">
                                         <input type="text" name="caption" class="form-control form-control-sm" placeholder="{{ __('Caption (optional)') }}">
@@ -583,7 +583,7 @@
                                     <input type="checkbox" name="gdpr_consent" value="1" class="form-check-input" id="gdprPhotoConsent" required>
                                     <label class="form-check-label small" for="gdprPhotoConsent">{{ __('I consent to these photos being shared on the club\'s social media channels') }}</label>
                                 </div>
-                                <small class="text-muted">{{ __('Max 10MB per photo. Best photos appear first.') }}</small>
+                                <small class="text-muted">{{ __('Max 100MB per file. Photos, videos (MP4/MOV), or a ZIP archive.') }}</small>
                             </form>
                         @else
                             <div class="alert alert-info small mt-3 mb-0 py-2">

@@ -40,6 +40,9 @@
                 <div class="card-header">{{ __('Actions') }}</div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.votes.generate-tokens', $vote) }}" class="mb-2">@csrf <button class="btn btn-sm btn-primary w-100">{{ __('Generate Tokens for All Members') }}</button></form>
+                    @if($vote->tokens->count())
+                    <form method="POST" action="{{ route('admin.votes.send-tokens', $vote) }}" class="mb-2" data-confirm="{{ __('Send voting links to all members?') }}" data-confirm-style="warning" data-confirm-btn="{{ __('Send') }}">@csrf <button class="btn btn-sm btn-outline-success w-100">{{ __('Send Voting Links by Email') }}</button></form>
+                    @endif
                     @if($vote->status === 'draft')
                         <form method="POST" action="{{ route('admin.votes.open', $vote) }}" class="mb-2">@csrf <button class="btn btn-sm btn-success w-100">{{ __('Open Vote') }}</button></form>
                     @endif

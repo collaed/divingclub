@@ -124,6 +124,33 @@
                     <button type="button" class="btn btn-outline-secondary" onclick="clearDecorations()" id="clearDecorBtn" style="display:none">✕ {{ __('Clear') }}</button>
                     <a href="{{ route('admin.newsletters.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
                 </div>
+
+                {{-- Gemini Prompt Template for Graphics Generation --}}
+                <details class="mt-4">
+                    <summary class="btn btn-sm btn-outline-warning">🎨 {{ __('Generate Theme Graphics (Gemini Prompt)') }}</summary>
+                    <div class="card mt-2 p-3" style="background:#fffbea;font-size:13px">
+                        <p class="fw-bold mb-2">{{ __('Copy this prompt to Gemini Image Generation. Replace [THEME] and [DECORATIONS] with your choices:') }}</p>
+                        <textarea class="form-control font-monospace" rows="18" readonly onclick="this.select()" style="font-size:11px">Generate a single image file (PNG, 600×900px) containing all newsletter frame elements for a scuba diving club newsletter, arranged as a sprite sheet with clear cut lines between each piece. The theme is: [THEME — e.g. "summer Mediterranean coast", "deep blue abyss", "tropical coral reef", "Arctic ice diving"].
+
+The image must contain these exact pieces arranged vertically, clearly separated by 1px red guide lines:
+
+1. HEADER — 600×150px — Top banner with the newsletter title area (leave space for text overlay "Bulles et Aventures — [Month] [Year]")
+2. LEFT WALL — 45×300px — Decorative left border for the article grid (seamless, tileable vertically)
+3. CENTER SEPARATOR — 45×300px — Decorative vertical divider between left and right article columns
+4. RIGHT WALL — 44×300px — Decorative right border for the article grid (seamless, tileable vertically)
+5. HORIZONTAL SEPARATOR — 600×35px — Decorative band separating row 1 from row 2
+6. FOOTER — 600×120px — Bottom banner with subtle club identity area
+
+Style: watercolor illustration, consistent color palette throughout, [DECORATIONS — e.g. "with bubbles, tropical fish, coral, seahorses", "with jellyfish, kelp, dark rocks", "with palm trees, clear water, colorful fish"]. No text in the images. Cohesive artistic style across all pieces. Email-safe (no transparency needed, use solid backgrounds at edges).</textarea>
+                        <div class="mt-2 small text-muted">
+                            <strong>{{ __('After generation:') }}</strong> {{ __('Slice the image into individual pieces using the red guides, resize each to exact pixel dimensions above, save as JPEG (quality 82), then upload them in the Background section as a theme folder.') }}
+                        </div>
+                        <div class="mt-1 small">
+                            <strong>{{ __('Exact piece sizes:') }}</strong>
+                            header.jpg (600×150) · row1-left.jpg (45×300) · row1-center.jpg (45×300) · row1-right.jpg (44×300) · h-separator.jpg (600×35) · row2-left.jpg (45×300) · row2-center.jpg (45×300) · row2-right.jpg (44×300) · footer.jpg (600×120)
+                        </div>
+                    </div>
+                </details>
             </div>
 
             {{-- Right: Article picker sidebar --}}

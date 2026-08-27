@@ -30,9 +30,9 @@
             @csrf
             <div class="row g-2 align-items-end">
                 <div class="col-md-6">
-                    <input type="file" name="photos[]" class="form-control @error('photos.*') is-invalid @enderror" accept="image/*" multiple required>
+                    <input type="file" name="photos[]" class="form-control @error('photos.*') is-invalid @enderror" accept="image/*,video/mp4,video/quicktime,video/webm,video/x-msvideo,application/zip,application/x-zip-compressed,.zip,.mov,.mp4" multiple required>
                     @error('photos.*') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    <small class="text-muted">{{ __('Max 10MB per image. Multiple selection allowed.') }}</small>
+                    <small class="text-muted">{{ __('Max 100MB per file. Photos, videos (MP4/MOV), or a ZIP archive.') }}</small>
                 </div>
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary">{{ __('Upload') }}</button>
