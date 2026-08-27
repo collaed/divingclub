@@ -22,6 +22,11 @@ return [
         'key' => env('DEEPL_API_KEY'),
     ],
 
+    'cloudflare' => [
+        'account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
+        'api_token' => env('CLOUDFLARE_API_TOKEN'),
+    ],
+
     // Inbound mail processing
     // Mode 'maildir': reads from local Maildir (no extra services needed)
     // Mode 'imap': connects to remote mailbox (when mail is on another server)

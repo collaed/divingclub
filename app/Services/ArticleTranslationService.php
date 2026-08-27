@@ -54,8 +54,8 @@ class ArticleTranslationService
             return $existing;
         }
 
-        $title = $this->deeplTranslate($article->title, $sourceLocale, $targetLocale);
-        $body = $this->deeplTranslate($article->body, $sourceLocale, $targetLocale);
+        $title = $this->translateText($article->title, $sourceLocale, $targetLocale);
+        $body = $this->translateText($article->body, $sourceLocale, $targetLocale);
 
         // Validate: if API returned null for both, it's a failure
         if (! $title && ! $body) {
@@ -125,10 +125,15 @@ class ArticleTranslationService
     }
 
     /**
-     * Translate arbitrary text (used by email system).
+     * Translate arbitrary text — routes to the appropriate provider.
+     * DeepL for supported languages, Cloudflare M2M-100 for Luxembourgish.
      */
     public function translateText(string $text, string $from, string $to): ?string
     {
+        if ($to === 'lb') {
+            return $this->cloudflareTranslate($text, $from, $to);
+        }
+
         return $this->deeplTranslate($text, $from, $to);
     }
 
@@ -181,11 +186,6 @@ class ArticleTranslationService
         $targetLang = self::DEEPL_LANG_MAP[$to] ?? strtoupper($to);
         $sourceLang = self::DEEPL_SOURCE_MAP[$from] ?? strtoupper($from);
 
-        // Luxembourgish is not supported by DeepL — skip
-        if ($to === 'lb') {
-            return null;
-        }
-
         // Determine API endpoint (free vs pro key)
         $baseUrl = str_ends_with($apiKey, ':fx')
             ? 'https://api-free.deepl.com/v2/translate'
@@ -221,5 +221,132 @@ class ArticleTranslationService
 
             return null;
         }
+    }
+
+    /**
+     * Cloudflare M2M-100 language name mapping.
+     * M2M-100 uses full language names, not ISO codes.
+     */
+    private const CF_LANG_MAP = [
+        'en' => 'english',
+        'fr' => 'french',
+        'de' => 'german',
+        'lb' => 'luxembourgish',
+        'pt' => 'portuguese',
+        'it' => 'italian',
+        'nl' => 'dutch',
+        'es' => 'spanish',
+        'pl' => 'polish',
+        'hu' => 'hungarian',
+        'ro' => 'romanian',
+        'el' => 'greek',
+        'et' => 'estonian',
+        'sk' => 'slovak',
+        'fi' => 'finnish',
+    ];
+
+    /**
+     * Translate text using Cloudflare Workers AI (M2M-100).
+     * Used as a fallback for languages not supported by DeepL (e.g. Luxembourgish).
+     * Does not handle HTML natively — strip tags for short texts, pass raw for longer content.
+     */
+    protected function cloudflareTranslate(string $text, string $from, string $to): ?string
+    {
+        if (in_array(trim(strip_tags($text)), ['', '0'], true)) {
+            return $text;
+        }
+
+        $accountId = config('services.cloudflare.account_id');
+        $apiToken = config('services.cloudflare.api_token');
+
+        if (! $accountId || ! $apiToken) {
+            Log::warning('Cloudflare Workers AI credentials not configured');
+
+            return null;
+        }
+
+        $sourceLang = self::CF_LANG_MAP[$from] ?? $from;
+        $targetLang = self::CF_LANG_MAP[$to] ?? $to;
+
+        $url = "https://api.cloudflare.com/client/v4/accounts/{$accountId}/ai/run/@cf/meta/m2m100-1.2b";
+
+        // M2M-100 doesn't handle HTML — translate stripped text for short content,
+        // or chunk by HTML blocks for longer content
+        $isHtml = $text !== strip_tags($text);
+
+        if ($isHtml) {
+            return $this->cloudflareTranslateHtml($text, $sourceLang, $targetLang, $url, $apiToken);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.$apiToken,
+            ])->post($url, [
+                'text' => $text,
+                'source_lang' => $sourceLang,
+                'target_lang' => $targetLang,
+            ]);
+
+            if (! $response->ok()) {
+                Log::warning('Cloudflare AI error', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'target' => $to,
+                ]);
+
+                return null;
+            }
+
+            return $response->json('result.translated_text');
+        } catch (\Throwable $e) {
+            Log::warning('Cloudflare translation failed', ['error' => $e->getMessage(), 'target' => $to]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Translate HTML content via Cloudflare by extracting text nodes,
+     * translating them individually, and reassembling.
+     */
+    protected function cloudflareTranslateHtml(string $html, string $sourceLang, string $targetLang, string $url, string $apiToken): ?string
+    {
+        // Split HTML into tags and text segments
+        $parts = preg_split('/(<[^>]+>)/', $html, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        $result = '';
+
+        foreach ($parts as $part) {
+            // Skip HTML tags
+            if (str_starts_with($part, '<')) {
+                $result .= $part;
+
+                continue;
+            }
+
+            // Skip whitespace-only segments
+            if (trim($part) === '') {
+                $result .= $part;
+
+                continue;
+            }
+
+            try {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer '.$apiToken,
+                ])->post($url, [
+                    'text' => $part,
+                    'source_lang' => $sourceLang,
+                    'target_lang' => $targetLang,
+                ]);
+
+                $translated = $response->ok() ? $response->json('result.translated_text') : null;
+                $result .= $translated ?? $part;
+                usleep(100000); // 100ms between calls to avoid rate limiting
+            } catch (\Throwable) {
+                $result .= $part;
+            }
+        }
+
+        return $result;
     }
 }
