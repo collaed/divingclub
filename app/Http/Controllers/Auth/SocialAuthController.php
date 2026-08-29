@@ -18,7 +18,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\MemberDetail;
-use App\Models\Role;
 use App\Models\User;
 use App\Models\UserEmail;
 use App\Models\UserSocialAccount;
@@ -98,7 +97,7 @@ class SocialAuthController extends Controller
             );
         }
 
-        // 3. No email match — ask user if they have an existing account or are new
+        // 3. No email match — inform user, offer to link or register
         session([
             'pending_social_new' => [
                 'provider' => $provider,
@@ -175,7 +174,7 @@ class SocialAuthController extends Controller
         );
     }
 
-    /** User chose "I'm new" — create account. */
+    /** User chose "I'm new" — create account pending bureau approval. */
     public function createNew(): RedirectResponse
     {
         $pending = session('pending_social_new');
@@ -184,12 +183,10 @@ class SocialAuthController extends Controller
         }
 
         $user = DB::transaction(function () use ($pending) {
-            $memberRole = Role::where('slug', 'member')->first();
-
             $user = User::create([
                 'primary_email' => $pending['email'],
-                'role_id' => $memberRole?->id,
                 'email_verified_at' => now(),
+                'status_slug' => 'pending',
             ]);
 
             $user->assignRole('member');
@@ -218,13 +215,24 @@ class SocialAuthController extends Controller
                 'last_name' => $parts[1] ?? '',
             ]);
 
+            AuditLog::create([
+                'user_id' => $user->id,
+                'action' => 'sso_registration',
+                'model_type' => User::class,
+                'model_id' => $user->id,
+                'new_values' => ['provider' => $pending['provider'], 'email' => $pending['email'], 'status' => 'pending'],
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'created_at' => now(),
+            ]);
+
             return $user;
         });
 
         session()->forget('pending_social_new');
         Auth::login($user, true);
 
-        return redirect()->route('profile.show')->with('success', __('Welcome! Please complete your profile.'));
+        return redirect()->route('profile.show')->with('warning', __('Welcome! Your account has been created and is pending bureau approval. Please complete your profile.'));
     }
 
     /** After password login, confirm and apply a pending social link. */
