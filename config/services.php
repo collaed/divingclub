@@ -22,6 +22,8 @@ return [
         'key' => env('DEEPL_API_KEY'),
     ],
 
+    'auth_base_url' => env('AUTH_BASE_URL'),
+
     'cloudflare' => [
         'account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
         'api_token' => env('CLOUDFLARE_API_TOKEN'),

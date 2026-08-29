@@ -308,7 +308,8 @@ fetch('{{ route("photos.browse") }}').then(r=>r.json()).then(d=>{document.getEle
         <p style="text-align:center;color:#999;font-size:.85rem;margin-bottom:.75rem">{{ __('Or sign in with') }}</p>
         <div style="display:grid;gap:.5rem">
             @foreach($providers as $provider => $label)
-                <a href="{{ route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
+                @php $authBase = config('services.auth_base_url'); @endphp
+                <a href="{{ $authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
             @endforeach
         </div>
     @endif
