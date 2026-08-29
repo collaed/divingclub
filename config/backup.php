@@ -22,7 +22,18 @@ return [
                     storage_path('app/public'),
                     storage_path('app/private'),
                 ],
-                'exclude' => [],
+                'exclude' => [
+                    storage_path('app/public/library'),
+                    storage_path('app/public/event-photos'),
+                    storage_path('app/public/photos'),
+                    storage_path('app/public/images'),
+                    storage_path('app/public/avatars'),
+                    storage_path('app/private/medical'),
+                    storage_path('app/private/scancards'),
+                    storage_path('app/private/thumbnails'),
+                    storage_path('app/backups'),
+                    storage_path('app/backup-temp'),
+                ],
                 'follow_links' => false,
                 'ignore_unreadable_directories' => true,
                 'relative_path' => storage_path('app'),
@@ -40,7 +51,7 @@ return [
 
         'destination' => [
             'filename_prefix' => 'backup-',
-            'disks' => ['local'],
+            'disks' => ['backup'],
         ],
 
         'temporary_directory' => storage_path('app/backup-temp'),
@@ -71,7 +82,7 @@ return [
     'monitor_backups' => [
         [
             'name' => env('APP_NAME', 'DivingClub'),
-            'disks' => ['local'],
+            'disks' => ['backup'],
             'health_checks' => [
                 MaximumAgeInDays::class => 7,
                 MaximumStorageInMegabytes::class => 5000,
