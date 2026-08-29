@@ -38,6 +38,14 @@ class SocialAuthController extends Controller
     {
         abort_unless(in_array($provider, $this->providers), 404);
 
+        // Store the originating domain so we can redirect back after OAuth callback
+        $referer = request()->headers->get('referer', '');
+        $scheme = parse_url($referer, PHP_URL_SCHEME);
+        $host = parse_url($referer, PHP_URL_HOST);
+        if ($scheme && $host) {
+            session(['oauth_origin' => $scheme.'://'.$host]);
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 
@@ -48,7 +56,7 @@ class SocialAuthController extends Controller
         try {
             $socialUser = Socialite::driver($provider)->user();
         } catch (\Exception $e) {
-            return redirect()->route('login')->with('error', __('Authentication failed. Please try again.'));
+            return redirect($this->originUrl('/login'))->with('error', __('Authentication failed. Please try again.'));
         }
 
         // 1. Existing social link — just update tokens and log in
@@ -60,14 +68,14 @@ class SocialAuthController extends Controller
             $social->update(['token' => $socialUser->token ?? null, 'refresh_token' => $socialUser->refreshToken ?? null]);
             Auth::login($social->user, true);
 
-            return redirect()->intended(route('profile.show'));
+            return redirect($this->originUrl('/profile'));
         }
 
         // 2. Email matches existing account — require confirmation (anti-takeover)
         $email = $socialUser->getEmail();
 
         if (! $email) {
-            return redirect()->route('login')->with('error', __('No email returned by :provider. Please use another login method.', ['provider' => ucfirst($provider)]));
+            return redirect($this->originUrl('/login'))->with('error', __('No email returned by :provider. Please use another login method.', ['provider' => ucfirst($provider)]));
         }
 
         $emailRecord = UserEmail::where('email', $email)->first();
@@ -85,7 +93,7 @@ class SocialAuthController extends Controller
                 ],
             ]);
 
-            return redirect()->route('login')->with('warning',
+            return redirect($this->originUrl('/login'))->with('warning',
                 __('A :provider account with this email exists. Please log in with your password to confirm the link.', ['provider' => ucfirst($provider)])
             );
         }
@@ -102,7 +110,18 @@ class SocialAuthController extends Controller
             ],
         ]);
 
-        return redirect()->route('auth.social.choose');
+        return redirect($this->originUrl('/auth/social/choose'));
+    }
+
+    /**
+     * Build an absolute URL on the originating domain (stored in session during redirect).
+     * Falls back to APP_URL if no origin was stored.
+     */
+    private function originUrl(string $path): string
+    {
+        $origin = session()->pull('oauth_origin', config('app.url'));
+
+        return rtrim($origin, '/').$path;
     }
 
     /** Show the "link existing or register new" choice page. */
