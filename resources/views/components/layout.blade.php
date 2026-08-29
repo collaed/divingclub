@@ -312,7 +312,9 @@
     <footer class="dc-footer py-4 mt-auto">
         <div class="container text-center">
             <p class="mb-1"><img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" height="20" class="me-1">{{ $theme['club_full_name'] ?? 'DivingClub' }} — {{ __('Diving Club Management System') }}</p>
-            <p class="mb-0 small opacity-75">© {{ date('Y') }} — {{ __('Powered by') }} <a href="https://github.com/collaed/divingclub" class="text-white" target="_blank">DivingClub-Manager</a></p>
+            <p class="mb-0 small opacity-75">© {{ date('Y') }} — {{ __('Powered by') }} <a href="https://github.com/collaed/divingclub" class="text-white" target="_blank">DivingClub-Manager</a>
+            <span class="mx-1">·</span> <a href="{{ route('privacy') }}" class="text-white-50">{{ __('Privacy') }}</a>
+            <span class="mx-1">·</span> <a href="{{ route('terms') }}" class="text-white-50">{{ __('Terms') }}</a></p>
         </div>
     </footer>
     {{-- Dark mode persistence --}}
