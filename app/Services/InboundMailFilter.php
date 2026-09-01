@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Event;
+use EmailReplyParser\EmailReplyParser;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -175,6 +176,17 @@ class InboundMailFilter
 
     protected static function stripQuotedReplies(string $body): string
     {
+        // For plain-text bodies, use EmailReplyParser to isolate the visible
+        // reply from quoted history. It is conservative and returns the input
+        // unchanged when it cannot confidently split, so we guard against it
+        // stripping everything.
+        if (! str_contains($body, '<')) {
+            $visible = EmailReplyParser::parseReply($body);
+            if (trim($visible) !== '') {
+                $body = $visible;
+            }
+        }
+
         // "On DATE, NAME wrote:" block and everything after
         $body = preg_replace('/\n(Le |On |Am ).+?(a écrit|wrote|schrieb)\s*:\s*\n.*/s', '', $body);
 

@@ -97,6 +97,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(UserEmail::class);
     }
 
+    /** The member's stable club mail alias (type=member).
+     *
+     * @return HasOne<MailAlias, $this>
+     */
+    public function mailAlias(): HasOne
+    {
+        return $this->hasOne(MailAlias::class)->where('type', 'member');
+    }
+
     /** @return HasOne<UserEmail, $this> */
     public function primaryEmailRecord(): HasOne
     {

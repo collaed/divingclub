@@ -25,6 +25,7 @@
             <a href="{{ route('admin.articles.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.articles.*') ? 'active' : '' }}">@icon('📝') {{ __('Articles') }}</a>
             <a href="{{ route('admin.library.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.library.*') ? 'active' : '' }}">@icon('📁') {{ __('Documents') }}</a>
             <a href="{{ route('admin.email.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.email.*') ? 'active' : '' }}">@icon('📧') {{ __('Email') }}</a>
+            <a href="{{ route('admin.conversations.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.conversations.*') ? 'active' : '' }}">@icon('✉️') {{ __('Conversations') }}</a>
             <a href="{{ route('admin.newsletters.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.newsletters.*') ? 'active' : '' }}">@icon('📬') {{ __('Newsletters') }}</a>
             <a href="{{ route('admin.votes.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.votes.*') ? 'active' : '' }}">@icon('🗳️') {{ __('Votes') }}</a>
         </div>

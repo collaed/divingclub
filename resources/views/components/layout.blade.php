@@ -183,6 +183,7 @@
                                         <li><a class="dropdown-item" href="{{ route('admin.links.index') }}">🔗 {{ __('Links') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.library.index') }}">📁 {{ __('Documents') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.email.index') }}">📧 {{ __('Email') }}</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.conversations.index') }}">✉️ {{ __('Conversations') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">📬 {{ __('Newsletters') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.email-stats') }}">📊 {{ __('Email Stats') }}</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.votes.index') }}">🗳️ {{ __('Votes') }}</a></li>

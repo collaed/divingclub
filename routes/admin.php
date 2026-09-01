@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\AuditorController;
 use App\Http\Controllers\Admin\BackupController;
+use App\Http\Controllers\Admin\ConversationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
+use App\Http\Controllers\Admin\MailAliasController;
 use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
@@ -41,6 +43,10 @@ Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->n
 Route::post('/members/{user}/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
 Route::post('/members/{user}/impersonate', [MemberController::class, 'impersonate'])->name('impersonate');
 Route::post('/members/{user}/send-reset', [MemberController::class, 'sendReset'])->name('send-reset');
+
+// Member mail alias (bureau confirms/overrides the auto-suggested club alias)
+Route::get('/members/{user}/mail-alias/suggest', [MailAliasController::class, 'suggest'])->name('members.mail-alias.suggest');
+Route::post('/members/{user}/mail-alias', [MailAliasController::class, 'store'])->name('members.mail-alias.store');
 
 // Articles & Links
 Route::resource('articles', ArticleController::class)->except('show');
@@ -191,6 +197,10 @@ Route::put('/email/template/{template}', [EmailController::class, 'updateTemplat
 Route::delete('/email/template/{template}', [EmailController::class, 'destroyTemplate'])->name('email.template.destroy');
 Route::post('/email/preview', [EmailController::class, 'preview'])->name('email.preview');
 Route::post('/email/send', [EmailController::class, 'send'])->name('email.send');
+
+// Conversations (bureau writes to a third party on behalf of the club, proxied)
+Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
+Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
 
 // Votes
 Route::get('/votes', [VoteController::class, 'index'])->name('votes.index');

@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Models\EmailLog;
+use App\Models\MailConversation;
 use App\Models\User;
+use App\Services\ConversationService;
+use App\Services\InboundMailDeduplicator;
 use App\Services\InboundMailFilter;
 use App\Services\MailAliasService;
+use App\Services\MailBalancer;
 use App\Services\ScheduleHeartbeat;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,6 +19,9 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use IMAP\Connection;
+use ZBateson\MailMimeParser\Header\AddressHeader;
+use ZBateson\MailMimeParser\IMessage;
+use ZBateson\MailMimeParser\MailMimeParser;
 
 /**
  * Poll for inbound alias emails — two modes:
@@ -46,6 +53,9 @@ class PollInboundMail implements ShouldQueue
         $processed = 0;
         foreach ($messages as $msg) {
             try {
+                if (! InboundMailDeduplicator::markProcessed($msg['message_id'] ?? null)) {
+                    continue;
+                }
                 $this->processMessage($msg['from'], $msg['to'], $msg['subject'], $msg['body']);
                 $processed++;
             } catch (\Throwable $e) {
@@ -75,18 +85,54 @@ class PollInboundMail implements ShouldQueue
                 continue;
             }
 
-            $headers = $this->parseRawHeaders($raw);
-            $messages[] = [
-                'from' => $this->extractEmail($headers['from'] ?? ''),
-                'to' => $this->extractEmail($headers['to'] ?? ''),
-                'subject' => $this->decodeMimeHeader($headers['subject'] ?? '(no subject)'),
-                'body' => $this->parseRawBody($raw),
-            ];
+            $messages[] = $this->parseRaw($raw);
 
             @rename($file, $curDir.'/'.basename($file).':2,S');
         }
 
         return $messages;
+    }
+
+    /**
+     * Parse a raw RFC822 message into the normalized fields we forward.
+     *
+     * Uses zbateson/mail-mime-parser for robust MIME handling (multipart,
+     * nested parts, base64/quoted-printable, and encoded headers), replacing
+     * the previous hand-rolled boundary/encoding logic.
+     *
+     * @return array{from: string, to: string, subject: string, body: string, message_id: ?string}
+     */
+    private function parseRaw(string $raw): array
+    {
+        $message = (new MailMimeParser)->parse($raw, false);
+
+        $html = $message->getHtmlContent();
+        $text = $message->getTextContent();
+        $body = $html !== null && $html !== ''
+            ? $html
+            : '<pre>'.e($text ?? '').'</pre>';
+
+        return [
+            'from' => $this->addressFromHeader($message, 'From'),
+            'to' => $this->addressFromHeader($message, 'To'),
+            'subject' => (string) ($message->getHeaderValue('Subject') ?: '(no subject)'),
+            'body' => $body,
+            'message_id' => $message->getHeaderValue('Message-ID') ?: null,
+        ];
+    }
+
+    /** Extract the first bare email address from an address header. */
+    private function addressFromHeader(IMessage $message, string $name): string
+    {
+        $header = $message->getHeader($name);
+        if ($header instanceof AddressHeader) {
+            $first = $header->getAddresses()[0] ?? null;
+            if ($first !== null) {
+                return strtolower(trim($first->getEmail()));
+            }
+        }
+
+        return strtolower(trim((string) $message->getHeaderValue($name)));
     }
 
     // ─── IMAP mode ─────────────────────────────────────────
@@ -120,6 +166,7 @@ class PollInboundMail implements ShouldQueue
                 'to' => strtolower($hdr->to[0]->mailbox.'@'.$hdr->to[0]->host),
                 'subject' => $this->decodeImapSubject($hdr->subject ?? ''),
                 'body' => $this->getImapBody($imap, $num),
+                'message_id' => $hdr->message_id ?? null,
             ];
             imap_setflag_full($imap, (string) $num, '\\Seen');
         }
@@ -175,6 +222,15 @@ class PollInboundMail implements ShouldQueue
 
     private function processMessage(string $from, string $to, string $subject, string $body): void
     {
+        // Conversation reply channel: sas+conv.{token}@ replies thread back to
+        // the initiator, keeping the member's real address private.
+        $conversation = ConversationService::matchToken($to);
+        if ($conversation !== null) {
+            $this->forwardConversationReply($conversation, $from, $subject, $body);
+
+            return;
+        }
+
         $recipientDirective = null;
         $simulate = false;
 
@@ -229,9 +285,9 @@ class PollInboundMail implements ShouldQueue
             }
         }
 
-        // Extract event ID from alias for logging
+        // Extract event ID from alias for logging (event-{id} or members.s{id}).
         $eventId = null;
-        if (preg_match('/event[.\-](\d+)/', $to, $em)) {
+        if (preg_match('/event[.\-](\d+)/', $to, $em) || preg_match('/members\.s(\d+)/', $to, $em)) {
             $eventId = (int) $em[1];
         }
 
@@ -256,77 +312,37 @@ class PollInboundMail implements ShouldQueue
         );
     }
 
-    // ─── Raw email parsing (Maildir mode) ──────────────────
-
-    private function parseRawHeaders(string $raw): array
+    /**
+     * Forward an external party's reply on a proxied conversation back to the
+     * initiator, keeping the member's real address private. Event-linked
+     * conversations append the reply to the event page via email_log.event_id.
+     */
+    private function forwardConversationReply(MailConversation $conversation, string $from, string $subject, string $body): void
     {
-        $headerBlock = strstr($raw, "\r\n\r\n", true) ?: strstr($raw, "\n\n", true) ?: '';
-        $headerBlock = preg_replace('/\r?\n\s+/', ' ', $headerBlock);
+        $filtered = InboundMailFilter::filter($body, $conversation->event_id, $from);
+        $initiator = $conversation->initiator;
 
-        $headers = [];
-        foreach (explode("\n", $headerBlock) as $line) {
-            if (preg_match('/^([A-Za-z-]+):\s*(.+)$/', trim($line), $m)) {
-                $headers[strtolower($m[1])] = trim($m[2]);
-            }
+        if ($initiator?->primary_email) {
+            MailBalancer::configureForNext();
+            Mail::html($filtered['body'], fn ($m) => $m->to($initiator->primary_email)
+                ->replyTo($conversation->sas_alias)
+                ->subject("[CEP] {$subject}"));
         }
 
-        return $headers;
-    }
+        ConversationService::recordActivity($conversation);
 
-    private function parseRawBody(string $raw): string
-    {
-        $parts = preg_split('/\r?\n\r?\n/', $raw, 2);
-        $body = $parts[1] ?? '';
-
-        if (preg_match('/boundary="?([^"\s;]+)"?/i', $parts[0] ?? '', $m)) {
-            $boundary = $m[1];
-            foreach (explode("--{$boundary}", $body) as $section) {
-                if (stripos($section, 'text/html') !== false) {
-                    $sp = preg_split('/\r?\n\r?\n/', $section, 2);
-
-                    return $this->decodeRawPart($sp[1] ?? '', $section);
-                }
-            }
-            foreach (explode("--{$boundary}", $body) as $section) {
-                if (stripos($section, 'text/plain') !== false) {
-                    $sp = preg_split('/\r?\n\r?\n/', $section, 2);
-
-                    return '<pre>'.e($this->decodeRawPart($sp[1] ?? '', $section)).'</pre>';
-                }
-            }
-        }
-
-        return stripos($parts[0] ?? '', 'text/html') !== false
-            ? $this->decodeRawPart($body, $parts[0] ?? '')
-            : '<pre>'.e($this->decodeRawPart($body, $parts[0] ?? '')).'</pre>';
-    }
-
-    private function decodeRawPart(string $body, string $headers): string
-    {
-        if (stripos($headers, 'base64') !== false) {
-            return base64_decode(trim($body));
-        }
-        if (stripos($headers, 'quoted-printable') !== false) {
-            return quoted_printable_decode($body);
-        }
-
-        return $body;
-    }
-
-    private function extractEmail(string $header): string
-    {
-        return strtolower(preg_match('/<([^>]+)>/', $header, $m) ? $m[1] : trim($header));
-    }
-
-    private function decodeMimeHeader(string $header): string
-    {
-        if (preg_match_all('/=\?([^?]+)\?([BQ])\?([^?]+)\?=/i', $header, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $m) {
-                $decoded = strtoupper($m[2]) === 'B' ? base64_decode($m[3]) : quoted_printable_decode(str_replace('_', ' ', $m[3]));
-                $header = str_replace($m[0], $decoded, $header);
-            }
-        }
-
-        return $header;
+        EmailLog::create([
+            'event_id' => $conversation->event_id,
+            'user_id' => $conversation->initiator_user_id,
+            'to_email' => $conversation->sas_alias,
+            'alias' => $conversation->sas_alias,
+            'from_email' => $from,
+            'subject' => $subject,
+            'body' => substr($filtered['body'], 0, 5000),
+            'status' => $filtered['needs_review'] ? 'pending_review' : 'forwarded',
+            'direction' => 'inbound',
+            'authorized' => ! $filtered['needs_review'],
+            'error' => $filtered['needs_review'] ? "Needs review: {$filtered['review_reason']}" : null,
+        ]);
     }
 }

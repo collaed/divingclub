@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\EmailLog;
+use App\Models\MailConversation;
 use App\Models\User;
+use App\Services\ConversationService;
+use App\Services\InboundMailDeduplicator;
+use App\Services\InboundMailFilter;
 use App\Services\MailAliasService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
@@ -40,12 +44,27 @@ class ProcessInboundMail extends Command
         $subject = $this->option('subject') ?? '';
         $body = stream_get_contents(STDIN) ?: '';
 
+        // Deduplicate by Message-ID (replicates the legacy mailIds/ folder).
+        $messageId = InboundMailDeduplicator::extractMessageId($body);
+        if (! InboundMailDeduplicator::markProcessed($messageId)) {
+            $this->warn("Duplicate Message-ID {$messageId} — skipping.");
+
+            return self::SUCCESS;
+        }
+
         // Extract subject from raw email if not provided as option
         if (! $subject && preg_match('/^Subject:\s*(.+)$/mi', $body, $m)) {
             $subject = trim($m[1]);
         }
         if (! $subject) {
             $subject = '(no subject)';
+        }
+
+        // Conversation reply channel: sas+conv.{token}@ replies thread back to
+        // the initiator, keeping the member's real address private.
+        $conversation = ConversationService::matchToken($to);
+        if ($conversation !== null) {
+            return $this->forwardConversationReply($conversation, $from, $subject, $body);
         }
 
         // Check for (recipients: ...) directive in subject
@@ -154,6 +173,7 @@ class ProcessInboundMail extends Command
     private function logMail(string $to, string $from, string $subject, string $body, string $status, ?string $error = null): void
     {
         EmailLog::create([
+            'event_id' => $this->eventIdFromAlias($to),
             'to_email' => $to,
             'alias' => $to,
             'from_email' => $from,
@@ -164,5 +184,51 @@ class ProcessInboundMail extends Command
             'authorized' => $status !== 'rejected',
             'error' => $error,
         ]);
+    }
+
+    /** Extract an event ID from an alias (event-{id} or members.s{id}). */
+    private function eventIdFromAlias(string $alias): ?int
+    {
+        if (preg_match('/event[.\-](\d+)/', $alias, $m) || preg_match('/members\.s(\d+)/', $alias, $m)) {
+            return (int) $m[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Forward an external party's reply on a proxied conversation back to the
+     * initiator. Event-linked conversations append to the event page via
+     * email_log.event_id.
+     */
+    private function forwardConversationReply(MailConversation $conversation, string $from, string $subject, string $body): int
+    {
+        $filtered = InboundMailFilter::filter($body, $conversation->event_id, $from);
+        $initiator = $conversation->initiator;
+
+        if ($initiator?->primary_email) {
+            Mail::html($filtered['body'], fn ($m) => $m->to($initiator->primary_email)
+                ->replyTo($conversation->sas_alias)
+                ->subject("[CEP] {$subject}"));
+            $this->line("  → {$initiator->primary_email} (conversation reply)");
+        }
+
+        ConversationService::recordActivity($conversation);
+
+        EmailLog::create([
+            'event_id' => $conversation->event_id,
+            'user_id' => $conversation->initiator_user_id,
+            'to_email' => $conversation->sas_alias,
+            'alias' => $conversation->sas_alias,
+            'from_email' => $from,
+            'subject' => $subject,
+            'body' => substr($filtered['body'], 0, 5000),
+            'status' => $filtered['needs_review'] ? 'pending_review' : 'forwarded',
+            'direction' => 'inbound',
+            'authorized' => ! $filtered['needs_review'],
+            'error' => $filtered['needs_review'] ? "Needs review: {$filtered['review_reason']}" : null,
+        ]);
+
+        return self::SUCCESS;
     }
 }

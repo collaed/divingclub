@@ -75,6 +75,16 @@
         </div>
     </div>
 
+    @if($target->mailAlias && !$isBM)
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">{{ __('Club Mail Alias') }}</label>
+                <input type="text" class="form-control" value="{{ $target->mailAlias->alias }}" readonly>
+                <div class="form-text">{{ __('Your stable club address. Managed by the bureau.') }}</div>
+            </div>
+        </div>
+    @endif
+
     @if($viewer->id === $target->id || $isBM)
     <div class="row">
         <div class="col-md-4 mb-3">
@@ -168,6 +178,39 @@
 
     <button type="submit" class="btn btn-primary mt-3">{{ __('Save') }}</button>
 </form>
+
+@if($isBM && !$isSelf)
+    @php $currentAlias = $target->mailAlias?->alias; @endphp
+    <hr>
+    <h6 class="text-muted">{{ __('Club Mail Alias') }}</h6>
+    <form method="POST" action="{{ route('admin.members.mail-alias.store', $target) }}" class="row g-2 align-items-end">
+        @csrf
+        <div class="col-md-6">
+            <label class="form-label">{{ __('Alias') }}</label>
+            <div class="input-group">
+                <span class="input-group-text">@icon('📧')</span>
+                <input type="text" name="alias" id="mail-alias-input"
+                    class="form-control @error('alias') is-invalid @enderror"
+                    value="{{ old('alias', $currentAlias) }}"
+                    placeholder="{{ __('e.g.') }} jdupont">
+                <button type="button" class="btn btn-outline-secondary" id="mail-alias-suggest"
+                    data-url="{{ route('admin.members.mail-alias.suggest', $target) }}">{{ __('Suggest') }}</button>
+                @error('alias') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="form-text">{{ __('Lowercase letters, digits, and dots only. Must be unique across all members.') }}</div>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">{{ __('Save Alias') }}</button>
+        </div>
+    </form>
+    <script>
+        document.getElementById('mail-alias-suggest')?.addEventListener('click', function () {
+            fetch(this.dataset.url)
+                .then(r => r.json())
+                .then(d => { if (d.suggestion) document.getElementById('mail-alias-input').value = d.suggestion; });
+        });
+    </script>
+@endif
 @else
 {{-- Read-only Batch 2 (Deck) view for regular members --}}
 <table class="table table-sm">
