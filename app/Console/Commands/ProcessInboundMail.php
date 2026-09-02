@@ -159,11 +159,15 @@ class ProcessInboundMail extends Command
 
         $this->logMail($to, $from, $subject, $body, 'forwarded', "Sent to {$sent}/{$count}");
 
-        // Send confirmation to sender
-        Mail::raw(
-            "Your message '{$subject}' was sent to {$sent} recipients ({$resolved['label']}).",
-            fn ($m) => $m->to($from)->subject("[Sent] {$subject} → {$resolved['label']}")
-        );
+        // Passthrough forwards (e.g. sas.eddy → club Gmail) must not send an
+        // auto-confirmation back to the (possibly external) original sender.
+        if (($resolved['auth_level'] ?? null) !== 'open') {
+            // Send confirmation to sender
+            Mail::raw(
+                "Your message '{$subject}' was sent to {$sent} recipients ({$resolved['label']}).",
+                fn ($m) => $m->to($from)->subject("[Sent] {$subject} → {$resolved['label']}")
+            );
+        }
 
         $this->info("Forwarded to {$sent}/{$count} recipients.");
 

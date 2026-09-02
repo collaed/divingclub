@@ -34,12 +34,42 @@ class MailAliasService
             in_array($local, ['bureau', 'members.b']) => static::bureau(),
             in_array($local, ['all', 'members']) => static::allActive(),
             in_array($local, ['instructors', 'moniteurs', 'members.m']) => static::instructors(),
+            array_key_exists($local, static::forwardAliases()) => static::resolveForward($local),
             str_starts_with($local, 'event-') => static::eventParticipants($local),
             str_starts_with($local, 'members.s') => static::eventParticipantsLegacy($local),
             str_starts_with($local, 'year=') => static::membersByYear($local),
             str_starts_with($local, 'members.pn') => static::trainingLevel($local),
             default => null,
         };
+    }
+
+    /**
+     * Simple passthrough forwarding aliases: a local-part maps to one or more
+     * real inboxes. Unlike group aliases, these accept mail from any sender
+     * (auth_level 'open') and simply forward a copy — used to mirror mail into
+     * an external mailbox (e.g. the club Gmail).
+     *
+     * @return array<string, string[]>
+     */
+    public static function forwardAliases(): array
+    {
+        return [
+            'sas.eddy' => ['eddy.collart@gmail.com'],
+        ];
+    }
+
+    /**
+     * Resolve a passthrough forwarding alias to its target inbox(es).
+     *
+     * @return array{emails: string[], label: string, auth_level: string}
+     */
+    protected static function resolveForward(string $local): array
+    {
+        return [
+            'emails' => static::forwardAliases()[$local],
+            'label' => "Forward: {$local}",
+            'auth_level' => 'open',
+        ];
     }
 
     /**
@@ -129,6 +159,11 @@ class MailAliasService
         $resolved = static::resolve($alias);
         if (! $resolved) {
             return false;
+        }
+
+        // Passthrough forward aliases accept mail from any sender.
+        if ($resolved['auth_level'] === 'open') {
+            return true;
         }
 
         $sender = User::where('primary_email', $senderEmail)->first();

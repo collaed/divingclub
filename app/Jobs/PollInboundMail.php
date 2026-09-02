@@ -256,7 +256,8 @@ class PollInboundMail implements ShouldQueue
         }
 
         $sender = User::where('primary_email', $from)->first();
-        if (! $sender || (! $sender->isBureau() && ! $sender->hasRole('instructor'))) {
+        $isOpenForward = ($resolved['auth_level'] ?? null) === 'open';
+        if (! $isOpenForward && (! $sender || (! $sender->isBureau() && ! $sender->hasRole('instructor')))) {
             EmailLog::create([
                 'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
                 'body' => substr($body, 0, 5000), 'status' => 'rejected',
@@ -306,10 +307,14 @@ class PollInboundMail implements ShouldQueue
                 : "Sent to {$sent}/".count($resolved['emails']),
         ]);
 
-        Mail::raw(
-            "Your message '{$subject}' was sent to {$sent} recipients ({$resolved['label']}).",
-            fn ($m) => $m->to($from)->subject("[Sent] {$subject} → {$resolved['label']}")
-        );
+        // Passthrough forwards (e.g. sas.eddy → club Gmail) must not send an
+        // auto-confirmation back to the (possibly external) original sender.
+        if (($resolved['auth_level'] ?? null) !== 'open') {
+            Mail::raw(
+                "Your message '{$subject}' was sent to {$sent} recipients ({$resolved['label']}).",
+                fn ($m) => $m->to($from)->subject("[Sent] {$subject} → {$resolved['label']}")
+            );
+        }
     }
 
     /**
