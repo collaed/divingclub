@@ -75,7 +75,9 @@ class InstructorAvailabilityController extends Controller
 
         $colors = self::ACTIVITY_COLORS;
 
-        return view('availability.index', compact('availabilities', 'events', 'start', 'end', 'isInstructor', 'instructors', 'month', 'colors'));
+        $isBureau = $user->hasAnyRole(['bureau_master', 'bureau_technical', 'bureau_finance']);
+
+        return view('availability.index', compact('availabilities', 'events', 'start', 'end', 'isInstructor', 'isBureau', 'instructors', 'month', 'colors'));
     }
 
     public function toggle(Request $request): JsonResponse
@@ -95,6 +97,56 @@ class InstructorAvailabilityController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Past event'], 422);
         }
 
+        return response()->json($this->applyToggle($user, $event));
+    }
+
+    /**
+     * Bureau-only: toggle availability for an arbitrary instructor on a session.
+     * Powers the "stamp" UI where a bureau member registers/unregisters several
+     * instructors across several pool sessions with a click.
+     */
+    public function toggleFor(Request $request): JsonResponse
+    {
+        $actor = auth()->user();
+        if (! $actor->hasAnyRole(['bureau_master', 'bureau_technical', 'bureau_finance'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'event_id' => 'required|exists:events,id',
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $event = Event::findOrFail($request->event_id);
+
+        if ($event->event_date->lt(today())) {
+            return response()->json(['status' => 'error', 'message' => 'Past event'], 422);
+        }
+
+        $target = User::with('detail')->findOrFail($request->user_id);
+
+        $result = $this->applyToggle($target, $event);
+
+        // Return the instructor's badge data so the UI can render the avatar
+        // without a full page reload.
+        $result['user_id'] = $target->id;
+        $result['initial'] = $target->detail?->instructor_initial
+            ?: mb_strtoupper(mb_substr($target->detail?->first_name ?? '?', 0, 1));
+        $result['color'] = $target->detail?->instructor_color ?? '#00695c';
+        $result['name'] = trim(($target->detail?->first_name ?? '').' '.($target->detail?->last_name ?? ''));
+
+        return response()->json($result);
+    }
+
+    /**
+     * Shared add/remove logic: toggles an InstructorAvailability row for the
+     * given user on the given event, mirroring the change into event
+     * registrations. Returns ['status' => 'added'|'removed'].
+     *
+     * @return array{status: string}
+     */
+    private function applyToggle(User $user, Event $event): array
+    {
         $existing = InstructorAvailability::where('user_id', $user->id)
             ->where('event_id', $event->id)
             ->first();
@@ -108,7 +160,7 @@ class InstructorAvailabilityController extends Controller
                 ->whereIn('status', ['confirmed', 'waiting'])
                 ->update(['status' => 'cancelled']);
 
-            return response()->json(['status' => 'removed']);
+            return ['status' => 'removed'];
         }
 
         DB::transaction(function () use ($user, $event): void {
@@ -141,6 +193,6 @@ class InstructorAvailabilityController extends Controller
             }
         });
 
-        return response()->json(['status' => 'added']);
+        return ['status' => 'added'];
     }
 }

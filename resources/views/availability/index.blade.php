@@ -19,6 +19,22 @@
     .ic-toggle { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; font-size: .75rem; line-height: 1; }
     .ic-toggle-add { background: #28a745; color: #fff; }
     .ic-toggle-remove { background: #dc3545; color: #fff; }
+
+    /* Stamp mode (bureau bulk registration) */
+    .ic-stamp-toolbar { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; padding: .5rem .75rem; background: #f1f8f7; border: 1px solid #b2dfdb; border-radius: 6px; margin: .5rem 0; }
+    .ic-stamp-chip { cursor: pointer; display: inline-flex; align-items: center; gap: .3rem; font-size: .75rem; padding: .2rem .55rem; border-radius: 14px; border: 2px solid transparent; background: #fff; user-select: none; }
+    .ic-stamp-chip .ic-avatar { width: 20px; height: 20px; }
+    .ic-stamp-chip.active { border-color: #00695c; box-shadow: 0 0 0 2px rgba(0,105,92,.2); font-weight: 700; }
+    .stamp-active .ic-slot { cursor: cell; }
+    .stamp-active .ic-slot:hover { outline: 2px dashed #00695c; outline-offset: 1px; }
+    .ic-slot.ic-stamp-saving { opacity: .5; }
+    /* Floating cursor badge (desktop) */
+    #icStampCursor { position: fixed; z-index: 3000; pointer-events: none; transform: translate(8px, 8px); display: none; }
+    #icStampCursor .ic-avatar { width: 26px; height: 26px; font-size: .7rem; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+    /* Mobile sticky brush bar */
+    #icStampBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2900; background: #00695c; color: #fff; padding: .6rem 1rem; display: none; align-items: center; justify-content: space-between; gap: .5rem; box-shadow: 0 -2px 8px rgba(0,0,0,.2); }
+    #icStampBar.show { display: flex; }
+    #icStampBar .ic-avatar { width: 24px; height: 24px; }
     </style>
 
     <div class="ic-header d-flex justify-content-between align-items-center">
@@ -37,6 +53,24 @@
     @else
         <div class="alert alert-light small py-2 mb-0 rounded-0 border-0 text-muted">
             👁 {{ __('Read-only view — see which instructors are available for each session.') }}
+        </div>
+    @endif
+
+    @if($isBureau)
+        <div class="ic-stamp-toolbar" id="icStampToolbar">
+            <strong class="small text-muted me-1">🖊️ {{ __('Stamp mode') }}:</strong>
+            <span class="small text-muted me-2">{{ __('Pick an instructor, then click sessions to add/remove them.') }}</span>
+            @foreach($instructors as $inst)
+                @php
+                    $ini = $inst->detail?->instructor_initial ?: mb_strtoupper(mb_substr($inst->detail?->first_name ?? '?', 0, 1));
+                    $ic = $inst->detail?->instructor_color ?? '#6c757d';
+                    $fullName = trim(($inst->detail?->first_name ?? '').' '.($inst->detail?->last_name ?? ''));
+                @endphp
+                <span class="ic-stamp-chip" data-stamp-user="{{ $inst->id }}" data-stamp-initial="{{ $ini }}" data-stamp-color="{{ $ic }}" data-stamp-name="{{ $fullName }}">
+                    <span class="ic-avatar" style="background:{{ $ic }}">{{ $ini }}</span>{{ $inst->detail?->first_name }}
+                </span>
+            @endforeach
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto d-none" id="icStampExit">✕ {{ __('Exit stamp mode') }}</button>
         </div>
     @endif
 
@@ -90,19 +124,17 @@
                                                 $actColor = $actColors[$actType]['color'] ?? ($ev->color_hex ?? '#6c757d');
                                                 $actText = $actColors[$actType]['text'] ?? '#fff';
                                             @endphp
-                                            <div class="flex-fill rounded px-1 text-start activity-{{ $actType }}" style="font-size:.6rem;min-width:0">
+                                            <div class="flex-fill rounded px-1 text-start activity-{{ $actType }} ic-slot" data-event-id="{{ $ev->id }}" style="font-size:.6rem;min-width:0">
                                                 <div class="d-flex align-items-center gap-1">
                                                     <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:50px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 8) }}</a>
                                                     @if($isInstructor && !$isPast)
                                                         <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" data-toggle-event="{{ $ev->id }}" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
                                                     @endif
                                                 </div>
-                                                @if($evAvails->isNotEmpty())
-                                                    <span class="d-block" style="font-size:.55rem;letter-spacing:1px">@foreach($evAvails as $av)@php
+                                                <span class="d-block ic-avatars" data-event-id="{{ $ev->id }}" style="font-size:.55rem;letter-spacing:1px">@foreach($evAvails as $av)@php
                                                         $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
                                                         $ic = $av->user->detail?->instructor_color ?? '#00695c';
-                                                    @endphp<span class="ic-avatar" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
-                                                @endif
+                                                    @endphp<span class="ic-avatar" data-user-id="{{ $av->user_id }}" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
                                             </div>
                                         @endforeach
                                         </div>
@@ -116,19 +148,17 @@
                                                 $actColor = $actColors[$actType]['color'] ?? ($ev->color_hex ?? '#6c757d');
                                                 $actText = $actColors[$actType]['text'] ?? '#fff';
                                             @endphp
-                                            <div class="d-block mb-1 rounded px-1 text-start activity-{{ $actType }}" style="font-size:.65rem">
+                                            <div class="d-block mb-1 rounded px-1 text-start activity-{{ $actType }} ic-slot" data-event-id="{{ $ev->id }}" style="font-size:.65rem">
                                                 <div class="d-flex align-items-center gap-1">
                                                     <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:70px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 12) }}</a>
                                                     @if($isInstructor && !$isPast)
                                                         <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" data-toggle-event="{{ $ev->id }}" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
                                                     @endif
                                                 </div>
-                                                @if($evAvails->isNotEmpty())
-                                                    <span class="d-block" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
+                                                <span class="d-block ic-avatars" data-event-id="{{ $ev->id }}" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
                                                         $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
                                                         $ic = $av->user->detail?->instructor_color ?? '#00695c';
-                                                    @endphp<span class="ic-avatar" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
-                                                @endif
+                                                    @endphp<span class="ic-avatar" data-user-id="{{ $av->user_id }}" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
                                             </div>
                                         @endforeach
                                     @endif
@@ -188,6 +218,8 @@
     document.addEventListener('click', function(e) {
         var btn = e.target.closest('[data-toggle-event]');
         if (!btn) return;
+        // In stamp mode, the slot click handler takes over; ignore the personal toggle.
+        if (document.body.classList.contains('stamp-active')) return;
         var eventId = btn.dataset.toggleEvent;
         toggleEvent(eventId);
     });
@@ -200,6 +232,139 @@
           .then(() => location.reload())
           .catch(e => console.error(e));
     }
+    </script>
+    @endif
+
+    @if($isBureau)
+    <div id="icStampCursor"><span class="ic-avatar"></span></div>
+    <div id="icStampBar">
+        <span class="d-flex align-items-center gap-2">
+            <span class="ic-avatar" id="icStampBarAvatar"></span>
+            <span id="icStampBarName" class="small"></span>
+        </span>
+        <span class="small text-white-50">{{ __('Tap sessions to toggle') }}</span>
+        <button type="button" class="btn btn-sm btn-light" id="icStampBarDone">{{ __('Done') }}</button>
+    </div>
+    <script>
+    (function () {
+        const toggleForUrl = '{{ route("availability.toggle-for") }}';
+        const csrf = document.querySelector('meta[name="csrf-token"]').content;
+        const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+        let active = null; // {userId, initial, color, name}
+
+        const cursor = document.getElementById('icStampCursor');
+        const cursorAvatar = cursor.querySelector('.ic-avatar');
+        const bar = document.getElementById('icStampBar');
+        const barAvatar = document.getElementById('icStampBarAvatar');
+        const barName = document.getElementById('icStampBarName');
+        const exitBtn = document.getElementById('icStampExit');
+
+        function enterStamp(chip) {
+            active = {
+                userId: chip.dataset.stampUser,
+                initial: chip.dataset.stampInitial,
+                color: chip.dataset.stampColor,
+                name: chip.dataset.stampName,
+            };
+            document.body.classList.add('stamp-active');
+            document.querySelectorAll('.ic-stamp-chip').forEach(c => c.classList.toggle('active', c === chip));
+            exitBtn.classList.remove('d-none');
+
+            if (isTouch) {
+                barAvatar.style.background = active.color;
+                barAvatar.textContent = active.initial;
+                barName.textContent = active.name;
+                bar.classList.add('show');
+            } else {
+                cursorAvatar.style.background = active.color;
+                cursorAvatar.textContent = active.initial;
+                cursor.style.display = 'block';
+            }
+        }
+
+        function exitStamp() {
+            active = null;
+            document.body.classList.remove('stamp-active');
+            document.querySelectorAll('.ic-stamp-chip').forEach(c => c.classList.remove('active'));
+            exitBtn.classList.add('d-none');
+            cursor.style.display = 'none';
+            bar.classList.remove('show');
+        }
+
+        // Chip selection (toggle on/off)
+        document.querySelectorAll('.ic-stamp-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                if (active && active.userId === chip.dataset.stampUser) { exitStamp(); }
+                else { enterStamp(chip); }
+            });
+        });
+        exitBtn.addEventListener('click', exitStamp);
+        document.getElementById('icStampBarDone').addEventListener('click', exitStamp);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && active) exitStamp(); });
+
+        // Move the floating cursor badge (desktop)
+        if (!isTouch) {
+            document.addEventListener('mousemove', e => {
+                if (!active) return;
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+        }
+
+        // Stamp a session slot
+        document.addEventListener('click', e => {
+            if (!active) return;
+            const slot = e.target.closest('.ic-slot');
+            if (!slot) return;
+            // Don't navigate to the event when stamping.
+            const link = e.target.closest('a');
+            if (link) e.preventDefault();
+            e.stopPropagation();
+            stampSlot(slot);
+        });
+
+        function stampSlot(slot) {
+            if (slot.classList.contains('ic-stamp-saving')) return;
+            const eventId = slot.dataset.eventId;
+            slot.classList.add('ic-stamp-saving');
+            fetch(toggleForUrl, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf},
+                body: JSON.stringify({event_id: eventId, user_id: active.userId}),
+            })
+            .then(r => { if (!r.ok) return r.text().then(t => { throw new Error('HTTP ' + r.status + ': ' + t); }); return r.json(); })
+            .then(data => { applyResult(slot, data); })
+            .catch(err => { console.error(err); showToastSafe(err.message || 'Error'); })
+            .finally(() => slot.classList.remove('ic-stamp-saving'));
+        }
+
+        // Optimistically add/remove the instructor avatar in the slot.
+        function applyResult(slot, data) {
+            const container = slot.querySelector('.ic-avatars');
+            if (!container) return;
+            const existing = container.querySelector('.ic-avatar[data-user-id="' + data.user_id + '"]');
+            if (data.status === 'removed') {
+                if (existing) existing.remove();
+            } else if (data.status === 'added') {
+                if (!existing) {
+                    const a = document.createElement('span');
+                    a.className = 'ic-avatar';
+                    a.dataset.userId = data.user_id;
+                    a.style.background = data.color;
+                    a.title = data.name;
+                    a.textContent = data.initial;
+                    container.appendChild(a);
+                    container.appendChild(document.createTextNode(' '));
+                }
+            }
+        }
+
+        function showToastSafe(msg) {
+            if (typeof window.showToast === 'function') { window.showToast(msg, 'error'); }
+            else { alert(msg); }
+        }
+    })();
     </script>
     @endif
 </x-layout>

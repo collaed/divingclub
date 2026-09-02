@@ -267,6 +267,10 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::middleware('role:bureau_master,bureau_finance,bureau_technical,instructor,instructor_apnea')->group(function () {
         Route::post('/availability/toggle', [InstructorAvailabilityController::class, 'toggle'])->name('availability.toggle');
     });
+    // Bureau-only: stamp another instructor onto sessions (bulk registration UI)
+    Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->group(function () {
+        Route::post('/availability/toggle-for', [InstructorAvailabilityController::class, 'toggleFor'])->name('availability.toggle-for');
+    });
 
     // Newsletter approval (all bureau roles)
     Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->prefix('admin')->name('admin.')->group(function () {
