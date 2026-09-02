@@ -9,6 +9,25 @@
   }
 }
 
+// Homepage widgets: base vertical spacing so stacked widgets don't collapse
+// into each other for non-admin visitors (the edit-mode spacing is scoped to
+// .hp-editing in home.blade.php and does not apply to normal visitors).
+.hp-widget {
+  margin-bottom: 1.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Featured images on article/news cards: constrain height and cover the width
+// so natural image dimensions can't blow out the card or overlap neighbours.
+.card-img-top {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
 // Apply radius to all Bootstrap cards and common elements
 .card {
   border-radius: var(--dc-radius-lg) !important;
