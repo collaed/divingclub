@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Helpers\IconHelper;
+use App\Http\Requests\StoreLicenceRequest;
 use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateProfileDivingRequest;
 use App\Http\Requests\UpdateProfileInfoRequest;
@@ -124,6 +125,17 @@ class ProfileController extends Controller
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
 
         return back()->with('success', __('Private info updated.'))->withInput(['tab' => 'private']);
+    }
+
+    public function storeLicence(StoreLicenceRequest $request, User $user): RedirectResponse
+    {
+        $data = $request->validated();
+        $data['user_id'] = $user->id;
+        $data['licence_request_pending'] = $request->boolean('licence_request_pending');
+
+        MemberLicence::create($data);
+
+        return back()->with('success', __('Licence added.'))->withInput(['tab' => 'renewal']);
     }
 
     public function updateLicence(Request $request, MemberLicence $licence): RedirectResponse

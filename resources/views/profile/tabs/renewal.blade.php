@@ -92,7 +92,58 @@
         </div>
     </form>
 @endforeach
-@elseif($licences->isNotEmpty())
+
+{{-- Add a new licence for this member (any federation, incl. FLASSA) --}}
+@php
+    $existingFedIds = $licences->pluck('federation_id')->all();
+    $addableFederations = \App\Models\Federation::visible()
+        ->whereNotIn('id', $existingFedIds)
+        ->orderBy('acronym')
+        ->get();
+@endphp
+@if($addableFederations->isNotEmpty())
+    <form method="POST" action="{{ route('profile.store.licence', $target) }}" class="card dc-card mb-2 border-primary-subtle">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end">
+                <div class="col-auto"><strong class="small text-primary">@icon('➕') {{ __('Add licence') }}</strong></div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">{{ __('Federation') }}</label>
+                    <select name="federation_id" class="form-select form-select-sm" required>
+                        <option value="">{{ __('Select…') }}</option>
+                        @foreach($addableFederations as $fed)
+                            <option value="{{ $fed->id }}">{{ $fed->acronym }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">{{ __('Licence #') }}</label>
+                    <input type="text" name="licence_number" class="form-control form-control-sm" value="{{ old('licence_number') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">{{ __('Season') }}</label>
+                    <input type="text" name="season" class="form-control form-control-sm" value="{{ old('season') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">{{ __('Insurance') }}</label>
+                    <select name="insurance_type" class="form-select form-select-sm">
+                        <option value="">—</option>
+                        @foreach(['Loisir 1','Loisir 2','Loisir 3','Loisir 1 Top','Loisir 2 Top','Loisir 3 Top','Aucune'] as $ins)
+                            <option value="{{ $ins }}" {{ old('insurance_type') === $ins ? 'selected' : '' }}>{{ $ins }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">{{ __('Request Date') }}</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" name="licence_request_date" class="form-control" value="{{ old('licence_request_date') }}">
+                        <button type="button" class="btn btn-outline-secondary" onclick="this.previousElementSibling.value='{{ date('Y-m-d') }}'">{{ __('Today') }}</button>
+                    </div>
+                </div>
+                <div class="col-auto">@csrf <button type="submit" class="btn btn-sm btn-success">{{ __('Add') }}</button></div>
+            </div>
+        </div>
+    </form>
+@endif
 <h6 class="mt-4">{{ __('Licence Details') }}</h6>
 @foreach($licences as $lic)
     <div class="card dc-card mb-2">
