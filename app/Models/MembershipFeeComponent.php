@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $amount
  * @property bool $is_base
  * @property bool $is_optional
+ * @property bool $prorata_eligible
  * @property string|null $description
  * @property string|null $sort_order
  * @property Carbon|null $created_at
@@ -23,11 +24,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class MembershipFeeComponent extends Model
 {
-    protected $fillable = ['season_id', 'name', 'slug', 'amount', 'is_base', 'is_optional', 'description', 'sort_order'];
+    protected $fillable = ['season_id', 'name', 'slug', 'amount', 'is_base', 'is_optional', 'prorata_eligible', 'description', 'sort_order'];
 
     protected function casts(): array
     {
-        return ['is_base' => 'boolean', 'is_optional' => 'boolean'];
+        return ['is_base' => 'boolean', 'is_optional' => 'boolean', 'prorata_eligible' => 'boolean'];
     }
 
     /** @return BelongsTo<Season, $this> */

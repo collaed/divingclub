@@ -3,12 +3,12 @@
 
     <div class="table-responsive mb-4">
         <table class="table table-sm">
-            <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Slug') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Base') }}</th><th>{{ __('Optional') }}</th><th></th></tr></thead>
+            <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Slug') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Base') }}</th><th>{{ __('Optional') }}</th><th title="{{ __('Reduced by season fee taper') }}">{{ __('Taperable') }}</th><th></th></tr></thead>
             <tbody>
             @foreach($components as $c)
                 <tr>
                     <td>{{ $c->name }}</td><td><code>{{ $c->slug }}</code></td><td>€{{ number_format($c->amount, 2) }}</td>
-                    <td>@if($c->is_base) @icon('✓') @endif</td><td>@if($c->is_optional) @icon('✓') @endif</td>
+                    <td>@if($c->is_base) @icon('✓') @endif</td><td>@if($c->is_optional) @icon('✓') @endif</td><td>@if($c->prorata_eligible) @icon('✓') @endif</td>
                     <td><form method="POST" action="{{ route('admin.payments.component.destroy', $c) }}" class="d-inline">@csrf @method('DELETE') <button class="btn btn-sm btn-outline-danger">✕</button></form></td>
                 </tr>
             @endforeach
@@ -28,6 +28,7 @@
                     <div class="col-md-2">
                         <div class="form-check form-check-inline"><input type="checkbox" name="is_base" value="1" class="form-check-input"><label class="form-check-label small">{{ __('Base') }}</label></div>
                         <div class="form-check form-check-inline"><input type="checkbox" name="is_optional" value="1" class="form-check-input"><label class="form-check-label small">{{ __('Optional') }}</label></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" name="prorata_eligible" value="1" class="form-check-input"><label class="form-check-label small">{{ __('Taperable') }}</label></div>
                     </div>
                     <div class="col-md-2"><button class="btn btn-sm btn-primary">{{ __('Add') }}</button></div>
                 </div>

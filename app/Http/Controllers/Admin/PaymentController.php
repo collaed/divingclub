@@ -56,10 +56,12 @@ class PaymentController extends Controller
             'amount' => 'required|numeric|min:0',
             'is_base' => 'boolean',
             'is_optional' => 'boolean',
+            'prorata_eligible' => 'boolean',
             'description' => 'nullable|string',
         ]);
         $v['is_base'] = $request->boolean('is_base');
         $v['is_optional'] = $request->boolean('is_optional');
+        $v['prorata_eligible'] = $request->boolean('prorata_eligible');
         MembershipFeeComponent::create($v);
 
         return back()->with('success', __('Component added.'));

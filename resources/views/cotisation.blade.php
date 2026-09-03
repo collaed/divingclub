@@ -6,7 +6,10 @@
         $user = auth()->user();
         $detail = $user?->detail;
         $name = $detail ? ($detail->first_name . ' ' . $detail->last_name) : '';
-        $reduced = now()->gte($cfg['reduced_after']);
+        $taperPct = $cfg['taper_pct'] ?? 100;
+        $isReduced = $taperPct < 100;
+        // Compute the tapered amount for a full price, rounded up to the euro.
+        $taperedAmount = fn ($full) => $isReduced ? (int) ceil($full * $taperPct / 100) : $full;
     @endphp
 
     {{-- User identity --}}
@@ -31,17 +34,18 @@
                 {{-- CEP Membership --}}
                 <h6 class="fw-bold">{{ __('CEP Membership') }} {{ $cfg['year'] }} <span class="text-muted small">({{ __('Required') }})</span></h6>
                 @foreach($cfg['cep'] as $key => $opt)
+                    @php $cepAmount = $taperedAmount($opt['amount']); @endphp
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="cep_type" id="cep_{{ $key }}" value="{{ $key }}"
-                               data-amount="{{ $reduced ? $opt['reduced'] : $opt['amount'] }}"
+                               data-amount="{{ $cepAmount }}"
                                data-label="{{ ucfirst($key) }}"
                                {{ $loop->first ? 'checked' : '' }}
                                onchange="recalc()">
                         <label class="form-check-label" for="cep_{{ $key }}">
                             {{ $opt['label'] }}
-                            <span class="text-muted">— {{ $reduced ? $opt['reduced'] : $opt['amount'] }}€</span>
-                            @if($reduced && $opt['reduced'] != $opt['amount'])
-                                <span class="badge bg-success">{{ __('Reduced') }}</span>
+                            <span class="text-muted">— {{ $cepAmount }}€</span>
+                            @if($isReduced && $cepAmount != $opt['amount'])
+                                <span class="badge bg-success">{{ __('Reduced') }} ({{ $taperPct }}%)</span>
                             @endif
                         </label>
                     </div>

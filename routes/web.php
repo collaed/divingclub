@@ -37,6 +37,7 @@ use App\Http\Middleware\CheckLicense;
 use App\Models\EventPhoto;
 use App\Models\User;
 use App\Models\UserEmail;
+use App\Services\FeeCalculationService;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -71,7 +72,12 @@ Route::view('/legal/privacy', 'legal.privacy')->name('privacy');
 Route::view('/legal/terms', 'legal.terms')->name('terms');
 Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
 Route::post('/trial', [TrialController::class, 'store'])->middleware('throttle:3,1')->name('trial.store');
-Route::get('/dues', fn () => view('cotisation', ['cfg' => config('cotisation')]))->name('dues.show');
+Route::get('/dues', function () {
+    $cfg = config('cotisation');
+    $cfg['taper_pct'] = app(FeeCalculationService::class)->taperPercentage((string) $cfg['year']);
+
+    return view('cotisation', ['cfg' => $cfg]);
+})->name('dues.show');
 Route::get('/cotisation', fn () => redirect()->route('dues.show'))->name('cotisation');
 Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr.sepa.public');
 Route::get('/qr/payment', [QrCodeController::class, 'signedPaymentQr'])->name('qr.payment.signed');

@@ -122,6 +122,7 @@ Route::get('/seasons/create', [SeasonController::class, 'create'])->name('season
 Route::post('/seasons', [SeasonController::class, 'store'])->name('seasons.store');
 Route::get('/seasons/{season}', [SeasonController::class, 'show'])->name('seasons.show');
 Route::post('/seasons/{season}/activate', [SeasonController::class, 'activate'])->name('seasons.activate');
+Route::post('/seasons/{season}/taper', [SeasonController::class, 'updateTaper'])->name('seasons.taper.update');
 Route::post('/seasons/{season}/holidays', [SeasonController::class, 'storeHoliday'])->name('seasons.holiday.store');
 Route::delete('/seasons/holidays/{holiday}', [SeasonController::class, 'destroyHoliday'])->name('seasons.holiday.destroy');
 Route::post('/seasons/{season}/patterns', [SeasonController::class, 'storePattern'])->name('seasons.pattern.store');

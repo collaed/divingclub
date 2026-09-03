@@ -86,6 +86,39 @@ class SeasonController extends Controller
         return back()->with('success', __('Season activated.'));
     }
 
+    /**
+     * Update the season's fee-taper schedule (ordered MM-DD → percentage tiers).
+     */
+    public function updateTaper(Request $request, Season $season): RedirectResponse
+    {
+        abort_unless(auth()->user()?->can('manage seasons'), 403);
+
+        $validated = $request->validate([
+            'from' => 'array',
+            'from.*' => ['required', 'regex:/^\d{2}-\d{2}$/'],
+            'pct' => 'array',
+            'pct.*' => 'required|integer|min:0|max:100',
+        ]);
+
+        $froms = $validated['from'] ?? [];
+        $pcts = $validated['pct'] ?? [];
+
+        $tiers = [];
+        foreach ($froms as $i => $from) {
+            if (! isset($pcts[$i])) {
+                continue;
+            }
+            $tiers[] = ['from' => $from, 'pct' => (int) $pcts[$i]];
+        }
+
+        // Sort by month-day for a stable, readable schedule.
+        usort($tiers, fn (array $a, array $b): int => strcmp($a['from'], $b['from']));
+
+        $season->update(['fee_taper_tiers' => $tiers === [] ? null : $tiers]);
+
+        return back()->with('success', __('Fee taper schedule updated.'));
+    }
+
     // Holiday management
     public function storeHoliday(StoreSeasonHolidayRequest $request, Season $season): JsonResponse|RedirectResponse|View
     {
