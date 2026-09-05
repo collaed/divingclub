@@ -16,25 +16,6 @@ use Illuminate\Support\Facades\DB;
 
 class InstructorAvailabilityController extends Controller
 {
-    /**
-     * Activity types with colors matching the old CEP Google Sheet planning.
-     */
-    public const ACTIVITY_COLORS = [
-        'pool' => ['color' => '#4a86c8', 'text' => '#fff', 'icon' => '🏊', 'label' => 'Pool'],
-        'pool_kids' => ['color' => '#2ecc71', 'text' => '#fff', 'icon' => '👶', 'label' => '↳ Kids'],
-        'pool_pn1' => ['color' => '#1a237e', 'text' => '#fff', 'icon' => '1️⃣', 'label' => '↳ PN1'],
-        'pool_pn23' => ['color' => '#e74c3c', 'text' => '#fff', 'icon' => '🔴', 'label' => '↳ PN2+'],
-        'pool_swimming' => ['color' => '#ff9800', 'text' => '#fff', 'icon' => '🏊‍♂️', 'label' => '↳ Swimming'],
-        'training' => ['color' => '#5c6bc0', 'text' => '#fff', 'icon' => '🤿', 'label' => 'Training'],
-        'apnea' => ['color' => '#00c853', 'text' => '#000', 'icon' => '🫁', 'label' => 'Apnea'],
-        'fosse' => ['color' => '#00695c', 'text' => '#fff', 'icon' => '🕳️', 'label' => 'Fosse'],
-        'quarry' => ['color' => '#00bcd4', 'text' => '#000', 'icon' => '🪨', 'label' => 'Quarry/Lake'],
-        'long_trip' => ['color' => '#f9a825', 'text' => '#000', 'icon' => '✈️', 'label' => 'Long Trip'],
-        'theory' => ['color' => '#78909c', 'text' => '#fff', 'icon' => '📖', 'label' => 'Theory'],
-        'social' => ['color' => '#e91e63', 'text' => '#fff', 'icon' => '🎉', 'label' => 'Social'],
-        'closed' => ['color' => '#9e9e9e', 'text' => '#fff', 'icon' => '🚫', 'label' => 'Closed'],
-    ];
-
     public function index(Request $request): JsonResponse|View
     {
         $user = auth()->user();
@@ -73,7 +54,7 @@ class InstructorAvailabilityController extends Controller
         $instructors = User::role(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical'])->with('detail')->get()
             ->sortBy(fn ($u) => $u->detail?->first_name);
 
-        $colors = self::ACTIVITY_COLORS;
+        $colors = config('activity_types');
 
         $isBureau = $user->hasAnyRole(['bureau_master', 'bureau_technical', 'bureau_finance']);
 

@@ -17,11 +17,13 @@ class StoreSeasonPatternRequest extends FormRequest
     /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
+        $types = implode(',', array_keys(config('activity_types', [])));
+
         return [
             'day_of_week' => 'required|integer|min:0|max:6',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i',
-            'event_type' => 'required|in:pool,dive,training,theory,social',
+            'event_type' => 'required|in:'.$types,
             'title' => 'required|string|max:255',
             'location' => 'nullable|string|max:500',
             'max_participants' => 'nullable|integer|min:1',
