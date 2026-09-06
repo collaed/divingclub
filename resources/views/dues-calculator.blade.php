@@ -70,7 +70,7 @@
                         {{-- Group 2 & 4 — LICENCE FFESSM + FLASSA (derived, read-only) --}}
                         <fieldset class="dc-group mb-3">
                             <legend class="form-label h6">{{ __('Federation Licence') }} (FFESSM)</legend>
-                            <div class="dc-derived" role="status" aria-live="polite" data-dues-licence>
+                            <div class="dc-derived" role="status" aria-live="polite" data-dues-licence data-flassa-state="{{ $flassaState ?? 'not_applicable' }}" data-ffessm-licence="{{ $derivedFfessm ?? '' }}">
                                 @isset($derivedFfessm)
                                     @php $lic = $ffessmLicences[$derivedFfessm] ?? null; @endphp
                                     <div class="d-flex justify-content-between">

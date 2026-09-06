@@ -89,7 +89,7 @@ class SettingsController extends Controller
         ]);
         $set = StatusSet::create($v);
 
-        if ($request->ajax()) {
+        if ($request->expectsJson()) {
             return response()->json(['ok' => true, 'set' => $set]);
         }
 
@@ -117,7 +117,7 @@ class SettingsController extends Controller
             $statusSet->statuses()->sync($sync);
         }
 
-        if ($request->ajax()) {
+        if ($request->expectsJson()) {
             return response()->json(['ok' => true, 'set' => $statusSet->load('statuses')]);
         }
 

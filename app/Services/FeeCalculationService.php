@@ -146,7 +146,7 @@ class FeeCalculationService
      */
     public function taperPercentage(string $seasonYear, ?Carbon $reference = null): int
     {
-        $season = Season::where('year', $seasonYear)->first();
+        $season = $this->findSeason($seasonYear);
         if (! $season instanceof Season) {
             return 100;
         }
@@ -177,7 +177,22 @@ class FeeCalculationService
     /** Resolve the Season for a season year, if one exists. */
     public function resolveSeason(string $seasonYear): ?Season
     {
-        return Season::where('year', $seasonYear)->first();
+        return $this->findSeason($seasonYear);
+    }
+
+    /**
+     * Look up a Season by its (integer) year. The `seasons.year` column is an
+     * integer, so callers passing a non-numeric season token (e.g. a
+     * "2025-2026" range string) simply resolve to no season rather than
+     * triggering a database type error on strict engines like PostgreSQL.
+     */
+    private function findSeason(string $seasonYear): ?Season
+    {
+        if (! ctype_digit($seasonYear)) {
+            return null;
+        }
+
+        return Season::where('year', (int) $seasonYear)->first();
     }
 
     /**

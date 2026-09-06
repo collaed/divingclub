@@ -115,10 +115,13 @@ class DuesWorkedExamplesTest extends TestCase
 
     public function test_taper_reduces_only_the_cotisation_base(): void
     {
-        // A tier from 01-01 at 50% that has already elapsed relative to today's
-        // pinned reference; licences stay full (only the base tapers).
+        // A tier from 01-01 at 50%. Pin the taper reference date past that
+        // anchor (the season starts 2026-09-01, so the 01-01 tier maps to
+        // 2027-01-01) so the reduced rate is in effect. Licences stay full —
+        // only the club-retained base tapers.
         $season = Season::where('year', '2027')->firstOrFail();
         $season->update(['fee_taper_tiers' => [['from' => '01-01', 'pct' => 50]]]);
+        ThemeSetting::set('fee_taper_reference_date', '2027-02-01');
 
         $user = $this->member('externe', 30);
         $calc = $this->fees->calculate($user, '2027', []);

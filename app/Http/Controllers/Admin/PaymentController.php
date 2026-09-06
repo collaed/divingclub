@@ -85,7 +85,7 @@ class PaymentController extends Controller
 
         $component->update($data);
 
-        if ($request->ajax()) {
+        if ($request->expectsJson()) {
             return response()->json(['ok' => true, 'component' => $component->fresh()]);
         }
 

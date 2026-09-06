@@ -88,7 +88,7 @@ class MemberController extends Controller
             $offered = $set?->statuses->pluck('id')->all() ?? [];
             if (! in_array((int) $targetStatusId, $offered, true)) {
                 $msg = __('The selected status is not part of the assigned status set.');
-                if ($request->ajax()) {
+                if ($request->expectsJson()) {
                     return response()->json(['ok' => false, 'message' => $msg], 422);
                 }
 
@@ -107,7 +107,7 @@ class MemberController extends Controller
             $user->update($updates);
         }
 
-        if ($request->ajax()) {
+        if ($request->expectsJson()) {
             return response()->json(['ok' => true, 'user' => $user->fresh(['status', 'statusSet'])]);
         }
 
