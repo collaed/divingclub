@@ -63,20 +63,66 @@ class SettingsController extends Controller
     }
 
     // --- Member Statuses ---
-    public function storeStatus(Request $request): RedirectResponse
+    public function storeStatus(Request $request): RedirectResponse|JsonResponse
     {
         $v = $request->validate(['name' => 'required|string|max:100', 'slug' => 'required|string|max:50|unique:member_statuses', 'description' => 'nullable|string']);
-        MemberStatus::create($v);
+        $status = MemberStatus::create($v);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'status' => $status]);
+        }
 
         return back()->with('success', __('Status added.'));
     }
 
-    public function updateStatus(Request $request, MemberStatus $status): RedirectResponse
+    public function updateStatus(Request $request, MemberStatus $status): RedirectResponse|JsonResponse
     {
         $v = $request->validate(['name' => 'required|string|max:100', 'description' => 'nullable|string']);
         $status->update($v);
 
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'status' => $status->fresh()]);
+        }
+
         return back()->with('success', __('Status updated.'));
+    }
+
+    /**
+     * Delete a member status. Blocked when the status is still referenced so we
+     * never orphan members or dues: it cannot be a protected lifecycle slug, and
+     * it must have no members assigned and no membership fee defined. Any
+     * status-set links are detached first. Deleting a status removes it from the
+     * dues status selector automatically (that list is built from this table).
+     */
+    public function destroyStatus(Request $request, MemberStatus $status): RedirectResponse|JsonResponse
+    {
+        $reason = null;
+
+        if (in_array($status->slug, MemberStatus::inactiveSlugs(), true)) {
+            $reason = __('This is a protected lifecycle status and cannot be deleted.');
+        } elseif ($status->users()->exists()) {
+            $count = $status->users()->count();
+            $reason = __(':count member(s) still have this status. Reassign them first.', ['count' => $count]);
+        } elseif (MembershipFee::where('status_id', $status->id)->exists()) {
+            $reason = __('A membership fee is defined for this status. Remove the fee first.');
+        }
+
+        if ($reason !== null) {
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => $reason], 422);
+            }
+
+            return back()->withErrors(['status' => $reason]);
+        }
+
+        $status->statusSets()->detach();
+        $status->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', __('Status deleted.'));
     }
 
     // --- Status Sets (eligibility base categories) ---

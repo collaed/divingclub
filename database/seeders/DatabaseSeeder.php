@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             FederationSeeder::class,        // FFESSM, LIFRAS, FLASSA (base set)
             CertificationLevelSeeder::class, // All federation cert levels + extended federations
             DiveGroupRuleSeeder::class,     // FFESSM palanquée composition rules
+            SystemContentSeeder::class,     // stable-slug editable content (dues footer, home landing)
         ]);
 
         $this->seedAdminUser();

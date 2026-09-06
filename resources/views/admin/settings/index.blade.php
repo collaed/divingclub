@@ -64,19 +64,27 @@
         <div class="accordion-item">
             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#statusSection">{{ __('Member Statuses') }}</button></h2>
             <div id="statusSection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
-                <div class="accordion-body">
-                    <table class="table table-sm">
-                        <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Slug') }}</th><th>{{ __('Description') }}</th><th></th></tr></thead>
+                <div class="accordion-body" id="statusesSection" data-statuses-region>
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Slug') }}</th><th>{{ __('Description') }}</th><th class="text-end">{{ __('Actions') }}</th></tr></thead>
                         <tbody>
                         @foreach($statuses as $s)
-                            <tr>
-                                <form method="POST" action="{{ route('admin.settings.status.update', $s) }}">
-                                    @csrf @method('PUT')
-                                    <td><input type="text" name="name" class="form-control form-control-sm" value="{{ $s->name }}" required></td>
-                                    <td><code>{{ $s->slug }}</code></td>
-                                    <td><input type="text" name="description" class="form-control form-control-sm" value="{{ $s->description }}"></td>
-                                    <td><button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button></td>
-                                </form>
+                            <tr data-status-id="{{ $s->id }}" data-status-row data-url="{{ route('admin.settings.status.update', $s) }}">
+                                <td><input type="text" class="form-control form-control-sm" value="{{ $s->name }}" required aria-label="{{ __('Name') }}" data-status-field="name"></td>
+                                <td><code>{{ $s->slug }}</code></td>
+                                <td><input type="text" class="form-control form-control-sm" value="{{ $s->description }}" aria-label="{{ __('Description') }}" data-status-field="description"></td>
+                                <td class="text-end text-nowrap">
+                                    <span class="text-success small me-2 d-none" data-status-saved>@icon('✓') {{ __('Saved') }}</span>
+                                    @unless(in_array($s->slug, \App\Models\MemberStatus::inactiveSlugs(), true))
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                data-status-delete
+                                                data-url="{{ route('admin.settings.status.destroy', $s) }}"
+                                                data-confirm="{{ __('Delete the status “:name”? This cannot be undone.', ['name' => $s->name]) }}"
+                                                title="{{ __('Delete') }}">@icon('🗑️')</button>
+                                    @else
+                                        <span class="badge bg-secondary" title="{{ __('Protected lifecycle status') }}">{{ __('system') }}</span>
+                                    @endunless
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -88,6 +96,69 @@
                         <div class="col-md-3"><input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description') }}"></div>
                         <div class="col-md-3"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Status') }}</button></div>
                     </form>
+                    <p class="text-muted small mt-2 mb-0">{{ __('A status can only be deleted when no member uses it and no membership fee is defined for it. Deleting a status also removes it from the dues calculator selector.') }}</p>
+
+                    @push('scripts')
+                    <script>
+                    (function () {
+                        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+                        const region = document.getElementById('statusesSection');
+                        if (!region || !csrf) { return; }
+
+                        let timer = null;
+
+                        function saveRow(row) {
+                            const payload = {
+                                name: row.querySelector('[data-status-field="name"]')?.value ?? '',
+                                description: row.querySelector('[data-status-field="description"]')?.value ?? '',
+                            };
+                            fetch(row.dataset.url, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                                body: JSON.stringify(payload),
+                            })
+                            .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
+                            .then(function () {
+                                const badge = row.querySelector('[data-status-saved]');
+                                if (badge) { badge.classList.remove('d-none'); setTimeout(function () { badge.classList.add('d-none'); }, 1500); }
+                            })
+                            .catch(function () { if (typeof showToast === 'function') { showToast('{{ __('Save failed') }}', 'danger'); } });
+                        }
+
+                        region.addEventListener('input', function (e) {
+                            const field = e.target.closest('[data-status-field]');
+                            if (!field) { return; }
+                            const row = field.closest('[data-status-row]');
+                            clearTimeout(timer);
+                            timer = setTimeout(function () { saveRow(row); }, 400);
+                        });
+
+                        region.addEventListener('click', function (e) {
+                            const btn = e.target.closest('[data-status-delete]');
+                            if (!btn) { return; }
+                            e.preventDefault();
+                            if (!window.confirm(btn.dataset.confirm || 'Delete?')) { return; }
+
+                            btn.disabled = true;
+                            fetch(btn.dataset.url, {
+                                method: 'DELETE',
+                                headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                            })
+                            .then(async function (r) {
+                                const data = await r.json().catch(function () { return {}; });
+                                if (!r.ok || !data.ok) { throw new Error(data.message || ('HTTP ' + r.status)); }
+                                const row = btn.closest('[data-status-row]');
+                                if (row) { row.remove(); }
+                                if (typeof showToast === 'function') { showToast('{{ __('Status deleted.') }}', 'success'); }
+                            })
+                            .catch(function (err) {
+                                btn.disabled = false;
+                                if (typeof showToast === 'function') { showToast(err.message || '{{ __('Delete failed') }}', 'danger'); }
+                            });
+                        });
+                    })();
+                    </script>
+                    @endpush
                 </div>
             </div>
         </div>

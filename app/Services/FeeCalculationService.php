@@ -267,9 +267,9 @@ class FeeCalculationService
      * @param  string[]  $selectedOptionalSlugs
      * @return array<int, array{label: string, amount: float, bold?: bool, muted?: bool}>
      */
-    public function breakdown(User $user, string $seasonYear, array $selectedOptionalSlugs = []): array
+    public function breakdown(User $user, string $seasonYear, array $selectedOptionalSlugs = [], ?MemberStatus $statusOverride = null): array
     {
-        $calc = $this->calculate($user, $seasonYear, $selectedOptionalSlugs);
+        $calc = $this->calculate($user, $seasonYear, $selectedOptionalSlugs, $statusOverride);
         $components = $calc['components'];
         $lines = [];
         $lines[] = ['label' => __('Membership').' ('.($components['status'] ?? '').')', 'amount' => (float) $components['membership']];

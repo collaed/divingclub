@@ -44,7 +44,7 @@ class DuesCalculatorController extends Controller
         $user = $this->resolveCalculatingUser($request, $lastName, $firstName);
 
         $calc = $this->fees->calculate($user, $year, $selectedOptionals, $status);
-        $breakdown = $this->fees->breakdown($user, $year, $selectedOptionals);
+        $breakdown = $this->fees->breakdown($user, $year, $selectedOptionals, $status);
 
         return view('dues-calculator', array_merge($data, [
             'statusId' => $statusId,

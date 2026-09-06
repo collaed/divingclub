@@ -37,6 +37,8 @@
     .h3-hero-content { position: relative; z-index: 2; text-align: center; color: #fff; padding: 2rem; }
     .h3-hero-content h1 { font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 800; letter-spacing: -1px; text-shadow: 0 2px 20px rgba(0,0,0,.5); }
     .h3-hero-content p { font-size: clamp(1rem, 2.5vw, 1.4rem); opacity: .85; margin: 1rem auto 2.5rem; max-width: 500px; }
+    .h3-hero-lead { font-size: clamp(1rem, 2.5vw, 1.4rem); opacity: .9; margin: 1rem auto 1.5rem; max-width: 620px; }
+    .h3-hero-lead p { margin: 0 auto .5rem; opacity: 1; }
     .h3-btn { display: inline-block; padding: .9rem 2.5rem; border-radius: 50px; font-weight: 700; font-size: 1rem; text-decoration: none; transition: transform .2s, box-shadow .2s; }
     .h3-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,.3); }
     .h3-btn-accent { background: var(--h3-accent); color: #000; }
@@ -130,7 +132,7 @@
         @auth
             <a href="{{ route('home') }}" class="h3-btn h3-btn-accent" style="padding:.4rem 1.2rem;font-size:.85rem">{{ __('Dashboard') }}</a>
         @else
-            <button onclick="openLogin()" class="h3-btn h3-btn-accent" style="padding:.4rem 1.2rem;font-size:.85rem">{{ __('Login') }}</button>
+            <button type="button" data-h3-login class="h3-btn h3-btn-accent" style="padding:.4rem 1.2rem;font-size:.85rem">{{ __('Login') }}</button>
         @endauth
     </div>
 </nav>
@@ -144,17 +146,27 @@
     </div>
     <div class="h3-hero-content">
         <img src="/images/club-logo.png" height="90" style="filter:drop-shadow(0 4px 15px rgba(0,0,0,.5));margin-bottom:1rem">
-        <h1>{{ $clubName }}</h1>
-        <p>{{ __('Dive with us in Luxembourg') }} 🤿<br><span style="font-size:.85em;opacity:.7">{{ $pctWomen }}% {{ __('women') }} · {{ $nationalities }} {{ __('nationalities') }}</span></p>
+        <h1>{{ $landingTitle ?: $clubName }}</h1>
+        @if(!empty($landingBody))
+            <div class="h3-hero-lead">{!! $landingBody !!}</div>
+        @else
+            <p>{{ __('Dive with us in Luxembourg') }} 🤿</p>
+        @endif
+        <p style="font-size:.9rem;opacity:.7;margin-top:.5rem">{{ $pctWomen }}% {{ __('women') }} · {{ $nationalities }} {{ __('nationalities') }}</p>
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
             @auth
                 <a href="{{ route('events.index') }}" class="h3-btn h3-btn-accent">{{ __('Events') }}</a>
                 <a href="{{ route('home') }}" class="h3-btn h3-btn-outline">{{ __('Dashboard') }}</a>
             @else
-                <button onclick="openLogin()" class="h3-btn h3-btn-accent">{{ __('Login') }}</button>
-                <a href="{{ route('trial.show') }}" class="h3-btn h3-btn-outline">{{ __('Try Diving') }}</a>
+                <a href="{{ route('trial.show') }}" class="h3-btn h3-btn-accent">🤿 {{ __('Try Diving') }}</a>
+                <button type="button" class="h3-btn h3-btn-outline" data-h3-login>{{ __('Login') }}</button>
             @endauth
         </div>
+        @can('manage articles')
+            @if($landingArticle)
+                <div style="margin-top:1.2rem"><a href="{{ route('admin.articles.edit', $landingArticle) }}" style="color:rgba(255,255,255,.75);font-size:.8rem">✏️ {{ __('Edit this text') }}</a></div>
+            @endif
+        @endcan
     </div>
     <div class="h3-scroll">↓</div>
 </section>
@@ -282,9 +294,9 @@ fetch('{{ route("photos.browse") }}').then(r=>r.json()).then(d=>{document.getEle
 </footer>
 
 {{-- Slide-in login panel --}}
-<div class="h3-login-backdrop" id="loginBackdrop" onclick="closeLogin()"></div>
+<div class="h3-login-backdrop" id="loginBackdrop" data-h3-login-close></div>
 <div class="h3-login-panel" id="loginPanel">
-    <button class="h3-login-close" onclick="closeLogin()">✕</button>
+    <button class="h3-login-close" data-h3-login-close type="button">✕</button>
     <h3>{{ __('Login') }}</h3>
     <form method="POST" action="{{ route('login') }}">
         @csrf
@@ -335,6 +347,50 @@ function closeLogin() { document.getElementById('loginBackdrop').classList.remov
 function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('open'); document.body.style.overflow = 'hidden'; }
 function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); document.body.style.overflow = ''; }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLogin(); closeLightbox(); } });
+
+// Event delegation for login open/close (no inline onclick)
+document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-h3-login]')) { e.preventDefault(); openLogin(); }
+    else if (e.target.closest('[data-h3-login-close]')) { e.preventDefault(); closeLogin(); }
+});
+
+// ── Returning-visitor auto-dismiss ────────────────────────────────────────
+// The landing stays for first-time (or >1 week absent) visitors. For anyone
+// who visited within the last week (recent cookie), it disappears after 10s by
+// forwarding to the login. Guests only; the cookie is (re)set on every visit.
+(function () {
+    var COOKIE = 'cep_seen_landing';
+    var WEEK_S = 7 * 24 * 60 * 60;
+
+    function getCookie(name) {
+        return document.cookie.split('; ').reduce(function (acc, part) {
+            var kv = part.split('=');
+            return kv[0] === name ? decodeURIComponent(kv[1] || '') : acc;
+        }, '');
+    }
+    function setCookie(name, value, maxAgeSeconds) {
+        var secure = location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = name + '=' + encodeURIComponent(value) + '; Max-Age=' + maxAgeSeconds + '; Path=/; SameSite=Lax' + secure;
+    }
+
+    @guest
+    var hadRecentCookie = getCookie(COOKIE) !== '';
+    // Refresh (or set) the "seen" cookie for a rolling one-week window.
+    setCookie(COOKIE, String(Date.now()), WEEK_S);
+
+    var hasErrors = @json($errors->any());
+    if (hadRecentCookie && !hasErrors) {
+        var TIMEOUT_MS = 10000;
+        var redirectTo = @json(route('login'));
+        var timer = setTimeout(function () { window.location.href = redirectTo; }, TIMEOUT_MS);
+        // Any interaction cancels the auto-forward so we never interrupt an
+        // engaged visitor.
+        ['click', 'keydown', 'touchstart', 'wheel'].forEach(function (evt) {
+            window.addEventListener(evt, function () { clearTimeout(timer); }, { once: true, passive: true });
+        });
+    }
+    @endguest
+})();
 
 // Sticky nav
 const nav = document.getElementById('stickyNav');

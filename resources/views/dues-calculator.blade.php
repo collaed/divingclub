@@ -124,7 +124,7 @@
                             <tbody>
                             @foreach($breakdown as $line)
                                 <tr class="{{ ($line['bold'] ?? false) ? 'table-primary fw-bold' : '' }} {{ ($line['muted'] ?? false) ? 'text-muted' : '' }}">
-                                    <td>{{ $line['label'] }}</td>
+                                    <td><span>{{ $line['label'] }}</span></td>
                                     <td class="text-end">€{{ number_format($line['amount'], 2) }}</td>
                                 </tr>
                             @endforeach
@@ -170,6 +170,24 @@
                         @endauth
                         </div>
                     @endisset
+
+                    {{-- Editable, translatable footer text (managed as a system article). --}}
+                    @php $duesFooter = \App\Helpers\SystemContent::body(\App\Helpers\SystemContent::DUES_FOOTER); @endphp
+                    @if($duesFooter !== '' || (auth()->user()?->can('manage articles') ?? false))
+                        <div class="dc-dues-footer mt-4 pt-3 border-top text-muted small">
+                            {!! $duesFooter !!}
+                            @can('manage articles')
+                                @php $footerArticle = \App\Helpers\SystemContent::article(\App\Helpers\SystemContent::DUES_FOOTER); @endphp
+                                <div class="mt-2">
+                                    @if($footerArticle)
+                                        <a href="{{ route('admin.articles.edit', $footerArticle) }}" class="small">@icon('✏️') {{ __('Edit this text') }}</a>
+                                    @else
+                                        <a href="{{ route('admin.settings.index') }}" class="small text-muted">{{ __('Set the dues footer text in Settings.') }}</a>
+                                    @endif
+                                </div>
+                            @endcan
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

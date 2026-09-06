@@ -139,6 +139,7 @@ Route::put('/settings/federation/{federation}', [SettingsController::class, 'upd
 Route::delete('/settings/federation/{federation}', [SettingsController::class, 'destroyFederation'])->name('settings.federation.destroy');
 Route::post('/settings/status', [SettingsController::class, 'storeStatus'])->name('settings.status.store');
 Route::put('/settings/status/{status}', [SettingsController::class, 'updateStatus'])->name('settings.status.update');
+Route::delete('/settings/status/{status}', [SettingsController::class, 'destroyStatus'])->name('settings.status.destroy');
 Route::post('/settings/status-set', [SettingsController::class, 'storeStatusSet'])->name('settings.status-set.store');
 Route::match(['put', 'patch'], '/settings/status-set/{statusSet}', [SettingsController::class, 'updateStatusSet'])->name('settings.status-set.update');
 Route::delete('/settings/status-set/{statusSet}', [SettingsController::class, 'destroyStatusSet'])->name('settings.status-set.destroy');
