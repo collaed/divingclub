@@ -1,7 +1,21 @@
+// ============================================================================
+// Z-index scale (single source of truth for the header/nav/chrome tier)
+// ----------------------------------------------------------------------------
+//   page content ............ auto (0)
+//   impersonation banner ..... 1     (static, just above content — see _bubbles)
+//   sticky navbar bar ........ 1030  (chrome, stays above scrolling content)
+//   header ................... 1040  (above navbar so its language dropdown
+//                                      can roll down over the navbar)
+//   dropdown menus ........... 1090  (TRANSIENT: appear only while the user is
+//                                      choosing, so they must roll down on top
+//                                      of every static layer, banner included)
+// ============================================================================
+
 .dc-header {
   background: linear-gradient(135deg, var(--dc-header-start) 0%, var(--dc-primary) 40%, var(--dc-header-end) 100%);
   position: relative;
   overflow: visible;
+  z-index: 1040;
 
   &::before {
     content: '';
@@ -10,6 +24,11 @@
     background: url('/images/underwater-pattern.svg') repeat;
     opacity: 0.05;
     pointer-events: none;
+  }
+
+  // Header's own dropdowns (language selector) are transient too.
+  .dropdown-menu {
+    z-index: 1090;
   }
 }
 
@@ -36,4 +55,13 @@
   position: sticky;
   top: 0;
   z-index: 1030;
+
+  // Menu-bar dropdowns are transient — they appear only while the user is
+  // choosing. Pin them above every static layer (navbar 1030, header 1040,
+  // any banner) so they always roll down on top of page content. Bootstrap's
+  // default 1000 is scoped to the navbar stacking context and can lose to
+  // content elements that create their own stacking context.
+  .dropdown-menu {
+    z-index: 1090;
+  }
 }

@@ -366,13 +366,12 @@
 
 ### 2.13 QR Codes Personnels 🟢
 
-**Contexte :** Le système génère des QR codes utiles pour le membre : vCard (partage coordonnées), SEPA (paiement cotisation), fédération (InfoLicencié FFESSM).
+**Contexte :** Le système génère des QR codes utiles pour le membre : vCard (partage coordonnées) et fédération (InfoLicencié FFESSM). Les QR de paiement SEPA/EPC ont été retirés (standard EPC déprécié, Wero devenu standard fermé) ; le paiement des cotisations se fait via l'IBAN + communication structurée affichés sur la page `/dues`.
 
 **Comportement :**
 - **vCard** (`/qr/vcard`) : QR code contenant les coordonnées du membre au format vCard 3.0
-- **SEPA** (`/qr/sepa/{payment}`) : QR code EPC pour paiement par virement (encodage conforme EPC069-12)
 - **Fédération** (`/qr/federation/{licence}`) : QR code renvoyant vers la page InfoLicencié FFESSM du membre
-- Tous générés côté serveur en SVG/PNG
+- Tous générés côté serveur en PNG
 
 **Dépendances :** Licences fédérales (§2.4), Paiements (§5)
 
@@ -1174,18 +1173,21 @@
 #### 5.4.1 Calcul des Cotisations 🟢
 
 **Comportement :**
-- Service : `FeeCalculationService`
-- **Composants du calcul** (config `cotisation.php`) :
-  - Cotisation CEP : selon le statut (fonctionnaire, externe, jeune 16-17, jeune 12-15, enfant, sympathisant)
-  - Licence FFESSM : selon la catégorie d'âge (adulte, jeune, enfant, aucune)
-  - Assurance individuelle optionnelle (6 formules Loisir 1/2/3 + Top)
-- **Tarif réduit** après le 1er avril (demi-saison)
+- Service : `FeeCalculationService` (+ `LicenceResolver` pour la dérivation des licences)
+- **Spécification complète** : `.kiro/specs/membership-dues-calculation/` (requirements.md en EARS, design.md, tasks.md)
+- **Source des tarifs** : base de données (`membership_fees` + `membership_fee_components`), plus la config héritée `cotisation.php` (désormais morte). Amorçage saison 2027 : `database/seeders/Fee2027Seeder.php`.
+- **Composants du calcul** :
+  - Cotisation CEP : selon le statut (fonctionnaire 120 €, externe 130 €, jeune 55 €, enfant 55 €, sympathisant 30 €)
+  - Licence FFESSM : **dérivée** de l'âge à la date d'ancrage (bandes fédérales : enfant < 12, jeune 12 à moins de 16, adulte 16+ ; aucune pour sympathisant) — jamais choisie par l'utilisateur
+  - Licence FLASSA : composant à trois états — `required` (10 €, 18+), `included_free` (0 €, présent, < 18), `not_applicable` (absent, sympathisant)
+  - Assurance individuelle optionnelle (6 formules Loisir 1/2/3 + Top), possible uniquement si une licence est due
+- **Dégressivité saisonnière** (`seasons.fee_taper_tiers`) appliquée à la seule base cotisation ; date d'évaluation = aujourd'hui + `dues_cutoff_grace_days` (réglage bureau), ou gel absolu via `fee_taper_reference_date`
+- Colonne `membership_fee_components.kind` (`ffessm_licence` / `flassa` / `assurance` / `other`) : distingue les composants sans coder les slugs en dur
 - Table `membership_fees` : `season_year`, `status_id`, `amount` — configurable par le bureau
-- Table `membership_fee_components` : `payment_id`, `label`, `amount` — détail ligne par ligne
 - **Génération** :
   - Individuelle : `/admin/payments/{user}/generate` — calcule et crée un `PaymentExpected`
   - Bulk : `/admin/payments/generate-bulk` — génère pour tous les membres actifs sans paiement pour la saison en cours
-- Table `payment_expected` : `user_id`, `season_year`, `amount`, `status` (pending/paid/partial/cancelled), `paid_at`, `reference`
+- Table `payment_expected` : `user_id`, `season_year`, `amount_due`, `communication`, `components` (JSON, inclut `ffessm_licence` + `flassa_state`), `provisional`, `status` (pending/paid/partial/cancelled)
 
 ---
 
@@ -1211,12 +1213,15 @@
 #### 5.4.3 Calculateur de Cotisation Public 🟢
 
 **Comportement :**
-- Route publique `/dues` : page interactive
-- Le visiteur sélectionne son statut + assurance souhaitée → le montant total s'affiche en temps réel
-- **QR code SEPA** : généré automatiquement avec le montant calculé, l'IBAN du club, et la communication structurée
-- Le QR respecte le standard EPC069-12 (scannable par toutes les apps bancaires EU)
+- Route publique `/dues` : page interactive, pilotée par la base de données (source unique de vérité : `membership_fees`, `membership_fee_components`, `member_statuses`, `status_sets`)
+- Le visiteur/membre sélectionne son statut (limité à son ensemble d'éligibilité s'il est classé) + options → le montant total s'affiche
+- Les composants peuvent être dégressifs selon l'âge (ratio par composant/saison ; ex. licence FLASSA gratuite sous 18 ans à une date d'ancrage)
+- **IBAN + BIC + communication structurée** affichés pour le virement (pas de QR de paiement — voir §2.13)
+- Un membre connecté peut **s'engager à payer** (`I commit to paying this`) → écrit un `payment_expected` ; si le membre n'est pas encore classé par le bureau, l'engagement est marqué `provisional` pour revue
 
-**Dépendances :** Config cotisation, QR codes (§2.13)
+**Dépendances :** Fees & composants DB (§5), Ensembles de statuts, QR codes (§2.13)
+
+**Spécification détaillée :** `.kiro/specs/membership-dues-calculation/` — quatre groupes d'options (Cotisation CEP, Licence FFESSM + FLASSA dérivées en lecture seule, Assurance), règles de dérivation R1–R8, taper R-T1–R-T4, chaîne de communication et bloc de virement en lecture seule.
 
 ---
 
@@ -1375,7 +1380,7 @@
 
 #### 5.10.9 Bancaire (IBAN / SEPA) 🟢
 - IBAN du club, BIC, nom du bénéficiaire
-- Utilisé pour le QR code SEPA et la page cotisation
+- Affichés (IBAN + BIC + communication) sur la page cotisation et les panneaux de paiement d'événement pour le virement manuel (les QR de paiement SEPA/EPC ont été retirés)
 
 #### 5.10.10 Localisation 🟢
 - Locale par défaut du site

@@ -222,9 +222,18 @@ class EventController extends Controller
     public function cancel(Event $event): RedirectResponse
     {
         $this->authorizeBureau();
-        $event->update(['status' => 'cancelled']);
+        $event->update(['status' => 'cancelled', 'inscriptions_closed' => true]);
 
-        return redirect()->route('events.index')->with('success', __('Event cancelled.'));
+        return back()->with('success', __('Event cancelled. It will not be recreated by season generation.'));
+    }
+
+    public function uncancel(Event $event): RedirectResponse
+    {
+        $this->authorizeBureau();
+        abort_unless($event->status === 'cancelled', 400);
+        $event->update(['status' => 'scheduled', 'inscriptions_closed' => false]);
+
+        return back()->with('success', __('Event restored.'));
     }
 
     // ─── Photo Gallery (GDPR-gated) ──────────────────────────

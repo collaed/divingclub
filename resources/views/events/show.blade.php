@@ -9,10 +9,25 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <div>
                         <span class="badge" style="background:{{ $event->typeColor() }}">{{ ucfirst($event->event_type) }}</span>
-                        <span class="badge bg-{{ $event->status === 'cancelled' ? 'danger' : ($event->status === 'completed' ? 'secondary' : 'success') }}">{{ ucfirst($event->status) }}</span>
+                        <span class="badge bg-{{ $event->status === 'cancelled' ? 'danger' : ($event->status === 'completed' ? 'secondary' : 'success') }}">{{ __(ucfirst($event->status)) }}</span>
                     </div>
                     @if(auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id()))
-                        <a href="{{ route('events.edit', $event) }}" class="btn btn-sm btn-outline-primary">{{ __('Edit') }}</a>
+                        <div class="d-flex gap-1">
+                            <a href="{{ route('events.edit', $event) }}" class="btn btn-sm btn-outline-primary">{{ __('Edit') }}</a>
+                            @if(auth()->user()->isBureau())
+                                @if($event->status === 'cancelled')
+                                    <form method="POST" action="{{ route('events.uncancel', $event) }}" data-confirm="{{ __('Restore this event so members can register again?') }}" data-confirm-style="primary" data-confirm-btn="{{ __('Restore') }}">
+                                        @csrf
+                                        <button class="btn btn-sm btn-outline-success">{{ __('Restore') }}</button>
+                                    </form>
+                                @else
+                                    <form method="POST" action="{{ route('events.cancel', $event) }}" data-confirm="{{ __('Cancel this occurrence? It stays on the calendar as cancelled, closes registration, and will not be recreated by season generation.') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Cancel occurrence') }}">
+                                        @csrf
+                                        <button class="btn btn-sm btn-outline-danger">{{ __('Cancel occurrence') }}</button>
+                                    </form>
+                                @endif
+                            @endif
+                        </div>
                     @endif
                 </div>
                 <div class="card-body">
@@ -418,10 +433,8 @@
                                 @if($clubIban)
                                     <div class="small text-muted mb-2">
                                         IBAN: <code>{{ $clubIban }}</code>
-                                    </div>
-                                    <div class="text-center">
-                                        <img src="{{ route('qr.sepa', $userPayment) }}" alt="SEPA QR" class="border rounded p-1" style="max-width:180px">
-                                        <p class="small text-muted mt-1 mb-0">{{ __('Scan to pay with your banking app') }}</p>
+                                        @php $clubBic = \App\Models\ThemeSetting::get('club_bic'); @endphp
+                                        @if($clubBic)<br>BIC: <code>{{ $clubBic }}</code>@endif
                                     </div>
                                 @endif
                             @endif

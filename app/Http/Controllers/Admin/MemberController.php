@@ -8,8 +8,10 @@ use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\MemberStatus;
+use App\Models\StatusSet;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -21,7 +23,19 @@ class MemberController extends Controller
 
     public function index(Request $request): RedirectResponse|View
     {
-        $query = User::with(['detail', 'roles', 'status']);
+        $query = User::with(['detail', 'roles', 'status', 'statusSet']);
+
+        // Default listing hides inactive (former) members. The bureau-only
+        // "historic" toggle reveals the full roster including lapsed members.
+        $historic = $request->boolean('historic');
+        if (! $historic) {
+            $inactiveIds = MemberStatus::inactiveIds();
+            if ($inactiveIds->isNotEmpty()) {
+                $query->where(function ($q) use ($inactiveIds): void {
+                    $q->whereNull('status_id')->orWhereNotIn('status_id', $inactiveIds->all());
+                });
+            }
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -48,9 +62,56 @@ class MemberController extends Controller
 
         $members = $query->orderBy($sort, $dir)->paginate($this->perPage(25))->withQueryString();
         $statuses = MemberStatus::orderBy('name')->get();
+        $statusSets = StatusSet::with('statuses:id')->orderBy('name')->get();
         $roles = Role::orderBy('name')->get();
 
-        return view('admin.members.index', compact('members', 'statuses', 'roles'));
+        return view('admin.members.index', compact('members', 'statuses', 'statusSets', 'roles', 'historic'));
+    }
+
+    /**
+     * Inline AJAX auto-save of a member's status set and/or current status from
+     * the roster. Enforces that the chosen status belongs to the assigned set.
+     * Returns JSON for AJAX and redirects otherwise.
+     */
+    public function updateStatus(Request $request, User $user): RedirectResponse|JsonResponse
+    {
+        $v = $request->validate([
+            'status_id' => 'sometimes|nullable|integer|exists:member_statuses,id',
+            'status_set_id' => 'sometimes|nullable|integer|exists:status_sets,id',
+        ]);
+
+        $targetSetId = array_key_exists('status_set_id', $v) ? $v['status_set_id'] : $user->status_set_id;
+        $targetStatusId = array_key_exists('status_id', $v) ? $v['status_id'] : $user->status_id;
+
+        if ($targetSetId && $targetStatusId) {
+            $set = StatusSet::with('statuses:id')->find($targetSetId);
+            $offered = $set?->statuses->pluck('id')->all() ?? [];
+            if (! in_array((int) $targetStatusId, $offered, true)) {
+                $msg = __('The selected status is not part of the assigned status set.');
+                if ($request->ajax()) {
+                    return response()->json(['ok' => false, 'message' => $msg], 422);
+                }
+
+                return back()->withErrors(['status_id' => $msg]);
+            }
+        }
+
+        $updates = [];
+        if (array_key_exists('status_id', $v)) {
+            $updates['status_id'] = $v['status_id'];
+        }
+        if (array_key_exists('status_set_id', $v)) {
+            $updates['status_set_id'] = $v['status_set_id'];
+        }
+        if ($updates !== []) {
+            $user->update($updates);
+        }
+
+        if ($request->ajax()) {
+            return response()->json(['ok' => true, 'user' => $user->fresh(['status', 'statusSet'])]);
+        }
+
+        return back()->with('success', __('Member status updated.'));
     }
 
     public function impersonate(User $user): RedirectResponse

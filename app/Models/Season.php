@@ -32,6 +32,33 @@ class Season extends Model
     }
 
     /**
+     * Resolve the current dues/season year by comparing today against the
+     * season cut-off. The cut-off is the start month of the most recent season
+     * that has a start date (defaults to September). On or after that month the
+     * dues year rolls over to the next calendar year. This matches the
+     * membership_fees.season_year convention (e.g. a season starting Sept 2026
+     * is the "2027" dues year).
+     */
+    public static function currentDuesYear(?Carbon $reference = null): string
+    {
+        $reference ??= Carbon::today();
+
+        $latestStarted = static::query()
+            ->whereNotNull('start_date')
+            ->orderByDesc('start_date')
+            ->first();
+
+        $rolloverMonth = $latestStarted?->start_date?->month ?? 9;
+
+        $year = (int) $reference->year;
+        if ($reference->month >= $rolloverMonth) {
+            $year++;
+        }
+
+        return (string) $year;
+    }
+
+    /**
      * Resolve the fee-taper percentage (0-100) for a reference date within this
      * season. Returns 100 when no schedule applies. Tiers are month-day anchors
      * ({"from":"MM-DD","pct":N}); the applicable percentage is that of the last

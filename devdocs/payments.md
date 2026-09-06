@@ -2,21 +2,53 @@
 
 ## Fee Structure
 
-Annual membership fees computed by `FeeCalculationService::calculate()`.
+Annual membership dues computed by `FeeCalculationService::calculate()`.
+
+Full specification: `.kiro/specs/membership-dues-calculation/` (requirements.md,
+design.md, tasks.md). This section is the developer summary.
 
 ### Formula
 ```
-total = base_amount × status_modifier × age_discount + Σ(optional_components)
+total = ceil(cotisation_list_price × taper_factor)   // club-retained base only
+      + price(derived FFESSM licence)                // R1, from status + age
+      + effective_price(FLASSA)                       // 10 / 0 / omitted, R5–R7
+      + Σ(selected assurance)                         // only if a licence allows
 ```
 
+Only the club-retained cotisation base is tapered; the derived FFESSM licence and
+the assurance options are charged at full price. FLASSA is age-tapered per
+component (0 € under 18 at the anchor).
+
+### Derived federation licences (`LicenceResolver`)
+`app/Services/LicenceResolver.php` derives, from the member's cotisation status
+and age at the shared prise-de-licence anchor:
+- **FFESSM band** (federation age bands): `lic_enfant` (< 12), `lic_jeune`
+  (12 to < 16), `lic_adulte` (16+, full underwater permissions pending parental
+  approval), `lic_aucune` (sympathisant).
+- **FLASSA state** (`App\Services\FlassaState`): `Required` (10 €, 18+),
+  `IncludedFree` (0 €, present, < 18), `NotApplicable` (absent, sympathisant).
+- **assuranceAllowed**: false for sympathisant (no licence → no personal cover).
+
+Licences are `membership_fee_components` rows distinguished by the `kind` column
+(`ffessm_licence`, `flassa`, `assurance`, `other`); their selection is derived,
+never user-chosen.
+
+### Season taper reference date
+`FeeCalculationService::resolveAsOfDate()`:
+- absolute freeze `fee_taper_reference_date` (ThemeSetting) wins, else
+- `today + dues_cutoff_grace_days` (ThemeSetting, default 0) — the cutoff falls a
+  little later than today to leave the bureau processing time.
+
 ### Inputs
-- `membership_fees` table: base amounts per season_year × status_slug
-- `membership_fee_components` table: optional add-ons (federation licence, insurance, pool access)
-- Member's status (membre_de_droit, junior, famille → different rates)
-- Member's age (junior discount, senior discount)
+- `membership_fees` table: cotisation list prices per season_year × status_id
+- `membership_fee_components` table: FFESSM licences, FLASSA, assurances (by `kind`)
+- Member's status (status_set constrains offered options) and date of birth
+- `seasons.fee_taper_tiers` JSON: `[{from:"MM-DD", pct:N}]`
 
 ### Output
-- `payment_expected` record: user_id, type='membership', amount_due, communication (structured SEPA reference), components (JSON breakdown), status
+- `payment_expected` record: user_id, type='membership', amount_due, communication
+  (structured reference), components (JSON breakdown incl. `ffessm_licence` and
+  `flassa_state`), provisional flag, status
 
 ## Payment Statuses
 
@@ -29,13 +61,22 @@ Updated by bank reconciliation or manual marking.
 | Column | Type | Purpose |
 |--------|------|---------|
 | `season_id` | FK | Which season this applies to |
-| `name` | varchar | Display name (e.g. "FLASSA Licence") |
-| `slug` | varchar | Machine identifier |
+| `name` | varchar | Display name (e.g. "Licence FLASSA") |
+| `slug` | varchar | Machine identifier (e.g. `lic_adulte`, `flassa`, `ass_loisir1`) |
+| `kind` | varchar | Discriminator: `ffessm_licence`, `flassa`, `assurance`, `other` |
 | `amount` | decimal(8,2) | Cost of this component |
 | `is_base` | bool | Whether this is the base fee (not optional) |
-| `is_optional` | bool | Whether member can opt in/out |
+| `is_optional` | bool | Whether member can opt in/out (true only for assurances) |
+| `prorata_eligible` | bool | Whether the season taper applies (cotisation base only) |
+| `taper_below_age` | tinyint | Age threshold for the per-component age taper (FLASSA = 18) |
+| `taper_ratio` | decimal(4,3) | Multiplier below the threshold (FLASSA = 0 = free) |
+| `age_anchor_date` | date | Shared prise-de-licence anchor for the age taper |
 | `description` | varchar | Explanation shown in calculator |
 | `sort_order` | int | Display ordering |
+
+Seeded for season 2027 by `database/seeders/Fee2027Seeder.php` (registered in
+`CepSeeder`): 6 cotisations (`membership_fees`), 4 FFESSM licences, 1 FLASSA, 7
+assurances.
 
 ## Bank Transactions (`bank_transactions`)
 
@@ -51,26 +92,23 @@ Updated by bank reconciliation or manual marking.
 | `statement_ref` | varchar(100) | Bank statement reference number |
 | `confirmed_by` | FK | Bureau member who confirmed |
 
-## SEPA QR Codes
+## Payment QR Codes — RETIRED (2026-09)
 
-`QrCodeController` generates QR codes for payments in two modes:
+Payment/SEPA/EPC QR codes were removed. Rationale:
+- The **EPC069-12** standard is deprecated.
+- **Wero** (the EPC successor) is becoming a closed standard not suitable for open QR generation.
 
-### EPC QR (Legacy) — Direct bank transfer encoding
-- Standard EPC format: `BCD\n002\n1\nSCT\n{BIC}\n{name}\n{IBAN}\nEUR{amount}\n\n{communication}`
-- Members scan with banking app → pre-filled transfer
-- Public QR at `GET /qr/sepa/public?amount=X&communication=Y` (dues calculator)
-- Per-payment QR at `GET /qr/sepa/{payment}` (authenticated, own payments or bureau)
+Dues payment now relies on the **printed IBAN + BIC + structured communication** shown on the `/dues` page and on event payment panels. Members copy the communication string into their banking app manually.
 
-### Signed Payment QR (Anti-Quishing)
-- Encodes a **signed verification URL** instead of raw bank details
-- HMAC-SHA256 signature using `config('app.key')`
-- Payload: `{amount}|{communication}|{expires_timestamp}`
-- 30-day validity on signature
-- Scanning shows a verification page with club bank details + validity confirmation
-- Route: `GET /qr/payment/signed?amount=X&communication=Y`
-- Verification: `GET /payment/verify?a=X&c=Y&e=timestamp&s=signature`
+Removed routes/methods:
+- `GET /qr/sepa-public` → `QrCodeController::sepaPublic` (public EPC QR)
+- `GET /qr/sepa/{payment}` → `QrCodeController::sepa` (per-payment EPC QR)
+- `GET /qr/payment` → `QrCodeController::signedPaymentQr` (signed-URL QR)
+- `GET /pay/verify` → `QrCodeController::verifyPayment` (verification landing page)
+- `QrCodeController::buildSignedUrl` helper
+- Views `resources/views/cotisation.blade.php` and `resources/views/payment-verify.blade.php`
 
-### Other QR Types
+### Remaining QR Types (unchanged)
 - **vCard QR** (`GET /qr/vcard`): member's contact card
 - **Federation QR** (`GET /qr/federation/{licence}`): licence number QR for dive checks
 
@@ -102,9 +140,18 @@ Events can have up to 3 deposit stages:
 
 On registration, `PaymentExpected` auto-created with total of configured deposits.
 
-## Public Dues Calculator
+## Dues Calculator
 
-`/dues-calculator` — unauthenticated page where prospective members can estimate their annual fees by selecting status and optional components.
+`/dues` (`dues.show`) — bank-transfer preparation screen. Four option groups:
+Cotisation CEP (user-chosen, constrained to the member's status_set), Licence
+FFESSM + FLASSA (derived, read-only), Assurance Individuelle (optional, gated by
+the derived licence). Guests can preview; authenticated members can commit
+(`dues.commit` → `payment_expected`, provisional when unclassified). Live
+recompute via `resources/js/dues-live.js` (progressive enhancement; the Calculate
+button works without JS). Read-only payment summary (Titulaire/IBAN/BIC/Banque/
+Montant/Mention) from `ThemeSetting`.
+
+Legacy alias: `/cotisation` redirects to `dues.show`.
 
 ## Communication Format
 

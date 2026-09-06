@@ -227,7 +227,13 @@ class InboundMailFilter
         $openAiKey = config('services.openai.key', '');
         $apiKey = $oneMinKey ?: $openAiKey;
 
-        if (! $apiKey || mb_strlen(strip_tags($body)) < 30) {
+        $llm = new LlmClient;
+
+        if (! $llm->isConfigured() && ! $apiKey) {
+            return ['needs_review' => false, 'reason' => null];
+        }
+
+        if (mb_strlen(strip_tags($body)) < 30) {
             return ['needs_review' => false, 'reason' => null];
         }
 
@@ -241,6 +247,26 @@ class InboundMailFilter
 
         $systemPrompt = "You are a content moderator for a diving club's event communication board. {$eventContext} Respond with JSON only: {\"ok\": true/false, \"reason\": \"...\"}. Return ok=false if the message contains: private workplace information, personal complaints not related to the event, content that should have been a private reply, or sensitive personal data. Return ok=true if it's about event organization, logistics, participation, diving conditions, or general club matters.";
         $userContent = mb_substr(strip_tags($body), 0, 500);
+
+        // Preferred path: Groq (higher quality than the Cloudflare-class models).
+        if ($llm->isConfigured()) {
+            $json = $llm->chatJson([
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user', 'content' => $userContent],
+            ], ['max_tokens' => 200, 'timeout' => 15]);
+
+            if (is_array($json) && isset($json['ok'])) {
+                if ($json['ok'] === false) {
+                    return ['needs_review' => true, 'reason' => $json['reason'] ?? 'AI flagged as potentially private/irrelevant'];
+                }
+
+                return ['needs_review' => false, 'reason' => null];
+            }
+        }
+
+        if (! $apiKey) {
+            return ['needs_review' => false, 'reason' => null];
+        }
 
         try {
             if ($oneMinKey) {

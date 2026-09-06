@@ -14,10 +14,12 @@ use App\Models\Federation;
 use App\Models\MedicalComplianceRule;
 use App\Models\MembershipFee;
 use App\Models\MemberStatus;
+use App\Models\StatusSet;
 use App\Models\ThemeSetting;
 use App\Services\LicenseService;
 use App\Services\ThemeService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -34,6 +36,7 @@ class SettingsController extends Controller
             'themeSettings' => ThemeSetting::all_settings(),
             'themePresets' => ThemeService::presets(),
             'membershipFees' => MembershipFee::with('status')->orderBy('season_year', 'desc')->orderBy('status_id')->get(),
+            'statusSets' => StatusSet::with('statuses')->orderBy('name')->get(),
         ]);
     }
 
@@ -74,6 +77,58 @@ class SettingsController extends Controller
         $status->update($v);
 
         return back()->with('success', __('Status updated.'));
+    }
+
+    // --- Status Sets (eligibility base categories) ---
+    public function storeStatusSet(Request $request): RedirectResponse|JsonResponse
+    {
+        $v = $request->validate([
+            'name' => 'required|string|max:100',
+            'slug' => 'required|string|max:50|unique:status_sets,slug',
+            'description' => 'nullable|string',
+        ]);
+        $set = StatusSet::create($v);
+
+        if ($request->ajax()) {
+            return response()->json(['ok' => true, 'set' => $set]);
+        }
+
+        return back()->with('success', __('Status set added.'));
+    }
+
+    public function updateStatusSet(Request $request, StatusSet $statusSet): RedirectResponse|JsonResponse
+    {
+        $v = $request->validate([
+            'name' => 'sometimes|required|string|max:100',
+            'description' => 'sometimes|nullable|string',
+            'statuses' => 'sometimes|array',
+            'statuses.*' => 'integer|exists:member_statuses,id',
+            'default_status_id' => 'sometimes|nullable|integer|exists:member_statuses,id',
+        ]);
+
+        $statusSet->update(collect($v)->only(['name', 'description'])->toArray());
+
+        if ($request->has('statuses')) {
+            $defaultId = $request->input('default_status_id');
+            $sync = [];
+            foreach ($request->input('statuses', []) as $statusId) {
+                $sync[(int) $statusId] = ['is_default' => (int) $statusId === (int) $defaultId];
+            }
+            $statusSet->statuses()->sync($sync);
+        }
+
+        if ($request->ajax()) {
+            return response()->json(['ok' => true, 'set' => $statusSet->load('statuses')]);
+        }
+
+        return back()->with('success', __('Status set updated.'));
+    }
+
+    public function destroyStatusSet(StatusSet $statusSet): RedirectResponse
+    {
+        $statusSet->delete();
+
+        return back()->with('success', __('Status set deleted.'));
     }
 
     // --- Medical Compliance Rules ---
@@ -145,7 +200,7 @@ class SettingsController extends Controller
 
     public function updateTheme(Request $request): RedirectResponse
     {
-        $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'ui_show_icons', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x', 'newsletter_article_base_url', 'newsletter_font', 'default_locale', 'site_layout'];
+        $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'club_bank_name', 'dues_cutoff_grace_days', 'fee_taper_reference_date', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'ui_show_icons', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x', 'newsletter_article_base_url', 'newsletter_font', 'default_locale', 'site_layout'];
 
         // Handle enabled_locales checkbox array separately
         if ($request->has('enabled_locales')) {

@@ -132,6 +132,79 @@
             </div>
         </div>
 
+        {{-- Status Sets (eligibility base categories) --}}
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#statusSetsSection">{{ __('Status Sets (Eligibility)') }}</button></h2>
+            <div id="statusSetsSection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
+                <div class="accordion-body">
+                    <p class="text-muted small">{{ __('A status set is a member\'s sticky base category. It defines which statuses a member may hold across seasons. Tick the statuses each set offers; mark one as the default (full membership). Changes save automatically.') }}</p>
+
+                    @foreach(($statusSets ?? []) as $set)
+                        @php $setStatusIds = $set->statuses->pluck('id')->all(); $defaultId = optional($set->statuses->firstWhere('pivot.is_default', true))->id; @endphp
+                        <div class="card dc-card mb-2" data-set-id="{{ $set->id }}" data-url="{{ route('admin.settings.status-set.update', $set) }}">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>{{ $set->name }}</strong> <code class="small text-muted">{{ $set->slug }}</code>
+                                    <form method="POST" action="{{ route('admin.settings.status-set.destroy', $set) }}" class="d-inline" data-confirm="{{ __('Delete this set?') }}" data-confirm-style="danger">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">✕</button></form>
+                                </div>
+                                <div class="row">
+                                    @foreach($statuses as $s)
+                                        <div class="col-md-3 col-6">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input js-set-status" data-set="{{ $set->id }}" value="{{ $s->id }}" id="set{{ $set->id }}_st{{ $s->id }}" {{ in_array($s->id, $setStatusIds) ? 'checked' : '' }}>
+                                                <label class="form-check-label small" for="set{{ $set->id }}_st{{ $s->id }}">{{ $s->name }}</label>
+                                                <input type="radio" name="default_set{{ $set->id }}" class="form-check-input ms-2 js-set-default" data-set="{{ $set->id }}" value="{{ $s->id }}" title="{{ __('Default (full)') }}" {{ $defaultId == $s->id ? 'checked' : '' }}>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <form method="POST" action="{{ route('admin.settings.status-set.store') }}" class="row g-2 mt-2">
+                        @csrf
+                        <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Set name') }}" required></div>
+                        <div class="col-md-3"><input type="text" name="slug" class="form-control form-control-sm" placeholder="{{ __('slug') }}" required></div>
+                        <div class="col-md-3"><input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description') }}"></div>
+                        <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Set') }}</button></div>
+                    </form>
+
+                    @push('scripts')
+                    <script>
+                    (function () {
+                        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+                        const section = document.getElementById('statusSetsSection');
+                        if (!section || !csrf) return;
+
+                        function saveSet(setCard) {
+                            const setId = setCard.dataset.setId;
+                            const statuses = Array.from(setCard.querySelectorAll('.js-set-status:checked')).map(c => c.value);
+                            const defaultRadio = setCard.querySelector('.js-set-default:checked');
+                            const payload = { statuses: statuses, default_status_id: defaultRadio ? defaultRadio.value : null };
+                            fetch(setCard.dataset.url, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                                body: JSON.stringify(payload),
+                            })
+                            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                            .then(() => { if (typeof showToast === 'function') showToast('{{ __('✓ Saved') }}', 'success'); })
+                            .catch(() => { if (typeof showToast === 'function') showToast('{{ __('Save failed') }}', 'danger'); });
+                        }
+
+                        section.addEventListener('change', function (e) {
+                            const el = e.target.closest('.js-set-status, .js-set-default');
+                            if (!el) return;
+                            const card = el.closest('[data-set-id]');
+                            if (card) saveSet(card);
+                        });
+                    })();
+                    </script>
+                    @endpush
+                </div>
+            </div>
+        </div>
+
         {{-- Club Identity --}}
         <div class="accordion-item">
             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#identitySection">{{ __('Club Identity') }}</button></h2>
@@ -260,7 +333,7 @@
             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#bankingSection">{{ __('Banking (IBAN / SEPA)') }}</button></h2>
             <div id="bankingSection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
                 <div class="accordion-body">
-                    <p class="text-muted small">{{ __('The club IBAN is used to generate EPC QR codes on the dues calculator and payment pages.') }}</p>
+                    <p class="text-muted small">{{ __('The club IBAN, BIC and beneficiary are shown on the membership dues calculator as the bank-transfer details.') }}</p>
                     <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                         @csrf
                         <div class="row g-3 mb-3">
@@ -275,6 +348,25 @@
                             <div class="col-md-4">
                                 <label class="form-label">{{ __('Beneficiary Name') }}</label>
                                 <input type="text" name="club_full_name" class="form-control" value="{{ $themeSettings['club_full_name'] ?? '' }}">
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-5">
+                                <label class="form-label">{{ __('Bank Name') }}</label>
+                                <input type="text" name="club_bank_name" class="form-control" value="{{ $themeSettings['club_bank_name'] ?? '' }}" placeholder="BCEE">
+                            </div>
+                        </div>
+
+                        <hr>
+                        <p class="text-muted small mb-2">{{ __('Dues season taper: the reduction is evaluated at today plus the grace days below, so the cutoff falls a little later than today to leave time for processing. Set an absolute reference date to freeze the rate.') }}</p>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label" for="dues_cutoff_grace_days">{{ __('Cutoff grace (days)') }}</label>
+                                <input type="number" min="0" max="120" id="dues_cutoff_grace_days" name="dues_cutoff_grace_days" class="form-control" value="{{ $themeSettings['dues_cutoff_grace_days'] ?? '0' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="fee_taper_reference_date">{{ __('Freeze taper date (optional)') }}</label>
+                                <input type="date" id="fee_taper_reference_date" name="fee_taper_reference_date" class="form-control" value="{{ $themeSettings['fee_taper_reference_date'] ?? '' }}">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Banking Details') }}</button>

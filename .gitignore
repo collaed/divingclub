@@ -26,6 +26,7 @@ database/seeders/data/cep_members.json
 database/seeders/data/cep_articles_private.json
 database/seeders/data/parse_joomla_export.php
 fulldata_clubcep.txt
+members_by_domain.csv
 
 # Local photo folders
 /insp_pictures/*
@@ -50,3 +51,6 @@ ftp_password_eddy.txt
 # Local credentials docs (never commit)
 staging-credentials.md
 prod-preview-credentials.md
+
+# Local branch/export artifacts (never commit)
+mail_branch.zip

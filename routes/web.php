@@ -14,6 +14,7 @@ use App\Http\Controllers\ContactMemberController;
 use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\DiveGroupController;
 use App\Http\Controllers\DocumentBrowserController;
+use App\Http\Controllers\DuesCalculatorController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GdprController;
 use App\Http\Controllers\HealthController;
@@ -37,7 +38,6 @@ use App\Http\Middleware\CheckLicense;
 use App\Models\EventPhoto;
 use App\Models\User;
 use App\Models\UserEmail;
-use App\Services\FeeCalculationService;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -72,16 +72,10 @@ Route::view('/legal/privacy', 'legal.privacy')->name('privacy');
 Route::view('/legal/terms', 'legal.terms')->name('terms');
 Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
 Route::post('/trial', [TrialController::class, 'store'])->middleware('throttle:3,1')->name('trial.store');
-Route::get('/dues', function () {
-    $cfg = config('cotisation');
-    $cfg['taper_pct'] = app(FeeCalculationService::class)->taperPercentage((string) $cfg['year']);
-
-    return view('cotisation', ['cfg' => $cfg]);
-})->name('dues.show');
+Route::get('/dues', [DuesCalculatorController::class, 'show'])->name('dues.show');
+Route::post('/dues/calculate', [DuesCalculatorController::class, 'calculate'])->name('dues.calculate');
+Route::post('/dues/commit', [DuesCalculatorController::class, 'commit'])->middleware('auth')->name('dues.commit');
 Route::get('/cotisation', fn () => redirect()->route('dues.show'))->name('cotisation');
-Route::get('/qr/sepa-public', [QrCodeController::class, 'sepaPublic'])->name('qr.sepa.public');
-Route::get('/qr/payment', [QrCodeController::class, 'signedPaymentQr'])->name('qr.payment.signed');
-Route::get('/pay/verify', [QrCodeController::class, 'verifyPayment'])->name('payment.verify');
 Route::get('/calendar.ics', [CalendarFeedController::class, 'ical'])->name('calendar.ics');
 Route::get('/contact', fn () => view('contact'))->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->middleware('throttle:5,1')->name('contact.send');
@@ -243,7 +237,6 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // QR Codes
     Route::get('/qr/vcard', [QrCodeController::class, 'vcard'])->name('qr.vcard');
-    Route::get('/qr/sepa/{payment}', [QrCodeController::class, 'sepa'])->name('qr.sepa');
     Route::get('/qr/federation/{licence}', [QrCodeController::class, 'federation'])->name('qr.federation');
 
     // Email management
@@ -302,6 +295,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/cancel-registration', [EventController::class, 'cancelRegistration'])->middleware('throttle:10,1')->name('events.cancel-registration');
     Route::post('/events/{event}/update-comment', [EventController::class, 'updateComment'])->name('events.update-comment');
     Route::post('/events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
+    Route::post('/events/{event}/uncancel', [EventController::class, 'uncancel'])->name('events.uncancel');
     Route::post('/events/{event}/photos', [EventController::class, 'uploadPhoto'])->name('events.photo.upload');
     Route::delete('/events/{event}/photos/{photo}', [EventController::class, 'deletePhoto'])->name('events.photo.delete');
 

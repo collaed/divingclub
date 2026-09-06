@@ -29,11 +29,10 @@ class MembersDirectoryController extends Controller
             }));
         }
 
-        // Status filter — "active" is a virtual group
+        // Status filter — "active" is a virtual group (all statuses except inactive/former)
         if ($request->filled('status')) {
             if ($request->status === 'active') {
-                $activeStatuses = MemberStatus::whereIn('slug', ['membre_de_droit', 'externe', 'associe', 'assimile'])->pluck('id');
-                $query->whereIn('status_id', $activeStatuses);
+                $query->whereHas('status', fn ($q) => $q->whereNotIn('slug', MemberStatus::inactiveSlugs()));
             } else {
                 $query->where('status_id', $request->status);
             }

@@ -77,9 +77,23 @@
 
     @if($viewer->id === $target->id || $isBM)
     <div class="row">
+        @if($isBM)
+        <div class="col-md-4 mb-3">
+            <label class="form-label">{{ __('Status Set (base category)') }}</label>
+            <select name="status_set_id" id="statusSetSelect" class="form-select @error('status_set_id') is-invalid @enderror"
+                    data-status-map='@json(($statusSets ?? collect())->mapWithKeys(fn ($set) => [$set->id => $set->statuses->pluck("id")])->toArray())'>
+                <option value="">{{ __('— Not assigned —') }}</option>
+                @foreach(($statusSets ?? []) as $set)
+                    <option value="{{ $set->id }}" {{ old('status_set_id', $target->status_set_id) == $set->id ? 'selected' : '' }}>{{ $set->name }}</option>
+                @endforeach
+            </select>
+            <div class="form-text">{{ __('Sticky base category. Determines which statuses can be selected below.') }}</div>
+            @error('status_set_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        @endif
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Membership Status') }}</label>
-            <select name="status_id" class="form-select @error('status_id') is-invalid @enderror">
+            <select name="status_id" id="statusSelect" class="form-select @error('status_id') is-invalid @enderror">
                 @foreach($statuses as $s)
                     <option value="{{ $s->id }}" {{ old('status_id', $target->status_id) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                 @endforeach
@@ -88,6 +102,37 @@
             @error('status_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
+    @if($isBM)
+    @push('scripts')
+    <script>
+    (function () {
+        const setSel = document.getElementById('statusSetSelect');
+        const statusSel = document.getElementById('statusSelect');
+        if (!setSel || !statusSel) return;
+        const map = JSON.parse(setSel.dataset.statusMap || '{}');
+
+        function filterStatuses() {
+            const allowed = map[setSel.value] || null;
+            Array.from(statusSel.options).forEach(function (opt) {
+                if (opt.value === '') { return; }
+                const show = !allowed || allowed.map(String).includes(opt.value);
+                opt.hidden = !show;
+                opt.disabled = !show;
+            });
+            // If the current selection is now hidden, fall back to the first visible option.
+            const current = statusSel.selectedOptions[0];
+            if (current && current.hidden) {
+                const first = Array.from(statusSel.options).find(function (o) { return !o.hidden; });
+                if (first) { statusSel.value = first.value; }
+            }
+        }
+
+        setSel.addEventListener('change', filterStatuses);
+        filterStatuses();
+    })();
+    </script>
+    @endpush
+    @endif
     @endif
 
     @if($isBM)

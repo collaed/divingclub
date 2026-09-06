@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFeeComponentRequest;
+use App\Http\Requests\UpdateFeeComponentRequest;
 use App\Models\BankTransaction;
 use App\Models\MembershipFeeComponent;
 use App\Models\PaymentExpected;
@@ -13,6 +15,7 @@ use App\Models\User;
 use App\Services\BankReconciliationService;
 use App\Services\FeeCalculationService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -48,23 +51,45 @@ class PaymentController extends Controller
         return view('admin.payments.components', compact('components'));
     }
 
-    public function storeComponent(Request $request): RedirectResponse
+    public function storeComponent(StoreFeeComponentRequest $request): RedirectResponse
     {
-        $v = $request->validate([
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:100',
-            'amount' => 'required|numeric|min:0',
-            'is_base' => 'boolean',
-            'is_optional' => 'boolean',
-            'prorata_eligible' => 'boolean',
-            'description' => 'nullable|string',
-        ]);
+        $v = $request->validated();
         $v['is_base'] = $request->boolean('is_base');
         $v['is_optional'] = $request->boolean('is_optional');
         $v['prorata_eligible'] = $request->boolean('prorata_eligible');
         MembershipFeeComponent::create($v);
 
         return back()->with('success', __('Component added.'));
+    }
+
+    /**
+     * Inline AJAX auto-save of a single component's editable fields. Returns
+     * JSON for AJAX requests and redirects for non-AJAX (graceful degradation).
+     */
+    public function updateComponent(UpdateFeeComponentRequest $request, MembershipFeeComponent $component): RedirectResponse|JsonResponse
+    {
+        $data = $request->validated();
+
+        // Empty-string selects/inputs mean "clear the field" (nullable columns).
+        foreach (['taper_below_age', 'taper_ratio', 'age_anchor_date'] as $nullable) {
+            if ($request->has($nullable) && $request->input($nullable) === '') {
+                $data[$nullable] = null;
+            }
+        }
+
+        foreach (['is_base', 'is_optional', 'prorata_eligible'] as $bool) {
+            if ($request->has($bool)) {
+                $data[$bool] = $request->boolean($bool);
+            }
+        }
+
+        $component->update($data);
+
+        if ($request->ajax()) {
+            return response()->json(['ok' => true, 'component' => $component->fresh()]);
+        }
+
+        return back()->with('success', __('Component updated.'));
     }
 
     public function destroyComponent(MembershipFeeComponent $component): RedirectResponse|View

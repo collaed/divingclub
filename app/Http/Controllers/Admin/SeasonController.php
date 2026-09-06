@@ -282,18 +282,21 @@ class SeasonController extends Controller
         $schedule = $this->buildSchedule($season);
         $created = 0;
         $updated = 0;
+        $skipped = 0;
 
-        DB::transaction(function () use ($schedule, $season, &$created, &$updated): void {
+        DB::transaction(function () use ($schedule, $season, &$created, &$updated, &$skipped): void {
             foreach ($schedule as $entry) {
                 if ($entry['skip']) {
                     continue;
                 }
                 $pattern = $entry['pattern'];
 
-                // Natural key: one occurrence per (pattern, date). Re-running
-                // generation updates the existing occurrence's details instead
-                // of creating a duplicate. Fall back to (season, date, time) for
-                // legacy occurrences created before season_pattern_id existed.
+                // Positional identity: one occurrence per (pattern, date).
+                // Re-running generation updates the existing occurrence in place
+                // rather than creating a duplicate. The match must depend only on
+                // WHEN the event happens (pattern link, or season+date+time), never
+                // on mutable details like event_type/title — otherwise editing a
+                // pattern's type would orphan the old events and create duplicates.
                 $existing = Event::where('season_pattern_id', $pattern->id)
                     ->whereDate('event_date', $entry['date'])
                     ->first();
@@ -303,7 +306,6 @@ class SeasonController extends Controller
                         ->where('season_id', $season->id)
                         ->whereDate('event_date', $entry['date'])
                         ->where('event_time', $pattern->start_time)
-                        ->where('event_type', $pattern->event_type)
                         ->first();
                 }
 
@@ -323,6 +325,22 @@ class SeasonController extends Controller
                 ];
 
                 if ($existing) {
+                    // A cancelled occurrence stays cancelled: skip it entirely so
+                    // re-generation never reopens it or overwrites its details.
+                    if ($existing->status === 'cancelled') {
+                        // Ensure it carries the pattern link so future runs match
+                        // it by the strong key and keep skipping it.
+                        if ($existing->season_pattern_id !== $pattern->id) {
+                            $existing->update([
+                                'season_pattern_id' => $pattern->id,
+                                'season_id' => $season->id,
+                            ]);
+                        }
+                        $skipped++;
+
+                        continue;
+                    }
+
                     // Only alter details. Leave registration state untouched
                     // (inscriptions_closed, inscription_open_at, participants,
                     // status) so fixing a schedule never reopens or resets an
@@ -343,7 +361,7 @@ class SeasonController extends Controller
                         ? $entry['date']->copy()->subDays($pattern->registration_opens_days_before)->startOfDay()
                         : null,
                     'inscriptions_closed' => false,
-                    'status' => 'published',
+                    'status' => 'scheduled',
                     'season_id' => $season->id,
                     'season_pattern_id' => $pattern->id,
                     'created_by' => auth()->id(),
@@ -355,6 +373,9 @@ class SeasonController extends Controller
         $message = __(':count events generated.', ['count' => $created]);
         if ($updated > 0) {
             $message .= ' '.__(':count existing events updated.', ['count' => $updated]);
+        }
+        if ($skipped > 0) {
+            $message .= ' '.__(':count cancelled occurrences left untouched.', ['count' => $skipped]);
         }
 
         return redirect()->route('admin.seasons.show', $season)->with('success', $message);

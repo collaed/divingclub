@@ -31,6 +31,10 @@ class EventRegistrationService
      */
     public function registerNonMember(Event $event, string $name, ?string $comment, User $actor): array
     {
+        if ($event->status === 'cancelled') {
+            return ['success' => false, 'message' => __('This event is cancelled.')];
+        }
+
         if ($event->registrations()->whereNull('user_id')->where('non_member_name', $name)->whereIn('status', ['confirmed', 'waiting'])->exists()) {
             return ['success' => false, 'message' => __(':name is already registered.', ['name' => $name])];
         }

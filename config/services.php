@@ -18,6 +18,19 @@ return [
         'key' => env('ONEMIN_AI_KEY'),
     ],
 
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
+    // Groq — OpenAI-compatible chat completions, used where Cloudflare/local
+    // models are not good enough. Fast + cheap hosted inference.
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+        'base_url' => env('GROQ_BASE_URL', 'https://api.groq.com/openai/v1'),
+        'model' => env('GROQ_MODEL', 'openai/gpt-oss-20b'),
+        'reasoning_effort' => env('GROQ_REASONING_EFFORT', 'low'),
+    ],
+
     'deepl' => [
         'key' => env('DEEPL_API_KEY'),
     ],

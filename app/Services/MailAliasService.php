@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Event;
+use App\Models\MemberStatus;
 use App\Models\User;
 
 class MailAliasService
@@ -153,10 +154,15 @@ class MailAliasService
         return ['emails' => $emails, 'label' => 'Bureau', 'auth_level' => 'bureau'];
     }
 
-    /** All active members with verified email. */
+    /**
+     * All active members with verified email. "Active" excludes only the
+     * inactive/former statuses (see MemberStatus::INACTIVE_SLUGS); honorary
+     * members are included. Members without any status are excluded (they are
+     * not yet classified by the bureau).
+     */
     protected static function allActive(): array
     {
-        $emails = User::whereHas('status', fn ($q) => $q->whereIn('slug', ['actif', 'membre_de_droit', 'fonctionnaire']))
+        $emails = User::whereHas('status', fn ($q) => $q->whereNotIn('slug', MemberStatus::inactiveSlugs()))
             ->whereNotNull('email_verified_at')
             ->pluck('primary_email')->toArray();
 
