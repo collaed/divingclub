@@ -20,6 +20,13 @@ trait SeedsRoles
         DB::table($roleTable)->insertOrIgnore(['id' => 6, 'name' => 'Bureau Master', 'slug' => 'bureau_master']);
         DB::table('member_statuses')->insertOrIgnore(['id' => 1, 'name' => 'Active', 'slug' => 'active']);
 
+        // PostgreSQL does not advance a table's identity sequence when rows are
+        // inserted with an explicit id, so a later id-less insert (e.g.
+        // MemberStatus::firstOrCreate) would reuse id 1 and collide. Realign the
+        // sequences to the current max id. No-op on MySQL/SQLite.
+        $this->syncSequence($roleTable);
+        $this->syncSequence('member_statuses');
+
         $bureauRole = SpatieRole::findOrCreate('bureau_master', 'web');
         SpatieRole::findOrCreate('bureau_finance', 'web');
         SpatieRole::findOrCreate('bureau_technical', 'web');
@@ -32,6 +39,22 @@ trait SeedsRoles
             Permission::findOrCreate($p, 'web');
         }
         $bureauRole->syncPermissions($permissions);
+    }
+
+    /**
+     * Realign a PostgreSQL identity sequence to the table's current max id.
+     * No-op on any other database driver.
+     */
+    protected function syncSequence(string $table): void
+    {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return;
+        }
+
+        DB::statement(
+            "SELECT setval(pg_get_serial_sequence(?, 'id'), COALESCE((SELECT MAX(id) FROM {$table}), 1))",
+            [$table]
+        );
     }
 
     protected function createBureauUser(): User
