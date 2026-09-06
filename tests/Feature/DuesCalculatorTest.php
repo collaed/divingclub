@@ -28,7 +28,7 @@ class DuesCalculatorTest extends TestCase
         $this->seedRoles();
     }
 
-    private function status(string $slug): MemberStatus
+    private function makeStatus(string $slug): MemberStatus
     {
         return MemberStatus::firstOrCreate(['slug' => $slug], ['name' => ucfirst($slug)]);
     }
@@ -54,7 +54,7 @@ class DuesCalculatorTest extends TestCase
     public function test_classified_member_only_sees_in_set_statuses(): void
     {
         $externe = StatusSet::create(['name' => 'Externe', 'slug' => 'externe']);
-        $actif = $this->status('actif');
+        $actif = $this->makeStatus('actif');
         $externe->statuses()->attach($actif->id);
 
         $member = $this->member($externe, $actif);
@@ -66,7 +66,7 @@ class DuesCalculatorTest extends TestCase
 
     public function test_unclassified_member_sees_all_and_can_commit_provisionally(): void
     {
-        $actif = $this->status('actif');
+        $actif = $this->makeStatus('actif');
         MembershipFee::create(['season_year' => '2027', 'status_id' => $actif->id, 'amount' => 110]);
         $member = $this->member(null, null); // no set, no status
 
@@ -93,7 +93,7 @@ class DuesCalculatorTest extends TestCase
     public function test_classified_member_commit_is_not_provisional(): void
     {
         $set = StatusSet::create(['name' => 'Externe', 'slug' => 'externe']);
-        $actif = $this->status('actif');
+        $actif = $this->makeStatus('actif');
         $set->statuses()->attach($actif->id);
         MembershipFee::create(['season_year' => '2027', 'status_id' => $actif->id, 'amount' => 110]);
         $member = $this->member($set, $actif);
@@ -109,7 +109,7 @@ class DuesCalculatorTest extends TestCase
 
     public function test_calculate_applies_component_age_taper(): void
     {
-        $junior = $this->status('junior');
+        $junior = $this->makeStatus('junior');
         MembershipFee::create(['season_year' => '2027', 'status_id' => $junior->id, 'amount' => 55]);
         MembershipFeeComponent::create([
             'name' => 'Licence FLASSA', 'slug' => 'flassa', 'amount' => 40, 'is_optional' => true,
@@ -138,8 +138,8 @@ class DuesCalculatorTest extends TestCase
 
     public function test_former_status_is_not_offered_on_the_calculator(): void
     {
-        $this->status('actif');
-        $this->status('former');
+        $this->makeStatus('actif');
+        $this->makeStatus('former');
 
         $res = $this->get(route('dues.show'))->assertOk();
         $res->assertSee('Actif');
@@ -149,7 +149,7 @@ class DuesCalculatorTest extends TestCase
 
     public function test_former_status_commit_is_rejected(): void
     {
-        $former = $this->status('former');
+        $former = $this->makeStatus('former');
         $member = $this->member(null, null);
 
         $this->actingAs($member)->post(route('dues.commit'), [
@@ -162,7 +162,7 @@ class DuesCalculatorTest extends TestCase
 
     public function test_fees_fall_back_to_last_good_year(): void
     {
-        $actif = $this->status('actif');
+        $actif = $this->makeStatus('actif');
         // Only a 2026 fee exists; requesting 2027 should reuse it.
         MembershipFee::create(['season_year' => '2026', 'status_id' => $actif->id, 'amount' => 105]);
 
