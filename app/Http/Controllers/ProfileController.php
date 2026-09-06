@@ -12,6 +12,7 @@ use App\Http\Requests\UpdateProfileInfoRequest;
 use App\Http\Requests\UpdateProfileLanguageRequest;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
+use App\Models\StatusSet;
 use App\Models\User;
 use App\Services\MedicalComplianceService;
 use Illuminate\Contracts\View\View;
@@ -36,6 +37,7 @@ class ProfileController extends Controller
 
         $target->load(['detail', 'emails', 'licences.federation', 'documents']);
         $statuses = MemberStatus::orderBy('name')->get();
+        $statusSets = StatusSet::with('statuses:id')->orderBy('name')->get();
         $tab = $request->get('tab', 'info');
         $medicalStatus = app(MedicalComplianceService::class)->getStatus($target);
 
@@ -43,7 +45,7 @@ class ProfileController extends Controller
         $tierVault = $isSelf || $isBureau;
         $tierManifest = $tierVault || $isInstructor;
 
-        return view('profile.show', compact('target', 'viewer', 'statuses', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierManifest'));
+        return view('profile.show', compact('target', 'viewer', 'statuses', 'statusSets', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierManifest'));
     }
 
     public function updateInfo(Request $request, ?User $user = null): RedirectResponse
@@ -72,6 +74,7 @@ class ProfileController extends Controller
         }
 
         if ($viewer->isBureau()) {
+            $rules['status_set_id'] = 'nullable|exists:status_sets,id';
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
             $rules['adhesion_year'] = 'nullable|integer|min:1900|max:'.date('Y');
@@ -80,6 +83,17 @@ class ProfileController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        // The chosen status must belong to the assigned set (consistency guard).
+        if ($viewer->isBureau() && ! empty($validated['status_set_id']) && ! empty($validated['status_id'])) {
+            $set = StatusSet::with('statuses')->find($validated['status_set_id']);
+            $offered = $set?->statuses->pluck('id')->all() ?? [];
+            if (! in_array((int) $validated['status_id'], $offered, true)) {
+                return back()
+                    ->withErrors(['status_id' => __('The selected status is not part of the assigned status set.')])
+                    ->withInput(['tab' => 'info']);
+            }
+        }
 
         if (! $viewer->isBureau() && ($request->has('bureau_member') || $request->has('active_instructor'))) {
             abort(403);
@@ -94,7 +108,11 @@ class ProfileController extends Controller
                 $target->update(['status_id' => $validated['status_id']]);
             }
 
-            $detailData = collect($validated)->except(['username', 'status_id', 'cotisation_years'])->toArray();
+            if ($viewer->isBureau() && array_key_exists('status_set_id', $validated)) {
+                $target->update(['status_set_id' => $validated['status_set_id']]);
+            }
+
+            $detailData = collect($validated)->except(['username', 'status_id', 'status_set_id', 'cotisation_years'])->toArray();
 
             if ($viewer->isBureau()) {
                 $detailData['bureau_member'] = $validated['bureau_member'] ?? false;

@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SystemContent;
 use App\Models\Article;
 use App\Models\Document;
 use App\Models\Event;
@@ -32,9 +33,17 @@ class HomeController extends Controller
 {
     public function index(): RedirectResponse|View
     {
+        $user = auth()->user();
+
+        // Public visitors get the visual landing page (an editable, translatable
+        // article drives its intro text). Authenticated members get the
+        // configurable widget dashboard.
+        if (! $user) {
+            return $this->landing();
+        }
+
         $layout = HomepageLayoutController::getLayout();
         $widgetTypes = HomepageLayoutController::widgetTypes();
-        $user = auth()->user();
 
         // Load data for each enabled + visible widget
         $widgets = collect($layout)->map(function (array $w) use ($user): array {
@@ -132,6 +141,16 @@ class HomeController extends Controller
 
     public function index3(): RedirectResponse|View
     {
+        return $this->landing();
+    }
+
+    /**
+     * The public visual landing page (home3). Its intro/hero text is an
+     * editable, translatable system article (SystemContent::HOME_LANDING) so the
+     * bureau can maintain it through the normal article CMS in every language.
+     */
+    private function landing(): View
+    {
         $photos = EventPhoto::randomPublic(8)->pluck('path');
         // One upcoming event per distinct activity title for variety
         $events = Event::where('event_date', '>=', now())
@@ -144,7 +163,11 @@ class HomeController extends Controller
             ->whereHas('user.documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->where('expiry_date', '>', now()))
             ->with('user')->get()->unique('user_id');
 
-        return view('home3', compact('photos', 'events', 'stats', 'faces'))
+        $landingArticle = SystemContent::article(SystemContent::HOME_LANDING);
+        $landingTitle = SystemContent::title(SystemContent::HOME_LANDING);
+        $landingBody = SystemContent::body(SystemContent::HOME_LANDING);
+
+        return view('home3', compact('photos', 'events', 'stats', 'faces', 'landingArticle', 'landingTitle', 'landingBody'))
             ->with('theme', ThemeService::settings());
     }
 

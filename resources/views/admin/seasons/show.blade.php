@@ -51,9 +51,9 @@
                             <div class="col-md-2"><input type="text" name="start_time" data-picker="time" class="form-control form-control-sm" placeholder="19:00" required></div>
                             <div class="col-md-2"><input type="text" name="end_time" data-picker="time" class="form-control form-control-sm" placeholder="21:00"></div>
                             <div class="col-md-2">
-                                <select name="event_type" class="form-select form-select-sm" required>
-                                    @foreach(['pool','dive','training','theory','social'] as $t)
-                                        <option value="{{ $t }}">{{ ucfirst($t) }}</option>
+                                <select name="event_type" class="form-select form-select-sm" required data-taper-color>
+                                    @foreach($activityTypes as $key => $meta)
+                                        <option value="{{ $key }}" data-color="{{ $meta['color'] }}">{{ $meta['icon'] }} {{ __(trim($meta['label'], '↳ ')) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -108,6 +108,51 @@
         </div>
     </div>
 
+    {{-- Fee Taper Schedule --}}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card dc-card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>💶 {{ __('Membership Fee Taper') }}</span>
+                    <small class="text-muted">{{ __('Reduces only the club-retained membership component') }}</small>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">
+                        {{ __('Season-relative cutoffs. From season start the rate is 100%. Each cutoff (month-day) sets a new percentage from that date onward. Example: 01 Apr → 50%, 01 Aug → 100%.') }}
+                    </p>
+                    <form method="POST" action="{{ route('admin.seasons.taper.update', $season) }}">
+                        @csrf
+                        <div id="taperRows">
+                            @php $tiers = $season->fee_taper_tiers ?? []; @endphp
+                            @forelse($tiers as $tier)
+                                @php [$mm, $dd] = array_pad(explode('-', $tier['from']), 2, '01'); @endphp
+                                <div class="row g-2 mb-2 taper-row align-items-center">
+                                    <div class="col-auto"><label class="small text-muted mb-0">{{ __('From') }}</label></div>
+                                    <div class="col-auto"><input type="text" name="from[]" class="form-control form-control-sm" style="width:90px" value="{{ $tier['from'] }}" placeholder="MM-DD" pattern="\d{2}-\d{2}" required></div>
+                                    <div class="col-auto"><label class="small text-muted mb-0">{{ __('Rate') }}</label></div>
+                                    <div class="col-auto"><div class="input-group input-group-sm" style="width:100px"><input type="number" name="pct[]" class="form-control" min="0" max="100" value="{{ $tier['pct'] }}" required><span class="input-group-text">%</span></div></div>
+                                    <div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger taper-del">&#x2715;</button></div>
+                                </div>
+                            @empty
+                            @endforelse
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="taperAdd">+ {{ __('Add cutoff') }}</button>
+                        <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Taper Schedule') }}</button>
+                    </form>
+                    <template id="taperRowTpl">
+                        <div class="row g-2 mb-2 taper-row align-items-center">
+                            <div class="col-auto"><label class="small text-muted mb-0">{{ __('From') }}</label></div>
+                            <div class="col-auto"><input type="text" name="from[]" class="form-control form-control-sm" style="width:90px" placeholder="MM-DD" pattern="\d{2}-\d{2}" required></div>
+                            <div class="col-auto"><label class="small text-muted mb-0">{{ __('Rate') }}</label></div>
+                            <div class="col-auto"><div class="input-group input-group-sm" style="width:100px"><input type="number" name="pct[]" class="form-control" min="0" max="100" required><span class="input-group-text">%</span></div></div>
+                            <div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger taper-del">&#x2715;</button></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Edit Pattern Modal --}}
     <div class="modal fade" id="editPatternModal" tabindex="-1" aria-labelledby="editPatternModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -140,8 +185,8 @@
                             <div class="col-md-6">
                                 <label class="form-label">{{ __('Type') }}</label>
                                 <select name="event_type" class="form-select" required>
-                                    @foreach(['pool','pool_kids','pool_pn1','pool_pn23','apnea','fosse','quarry','long_trip','theory','social'] as $t)
-                                        <option value="{{ $t }}">{{ ucfirst(str_replace('_', ' ', $t)) }}</option>
+                                    @foreach($activityTypes as $key => $meta)
+                                        <option value="{{ $key }}" data-color="{{ $meta['color'] }}">{{ $meta['icon'] }} {{ __(trim($meta['label'], '↳ ')) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -252,10 +297,17 @@
         if (res.ok) btn.closest('[data-id]').remove();
     });
 
-    // Edit pattern modal
-    const editModal = new bootstrap.Modal(document.getElementById('editPatternModal'));
+    // Edit pattern modal — instantiate lazily so this script never throws at
+    // parse time if the bootstrap module bundle has not executed yet.
     const editForm = document.getElementById('editPatternForm');
     let editUrl = '';
+    let _editModal = null;
+    function getEditModal() {
+        if (!_editModal) {
+            _editModal = new bootstrap.Modal(document.getElementById('editPatternModal'));
+        }
+        return _editModal;
+    }
 
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('.btn-edit-pattern');
@@ -289,7 +341,7 @@
             endTimeInput.value = p.end_time ?? '';
         }
 
-        editModal.show();
+        getEditModal().show();
         // Re-init datepickers inside modal after it's shown
         document.getElementById('editPatternModal').addEventListener('shown.bs.modal', function handler() {
             if (typeof window.initDatepickers === 'function') window.initDatepickers(editForm);
@@ -313,7 +365,7 @@
         const res = await fetch(editUrl, {method:'PUT', headers, body:JSON.stringify(data)});
         if (res.ok) {
             const result = await res.json();
-            editModal.hide();
+            getEditModal().hide();
             let msg = '{{ __("Pattern updated.") }}';
             if (result.events_updated > 0) {
                 msg += ' ' + result.events_updated + ' {{ __("future events updated.") }}';
@@ -325,6 +377,33 @@
             if (typeof showToast === 'function') showToast('{{ __("Error saving pattern.") }}', 'danger');
         }
     });
+    // Fee taper: add/remove cutoff rows
+    document.getElementById('taperAdd')?.addEventListener('click', function() {
+        const tpl = document.getElementById('taperRowTpl');
+        document.getElementById('taperRows').appendChild(tpl.content.cloneNode(true));
+    });
+    document.addEventListener('click', function(e) {
+        const del = e.target.closest('.taper-del');
+        if (!del) return;
+        del.closest('.taper-row')?.remove();
+    });
+
+    // Auto-fill the colour picker from the selected activity type's canonical colour.
+    function syncTypeColor(sel) {
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt) return;
+        const color = opt.dataset.color;
+        if (!color) return;
+        const colorInput = sel.closest('form')?.querySelector('input[name="color_hex"]');
+        if (colorInput) colorInput.value = color;
+    }
+    document.addEventListener('change', function(e) {
+        const sel = e.target.closest('select[name="event_type"]');
+        if (sel) syncTypeColor(sel);
+    });
+    // Set the Add-form colour to match the initially-selected type on load.
+    const addTypeSel = document.querySelector('#patternForm select[name="event_type"]');
+    if (addTypeSel) syncTypeColor(addTypeSel);
     </script>
     @endpush
 </x-admin-layout>

@@ -29,9 +29,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,              // bureau_master, bureau_finance, bureau_technical, instructor, member
             MemberStatusSeeder::class,      // active, inactive, suspended, honorary, trial
+            StatusSetSeeder::class,         // eligibility sets (Fonctionnaire / Externe / Jeune) + member mapping
             FederationSeeder::class,        // FFESSM, LIFRAS, FLASSA (base set)
             CertificationLevelSeeder::class, // All federation cert levels + extended federations
             DiveGroupRuleSeeder::class,     // FFESSM palanquée composition rules
+            SystemContentSeeder::class,     // stable-slug editable content (dues footer, home landing)
         ]);
 
         $this->seedAdminUser();

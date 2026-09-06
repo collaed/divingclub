@@ -37,6 +37,7 @@ class CepSeeder extends Seeder
         $this->seedArticles('cep_articles_private.json', 'CEP-specific');
         $this->call(CepEquipmentSeeder::class);
         $this->call(DiveSiteSeeder::class);
+        $this->call(Fee2027Seeder::class);
         $this->seedEvents();
     }
 

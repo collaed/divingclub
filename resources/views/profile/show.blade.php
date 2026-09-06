@@ -156,7 +156,7 @@
 
     <div class="tab-content dc-tab-content">
         <div class="tab-pane fade {{ $activeTab === 'info' ? 'show active' : '' }}" id="tab-info" role="tabpanel">
-            @include('profile.tabs.info', ['target' => $target, 'viewer' => $viewer, 'statuses' => $statuses, 'canEdit' => $canEdit])
+            @include('profile.tabs.info', ['target' => $target, 'viewer' => $viewer, 'statuses' => $statuses, 'statusSets' => $statusSets, 'canEdit' => $canEdit])
         </div>
         @if(isset($tabs['private']))
         <div class="tab-pane fade {{ $activeTab === 'private' ? 'show active' : '' }}" id="tab-private" role="tabpanel">

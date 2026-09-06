@@ -81,6 +81,78 @@ class InstructorAvailabilityTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_bureau_can_stamp_another_instructor_onto_session(): void
+    {
+        $bureau = $this->createUser('bureau_master');
+        $instructor = $this->createUser('instructor');
+        $season = Season::create(['year' => date('Y'), 'name' => date('Y'), 'start_date' => now()->startOfYear(), 'end_date' => now()->endOfYear()]);
+        $event = Event::create([
+            'title' => 'Pool Training',
+            'event_date' => now()->next('Wednesday'),
+            'event_time' => '17:00',
+            'event_type' => 'pool',
+            'season_id' => $season->id,
+            'status' => 'open',
+        ]);
+
+        $this->actingAs($bureau)->postJson('/availability/toggle-for', [
+            'event_id' => $event->id,
+            'user_id' => $instructor->id,
+        ])->assertOk()->assertJson(['status' => 'added', 'user_id' => $instructor->id]);
+
+        $this->assertDatabaseHas('instructor_availabilities', [
+            'user_id' => $instructor->id,
+            'event_id' => $event->id,
+        ]);
+    }
+
+    public function test_bureau_stamp_again_removes_instructor(): void
+    {
+        $bureau = $this->createUser('bureau_master');
+        $instructor = $this->createUser('instructor');
+        $season = Season::create(['year' => date('Y'), 'name' => date('Y'), 'start_date' => now()->startOfYear(), 'end_date' => now()->endOfYear()]);
+        $event = Event::create([
+            'title' => 'Pool Training',
+            'event_date' => now()->next('Wednesday'),
+            'event_time' => '17:00',
+            'event_type' => 'pool',
+            'season_id' => $season->id,
+            'status' => 'open',
+        ]);
+
+        $this->actingAs($bureau)->postJson('/availability/toggle-for', [
+            'event_id' => $event->id, 'user_id' => $instructor->id,
+        ])->assertOk()->assertJson(['status' => 'added']);
+
+        $this->actingAs($bureau)->postJson('/availability/toggle-for', [
+            'event_id' => $event->id, 'user_id' => $instructor->id,
+        ])->assertOk()->assertJson(['status' => 'removed']);
+
+        $this->assertDatabaseMissing('instructor_availabilities', [
+            'user_id' => $instructor->id,
+            'event_id' => $event->id,
+        ]);
+    }
+
+    public function test_non_bureau_instructor_cannot_stamp_others(): void
+    {
+        $instructor = $this->createUser('instructor');
+        $other = $this->createUser('instructor');
+        $season = Season::create(['year' => date('Y'), 'name' => date('Y'), 'start_date' => now()->startOfYear(), 'end_date' => now()->endOfYear()]);
+        $event = Event::create([
+            'title' => 'Pool Training',
+            'event_date' => now()->next('Wednesday'),
+            'event_time' => '17:00',
+            'event_type' => 'pool',
+            'season_id' => $season->id,
+            'status' => 'open',
+        ]);
+
+        $this->actingAs($instructor)->postJson('/availability/toggle-for', [
+            'event_id' => $event->id, 'user_id' => $other->id,
+        ])->assertForbidden();
+    }
+
     private function createUser(string $role = 'member'): User
     {
         $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';

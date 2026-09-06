@@ -73,7 +73,10 @@ class SeasonController extends Controller
     {
         $season->load(['holidays', 'patterns']);
 
-        return view('admin.seasons.show', compact('season'));
+        return view('admin.seasons.show', [
+            'season' => $season,
+            'activityTypes' => config('activity_types'),
+        ]);
     }
 
     public function activate(Season $season): JsonResponse|RedirectResponse
@@ -84,6 +87,39 @@ class SeasonController extends Controller
         });
 
         return back()->with('success', __('Season activated.'));
+    }
+
+    /**
+     * Update the season's fee-taper schedule (ordered MM-DD → percentage tiers).
+     */
+    public function updateTaper(Request $request, Season $season): RedirectResponse
+    {
+        abort_unless(auth()->user()?->can('manage seasons'), 403);
+
+        $validated = $request->validate([
+            'from' => 'array',
+            'from.*' => ['required', 'regex:/^\d{2}-\d{2}$/'],
+            'pct' => 'array',
+            'pct.*' => 'required|integer|min:0|max:100',
+        ]);
+
+        $froms = $validated['from'] ?? [];
+        $pcts = $validated['pct'] ?? [];
+
+        $tiers = [];
+        foreach ($froms as $i => $from) {
+            if (! isset($pcts[$i])) {
+                continue;
+            }
+            $tiers[] = ['from' => $from, 'pct' => (int) $pcts[$i]];
+        }
+
+        // Sort by month-day for a stable, readable schedule.
+        usort($tiers, fn (array $a, array $b): int => strcmp($a['from'], $b['from']));
+
+        $season->update(['fee_taper_tiers' => $tiers === [] ? null : $tiers]);
+
+        return back()->with('success', __('Fee taper schedule updated.'));
     }
 
     // Holiday management
@@ -150,7 +186,7 @@ class SeasonController extends Controller
             'day_of_week' => 'required|integer|min:0|max:6',
             'start_time' => 'required|string|max:5',
             'end_time' => 'nullable|string|max:5',
-            'event_type' => 'required|string|max:50',
+            'event_type' => 'required|in:'.implode(',', array_keys(config('activity_types', []))),
             'title' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
             'description' => 'nullable|string',
@@ -190,10 +226,28 @@ class SeasonController extends Controller
                 $eventUpdates['end_time'] = $patternFields['end_time'];
             }
 
-            $updated = Event::where('season_id', $pattern->season_id)
+            // Prefer the precise pattern link; fall back to a weekday match for
+            // legacy events created before season_pattern_id existed. The
+            // weekday fallback uses Carbon (cross-DB) rather than a DB-specific
+            // date function so it works on both MySQL and PostgreSQL.
+            $futureEvents = Event::where('season_id', $pattern->season_id)
                 ->where('event_date', '>=', now()->toDateString())
-                ->whereRaw('EXTRACT(DOW FROM event_date) = ?', [$carbonDay])
-                ->update($eventUpdates);
+                ->where(function ($q) use ($pattern): void {
+                    $q->where('season_pattern_id', $pattern->id)
+                        ->orWhereNull('season_pattern_id');
+                })
+                ->get();
+
+            $updated = 0;
+            foreach ($futureEvents as $ev) {
+                $matches = $ev->season_pattern_id === $pattern->id
+                    || ($ev->season_pattern_id === null && $ev->event_date->dayOfWeek === $carbonDay);
+                if (! $matches) {
+                    continue;
+                }
+                $ev->update(array_merge($eventUpdates, ['season_pattern_id' => $pattern->id]));
+                $updated++;
+            }
         }
 
         if ($request->wantsJson()) {
@@ -227,40 +281,104 @@ class SeasonController extends Controller
         $season->load(['patterns', 'holidays']);
         $schedule = $this->buildSchedule($season);
         $created = 0;
+        $updated = 0;
+        $skipped = 0;
 
-        DB::transaction(function () use ($schedule, $season, &$created): void {
+        DB::transaction(function () use ($schedule, $season, &$created, &$updated, &$skipped): void {
             foreach ($schedule as $entry) {
                 if ($entry['skip']) {
                     continue;
                 }
                 $pattern = $entry['pattern'];
-                Event::create([
+
+                // Positional identity: one occurrence per (pattern, date).
+                // Re-running generation updates the existing occurrence in place
+                // rather than creating a duplicate. The match must depend only on
+                // WHEN the event happens (pattern link, or season+date+time), never
+                // on mutable details like event_type/title — otherwise editing a
+                // pattern's type would orphan the old events and create duplicates.
+                $existing = Event::where('season_pattern_id', $pattern->id)
+                    ->whereDate('event_date', $entry['date'])
+                    ->first();
+
+                if (! $existing) {
+                    $existing = Event::whereNull('season_pattern_id')
+                        ->where('season_id', $season->id)
+                        ->whereDate('event_date', $entry['date'])
+                        ->where('event_time', $pattern->start_time)
+                        ->first();
+                }
+
+                // Descriptive fields — always synced from the pattern.
+                $details = [
                     'title' => $pattern->title,
                     'color_hex' => $pattern->color_hex,
                     'event_type' => $pattern->event_type,
-                    'event_date' => $entry['date'],
                     'event_time' => $pattern->start_time,
                     'end_time' => $pattern->end_time,
                     'location' => $pattern->location,
                     'description' => $pattern->description,
                     'max_participants' => $pattern->max_participants,
                     'estimated_cost' => $pattern->estimated_cost,
+                    'whatsapp_group_url' => $pattern->whatsapp_group_url,
+                    'dive_site_id' => $pattern->dive_site_id,
+                ];
+
+                if ($existing) {
+                    // A cancelled occurrence stays cancelled: skip it entirely so
+                    // re-generation never reopens it or overwrites its details.
+                    if ($existing->status === 'cancelled') {
+                        // Ensure it carries the pattern link so future runs match
+                        // it by the strong key and keep skipping it.
+                        if ($existing->season_pattern_id !== $pattern->id) {
+                            $existing->update([
+                                'season_pattern_id' => $pattern->id,
+                                'season_id' => $season->id,
+                            ]);
+                        }
+                        $skipped++;
+
+                        continue;
+                    }
+
+                    // Only alter details. Leave registration state untouched
+                    // (inscriptions_closed, inscription_open_at, participants,
+                    // status) so fixing a schedule never reopens or resets an
+                    // event that members already interacted with.
+                    $existing->update(array_merge($details, [
+                        'season_pattern_id' => $pattern->id,
+                        'season_id' => $season->id,
+                    ]));
+                    $updated++;
+
+                    continue;
+                }
+
+                Event::create(array_merge($details, [
+                    'event_date' => $entry['date'],
                     'waiting_list_enabled' => true,
                     'inscription_open_at' => $pattern->registration_opens_days_before
                         ? $entry['date']->copy()->subDays($pattern->registration_opens_days_before)->startOfDay()
                         : null,
                     'inscriptions_closed' => false,
-                    'status' => 'published',
+                    'status' => 'scheduled',
                     'season_id' => $season->id,
+                    'season_pattern_id' => $pattern->id,
                     'created_by' => auth()->id(),
-                    'whatsapp_group_url' => $pattern->whatsapp_group_url,
-                    'dive_site_id' => $pattern->dive_site_id,
-                ]);
+                ]));
                 $created++;
             }
         });
 
-        return redirect()->route('admin.seasons.show', $season)->with('success', __(':count events generated.', ['count' => $created]));
+        $message = __(':count events generated.', ['count' => $created]);
+        if ($updated > 0) {
+            $message .= ' '.__(':count existing events updated.', ['count' => $updated]);
+        }
+        if ($skipped > 0) {
+            $message .= ' '.__(':count cancelled occurrences left untouched.', ['count' => $skipped]);
+        }
+
+        return redirect()->route('admin.seasons.show', $season)->with('success', $message);
     }
 
     private function buildSchedule(Season $season): array

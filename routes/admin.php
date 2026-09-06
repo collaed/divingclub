@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
 Route::get('/export-dan', [DiveDataController::class, 'exportDan'])->name('export-dan');
 Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+Route::match(['put', 'patch'], '/members/{user}/status', [MemberController::class, 'updateStatus'])->name('members.status.update');
 Route::get('/members/{user}/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');
 Route::post('/members/{user}/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
@@ -122,6 +123,7 @@ Route::get('/seasons/create', [SeasonController::class, 'create'])->name('season
 Route::post('/seasons', [SeasonController::class, 'store'])->name('seasons.store');
 Route::get('/seasons/{season}', [SeasonController::class, 'show'])->name('seasons.show');
 Route::post('/seasons/{season}/activate', [SeasonController::class, 'activate'])->name('seasons.activate');
+Route::post('/seasons/{season}/taper', [SeasonController::class, 'updateTaper'])->name('seasons.taper.update');
 Route::post('/seasons/{season}/holidays', [SeasonController::class, 'storeHoliday'])->name('seasons.holiday.store');
 Route::delete('/seasons/holidays/{holiday}', [SeasonController::class, 'destroyHoliday'])->name('seasons.holiday.destroy');
 Route::post('/seasons/{season}/patterns', [SeasonController::class, 'storePattern'])->name('seasons.pattern.store');
@@ -137,6 +139,10 @@ Route::put('/settings/federation/{federation}', [SettingsController::class, 'upd
 Route::delete('/settings/federation/{federation}', [SettingsController::class, 'destroyFederation'])->name('settings.federation.destroy');
 Route::post('/settings/status', [SettingsController::class, 'storeStatus'])->name('settings.status.store');
 Route::put('/settings/status/{status}', [SettingsController::class, 'updateStatus'])->name('settings.status.update');
+Route::delete('/settings/status/{status}', [SettingsController::class, 'destroyStatus'])->name('settings.status.destroy');
+Route::post('/settings/status-set', [SettingsController::class, 'storeStatusSet'])->name('settings.status-set.store');
+Route::match(['put', 'patch'], '/settings/status-set/{statusSet}', [SettingsController::class, 'updateStatusSet'])->name('settings.status-set.update');
+Route::delete('/settings/status-set/{statusSet}', [SettingsController::class, 'destroyStatusSet'])->name('settings.status-set.destroy');
 Route::post('/settings/medical-rule', [SettingsController::class, 'storeMedicalRule'])->name('settings.medical-rule.store');
 Route::put('/settings/medical-rule/{rule}', [SettingsController::class, 'updateMedicalRule'])->name('settings.medical-rule.update');
 Route::delete('/settings/medical-rule/{rule}', [SettingsController::class, 'destroyMedicalRule'])->name('settings.medical-rule.destroy');
@@ -162,6 +168,7 @@ Route::get('/guide/{section}', [GuideController::class, 'show'])->name('guide.sh
 Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 Route::get('/payments/components', [PaymentController::class, 'components'])->name('payments.components');
 Route::post('/payments/components', [PaymentController::class, 'storeComponent'])->name('payments.component.store');
+Route::match(['put', 'patch'], '/payments/components/{component}', [PaymentController::class, 'updateComponent'])->name('payments.component.update');
 Route::delete('/payments/components/{component}', [PaymentController::class, 'destroyComponent'])->name('payments.component.destroy');
 Route::post('/payments/{user}/calculate', [PaymentController::class, 'calculateFee'])->name('payments.calculate');
 Route::post('/payments/{user}/generate', [PaymentController::class, 'generateFee'])->name('payments.generate');

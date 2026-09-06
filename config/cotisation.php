@@ -8,7 +8,10 @@
 
 return [
     'year' => '2026',
-    'reduced_after' => '2026-04-01', // half-season rate after this date
+    // Fee tapering (the club-retained reduction after a season cutoff) is now
+    // configured per season in the database (seasons.fee_taper_tiers) and
+    // computed by FeeCalculationService. Do not reintroduce reduced_after /
+    // per-type reduced amounts here.
 
     // Bank details
     'iban' => 'LU21 0019 7855 8919 6000',
@@ -16,14 +19,14 @@ return [
     'bank' => 'BCEE',
     'beneficiary' => 'CLUB EUROPEEN DE PLONGEE',
 
-    // CEP membership fees
+    // CEP membership fees (full rate; reduction applied at runtime by the taper)
     'cep' => [
-        'fonctionnaire' => ['label' => 'Cotisation CEP fonctionnaire (18+)', 'amount' => 105, 'reduced' => 55],
-        'externe' => ['label' => 'Cotisation CEP externe (18+)', 'amount' => 110, 'reduced' => 55],
-        'jeune16' => ['label' => 'Cotisation jeune (16-17 ans)', 'amount' => 55, 'reduced' => 25],
-        'jeune' => ['label' => 'Cotisation jeune (12-15 ans)', 'amount' => 55, 'reduced' => 25],
-        'enfant' => ['label' => 'Cotisation enfant (<12 ans)', 'amount' => 55, 'reduced' => 25],
-        'sympathisant' => ['label' => 'Cotisation sympathisant', 'amount' => 30, 'reduced' => 30],
+        'fonctionnaire' => ['label' => 'Cotisation CEP fonctionnaire (18+)', 'amount' => 105],
+        'externe' => ['label' => 'Cotisation CEP externe (18+)', 'amount' => 110],
+        'jeune16' => ['label' => 'Cotisation jeune (16-17 ans)', 'amount' => 55],
+        'jeune' => ['label' => 'Cotisation jeune (12-15 ans)', 'amount' => 55],
+        'enfant' => ['label' => 'Cotisation enfant (<12 ans)', 'amount' => 55],
+        'sympathisant' => ['label' => 'Cotisation sympathisant', 'amount' => 30],
     ],
 
     // FFESSM licence fees (auto-selected by age category)

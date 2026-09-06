@@ -68,7 +68,7 @@
                         <td class="p-1 {{ $isCurrentMonth ? '' : 'bg-light' }}" style="vertical-align:top; min-height:80px;">
                             <div class="small {{ $day->isToday() ? 'fw-bold text-primary' : 'text-muted' }}">{{ $day->day }}</div>
                             @foreach($dayEvents->take(3) as $ev)
-                                <a href="{{ route('events.show', $ev) }}" class="d-block text-decoration-none small text-truncate rounded px-1 mb-1 text-white" style="background:{{ $ev->typeColor() }}; font-size:0.7rem;">
+                                <a href="{{ route('events.show', $ev) }}" class="d-block text-decoration-none small text-truncate rounded px-1 mb-1 text-white {{ $ev->status === 'cancelled' ? 'text-decoration-line-through' : '' }}" style="background:{{ $ev->typeColor() }}; font-size:0.7rem; {{ $ev->status === 'cancelled' ? 'opacity:0.5;' : '' }}">
                                     {{ $ev->event_time ? substr($ev->event_time, 0, 5) : '' }} {{ Str::limit($ev->title, 15) }}
                                 </a>
                             @endforeach
@@ -90,7 +90,8 @@
                 <div class="card-body py-2 d-flex align-items-center">
                     <span class="badge me-3" style="background:{{ $event->typeColor() }}">{{ ucfirst($event->event_type) }}</span>
                     <div class="flex-grow-1">
-                        <a href="{{ route('events.show', $event) }}" class="text-decoration-none fw-bold">{{ $event->title }}</a>
+                        <a href="{{ route('events.show', $event) }}" class="text-decoration-none fw-bold {{ $event->status === 'cancelled' ? 'text-decoration-line-through text-muted' : '' }}">{{ $event->title }}</a>
+                        @if($event->status === 'cancelled')<span class="badge bg-danger ms-1">{{ __('Cancelled') }}</span>@endif
                         <div class="small text-muted">
                             {{ $event->event_date->format('D d/m/Y') }}
                             {{ $event->event_time ? '@ ' . substr($event->event_time, 0, 5) : '' }}

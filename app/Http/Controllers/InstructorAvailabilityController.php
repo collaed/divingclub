@@ -16,25 +16,6 @@ use Illuminate\Support\Facades\DB;
 
 class InstructorAvailabilityController extends Controller
 {
-    /**
-     * Activity types with colors matching the old CEP Google Sheet planning.
-     */
-    public const ACTIVITY_COLORS = [
-        'pool' => ['color' => '#4a86c8', 'text' => '#fff', 'icon' => '🏊', 'label' => 'Pool'],
-        'pool_kids' => ['color' => '#2ecc71', 'text' => '#fff', 'icon' => '👶', 'label' => '↳ Kids'],
-        'pool_pn1' => ['color' => '#1a237e', 'text' => '#fff', 'icon' => '1️⃣', 'label' => '↳ PN1'],
-        'pool_pn23' => ['color' => '#e74c3c', 'text' => '#fff', 'icon' => '🔴', 'label' => '↳ PN2+'],
-        'pool_swimming' => ['color' => '#ff9800', 'text' => '#fff', 'icon' => '🏊‍♂️', 'label' => '↳ Swimming'],
-        'training' => ['color' => '#5c6bc0', 'text' => '#fff', 'icon' => '🤿', 'label' => 'Training'],
-        'apnea' => ['color' => '#00c853', 'text' => '#000', 'icon' => '🫁', 'label' => 'Apnea'],
-        'fosse' => ['color' => '#00695c', 'text' => '#fff', 'icon' => '🕳️', 'label' => 'Fosse'],
-        'quarry' => ['color' => '#00bcd4', 'text' => '#000', 'icon' => '🪨', 'label' => 'Quarry/Lake'],
-        'long_trip' => ['color' => '#f9a825', 'text' => '#000', 'icon' => '✈️', 'label' => 'Long Trip'],
-        'theory' => ['color' => '#78909c', 'text' => '#fff', 'icon' => '📖', 'label' => 'Theory'],
-        'social' => ['color' => '#e91e63', 'text' => '#fff', 'icon' => '🎉', 'label' => 'Social'],
-        'closed' => ['color' => '#9e9e9e', 'text' => '#fff', 'icon' => '🚫', 'label' => 'Closed'],
-    ];
-
     public function index(Request $request): JsonResponse|View
     {
         $user = auth()->user();
@@ -73,9 +54,11 @@ class InstructorAvailabilityController extends Controller
         $instructors = User::role(['instructor', 'instructor_apnea', 'bureau_master', 'bureau_technical'])->with('detail')->get()
             ->sortBy(fn ($u) => $u->detail?->first_name);
 
-        $colors = self::ACTIVITY_COLORS;
+        $colors = config('activity_types');
 
-        return view('availability.index', compact('availabilities', 'events', 'start', 'end', 'isInstructor', 'instructors', 'month', 'colors'));
+        $isBureau = $user->hasAnyRole(['bureau_master', 'bureau_technical', 'bureau_finance']);
+
+        return view('availability.index', compact('availabilities', 'events', 'start', 'end', 'isInstructor', 'isBureau', 'instructors', 'month', 'colors'));
     }
 
     public function toggle(Request $request): JsonResponse
@@ -95,6 +78,56 @@ class InstructorAvailabilityController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Past event'], 422);
         }
 
+        return response()->json($this->applyToggle($user, $event));
+    }
+
+    /**
+     * Bureau-only: toggle availability for an arbitrary instructor on a session.
+     * Powers the "stamp" UI where a bureau member registers/unregisters several
+     * instructors across several pool sessions with a click.
+     */
+    public function toggleFor(Request $request): JsonResponse
+    {
+        $actor = auth()->user();
+        if (! $actor->hasAnyRole(['bureau_master', 'bureau_technical', 'bureau_finance'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'event_id' => 'required|exists:events,id',
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $event = Event::findOrFail($request->event_id);
+
+        if ($event->event_date->lt(today())) {
+            return response()->json(['status' => 'error', 'message' => 'Past event'], 422);
+        }
+
+        $target = User::with('detail')->findOrFail($request->user_id);
+
+        $result = $this->applyToggle($target, $event);
+
+        // Return the instructor's badge data so the UI can render the avatar
+        // without a full page reload.
+        $result['user_id'] = $target->id;
+        $result['initial'] = $target->detail?->instructor_initial
+            ?: mb_strtoupper(mb_substr($target->detail?->first_name ?? '?', 0, 1));
+        $result['color'] = $target->detail?->instructor_color ?? '#00695c';
+        $result['name'] = trim(($target->detail?->first_name ?? '').' '.($target->detail?->last_name ?? ''));
+
+        return response()->json($result);
+    }
+
+    /**
+     * Shared add/remove logic: toggles an InstructorAvailability row for the
+     * given user on the given event, mirroring the change into event
+     * registrations. Returns ['status' => 'added'|'removed'].
+     *
+     * @return array{status: string}
+     */
+    private function applyToggle(User $user, Event $event): array
+    {
         $existing = InstructorAvailability::where('user_id', $user->id)
             ->where('event_id', $event->id)
             ->first();
@@ -108,7 +141,7 @@ class InstructorAvailabilityController extends Controller
                 ->whereIn('status', ['confirmed', 'waiting'])
                 ->update(['status' => 'cancelled']);
 
-            return response()->json(['status' => 'removed']);
+            return ['status' => 'removed'];
         }
 
         DB::transaction(function () use ($user, $event): void {
@@ -141,6 +174,6 @@ class InstructorAvailabilityController extends Controller
             }
         });
 
-        return response()->json(['status' => 'added']);
+        return ['status' => 'added'];
     }
 }

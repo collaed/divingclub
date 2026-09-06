@@ -2,14 +2,18 @@
 // Bubble animation + UI chrome that lives in the header area
 // ============================================================================
 
-// Impersonation banner (sits above header)
+// Impersonation banner.
+// Static/persistent banners sit just ABOVE page content, not up in the chrome
+// z-index tier. Transient elements (dropdown menus, z-index:1090) must always
+// be able to roll down on top of this banner while the user is choosing.
 .dc-impersonation-banner {
   background: $warning;
   color: $dark;
   padding: 0.5rem 1rem;
   text-align: center;
   font-weight: 600;
-  z-index: 1050;
+  position: relative;
+  z-index: 1;
 }
 
 // Profile tabs responsive

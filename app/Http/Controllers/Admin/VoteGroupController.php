@@ -91,9 +91,9 @@ class VoteGroupController extends Controller
 
     public function generateTokens(VoteGroup $voteGroup): RedirectResponse
     {
-        $formerStatusId = MemberStatus::where('slug', 'former')->value('id');
+        $inactiveIds = MemberStatus::inactiveIds();
         $users = User::whereNotNull('email_verified_at')
-            ->when($formerStatusId, fn ($q) => $q->where('status_id', '!=', $formerStatusId))
+            ->when($inactiveIds->isNotEmpty(), fn ($q) => $q->whereNotIn('status_id', $inactiveIds->all()))
             ->get();
 
         $created = 0;

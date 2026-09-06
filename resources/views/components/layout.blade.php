@@ -36,7 +36,7 @@
     @endif
 
     {{-- Header --}}
-    <header class="dc-header py-3" style="overflow:visible">
+    <header class="dc-header py-3">
         <div class="dc-bubbles">
             @if(($theme['header_bubbles'] ?? '1') === '1')
                 <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
@@ -77,11 +77,6 @@
     </header>
 
     {{-- Navigation --}}
-    @if(config('app.staging_mode'))
-        <div class="bg-warning text-dark text-center py-1 small fw-bold">
-            @icon('⚠️') STAGING MODE — Emails captured <a href="{{ route('staging.mail.index') }}" class="text-dark">@icon('📬') View Mailbox</a>
-        </div>
-    @endif
     <nav class="dc-navbar navbar navbar-expand-lg">
         <div class="container">
             <button class="navbar-toggler border-primary" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#mainNav" aria-label="Toggle navigation">
@@ -529,6 +524,11 @@
         c.appendChild(t);
         setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 4000);
     }
+    // Global alias — the documented convention is showToast(message, type).
+    // Map Bootstrap-style 'danger' to the toast's 'error' style class.
+    window.showToast = function (msg, type) {
+        dcToast(msg, type === 'danger' ? 'error' : type);
+    };
     </script>
     @stack('scripts')
 </body>

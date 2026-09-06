@@ -27,12 +27,14 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $password
  * @property int|null $role_id
  * @property int|null $status_id
+ * @property int|null $status_set_id
  * @property Carbon|null $email_verified_at
  * @property string|null $preferred_locale
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read MemberDetail|null $detail
  * @property-read MemberStatus|null $status
+ * @property-read StatusSet|null $statusSet
  * @property-read Collection $emails
  */
 class User extends Authenticatable implements MustVerifyEmail
@@ -41,7 +43,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use SoftDeletes;
 
     protected $fillable = [
-        'username', 'primary_email', 'password', 'role_id', 'status_id', 'email_verified_at', 'preferred_locale',
+        'username', 'primary_email', 'password', 'role_id', 'status_id', 'status_set_id', 'email_verified_at', 'preferred_locale',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -89,6 +91,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function status(): BelongsTo
     {
         return $this->belongsTo(MemberStatus::class, 'status_id');
+    }
+
+    /** @return BelongsTo<StatusSet, $this> */
+    public function statusSet(): BelongsTo
+    {
+        return $this->belongsTo(StatusSet::class, 'status_set_id');
     }
 
     /** @return HasMany<UserEmail, $this> */

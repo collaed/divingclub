@@ -116,3 +116,114 @@
   }
 }
 
+
+
+// ============================================================================
+// Membership dues calculator (/dues)
+// ============================================================================
+
+// Each cost group (Cotisation, Federation Licence, Assurance) is a boxed,
+// clearly separated section so the four blocks read as distinct steps.
+.dc-group {
+  border: 1px solid #e2e8f0;
+  border-radius: var(--dc-radius, 0.5rem);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: rgba(0, 51, 102, 0.015);
+
+  > legend.form-label {
+    float: none;
+    width: auto;
+    margin-bottom: 0.75rem;
+    padding: 0 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dc-primary, #003366);
+    border-bottom: 2px solid var(--dc-primary, #003366);
+    display: inline-block;
+  }
+}
+
+// Dotted leader line between a cost designation and its amount, so the eye can
+// follow the row from the label across to the price. Used in the derived
+// licence block (two-span flex rows).
+.dc-derived {
+  .d-flex {
+    align-items: baseline;
+    gap: 0.5rem;
+
+    > span:first-child {
+      position: relative;
+      flex: 1 1 auto;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      // Trailing dots that fill the space up to the amount.
+      &::after {
+        content: " ....................................................................................................";
+        color: #adb5bd;
+        letter-spacing: 2px;
+      }
+    }
+
+    > span:last-child {
+      flex: 0 0 auto;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
+
+// Breakdown table: dotted leader between label and amount, tidy alignment.
+table[data-dues-result] {
+  td:first-child {
+    width: 100%;
+  }
+
+  // Draw a dotted leader on normal rows only (skip the bold Total row and any
+  // muted "included / reduced" annotation rows).
+  tr:not(.fw-bold):not(.text-muted) td:first-child span {
+    position: relative;
+    display: inline-flex;
+    width: 100%;
+    align-items: baseline;
+
+    &::after {
+      content: " ....................................................................................................";
+      color: #ced4da;
+      letter-spacing: 2px;
+      overflow: hidden;
+      white-space: nowrap;
+      flex: 1 1 auto;
+      margin-left: 0.3rem;
+    }
+  }
+
+  td.text-end {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.dc-result-region {
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
+}
+
+[data-bs-theme="dark"] .dc-group,
+.dark-mode .dc-group {
+  border-color: #3a3a52;
+  background: rgba(255, 255, 255, 0.02);
+
+  > legend.form-label {
+    color: #6db3f2;
+    border-bottom-color: #6db3f2;
+  }
+}
+
+[data-bs-theme="dark"] .dc-derived .d-flex > span:first-child::after,
+[data-bs-theme="dark"] table[data-dues-result] tr:not(.fw-bold):not(.text-muted) td:first-child span::after,
+.dark-mode .dc-derived .d-flex > span:first-child::after,
+.dark-mode table[data-dues-result] tr:not(.fw-bold):not(.text-muted) td:first-child span::after {
+  color: #555;
+}

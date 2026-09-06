@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
+ * @property int|null $season_id
  * @property string|null $season_year
  * @property int|null $status_id
  * @property string|null $amount
@@ -20,11 +21,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class MembershipFee extends Model
 {
-    protected $fillable = ['season_year', 'status_id', 'amount', 'label', 'notes'];
+    protected $fillable = ['season_id', 'season_year', 'status_id', 'amount', 'label', 'notes'];
 
     /** @return BelongsTo<MemberStatus, $this> */
     public function status(): BelongsTo
     {
         return $this->belongsTo(MemberStatus::class, 'status_id');
+    }
+
+    /** @return BelongsTo<Season, $this> */
+    public function season(): BelongsTo
+    {
+        return $this->belongsTo(Season::class, 'season_id');
     }
 }

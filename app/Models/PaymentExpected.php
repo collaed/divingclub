@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $communication
  * @property array $components
  * @property string|null $status
+ * @property bool $provisional
  * @property string|null $refund_review_needed
  * @property string|null $amount_paid
  * @property Carbon|null $paid_at
@@ -35,11 +36,11 @@ class PaymentExpected extends Model
 
     protected $table = 'payment_expected';
 
-    protected $fillable = ['user_id', 'type', 'event_id', 'season_year', 'amount_due', 'communication', 'components', 'status', 'refund_review_needed', 'amount_paid', 'paid_at', 'reconciled_by', 'reconciled_at', 'bank_statement_ref', 'bank_statement_date'];
+    protected $fillable = ['user_id', 'type', 'event_id', 'season_year', 'amount_due', 'communication', 'components', 'status', 'provisional', 'refund_review_needed', 'amount_paid', 'paid_at', 'reconciled_by', 'reconciled_at', 'bank_statement_ref', 'bank_statement_date'];
 
     protected function casts(): array
     {
-        return ['components' => 'array', 'paid_at' => 'date', 'reconciled_at' => 'datetime'];
+        return ['components' => 'array', 'provisional' => 'boolean', 'paid_at' => 'date', 'reconciled_at' => 'datetime'];
     }
 
     /** @return BelongsTo<User, $this> */
