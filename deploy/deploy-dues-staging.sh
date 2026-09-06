@@ -127,6 +127,13 @@ run "scp -rq public/build/manifest.json public/build/assets '$SSH_HOST:$APP_PATH
 echo "==> Fixing ownership (must be $APP_USER, not root)"
 run "ssh $SSH_HOST 'chown -R $APP_USER:$APP_USER \"$APP_PATH/app\" \"$APP_PATH/database\" \"$APP_PATH/routes\" \"$APP_PATH/resources\" \"$APP_PATH/public/build\"'"
 
+# scp preserves the local file mode; a restrictive umask can leave assets at
+# 0640, which the web server (a different user) cannot read -> 403 on the JS/CSS
+# bundle, silently breaking all Bootstrap JS (dropdowns, accordions, tabs).
+# Force world-readable so the static files are always serveable.
+echo "==> Making build assets world-readable (avoid 403 on hashed bundles)"
+run "ssh $SSH_HOST 'find \"$APP_PATH/public/build\" -type f -exec chmod 644 {} + && find \"$APP_PATH/public/build\" -type d -exec chmod 755 {} +'"
+
 echo "==> Running migrations (as $APP_USER) — status BEFORE:"
 # migrate:status hits a cosmetic Termwind mb_strimwidth error on this server
 # (mbstring polyfill gap); it must not abort the deploy, so tolerate failure.
