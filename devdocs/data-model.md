@@ -111,8 +111,8 @@ Note: some tables appear duplicated in listings due to the dual legacy_roles/rol
 
 | Table | Purpose | Key Columns |
 |-------|---------|-------------|
-| `documents` | Member-uploaded documents | user_id, category (certification/medical/insurance/other), file_path, status, date_established |
-| `library_files` | Bureau document library | folder, original_name, file_path, uploaded_by, visibility (public/members/bureau) |
+| `documents` | Member-uploaded personal documents (medical / cert scans / insurance), stored on the `local` (private) disk at `documents/{user_id}/`. See `documents.md`. | user_id, category (certification/medical/insurance/other), cert_type, file_path, original_filename, mime_type, size_bytes, date_established, expiry_date, is_verified, verified_by, is_current, superseded_by, is_compliant, reminder_{30,15,7,0}_sent_at (SoftDeletes) |
+| `library_files` | Bureau document library | folder, original_name, file_path, uploaded_by, visibility (public/members/instructors/bureau) |
 
 ## Partners & External
 
