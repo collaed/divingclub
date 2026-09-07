@@ -121,6 +121,23 @@ class MedicalComplianceServiceTest extends TestCase
         $this->assertEquals($new->id, $old->superseded_by);
     }
 
+    public function test_evaluate_supersedes_previous_cert_even_without_federation_rules(): void
+    {
+        $user = $this->createMember();
+
+        $old = $this->doc($user, ['file_path' => 'old', 'original_filename' => 'old', 'date_established' => Carbon::parse('2025-01-01')]);
+        $new = $this->doc($user, ['file_path' => 'new', 'original_filename' => 'new', 'date_established' => Carbon::parse('2026-03-01')]);
+
+        $this->service->evaluateCertificate($new);
+        $old->refresh();
+        $new->refresh();
+
+        $this->assertFalse((bool) $old->is_current);
+        $this->assertEquals($new->id, $old->superseded_by);
+        $this->assertTrue((bool) $new->is_current);
+        $this->assertEquals(1, Document::where('user_id', $user->id)->where('category', 'medical')->where('is_current', true)->count());
+    }
+
     public function test_compliance_checked_at_future_date(): void
     {
         $user = $this->createMember();
