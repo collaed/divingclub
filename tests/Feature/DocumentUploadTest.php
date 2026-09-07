@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Document;
 use App\Models\MemberDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,7 +64,7 @@ class DocumentUploadTest extends TestCase
         $this->actingAs($user)->post('/profile/document', $payload())->assertRedirect();
         $this->actingAs($user)->post('/profile/document', $payload())->assertRedirect();
 
-        $paths = \App\Models\Document::where('user_id', $user->id)->pluck('file_path');
+        $paths = Document::where('user_id', $user->id)->pluck('file_path');
         $this->assertCount(2, $paths);
         $this->assertCount(2, $paths->unique(), 'each upload must keep its own file');
         foreach ($paths as $path) {
