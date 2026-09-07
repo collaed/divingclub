@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class BackupService
 {
@@ -23,38 +24,79 @@ class BackupService
     /**
      * Create a full backup using spatie/laravel-backup.
      *
-     * @return array{filename: string, path: string, size: int, manifest: array}
+     * @return array{filename: string, path: string, size: int, manifest: array<string, mixed>}
      */
     public function create(bool $includeFiles = true): array
     {
         // Use spatie backup command
         $options = $includeFiles ? '' : '--only-db';
-        Artisan::call("backup:run {$options} --disable-notifications");
+        $exitCode = Artisan::call(trim("backup:run {$options} --disable-notifications"));
+        $output = trim(Artisan::output());
 
-        // Find the latest backup created by spatie (stored in storage/app/<AppName>/)
-        $spatieDir = storage_path('app/private/'.str_replace(' ', '-', config('app.name', 'DivingClub')));
-        $zips = glob("{$spatieDir}/*.zip");
-
-        if ($zips === [] || $zips === false) {
-            throw new \RuntimeException('Spatie backup produced no output');
+        if ($exitCode !== 0) {
+            throw new \RuntimeException("Spatie backup failed (exit {$exitCode}). Output: ".$this->lastLines($output));
         }
 
-        rsort($zips);
+        // Spatie writes to the configured `backup` disk under a folder named after
+        // config('backup.backup.name'). Resolve that real path from config rather
+        // than assuming storage/app — the disk root is often relocated via
+        // BACKUP_DISK_PATH (e.g. a separate data mount on the servers).
+        $spatieDir = Storage::disk('backup')->path((string) config('backup.backup.name', config('app.name', 'DivingClub')));
+        $zips = glob("{$spatieDir}/*.zip") ?: [];
+
+        if ($zips === []) {
+            throw new \RuntimeException(
+                "Spatie backup produced no archive in {$spatieDir}. backup:run output: ".$this->lastLines($output)
+            );
+        }
+
+        usort($zips, static fn (string $a, string $b): int => (int) filemtime($b) <=> (int) filemtime($a));
         $latestZip = $zips[0];
 
-        // Move to our backups dir with our naming convention
+        // Move to our backups dir with our naming convention (copy+delete fallback
+        // because the spatie disk may live on a different filesystem).
         $timestamp = now()->format('Y-m-d-His');
         $filename = "backup-{$timestamp}.zip";
         $destPath = "{$this->backupDir}/{$filename}";
-        rename($latestZip, $destPath);
+        $this->moveFile($latestZip, $destPath);
 
-        $size = filesize($destPath);
+        $size = (int) filesize($destPath);
         Log::info("Backup created via spatie: {$filename} (".$this->humanSize($size).')');
 
         // Offsite upload via SFTP if configured
         $this->offsiteUpload($destPath, $filename);
 
-        return ['filename' => $filename, 'path' => $destPath, 'size' => $size, 'manifest' => []];
+        return [
+            'filename' => $filename,
+            'path' => $destPath,
+            'size' => $size,
+            'manifest' => $this->buildManifest($includeFiles),
+        ];
+    }
+
+    /** Move a file, falling back to copy+delete when rename crosses a filesystem boundary. */
+    protected function moveFile(string $from, string $to): void
+    {
+        if (@rename($from, $to)) {
+            return;
+        }
+
+        if (! @copy($from, $to)) {
+            throw new \RuntimeException("Failed to move backup archive from {$from} to {$to}");
+        }
+
+        @unlink($from);
+    }
+
+    /** Return the last few lines of command output, for error context. */
+    protected function lastLines(string $text, int $lines = 5): string
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return '(no output)';
+        }
+
+        return implode("\n", array_slice(explode("\n", $text), -$lines));
     }
 
     /** Upload backup to offsite SFTP server if configured. */
@@ -222,7 +264,11 @@ EOF',
         return $deleted;
     }
 
-    /** Execute a shell command with additional environment variables (avoids leaking secrets in process list). */
+    /**
+     * Build a summary manifest (driver, table row counts, storage footprint) for a backup run.
+     *
+     * @return array<string, mixed>
+     */
     protected function buildManifest(bool $includeFiles): array
     {
         $tables = [];
