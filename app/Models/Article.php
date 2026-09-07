@@ -195,4 +195,16 @@ class Article extends Model
         return $query->where('is_published', true)
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
     }
+
+    /**
+     * Exclude App\Helpers\SystemContent shells (stable `sys-…` slugs such as
+     * the editable dues footer and the home-landing text) — they are managed
+     * pages, not news, and must never appear in article feeds.
+     *
+     * @param  Builder<Article>  $query
+     */
+    public function scopeExcludingSystem(Builder $query): Builder
+    {
+        return $query->where('slug', 'not like', 'sys-%');
+    }
 }
