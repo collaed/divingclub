@@ -65,30 +65,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="nationality" class="form-label">{{ __('Nationality') }}</label>
-                                @php
-                                    $clubTop = ['France', 'Luxembourg', 'Belgium', 'Portugal', 'Italy', 'Germany', 'Romania', 'Spain', 'Greece', 'Poland'];
-                                    $eu = ['Austria', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'Hungary', 'Ireland', 'Latvia', 'Lithuania', 'Malta', 'Netherlands', 'Slovakia', 'Slovenia', 'Sweden'];
-                                    $world = ['Albania', 'Argentina', 'Armenia', 'Australia', 'Azerbaijan', 'Bosnia', 'Brazil', 'Canada', 'China', 'Colombia', 'Georgia', 'Iceland', 'India', 'Iran', 'Israel', 'Japan', 'Kosovo', 'Lebanon', 'Mexico', 'Moldova', 'Montenegro', 'Morocco', 'North Macedonia', 'Norway', 'Philippines', 'Russia', 'Serbia', 'South Korea', 'Switzerland', 'Tunisia', 'Turkey', 'UK', 'Ukraine', 'USA', 'Vietnam'];
-                                @endphp
-                                <select name="nationality" id="nationality" class="form-select @error('nationality') is-invalid @enderror">
-                                    <option value="">{{ __('— Select —') }}</option>
-                                    <optgroup label="{{ __('Most common') }}">
-                                        @foreach($clubTop as $n)
-                                            <option value="{{ $n }}" {{ old('nationality') === $n ? 'selected' : '' }}>{{ $n }}</option>
-                                        @endforeach
-                                    </optgroup>
-                                    <optgroup label="{{ __('EU') }}">
-                                        @foreach($eu as $n)
-                                            <option value="{{ $n }}" {{ old('nationality') === $n ? 'selected' : '' }}>{{ $n }}</option>
-                                        @endforeach
-                                    </optgroup>
-                                    <optgroup label="{{ __('World') }}">
-                                        @foreach($world as $n)
-                                            <option value="{{ $n }}" {{ old('nationality') === $n ? 'selected' : '' }}>{{ $n }}</option>
-                                        @endforeach
-                                    </optgroup>
-                                </select>
-                                @error('nationality') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <x-country-select name="nationality" id="nationality" :value="old('nationality')" />
                             </div>
                         </div>
                         <div class="mb-3">
