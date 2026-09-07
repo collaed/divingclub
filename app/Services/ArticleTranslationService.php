@@ -61,18 +61,24 @@ class ArticleTranslationService
         if (! $title && ! $body) {
             if ($existing) {
                 $existing->increment('retries');
+
+                return $existing;
             }
 
-            return $existing ?? $article->translations()->create([
-                'locale' => $targetLocale,
-                'title' => $article->title,
-                'body' => $article->body,
-                'auto_translated' => false,
-                'stale' => true,
-                'source_hash' => $sourceHash,
-                'source_word_count' => $sourceWords,
-                'retries' => 1,
-            ]);
+            // firstOrCreate keyed on (article_id, locale): a concurrent worker
+            // may have inserted this translation since the lookup above.
+            return $article->translations()->firstOrCreate(
+                ['locale' => $targetLocale],
+                [
+                    'title' => $article->title,
+                    'body' => $article->body,
+                    'auto_translated' => false,
+                    'stale' => true,
+                    'source_hash' => $sourceHash,
+                    'source_word_count' => $sourceWords,
+                    'retries' => 1,
+                ]
+            );
         }
 
         $translatedTitle = $title ?: $article->title;
@@ -92,13 +98,10 @@ class ArticleTranslationService
             'flag_reason' => null,
         ];
 
-        if ($existing) {
-            $existing->update($data);
-            $result = $existing;
-        } else {
-            $data['locale'] = $targetLocale;
-            $result = $article->translations()->create($data);
-        }
+        // updateOrCreate keyed on (article_id, locale) — tolerates a concurrent
+        // worker having created the row since the lookup above (several Horizon
+        // workers, or a TranslateArticle job, can process one article at once).
+        $result = $article->translations()->updateOrCreate(['locale' => $targetLocale], $data);
 
         // Validate word count ratio — flag if suspicious
         if (! $result->hasPlausibleWordCount()) {

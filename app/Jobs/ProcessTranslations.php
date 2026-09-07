@@ -25,8 +25,12 @@ class ProcessTranslations implements ShouldQueue
 
         $new = Article::whereDoesntHave('translations')->where('is_published', true)->oldest()->first();
         if ($new) {
-            $svc->translateAll($new, $locales);
-            Log::info("Auto-translated new article: {$new->title}");
+            try {
+                $svc->translateAll($new, $locales);
+                Log::info("Auto-translated new article: {$new->title}");
+            } catch (\Throwable $e) {
+                Log::warning("Auto-translation failed: {$new->title}", ['error' => $e->getMessage()]);
+            }
         }
 
         $stale = ArticleTranslation::where('stale', true)
