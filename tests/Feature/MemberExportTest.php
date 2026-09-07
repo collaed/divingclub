@@ -27,7 +27,7 @@ class MemberExportTest extends TestCase
 
     public function test_bureau_can_open_the_export_page(): void
     {
-        $this->actingAs($this->createUser('bureau_master'))
+        $this->actingAs($this->member('bureau_master'))
             ->get('/admin/members/export')
             ->assertOk()
             ->assertSee('Member Data Export');
@@ -35,29 +35,26 @@ class MemberExportTest extends TestCase
 
     public function test_bureau_can_download_the_xlsx(): void
     {
-        $this->createUser('member');
+        $this->member();
 
-        $response = $this->actingAs($this->createUser('bureau_master'))
+        $response = $this->actingAs($this->member('bureau_master'))
             ->get('/admin/members/export/download');
 
         $response->assertOk();
-        $this->assertStringContainsString(
-            'spreadsheetml.sheet',
-            $response->headers->get('content-type').$response->headers->get('content-disposition')
-        );
+        $this->assertStringContainsString('spreadsheetml.sheet', (string) $response->headers->get('content-type'));
     }
 
     public function test_regular_member_cannot_access_the_export(): void
     {
-        $this->actingAs($this->createUser('member'))
+        $this->actingAs($this->member('member'))
             ->get('/admin/members/export')
             ->assertForbidden();
     }
 
     public function test_service_produces_one_denormalized_row_per_member(): void
     {
-        $this->createUser('member');
-        $this->createUser('member');
+        $this->member();
+        $this->member();
 
         $data = app(MemberExportService::class)->build();
 
@@ -67,23 +64,12 @@ class MemberExportTest extends TestCase
         $this->assertCount(count($data['headers']), $data['rows'][0]);
     }
 
-    private function createUser(string $role = 'member'): User
+    private function member(string $role = 'member'): User
     {
-        $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
-        $roleId = DB::table($roleTable)->where('slug', $role)->value('id')
-            ?? DB::table($roleTable)->where('name', $role)->value('id') ?? 2;
+        $user = User::factory()->create();
+        $user->assignRole($role);
+        MemberDetail::factory()->create(['user_id' => $user->id]);
 
-        $u = User::create([
-            'username' => fake()->userName(),
-            'primary_email' => fake()->unique()->safeEmail(),
-            'password' => 'Password1',
-            'role_id' => $roleId,
-            'status_id' => 1,
-            'email_verified_at' => now(),
-        ]);
-        $u->assignRole($role);
-        MemberDetail::create(['user_id' => $u->id, 'first_name' => 'Test', 'last_name' => 'User', 'nationality' => 'Luxembourg']);
-
-        return $u;
+        return $user;
     }
 }
