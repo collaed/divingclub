@@ -324,10 +324,14 @@ The optimal path minimizes login/logout:
 # PHPUnit backend tests (233 tests, 532 assertions)
 php artisan test --compact
 
-# Playwright E2E — standard suite (35 tests)
+# Playwright E2E — connection details come from the environment:
+#   E2E_BASE (default https://test.clubcep.eu), E2E_USER, E2E_PASS (required)
+export E2E_PASS='…'
+
+# standard suite (35 tests)
 python3 -m pytest tests/e2e/test_ui.py -v
 
-# Playwright E2E — adversarial suite (49 tests)
+# adversarial suite (49 tests)
 python3 -m pytest tests/e2e/test_adversarial.py -v
 
 # All E2E tests

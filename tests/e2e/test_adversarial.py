@@ -6,7 +6,7 @@ import pytest
 import re
 from playwright.sync_api import sync_playwright, expect
 
-BASE = "https://test.clubcep.eu"
+from _e2e_config import BASE, USER, PASS, submit_login
 
 
 @pytest.fixture(scope="module")
@@ -17,20 +17,12 @@ def browser():
         b.close()
 
 
-def login(browser, email="eddy.collart@gmail.com", pw="password"):
+def login(browser, email=None, pw=None):
     ctx = browser.new_context(ignore_https_errors=True, viewport={"width": 1280, "height": 900})
     pg = ctx.new_page()
-    pg.goto(f"{BASE}/login")
-    pg.wait_for_load_state("networkidle")
-    pg.fill('input[name="email"]', email)
-    pg.fill('input[name="password"]', pw)
-    pg.click('button[type="submit"]')
-    pg.wait_for_load_state("networkidle")
-    # Verify login succeeded
-    for _ in range(3):
-        if "/login" not in pg.url:
-            break
-        pg.wait_for_timeout(1000)
+    if not submit_login(pg, email or USER, PASS if pw is None else pw):
+        ctx.close()
+        pytest.skip(f"Could not log in as {email or USER} (check E2E_PASS / rate limit)")
     return pg, ctx
 
 
