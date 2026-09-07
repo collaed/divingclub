@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class FrNavTranslationsTest extends TestCase
@@ -35,9 +36,7 @@ class FrNavTranslationsTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider chromeStrings
-     */
+    #[DataProvider('chromeStrings')]
     public function test_core_chrome_strings_are_translated_to_french(string $key, string $expected): void
     {
         $this->assertSame($expected, __($key), "'{$key}' should resolve to French, not fall back to the source string");
