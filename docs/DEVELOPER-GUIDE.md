@@ -165,22 +165,38 @@ $event->registrations;      // Users registered for this event
 
 ## Roles & Permissions
 
-Uses [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission). Six roles:
+Authorization runs on [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission)
+(`roles` / `model_has_roles`). Roles:
 
 | Role | Access |
 |------|--------|
 | `member` | Profile, events, documents, classifieds |
 | `instructor` | + Instructor calendar, event management |
+| `instructor_apnea` | Apnea-specific instructor role |
 | `bureau_finance` | + Payments, bank reconciliation, fees |
 | `bureau_technical` | + Equipment, dive sites, medical compliance |
 | `bureau_master` | Full access (super admin) |
-| `public` | Unauthenticated visitors |
+
+Unauthenticated visitors have no role — guard those routes with the `auth`
+middleware, not a role check.
 
 Check in code:
 ```php
 $user->hasRole('bureau_master');
-$user->isBureau();              // Any bureau_* role
+$user->isBureau();   // hasAnyRole(['bureau_master','bureau_finance','bureau_technical'])
 $user->hasRole('instructor');
+```
+
+### Legacy role column (don't confuse the two)
+
+Predating Spatie, `users.role_id` still exists as a FK to the **`legacy_roles`**
+table (named `roles` on installs that never ran the rename), exposed as
+`$user->legacyRole()` (model `App\Models\Role`). It is kept for imported data
+and a few display labels; **authorization never reads it.** When a test needs a
+legacy row, detect the table name first:
+
+```php
+$roleTable = Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
 ```
 
 ---
