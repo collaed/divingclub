@@ -184,7 +184,7 @@ class HomeController extends Controller
         $myRegs = $user->eventRegistrations()->where('status', 'registered')
             ->whereHas('event', fn ($q) => $q->where('event_date', '>=', now()))
             ->with('event')->limit(3)->get()->pluck('event');
-        $nextEvents = Event::where('event_date', '>=', now())->orderBy('event_date')->limit(3)->get();
+        $nextEvents = Event::notCancelled()->where('event_date', '>=', now())->orderBy('event_date')->limit(3)->get();
         $articles = Article::where('is_published', true)->latest()->limit(2)->get();
 
         $worklist = $isBureau ? [

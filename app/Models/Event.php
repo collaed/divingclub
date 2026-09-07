@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -143,6 +144,17 @@ class Event extends Model
     public function confirmedRegistrations(): HasMany
     {
         return $this->registrations()->where('status', 'confirmed');
+    }
+
+    /**
+     * Events that have not been cancelled — the public-visibility rule for
+     * calendars and every "upcoming events" list.
+     *
+     * @param  Builder<Event>  $query
+     */
+    public function scopeNotCancelled(Builder $query): void
+    {
+        $query->where('status', '!=', 'cancelled');
     }
 
     public function waitingRegistrations(): HasMany

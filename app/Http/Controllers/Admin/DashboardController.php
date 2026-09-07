@@ -55,7 +55,7 @@ class DashboardController extends Controller
                     ? 'EXTRACT(DOY FROM date_of_birth)'
                     : 'DAYOFYEAR(date_of_birth)')
                 ->with('user')->limit(10)->get(),
-            'next_events' => Event::where('event_date', '>=', now())->orderBy('event_date')->limit(20)->get()
+            'next_events' => Event::notCancelled()->where('event_date', '>=', now())->orderBy('event_date')->limit(20)->get()
                 ->unique('title')->take(3)->values(),
         ];
 
