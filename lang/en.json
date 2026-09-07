@@ -3,5 +3,13 @@
     ":email will receive club emails.": ":email will receive club emails.",
     "At least one email address must receive club communications.": "At least one email address must receive club communications.",
     "Receive mail": "Receive mail",
-    "You can add multiple email addresses for login (including social login). Uncheck \"Receive mail\" on addresses you only want for login — at least one must remain checked to receive club communications (newsletters, reminders, event updates).": "You can add multiple email addresses for login (including social login). Uncheck \"Receive mail\" on addresses you only want for login — at least one must remain checked to receive club communications (newsletters, reminders, event updates)."
+    "You can add multiple email addresses for login (including social login). Uncheck \"Receive mail\" on addresses you only want for login — at least one must remain checked to receive club communications (newsletters, reminders, event updates).": "You can add multiple email addresses for login (including social login). Uncheck \"Receive mail\" on addresses you only want for login — at least one must remain checked to receive club communications (newsletters, reminders, event updates).",
+    "Licence Overview": "Licence Overview",
+    "Membership fees": "Membership fees",
+    "Type to search…": "Type to search…",
+    "Member Data Export": "Member Data Export",
+    "Download XLSX": "Download XLSX",
+    "Export every member with all related data flattened into a single spreadsheet row per member — one column per field. Licences, certifications and cotisation years are denormalized into their own columns, so the file is ready to filter, pivot and chart in Excel or Google Sheets.": "Export every member with all related data flattened into a single spreadsheet row per member — one column per field. Licences, certifications and cotisation years are denormalized into their own columns, so the file is ready to filter, pivot and chart in Excel or Google Sheets.",
+    "Column headers are in English so downstream statistics stay stable regardless of the interface language.": "Column headers are in English so downstream statistics stay stable regardless of the interface language.",
+    "{0}No members yet|{1}:count member|[2,*]:count members": "{0}No members yet|{1}:count member|[2,*]:count members"
 }

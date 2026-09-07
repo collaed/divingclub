@@ -215,7 +215,7 @@ class HomeController extends Controller
                 'certification' => $details->filter(fn (MemberDetail $d) => $d->certification_level)
                     ->groupBy('certification_level')->map->count()->sortDesc()->take(12),
                 'nationality' => $details->filter(fn (MemberDetail $d) => $d->nationality)
-                    ->groupBy('nationality')->map->count()->sortDesc()->take(15),
+                    ->groupBy('nationality')->map->count()->sortDesc(),
                 'language' => $details->filter(fn (MemberDetail $d) => $d->preferred_language)
                     ->groupBy('preferred_language')->map->count()->sortDesc(),
             ];

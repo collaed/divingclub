@@ -667,5 +667,10 @@
     "registrations": "registreerimine",
     "slug": "nälkjas",
     "waiting": "Nädala mustrid",
-    "yr": "Tehingute automaatse sobitamise"
+    "yr": "Tehingute automaatse sobitamise",
+    "Licence Overview": "Litsentside ülevaade",
+    "Membership fees": "Liikmemaksud",
+    "Type to search…": "Otsimiseks tippige…",
+    "Member Data Export": "Liikmete andmete eksport",
+    "Download XLSX": "Laadi alla XLSX"
 }

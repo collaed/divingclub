@@ -667,5 +667,10 @@
     "registrations": "ilmoittautumiset",
     "slug": "etana",
     "waiting": "Viikoittaiset mallit",
-    "yr": "Automaattiset tapahtumat"
+    "yr": "Automaattiset tapahtumat",
+    "Licence Overview": "Lisenssien yleiskatsaus",
+    "Membership fees": "Jäsenmaksut",
+    "Type to search…": "Kirjoita hakeaksesi…",
+    "Member Data Export": "Jäsentietojen vienti",
+    "Download XLSX": "Lataa XLSX"
 }

@@ -28,6 +28,14 @@
   object-fit: cover;
 }
 
+// Homepage article/news feed is single-column with room to spare, so let its
+// featured images grow taller than the default 200px crop instead of being
+// squeezed into a thin strip. Capped so very tall portraits stay reasonable.
+.card-img-top.article-card-img {
+  height: auto;
+  max-height: 480px;
+}
+
 // Apply radius to all Bootstrap cards and common elements
 .card {
   border-radius: var(--dc-radius-lg) !important;

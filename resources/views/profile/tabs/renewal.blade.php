@@ -1,6 +1,9 @@
 {{-- Membership renewal tab: licence cards side by side, inline editing --}}
 @php $licences = $target->licences()->with('federation')->get(); $canEditLic = $viewer->can('manage members'); @endphp
-<h6>{{ __('Membership Renewal') }}</h6>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+    <h6 class="mb-0">{{ __('Licence Overview') }}</h6>
+    <a href="{{ route('dues.show') }}" class="btn btn-outline-primary btn-sm">@icon('💳') {{ __('Membership fees') }}</a>
+</div>
 
 {{-- Licence cards side by side --}}
 @php $licCard = $target->documents()->where('user_id', $target->id)->where('category', 'licence_card')->latest()->first(); @endphp

@@ -139,7 +139,7 @@
             }
             if ($tierVault) {
                 $tabs['medical'] = __('Medical Cert');
-                $tabs['renewal'] = __('Membership Renewal');
+                $tabs['renewal'] = __('Licence Overview');
             }
             $tabs['registrations'] = __('Registrations');
             if ($tierVault) {

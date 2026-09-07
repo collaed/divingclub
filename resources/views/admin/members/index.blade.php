@@ -1,5 +1,8 @@
 <x-admin-layout :title="__('Members')">
-    <h4 class="mb-4">{{ __('Member Management') }}</h4>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h4 class="mb-0">{{ __('Member Management') }}</h4>
+        <a href="{{ route('admin.members.export') }}" class="btn btn-outline-primary btn-sm">@icon('📊') {{ __('Member Data Export') }}</a>
+    </div>
 
     <form method="GET" class="row g-2 mb-4">
         <div class="col-md-3">
@@ -79,7 +82,7 @@
                             @endif
                         </td>
                         <td>{{ $m->detail?->first_name }} {{ $m->detail?->last_name }}</td>
-                        <td>{{ $m->primary_email }}</td>
+                        <td class="cell-truncate" title="{{ $m->primary_email }}">{{ $m->primary_email }}</td>
                         <td><span class="badge bg-secondary">{{ $m->roles->first()?->name ?? '—' }}</span></td>
                         <td data-no-nav data-status-url="{{ route('admin.members.status.update', $m) }}">
                             <select class="form-select form-select-sm js-member-set" data-member="{{ $m->id }}" style="min-width:9rem"
