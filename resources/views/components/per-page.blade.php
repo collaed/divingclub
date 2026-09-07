@@ -1,4 +1,4 @@
-@props(['options' => [30, 50, 100, 'all'], 'current' => request('per_page', 30)])
+@props(['options' => [25, 50, 100, 'all'], 'current' => request('per_page', 25)])
 <form class="d-inline-flex align-items-center gap-1 small">
     @foreach(request()->except(['per_page','page']) as $k => $v)
         <input type="hidden" name="{{ $k }}" value="{{ $v }}">
