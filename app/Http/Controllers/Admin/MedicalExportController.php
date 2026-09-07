@@ -108,7 +108,20 @@ class MedicalExportController extends Controller
                     ->toArray();
             }
 
-            foreach (glob("{$legacyDir}/*") as $file) {
+            // Historic layout is flat (LASTNAME_Firstname.pdf); the imported
+            // data on the servers nests one level (private/medical/<id>/*.pdf).
+            // Only ever add real files — glob() also returns the sub-directories,
+            // and ZipArchive::addFile() on a directory aborts the whole archive.
+            $candidates = array_merge(
+                glob("{$legacyDir}/*") ?: [],
+                glob("{$legacyDir}/*/*") ?: [],
+            );
+
+            foreach ($candidates as $file) {
+                if (! is_file($file)) {
+                    continue;
+                }
+
                 $basename = pathinfo($file, PATHINFO_FILENAME);
                 // Match LASTNAME_Firstname or LASTNAME Firstname
                 $lastName = strtoupper(explode('_', $basename)[0] ?? '');
@@ -156,9 +169,15 @@ class MedicalExportController extends Controller
             $zip->addFromString($filename, $disk->get($doc->file_path));
         }
 
-        // Add legacy files
+        // Add legacy files — prefix with the containing folder when nested so
+        // the member association isn't lost, and guard is_file() once more.
         foreach ($legacyFiles as $file) {
-            $zip->addFile($file, basename($file));
+            if (! is_file($file)) {
+                continue;
+            }
+            $parent = basename(dirname($file));
+            $entry = $parent === 'medical' ? basename($file) : $parent.' '.basename($file);
+            $zip->addFile($file, $entry);
         }
 
         $zip->close();
