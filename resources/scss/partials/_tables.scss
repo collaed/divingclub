@@ -44,3 +44,17 @@
 @media (max-width: 768px) {
   .table-responsive::after { opacity: 1; }
 }
+
+// Truncating table cell: keeps the "most adjustable" column (e.g. email) from
+// blowing out the table width on desktop or cramping the layout on mobile.
+// The cell flexes to fill available space and clips overflow with an ellipsis;
+// the full value stays available via the title tooltip.
+.cell-truncate {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .cell-truncate { max-width: 140px; }
+}
