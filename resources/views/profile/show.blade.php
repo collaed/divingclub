@@ -53,7 +53,8 @@
                     @if($canEdit)
                         <form method="POST" action="{{ route('profile.avatar.upload') }}" enctype="multipart/form-data" class="mt-1">
                             @csrf
-                            <input type="file" name="avatar" accept="image/*" class="form-control form-control-sm mb-1" onchange="this.form.submit()">
+                            <input type="file" name="avatar" accept="image/*" class="form-control form-control-sm mb-1" required>
+                            <button type="submit" class="btn btn-sm btn-primary">{{ __('Upload Photo') }}</button>
                         </form>
                         @if($d?->avatar_path)
                             <form method="POST" action="{{ route('profile.avatar.delete') }}" class="d-inline">
