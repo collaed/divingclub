@@ -256,3 +256,58 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - To filter on a particular test name: `php artisan test --compact --filter=testName` (recommended after making a change to a related file).
 
 </laravel-boost-guidelines>
+
+---
+
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+DivingClub-Manager — an open-source, multi-club, multi-language diving club management system (members, events, dive planning, instructor calendar, medical compliance, payments/trip settlement, equipment, email/newsletters, voting, CMS, GDPR, backups). Laravel 12 / PHP 8.3, **Blade + Bootstrap 5** for the app UI. Originally built for the Club Européen de Plongée (CEP) in Luxembourg.
+
+> Bootstrap 5 is the UI framework for the app itself. Tailwind is installed (`tailwind.config.js`, boost skill) but the application templates use Bootstrap utilities and SCSS partials — follow the surrounding Bootstrap conventions, not Tailwind, when editing app Blade views.
+
+## Companion docs
+
+- **`AGENTS.md`** — the authoritative, detailed project convention rules (Blade/`@icon` pitfalls, data-table components, forms, AJAX auto-save, trip-settlement engine internals, instructor planning, common pitfalls). **Read it before non-trivial work** in those areas; it goes well beyond what is summarized here, and it is the source of truth if the two ever disagree.
+- `SPEC.md`, `REQUIREMENTS*.md`, `USER-JOURNEYS*.md`, `TESTING*.md` — product/spec/test-design references (large).
+
+## Essential commands
+
+```bash
+composer run dev                       # serve + queue:listen + pail (logs) + vite, all concurrently
+php artisan test --compact             # full test suite (PHPUnit)
+php artisan test --compact --filter=testName            # single test by name
+php artisan test --compact tests/Feature/SomeTest.php   # single file
+
+vendor/bin/pint --dirty --format agent # fix code style on changed files (run before finalizing PHP changes)
+vendor/bin/phpstan analyse --memory-limit=512M --no-progress   # static analysis (level 6, must be zero errors)
+vendor/bin/deptrac analyse --no-progress                # verify architectural layer boundaries
+vendor/bin/rector process --dry-run                     # preview strict_types / PHP 8.3 modernization
+
+npm run build                          # build frontend assets (Vite); needed if UI changes don't appear
+```
+
+The three CI gates (`.github/workflows/ci.yml`) that must pass: **lint** (`pint --test` + phpstan), **test** (PHPUnit on PostgreSQL), **build** (`npm run build` produces `public/build/manifest.json`). Do not edit the CI workflow with `sed`.
+
+## Architecture (big picture)
+
+- **Request lifecycle / middleware** — configured in `bootstrap/app.php` (Laravel 11+ style, no HTTP Kernel). Chain of note: `StagingBasicAuth` (prepended), then `SetLocale` + `EnsureInstalled` (appended). Aliases: `role` → `CheckRole`, `verified.email` → `EnsureEmailVerified`. First-run setup is gated by `EnsureInstalled` + `InstallController`; `CheckLicense` enforces the RSA-signed license (free tier ≤100 members).
+- **Routing** is split by concern: `routes/web.php` (member-facing), `routes/admin.php` (bureau/admin, the largest), `routes/api.php`, `routes/console.php`. ~365 routes total.
+- **Layered design enforced by Deptrac** (`deptrac.yaml`): Controllers → Models/Services/Requests/Helpers/Jobs; Services → Models/Services/Helpers; Jobs → Models/Services/Helpers; Models → Models/Helpers. Never import Controllers into Services/Jobs/Models. Business logic lives in `app/Services/` (~24 services, e.g. `TripSettlementService`, `FeeCalculationService`, `MedicalComplianceService`, `EventRegistrationService`, `ArticleTranslationService`, `LicenseService`).
+- **Auth & roles** — Spatie `laravel-permission` for roles (member/instructor/bureau etc.); Socialite OAuth (5 providers, incl. `socialiteproviders/microsoft`); EU Login / CAS via `apereo/phpcas`; email verification, login lockout, and impersonation.
+- **Queues & scheduling** — Laravel Horizon. Background `app/Jobs/` cover translations, medical/equipment reminders, weekly backup, vote auto open/close, inbound mail polling, OCR of medical certs, audit-log purge. `app/Console/Commands/` includes legacy-site sync (`SyncOldEvents`, `LegacySyncBidirectional`) — **the sync overwrites local changes**, so guard against clobbering local cancellations (see AGENTS.md).
+- **Config-driven multi-club/i18n** — no hardcoded club identity. Key config: `config/club.php`, `config/activity_types.php`, `config/cotisation.php` (fees), `config/languages.php` (15 locales), `config/mail_signatures.php`, `config/horizon.php`, `config/backup.php`.
+- **Database portability** — must run on **MySQL (local dev) and PostgreSQL (CI + Hetzner staging)**. Avoid DB-specific SQL; prefer the `Schema` facade / `Model::query()`. Tests locally target MySQL (`divingclub_test`), CI targets PostgreSQL.
+- **HTML sanitization** — always `App\Helpers\HtmlSanitizer::clean($html, $preset)` (`rich`/`basic`/`comment`); never instantiate HTMLPurifier directly.
+
+## Localization
+
+- All user-facing strings wrapped in `__()`. Code/comments in English; seed/fixture content in French. Portuguese is European Portuguese (`pt-PT`), not Brazilian.
+
+## Deployment
+
+- Edit locally → `vendor/bin/pint --dirty` → `php artisan test --compact` → push → pull on Hetzner staging (`/opt/deploy/apps/divingclub`) → `php artisan optimize:clear`.
+- Commit message prefixes: `feat:`, `fix:`, `chore:`, `ci:`.
