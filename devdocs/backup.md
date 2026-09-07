@@ -9,7 +9,13 @@ Full application backups (database + storage files) with admin UI for create/ins
 - **Service**: `App\Services\BackupService` — wraps spatie backup command, manages archive lifecycle
 - **Controller**: `Admin\BackupController` — admin UI for manual operations
 - **Job**: `WeeklyBackup` — scheduled job for automated backups
-- **Storage**: `storage/app/backups/` — local backup archive directory
+- **Spatie output disk**: the `backup` filesystem disk — root is `BACKUP_DISK_PATH`
+  (on the servers a separate data mount, `/mnt/data/<env>/backup`), falling back to
+  `storage/app/backups` when unset. `spatie/laravel-backup` writes archives to
+  `<disk root>/<config('backup.backup.name')>/backup-*.zip`.
+- **App archive dir**: `storage/app/backups/` — `BackupService::create()` moves the
+  latest spatie archive here (copy+delete, since the disk may be another
+  filesystem) and `list()` / `prune()` operate on this directory.
 
 No dedicated database table — backups are filesystem-based (zip archives).
 
@@ -32,8 +38,8 @@ Each backup contains a `manifest.json` with:
 {
   "version": "1.0",
   "created_at": "2026-06-01T03:00:00+02:00",
-  "driver": "mysql",
-  "database": "divingclub",
+  "driver": "pgsql",
+  "database": "divingclub_prod",
   "tables": {"users": 85, "events": 342, ...},
   "total_rows": 12450,
   "includes_files": true,
