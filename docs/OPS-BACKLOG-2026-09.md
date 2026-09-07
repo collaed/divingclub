@@ -133,6 +133,31 @@ prod `failed_jobs` with ~335 rows and keeps `/health` "degraded").
 
 ---
 
+## 3b. Medical / personal document storage (from the storage review)
+
+Storage, naming and access control are documented in `devdocs/medical.md` +
+`devdocs/documents.md`. Access is sound (private disk, no `public/` symlink,
+`auth` + owner/bureau check, signed-URL-only `serve` route). Follow-ups:
+
+- [ ] **`is_current` never demoted** — `ProfileDocumentController::upload()`
+      creates each new medical doc with `is_current = true` but never sets the
+      previous one to `false` / `superseded_by`. Multiple "current" medical docs
+      accumulate; compliance + export pick an arbitrary `->first()`.
+- [ ] **B1 (also §3)** — `Admin\MedicalExportController::downloadCertificates`
+      500s: `glob(private/medical/*)` returns the legacy per-member sub-dirs and
+      `ZipArchive::addFile()` on a directory throws. Add `is_file()`.
+- [ ] **Health data unencrypted at rest**, world-readable at the FS level
+      (mode ~0664/0775) on a shared box. Not web-reachable, but any local
+      process can read it. Consider `chmod 0640` + dedicated group, or
+      app-level encryption.
+- [ ] **GDPR erasure gap** — `confirmErasure()` only deletes files that have a
+      `documents` row; legacy certs in `storage/app/private/medical/` with no
+      row survive an erasure request.
+- [ ] Deterministic filenames (`Str::slug(name type date)`) silently overwrite a
+      previous upload for the same person/type/date.
+- [ ] Minor: medical-upload notification is `Mail::raw` to bureau with member
+      name + cert type + date in plaintext email.
+
 ## 4. Monitoring (Uptime Kuma on kuma.ecb.pm)
 
 Done this session: HTTP monitors **PROD CEP**, **www CEP**, **AUTH CEP** (all
