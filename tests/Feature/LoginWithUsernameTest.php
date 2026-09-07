@@ -115,4 +115,39 @@ class LoginWithUsernameTest extends TestCase
             ->assertSessionHasErrors('email');
         $this->assertGuest();
     }
+
+    public function test_ambiguous_case_variant_username_fails_closed(): void
+    {
+        // The unique index is case-sensitive, so both can exist.
+        $this->member(['username' => 'Michel B']);
+        $this->member(['username' => 'michel b']);
+
+        $this->from('/login')->post('/login', ['email' => 'michel b', 'password' => self::PW])
+            ->assertSessionHasErrors('email');
+        $this->assertGuest();
+    }
+
+    public function test_plus_addressed_primary_email_logs_in_but_the_base_address_does_not(): void
+    {
+        $user = $this->member(['primary_email' => 'diver+club@example.com']);
+
+        $this->post('/login', ['email' => 'DIVER+CLUB@example.com', 'password' => self::PW])
+            ->assertRedirect(route('profile.show'));
+        $this->assertAuthenticatedAs($user);
+
+        auth()->logout();
+
+        $this->from('/login')->post('/login', ['email' => 'diver@example.com', 'password' => self::PW])
+            ->assertSessionHasErrors('email');
+        $this->assertGuest();
+    }
+
+    public function test_malformed_email_shaped_identifier_is_rejected(): void
+    {
+        $this->member(['primary_email' => 'real@example.com']);
+
+        $this->from('/login')->post('/login', ['email' => 'not an @ email', 'password' => self::PW])
+            ->assertSessionHasErrors('email');
+        $this->assertGuest();
+    }
 }

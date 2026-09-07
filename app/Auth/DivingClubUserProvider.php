@@ -34,10 +34,20 @@ class DivingClubUserProvider extends EloquentUserProvider
 
         $identifier = trim((string) $identifier);
         $lower = mb_strtolower($identifier);
+        $isEmail = str_contains($identifier, '@');
 
-        $user = $this->newModelQuery()
-            ->where(function ($query) use ($identifier, $lower): void {
-                if (str_contains($identifier, '@')) {
+        // An identifier that looks like an email must actually be one
+        // (FILTER_VALIDATE_EMAIL accepts plus-addressing: user+tag@domain.tld).
+        if ($isEmail && filter_var($identifier, FILTER_VALIDATE_EMAIL) === false) {
+            return null;
+        }
+
+        // Exact (case-insensitive) match only — never strip a "+tag", and if the
+        // unique indexes ever hold case-variant rows, fail closed rather than
+        // authenticate an arbitrary one.
+        $matches = $this->newModelQuery()
+            ->where(function ($query) use ($isEmail, $lower): void {
+                if ($isEmail) {
                     $query->whereRaw('LOWER(primary_email) = ?', [$lower])
                         ->orWhereHas('emails', fn ($email) => $email
                             ->whereRaw('LOWER(email) = ?', [$lower])
@@ -47,7 +57,10 @@ class DivingClubUserProvider extends EloquentUserProvider
                         ->whereRaw('LOWER(username) = ?', [$lower]);
                 }
             })
-            ->first();
+            ->limit(2)
+            ->get();
+
+        $user = $matches->count() === 1 ? $matches->first() : null;
 
         return $user instanceof Authenticatable ? $user : null;
     }

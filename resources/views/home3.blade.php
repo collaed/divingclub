@@ -301,7 +301,7 @@ fetch('{{ route("photos.browse") }}').then(r=>r.json()).then(d=>{document.getEle
     <form method="POST" action="{{ route('login') }}">
         @csrf
         <div style="margin-bottom:1rem">
-            <input type="email" name="email" class="form-control" placeholder="{{ __('Email') }}" value="{{ old('email') }}" required autofocus>
+            <input type="text" name="email" class="form-control" placeholder="{{ __('Email or username') }}" value="{{ old('email') }}" required autofocus autocapitalize="none" autocomplete="username" spellcheck="false">
         </div>
         <div style="margin-bottom:1rem">
             <input type="password" name="password" class="form-control" placeholder="{{ __('Password') }}" required>
