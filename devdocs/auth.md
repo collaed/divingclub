@@ -4,7 +4,7 @@
 
 | Method | Implementation | Endpoint |
 |--------|---------------|----------|
-| Email/password | Laravel native | `/login` |
+| Email **or username** / password | `DivingClubUserProvider` resolves the identifier to `primary_email` (ci), a *verified* `user_emails` address (ci), or the legacy `users.username` (ci, spaces allowed). Passwordless accounts can't use this path. | `/login` |
 | OAuth (Google, Facebook, Microsoft, GitHub, LinkedIn) | laravel/socialite | `/auth/{provider}/redirect` → `/auth/{provider}/callback` |
 | EU Login (CAS) | Custom CAS client | `/eulogin/redirect` → `/eulogin/callback` |
 | API key | Custom header-based | `X-Club-Key-Id` + `X-Club-Secret` |
