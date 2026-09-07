@@ -1,5 +1,8 @@
 <x-admin-layout :title="__('Members')">
-    <h4 class="mb-4">{{ __('Member Management') }}</h4>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h4 class="mb-0">{{ __('Member Management') }}</h4>
+        <a href="{{ route('admin.members.export') }}" class="btn btn-outline-primary btn-sm">@icon('📊') {{ __('Member Data Export') }}</a>
+    </div>
 
     <form method="GET" class="row g-2 mb-4">
         <div class="col-md-3">
