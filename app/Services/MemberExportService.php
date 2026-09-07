@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\Models\MemberLicence;
 use App\Models\User;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 
 class MemberExportService
 {
@@ -162,7 +162,7 @@ class MemberExportService
         return $value ? 'Yes' : 'No';
     }
 
-    protected function date(?Carbon $value): ?string
+    protected function date(?CarbonInterface $value): ?string
     {
         return $value?->format('Y-m-d');
     }

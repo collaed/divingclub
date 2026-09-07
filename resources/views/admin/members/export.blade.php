@@ -1,7 +1,7 @@
 <x-admin-layout :title="__('Member Data Export')">
     <x-breadcrumb :items="[
-        ['label' => __('Member Management'), 'url' => route('admin.members.index')],
-        ['label' => __('Member Data Export')],
+        __('Member Management') => route('admin.members.index'),
+        __('Member Data Export') => '#',
     ]" />
 
     <h4 class="mb-4">{{ __('Member Data Export') }}</h4>
