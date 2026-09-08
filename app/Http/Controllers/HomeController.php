@@ -75,6 +75,7 @@ class HomeController extends Controller
             ->where('has_faces', false)->inRandomOrder()->limit(6)->pluck('path');
 
         $events = Event::where('event_date', '>=', now())
+            ->where('status', '!=', 'cancelled')
             ->orderBy('event_date')->limit(3)->get();
 
         // Instructor list for the instructors section
@@ -152,8 +153,10 @@ class HomeController extends Controller
     private function landing(): View
     {
         $photos = EventPhoto::randomPublic(8)->pluck('path');
-        // One upcoming event per distinct activity title for variety
+        // One upcoming event per distinct activity title for variety.
+        // Exclude cancelled events — same public-visibility rule as the calendar.
         $events = Event::where('event_date', '>=', now())
+            ->where('status', '!=', 'cancelled')
             ->orderBy('event_date')->limit(50)->get()
             ->unique(fn ($e) => mb_strtolower($e->title))
             ->take(4)->values();

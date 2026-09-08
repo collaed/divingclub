@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Helpers\SystemContent;
+use App\Models\Event;
 use App\Models\MemberDetail;
 use App\Models\User;
 use Database\Seeders\SystemContentSeeder;
@@ -43,6 +44,25 @@ class PublicLandingTest extends TestCase
             ->assertOk()
             ->assertSee('UNIQUE_LANDING_MARKER_XYZ', false)
             ->assertSee('h3-hero-lead', false);
+    }
+
+    public function test_landing_hides_cancelled_upcoming_events(): void
+    {
+        Event::factory()->create([
+            'title' => 'Live Pool Session',
+            'event_date' => now()->addWeek(),
+            'status' => 'scheduled',
+        ]);
+        Event::factory()->create([
+            'title' => 'Scrapped Apnea Night',
+            'event_date' => now()->addWeek(),
+            'status' => 'cancelled',
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Live Pool Session', false)
+            ->assertDontSee('Scrapped Apnea Night', false);
     }
 
     public function test_authenticated_root_shows_dashboard_not_landing(): void
