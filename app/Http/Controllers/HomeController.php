@@ -188,7 +188,7 @@ class HomeController extends Controller
             ->whereHas('event', fn ($q) => $q->where('event_date', '>=', now()))
             ->with('event')->limit(3)->get()->pluck('event');
         $nextEvents = Event::where('event_date', '>=', now())->orderBy('event_date')->limit(3)->get();
-        $articles = Article::where('is_published', true)->latest()->limit(2)->get();
+        $articles = Article::where('is_published', true)->excludingSystem()->latest()->limit(2)->get();
 
         $worklist = $isBureau ? [
             'certs' => Document::where('category', 'medical')->where('is_verified', false)->count(),

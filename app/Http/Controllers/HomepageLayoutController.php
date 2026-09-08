@@ -106,7 +106,7 @@ class HomepageLayoutController extends Controller
             'hero' => ['photos' => auth()->check()
                 ? EventPhoto::randomForMembers($widget['config']['count'] ?? 8)->get()
                 : EventPhoto::randomPublic($widget['config']['count'] ?? 8)->get()],
-            'articles' => ['articles' => Article::active()->where('is_public', true)
+            'articles' => ['articles' => Article::active()->excludingSystem()->where('is_public', true)
                 ->where('article_type', '!=', 'classified')->where('sort_order', '>=', 0)
                 ->with('author.detail')->orderByDesc('created_at')
                 ->limit($widget['config']['limit'] ?? 10)->get()],
