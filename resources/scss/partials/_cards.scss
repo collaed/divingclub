@@ -28,12 +28,34 @@
   object-fit: cover;
 }
 
-// Homepage article/news feed is single-column with room to spare, so let its
-// featured images grow taller than the default 200px crop instead of being
-// squeezed into a thin strip. Capped so very tall portraits stay reasonable.
+// Homepage article/news feed is single-column, so its featured images show at
+// their natural height — a tall image just makes its own card taller, it can't
+// disrupt the layout.
 .card-img-top.article-card-img {
   height: auto;
-  max-height: 480px;
+}
+
+// Article body preview on the home feed: render the real HTML (tables, lists,
+// inline images) but clamp the height so one long article doesn't fill the
+// widget. Fade the cut edge; "Read more" links to the full article.
+.article-card-preview {
+  position: relative;
+  max-height: 22rem;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 3rem;
+    background: linear-gradient(transparent, var(--bs-card-bg, #fff));
+    pointer-events: none;
+  }
+
+  :last-child {
+    margin-bottom: 0;
+  }
 }
 
 // Apply radius to all Bootstrap cards and common elements
