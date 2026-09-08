@@ -29,6 +29,16 @@ class ProfileEditTest extends TestCase
         $this->actingAs($user)->get('/profile')->assertOk();
     }
 
+    public function test_avatar_form_uses_an_explicit_submit_button_not_js_auto_submit(): void
+    {
+        $user = $this->createUser();
+
+        $this->actingAs($user)->get('/profile')
+            ->assertOk()
+            ->assertSee('Upload Photo')
+            ->assertDontSee('this.form.submit()', false);
+    }
+
     public function test_member_can_update_info(): void
     {
         $user = $this->createUser();
