@@ -49,7 +49,7 @@
                     <img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" height="36" class="d-inline-block">
                     <span>{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
                 </a>
-                <div class="text-white d-flex align-items-center gap-2 gap-sm-3 flex-shrink-0">
+                <div class="text-white d-flex flex-wrap align-items-center justify-content-end gap-2 gap-sm-3 flex-shrink-0">
                     {{-- Dark mode toggle --}}
                     <button class="dc-dark-toggle" role="switch" aria-label="{{ __('Toggle dark mode') }}" onclick="toggleDarkMode()" title="{{ __('Toggle dark mode') }}" id="darkToggle">🌙</button>
                     {{-- Font size --}}
@@ -218,7 +218,10 @@
                             </a>
                             <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                 @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2" title="{{ __('Logout') }}">@icon('🚪')</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 px-2 py-1" title="{{ __('Logout') }}">
+                                    <span class="fs-5 lh-1" aria-hidden="true">🚪</span>
+                                    <span class="d-none d-sm-inline">{{ __('Logout') }}</span>
+                                </button>
                             </form>
                         </li>
                     @endguest
