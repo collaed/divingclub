@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
+use App\Http\Controllers\Admin\LoginHistoryController;
 use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MemberExportController;
@@ -239,6 +240,9 @@ Route::put('/roles', [RolePermissionController::class, 'update'])->name('roles.u
 Route::get('/roles/{role}/members', [RolePermissionController::class, 'members'])->name('roles.members');
 Route::post('/roles/{role}/members', [RolePermissionController::class, 'addMember'])->name('roles.add-member');
 Route::delete('/roles/{role}/members/{user}', [RolePermissionController::class, 'removeMember'])->name('roles.remove-member');
+
+// Login history (bureau_master only)
+Route::get('/logins', [LoginHistoryController::class, 'index'])->name('logins.index')->middleware('role:bureau_master');
 
 // Financial Audit (réviseur aux comptes) — read-only
 Route::get('/audit-finances', [AuditorController::class, 'index'])->name('audit-finances');
