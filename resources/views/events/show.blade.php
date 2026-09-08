@@ -47,6 +47,16 @@
                         <tr><th>{{ __('Participants') }}</th><td>{{ $event->confirmedRegistrations->count() }}{{ $event->max_participants ? ' / ' . $event->max_participants : '' }}</td></tr>
                     </table>
 
+                    {{-- Small map square below the details (matches the dive-site map box) --}}
+                    @if($event->mapsEmbedUrl())
+                        <div class="mb-3" style="max-width:280px">
+                            <div class="ratio ratio-1x1 rounded border overflow-hidden">
+                                <iframe src="{{ $event->mapsEmbedUrl() }}" allowfullscreen loading="lazy" style="border:0" title="{{ __('Map') }} — {{ $event->location }}"></iframe>
+                            </div>
+                            <a href="{{ $event->mapsUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary w-100 mt-1">@icon('📍') {{ __('View on Map') }}</a>
+                        </div>
+                    @endif
+
                     @if($event->description)
                         <hr>
                         <div class="article-body">{!! $event->description !!}</div>
@@ -146,13 +156,6 @@
                                   .catch(() => { document.getElementById('weather-data').textContent = '{{ __("Weather unavailable") }}'; });
                                 </script>
                             @endif
-                        </div>
-                    @endif
-
-                    {{-- Google Maps embed if API key available --}}
-                    @if($event->mapsEmbedUrl())
-                        <div class="mt-3 ratio ratio-16x9">
-                            <iframe src="{{ $event->mapsEmbedUrl() }}" allowfullscreen loading="lazy" style="border:0; border-radius:0.5rem;"></iframe>
                         </div>
                     @endif
                 </div>
