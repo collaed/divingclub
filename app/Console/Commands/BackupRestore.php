@@ -67,13 +67,9 @@ class BackupRestore extends Command
             return self::FAILURE;
         }
 
-        $ok = true;
-        if (! $this->option('only-files')) {
-            $ok = $this->restoreDatabase($work) && $ok;
-        }
-        if (! $this->option('only-db')) {
-            $ok = $this->restoreFiles($work) && $ok;
-        }
+        $dbOk = $this->option('only-files') ? true : $this->restoreDatabase($work);
+        $filesOk = $this->option('only-db') ? true : $this->restoreFiles($work);
+        $ok = $dbOk && $filesOk;
 
         File::deleteDirectory($work);
         $this->newLine();
@@ -96,8 +92,8 @@ class BackupRestore extends Command
         $conn = config('database.default');
         $c = config("database.connections.{$conn}");
         $sql = str_ends_with($dump, '.gz')
-            ? "gunzip -c ".escapeshellarg($dump)
-            : "cat ".escapeshellarg($dump);
+            ? 'gunzip -c '.escapeshellarg($dump)
+            : 'cat '.escapeshellarg($dump);
 
         if ($conn === 'pgsql') {
             $cmd = $sql.' | PGPASSWORD='.escapeshellarg((string) $c['password'])
