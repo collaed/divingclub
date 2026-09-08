@@ -164,4 +164,15 @@ class ActivityTrackingTest extends TestCase
 
         Exceptions::assertReported(QueryException::class);
     }
+
+    public function test_impersonated_requests_are_not_tracked(): void
+    {
+        config(['tracking.page_visits' => true]);
+        $u = $this->user();
+
+        $this->actingAs($u)->withSession(['impersonating' => 999])->get('/__track_ping')->assertOk();
+
+        $this->assertDatabaseCount('page_visits', 0);
+        $this->assertNull($u->fresh()->last_seen_at);
+    }
 }

@@ -46,6 +46,12 @@ class TrackActivity
             return;
         }
 
+        // While an admin impersonates a member, requests run as that member —
+        // don't attribute their activity to the impersonated user.
+        if ($request->hasSession() && $request->session()->has('impersonating')) {
+            return;
+        }
+
         // Tracking must never turn a served request into an error. This runs in
         // terminate(), but an uncaught throw here still surfaces as a 500 under
         // php-fpm — and there is a ~10s window during a code-before-migration

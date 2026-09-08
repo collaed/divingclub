@@ -321,7 +321,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 ## Privacy
 
 - Regular members cannot see other members' email or phone — only the profile owner and bureau roles
-- `TrackActivity` middleware keeps `users.last_seen_at` fresh (throttled 5 min) on every authenticated request, and — when `config('tracking.page_visits')` is on (`TRACKING_PAGE_VISITS`) — logs authenticated GET page views to `page_visits` (path, route, status). It is a support/debugging aid: visible only on `/admin/logins` (bureau_master), pruned to `tracking.retention_days` (default 3) by the `tracking:prune` scheduled command. Flip `TRACKING_PAGE_VISITS=false` to stop logging without a deploy.
+- `TrackActivity` middleware keeps `users.last_seen_at` fresh (throttled 5 min) on every authenticated request, and — when `config('tracking.page_visits')` is on (`TRACKING_PAGE_VISITS`) — logs authenticated GET page views to `page_visits` (path, route, status). It is a support/debugging aid: visible only on `/admin/logins` (bureau_master), pruned to `tracking.retention_days` (default 3) by the `tracking:prune` scheduled command. Flip `TRACKING_PAGE_VISITS=false` to stop logging without a deploy. Impersonated requests (`session('impersonating')`) are **not** tracked, and the `Login` listener that fills `login_records` skips impersonation start/stop and console/tinker logins.
 
 </laravel-boost-guidelines>
 
