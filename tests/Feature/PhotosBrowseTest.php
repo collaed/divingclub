@@ -52,4 +52,29 @@ class PhotosBrowseTest extends TestCase
         $res->assertOk();
         $this->assertJson($res->getContent() ?: '[]');
     }
+
+    public function test_guest_xhr_gets_401_and_does_not_poison_intended_url(): void
+    {
+        $this->get('/photos/browse', [
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept' => 'application/json',
+        ])->assertUnauthorized();
+
+        $this->assertNull(session('url.intended'));
+    }
+
+    public function test_login_never_lands_on_the_photo_feed(): void
+    {
+        $user = User::factory()->create([
+            'primary_email' => 'freddy@example.test',
+            'password' => 'secret-passphrase',
+            'status_id' => 1,
+            'email_verified_at' => now(),
+        ]);
+
+        // simulate a guest whose session already points at the JSON feed
+        $this->withSession(['url.intended' => url('/photos/browse')])
+            ->post('/login', ['email' => 'freddy@example.test', 'password' => 'secret-passphrase'])
+            ->assertRedirect(route('profile.show'));
+    }
 }
