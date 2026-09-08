@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,11 +22,14 @@ class LoginController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'email' => 'required|string|max:255',
+            'password' => 'required|string',
         ]);
 
-        $throttleKey = Str::transliterate(Str::lower($request->email).'|'.$request->ip());
+        // "email" is really a login identifier: primary email, a verified
+        // secondary email, or a legacy username (may contain spaces).
+        $identifier = trim((string) $request->input('email'));
+        $throttleKey = Str::transliterate(Str::lower($identifier).'|'.$request->ip());
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -37,9 +39,7 @@ class LoginController extends Controller
             ]);
         }
 
-        $user = User::whereRaw('LOWER(primary_email) = ?', [strtolower($request->email)])->first();
-
-        if ($user && Auth::attempt(['primary_email' => $user->primary_email, 'password' => $request->password], $request->boolean('remember'))) {
+        if (Auth::attempt(['email' => $identifier, 'password' => $request->password], $request->boolean('remember'))) {
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
@@ -48,7 +48,7 @@ class LoginController extends Controller
 
         RateLimiter::hit($throttleKey, 600); // 10 minute decay
 
-        return back()->withErrors(['email' => __('Invalid credentials.')]);
+        return back()->withErrors(['email' => __('Invalid credentials.')])->onlyInput('email');
     }
 
     public function destroy(Request $request): RedirectResponse
