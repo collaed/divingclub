@@ -30,6 +30,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property int|null $status_set_id
  * @property Carbon|null $email_verified_at
  * @property string|null $preferred_locale
+ * @property Carbon|null $last_seen_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read MemberDetail|null $detail
@@ -43,7 +44,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use SoftDeletes;
 
     protected $fillable = [
-        'username', 'primary_email', 'password', 'role_id', 'status_id', 'status_set_id', 'email_verified_at', 'preferred_locale',
+        'username', 'primary_email', 'password', 'role_id', 'status_id', 'status_set_id', 'email_verified_at', 'preferred_locale', 'last_seen_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -52,6 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_seen_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -127,6 +129,18 @@ class User extends Authenticatable implements MustVerifyEmail
     public function licences(): HasMany
     {
         return $this->hasMany(MemberLicence::class);
+    }
+
+    /** @return HasMany<LoginRecord, $this> */
+    public function loginRecords(): HasMany
+    {
+        return $this->hasMany(LoginRecord::class);
+    }
+
+    /** @return HasMany<PageVisit, $this> */
+    public function pageVisits(): HasMany
+    {
+        return $this->hasMany(PageVisit::class);
     }
 
     /** @return HasMany<Document, $this> */
