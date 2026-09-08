@@ -141,6 +141,8 @@ class DiveGroupController extends Controller
      */
     public function validateGroups(Event $event): JsonResponse
     {
+        abort_unless($this->canView($event), 403);
+
         $event->load(['diveGroups.members.user.certificationLevels', 'diveGroups.members.user.detail', 'diveSite']);
         $rules = DiveGroupRule::active()->get();
         $violations = [];
@@ -402,14 +404,17 @@ class DiveGroupController extends Controller
         return $user->isBureau() || $event->instructor_id === $user->id || in_array($user->id, $event->assistant_ids ?? []);
     }
 
+    /**
+     * The dive-group planner is currently limited to instructors and bureau
+     * (plus the event's own instructor/assistants via canManage). Members do
+     * not see it yet.
+     */
     private function canView(Event $event): bool
     {
-        $user = auth()->user();
         if ($this->canManage($event)) {
             return true;
         }
 
-        // Instructors can always view dive groups
-        return $user->hasAnyRole(['instructor']);
+        return auth()->user()->hasAnyRole(['instructor', 'instructor_apnea', 'assistant']);
     }
 }
