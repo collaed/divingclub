@@ -38,10 +38,14 @@ document.addEventListener('DOMContentLoaded', function() {
             dir = dir === 1 ? -1 : 1;
             th.dataset.sort = dir === 1 ? 'asc' : 'desc';
             rows.sort(function(a, b) {
-                var ac = (a.children[ci] || {}).textContent || '';
-                var bc = (b.children[ci] || {}).textContent || '';
+                var ca = a.children[ci], cb = b.children[ci];
+                // A cell may carry data-sort-value to sort on the raw value
+                // (e.g. a unix timestamp behind "3 hours ago").
+                var ac = ca && ca.dataset.sortValue !== undefined ? ca.dataset.sortValue : ((ca || {}).textContent || '');
+                var bc = cb && cb.dataset.sortValue !== undefined ? cb.dataset.sortValue : ((cb || {}).textContent || '');
+                ac = String(ac); bc = String(bc);
                 var an = parseFloat(ac.replace(/[^\d.,-]/g, '')), bn = parseFloat(bc.replace(/[^\d.,-]/g, ''));
-                if (!isNaN(an) && !isNaN(bn)) return (an - bn) * dir;
+                if (!isNaN(an) && !isNaN(bn) && /\d/.test(ac) && /\d/.test(bc)) return (an - bn) * dir;
                 return ac.localeCompare(bc, undefined, { sensitivity: 'base' }) * dir;
             });
             rows.forEach(function(r) { tbody.appendChild(r); });

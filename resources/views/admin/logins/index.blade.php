@@ -86,10 +86,10 @@
                 <table class="table table-hover table-sm">
                     <thead>
                         <tr>
-                            <th>{{ __('Member') }}</th>
-                            <th>{{ __('When') }}</th>
-                            <th>{{ __('IP') }}</th>
-                            <th>{{ __('Device') }}</th>
+                            <th data-sort-col>{{ __('Member') }}</th>
+                            <th data-sort-col>{{ __('When') }}</th>
+                            <th data-sort-col>{{ __('IP') }}</th>
+                            <th data-sort-col>{{ __('Device') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -105,7 +105,7 @@
                                         <span class="text-muted">{{ __('deleted user') }}</span>
                                     @endif
                                 </td>
-                                <td class="text-nowrap" title="{{ $login->created_at?->format('Y-m-d H:i:s') }}">
+                                <td class="text-nowrap" data-sort-value="{{ $login->created_at?->timestamp ?? 0 }}" title="{{ $login->created_at?->format('Y-m-d H:i:s') }}">
                                     {{ $login->created_at?->diffForHumans() }}
                                 </td>
                                 <td class="text-nowrap"><code>{{ $login->ip_address ?? '—' }}</code></td>
@@ -124,13 +124,13 @@
                 <h5 class="mt-4">@icon('⚠️') {{ __('Failed attempts (last 24h)') }}</h5>
                 <div class="table-responsive">
                     <table class="table table-sm">
-                        <thead><tr><th>{{ __('Identifier') }}</th><th>{{ __('IP') }}</th><th>{{ __('When') }}</th></tr></thead>
+                        <thead><tr><th data-sort-col>{{ __('Identifier') }}</th><th data-sort-col>{{ __('IP') }}</th><th data-sort-col>{{ __('When') }}</th></tr></thead>
                         <tbody>
                             @foreach($failed as $f)
                                 <tr>
                                     <td class="cell-truncate" title="{{ $f->email }}">{{ $f->email }}</td>
                                     <td><code>{{ $f->ip_address ?? '—' }}</code></td>
-                                    <td class="text-nowrap">{{ \Illuminate\Support\Carbon::parse($f->attempted_at)->diffForHumans() }}</td>
+                                    <td class="text-nowrap" data-sort-value="{{ \Illuminate\Support\Carbon::parse($f->attempted_at)->timestamp }}">{{ \Illuminate\Support\Carbon::parse($f->attempted_at)->diffForHumans() }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -151,9 +151,9 @@
                 <table class="table table-hover table-sm">
                     <thead>
                         <tr>
-                            <th>{{ __('Member') }}</th>
-                            <th>{{ __('Last seen') }}</th>
-                            <th>{{ __('Last login') }}</th>
+                            <th data-sort-col>{{ __('Member') }}</th>
+                            <th data-sort-col>{{ __('Last seen') }}</th>
+                            <th data-sort-col>{{ __('Last login') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -165,8 +165,8 @@
                                         <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">{{ __('online') }}</span>
                                     @endif
                                 </td>
-                                <td class="text-nowrap" title="{{ $member->last_seen_at?->format('Y-m-d H:i:s') }}">{{ $member->last_seen_at?->diffForHumans() }}</td>
-                                <td class="text-nowrap text-muted" title="{{ $member->last_login_at ? \Illuminate\Support\Carbon::parse($member->last_login_at)->format('Y-m-d H:i:s') : '' }}">
+                                <td class="text-nowrap" data-sort-value="{{ $member->last_seen_at?->timestamp ?? 0 }}" title="{{ $member->last_seen_at?->format('Y-m-d H:i:s') }}">{{ $member->last_seen_at?->diffForHumans() }}</td>
+                                <td class="text-nowrap text-muted" data-sort-value="{{ $member->last_login_at ? \Illuminate\Support\Carbon::parse($member->last_login_at)->timestamp : 0 }}" title="{{ $member->last_login_at ? \Illuminate\Support\Carbon::parse($member->last_login_at)->format('Y-m-d H:i:s') : '' }}">
                                     {{ $member->last_login_at ? \Illuminate\Support\Carbon::parse($member->last_login_at)->diffForHumans() : '—' }}
                                 </td>
                             </tr>
@@ -194,11 +194,11 @@
                     <h5 class="mb-3">@icon('👣') {{ $memberName($trailUser) }}</h5>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover">
-                            <thead><tr><th>{{ __('When') }}</th><th>{{ __('Page') }}</th><th>{{ __('Route') }}</th><th>{{ __('Status') }}</th></tr></thead>
+                            <thead><tr><th data-sort-col>{{ __('When') }}</th><th data-sort-col>{{ __('Page') }}</th><th data-sort-col>{{ __('Route') }}</th><th data-sort-col>{{ __('Status') }}</th></tr></thead>
                             <tbody>
                                 @forelse($trail as $visit)
                                     <tr>
-                                        <td class="text-nowrap small" title="{{ $visit->created_at?->format('Y-m-d H:i:s') }}">{{ $visit->created_at?->diffForHumans() }}</td>
+                                        <td class="text-nowrap small" data-sort-value="{{ $visit->created_at?->timestamp ?? 0 }}" title="{{ $visit->created_at?->format('Y-m-d H:i:s') }}">{{ $visit->created_at?->diffForHumans() }}</td>
                                         <td class="small"><code>{{ $visit->path }}</code></td>
                                         <td class="small text-muted">{{ $visit->route_name ?? '—' }}</td>
                                         <td class="small {{ $statusClass($visit->status) }}">{{ $visit->status ?? '—' }}</td>
@@ -214,10 +214,10 @@
                         <table class="table table-sm table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ __('Member') }}</th>
-                                    <th>{{ __('Last seen') }}</th>
-                                    <th>{{ __('Since') }}</th>
-                                    <th class="text-end">{{ __('Pages') }}</th>
+                                    <th data-sort-col>{{ __('Member') }}</th>
+                                    <th data-sort-col>{{ __('Last seen') }}</th>
+                                    <th data-sort-col>{{ __('Since') }}</th>
+                                    <th class="text-end" data-sort-col>{{ __('Pages') }}</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -226,8 +226,8 @@
                                     @php($cu = $conn->user_id ? $connectionUsers->get($conn->user_id) : null)
                                     <tr>
                                         <td>{{ $cu ? $memberName($cu) : __('deleted user') }}</td>
-                                        <td class="text-nowrap" title="{{ \Illuminate\Support\Carbon::parse($conn->last_at)->format('Y-m-d H:i:s') }}">{{ \Illuminate\Support\Carbon::parse($conn->last_at)->diffForHumans() }}</td>
-                                        <td class="text-nowrap text-muted small">{{ \Illuminate\Support\Carbon::parse($conn->first_at)->diffForHumans() }}</td>
+                                        <td class="text-nowrap" data-sort-value="{{ \Illuminate\Support\Carbon::parse($conn->last_at)->timestamp }}" title="{{ \Illuminate\Support\Carbon::parse($conn->last_at)->format('Y-m-d H:i:s') }}">{{ \Illuminate\Support\Carbon::parse($conn->last_at)->diffForHumans() }}</td>
+                                        <td class="text-nowrap text-muted small" data-sort-value="{{ \Illuminate\Support\Carbon::parse($conn->first_at)->timestamp }}">{{ \Illuminate\Support\Carbon::parse($conn->first_at)->diffForHumans() }}</td>
                                         <td class="text-end">{{ $conn->hits }}</td>
                                         <td class="text-end">
                                             @if($conn->user_id)

@@ -131,7 +131,10 @@ class ActivityTrackingTest extends TestCase
             'created_at' => now()->subHour(),
         ]);
 
-        $this->actingAs($master)->get('/admin/logins?tab=members')->assertOk()->assertSee('Jane Doe');
+        $this->actingAs($master)->get('/admin/logins?tab=members')->assertOk()
+            ->assertSee('Jane Doe')
+            ->assertSee('data-sort-col', false)
+            ->assertSee('data-sort-value="'.$master->last_seen_at->timestamp, false); // chronological sort key, not the humanised text
         $this->actingAs($master)->get('/admin/logins?tab=activity')->assertOk()->assertSee('View trail');
         $this->actingAs($master)->get('/admin/logins?tab=activity&user='.$master->id)->assertOk()->assertSee('/events/42');
     }
