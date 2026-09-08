@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\MemberLicence;
 use App\Models\User;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class MemberExportService
 {
@@ -24,7 +25,7 @@ class MemberExportService
             ->orderBy('id')
             ->get();
 
-        $federationAcronyms = $this->federationAcronyms();
+        $federationAcronyms = $this->federationAcronyms($members);
 
         $headers = array_merge($this->baseHeaders(), $this->federationHeaders($federationAcronyms));
 
@@ -143,11 +144,18 @@ class MemberExportService
     }
 
     /** Distinct federation acronyms across all licences, alphabetically. @return list<string> */
-    protected function federationAcronyms(): array
+    /**
+     * Distinct federation acronyms across the members being exported — derived
+     * from the licences.federation relation build() already eager-loads, so no
+     * extra query.
+     *
+     * @param  Collection<int, User>  $members
+     * @return list<string>
+     */
+    protected function federationAcronyms(Collection $members): array
     {
-        return MemberLicence::query()
-            ->with('federation')
-            ->get()
+        return $members
+            ->flatMap(fn (User $member) => $member->licences)
             ->map(fn (MemberLicence $licence): ?string => $licence->federation?->acronym)
             ->filter()
             ->unique()
