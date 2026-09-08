@@ -183,7 +183,10 @@ class Event extends Model
         if ($this->inscriptions_closed) {
             return false;
         }
-        if ($this->status !== 'scheduled') {
+        // 'scheduled' and 'published' are both live states — imports and the
+        // season-pattern generator use them interchangeably. Only terminal
+        // states (cancelled, completed) close registration.
+        if (! in_array($this->status, ['scheduled', 'published'], true)) {
             return false;
         }
 

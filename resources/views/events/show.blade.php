@@ -234,9 +234,17 @@
                                 <p class="small text-muted mt-2">{{ __('Event is full. You will be placed on the waiting list.') }}</p>
                             @endif
                         @else
-                            <p class="text-muted">{{ __('Registration is closed.') }}</p>
-                            @if($event->inscription_open_at && $event->inscription_open_at->isFuture())
+                            @if($event->status === 'cancelled')
+                                <p class="text-muted">{{ __('This event has been cancelled.') }}</p>
+                            @elseif($event->status === 'completed')
+                                <p class="text-muted">{{ __('This event has already taken place.') }}</p>
+                            @elseif($event->inscriptions_closed)
+                                <p class="text-muted">{{ __('Registration has been closed by the organiser.') }}</p>
+                            @elseif($event->inscription_open_at && $event->inscription_open_at->isFuture())
+                                <p class="text-muted">{{ __('Registration is not open yet.') }}</p>
                                 <p class="small">{{ __('Opens') }}: {{ $event->inscription_open_at->format('d/m/Y H:i') }}</p>
+                            @else
+                                <p class="text-muted">{{ __('Registration is closed.') }}</p>
                             @endif
                         @endif
 

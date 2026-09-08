@@ -112,4 +112,21 @@ class EventRegistrationWorkflowTest extends TestCase
 
         $this->assertLessThan($pos3, $pos2);
     }
+
+    public function test_published_events_are_open_for_registration(): void
+    {
+        $event = $this->event(['status' => 'published']);
+        $this->assertTrue($event->isRegistrationOpen());
+
+        $u = $this->member();
+        $this->actingAs($u)->post("/events/{$event->id}/register");
+
+        $this->assertDatabaseHas('event_registrations', ['event_id' => $event->id, 'user_id' => $u->id, 'status' => 'confirmed']);
+    }
+
+    public function test_cancelled_and_completed_events_are_not_open(): void
+    {
+        $this->assertFalse($this->event(['status' => 'cancelled'])->isRegistrationOpen());
+        $this->assertFalse($this->event(['status' => 'completed'])->isRegistrationOpen());
+    }
 }
