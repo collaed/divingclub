@@ -25,6 +25,8 @@ class SendEquipmentReminders implements ShouldQueue
             ->whereNotNull('expected_return_date')
             ->where('expected_return_date', '<', now())
             ->whereNull('reminder_sent_at')
+            ->whereHas('user')
+            ->whereHas('equipment')
             ->with(['user', 'equipment'])
             ->get();
 
@@ -46,6 +48,8 @@ class SendEquipmentReminders implements ShouldQueue
             ->whereNull('expected_return_date')
             ->where('loaned_at', '<', now()->subDays($thresholdDays))
             ->whereNull('reminder_sent_at')
+            ->whereHas('user')
+            ->whereHas('equipment')
             ->with(['user', 'equipment'])
             ->each(function ($loan): void {
                 app(PushNotificationService::class)->sendToBureau(

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Federation;
 use App\Models\MemberDetail;
+use App\Models\MemberLicence;
 use App\Models\User;
 use App\Services\MemberExportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,6 +64,35 @@ class MemberExportTest extends TestCase
         $this->assertContains('Nationality', $data['headers']);
         $this->assertCount(2, $data['rows']);
         $this->assertCount(count($data['headers']), $data['rows'][0]);
+    }
+
+    public function test_federation_columns_come_from_the_eager_loaded_licences(): void
+    {
+        $fed = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'FFESSM', 'visibility' => 'active']);
+        $user = $this->member();
+        MemberLicence::create(['user_id' => $user->id, 'federation_id' => $fed->id, 'licence_number' => 'ABC-123']);
+
+        $data = app(MemberExportService::class)->build();
+
+        $this->assertContains('FFESSM Licence No', $data['headers']);
+        $idx = array_search('FFESSM Licence No', $data['headers'], true);
+        $this->assertSame('ABC-123', $data['rows'][0][$idx]);
+    }
+
+    public function test_build_queries_member_licences_only_once(): void
+    {
+        $user = $this->member();
+        $fed = Federation::create(['acronym' => 'CMAS', 'full_name' => 'CMAS', 'visibility' => 'active']);
+        MemberLicence::create(['user_id' => $user->id, 'federation_id' => $fed->id, 'licence_number' => 'C-1']);
+
+        DB::enableQueryLog();
+        app(MemberExportService::class)->build();
+        $licenceQueries = collect(DB::getQueryLog())
+            ->filter(fn (array $q): bool => str_contains($q['query'], 'member_licences'))
+            ->count();
+        DB::disableQueryLog();
+
+        $this->assertSame(1, $licenceQueries);
     }
 
     private function member(string $role = 'member'): User

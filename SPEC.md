@@ -155,10 +155,10 @@
 **Contexte :** Un membre peut avoir plusieurs adresses email (personnelle, professionnelle, institutionnelle). Le système doit pouvoir les contacter sur l'adresse de leur choix et permettre la connexion via n'importe laquelle.
 
 **Comportement :**
-- Table `user_emails` : `user_id`, `email`, `is_primary`, `is_verified`, `receives_mail`
+- Table `user_emails` : `user_id`, `email`, `is_primary`, `is_verified`, `receive_mail`
 - Ajout d'un email : envoi immédiat d'un lien de vérification
 - Changement d'email principal : seul un email vérifié peut devenir principal
-- Toggle `receives_mail` : permet de désactiver la réception de newsletters/notifications sur un email spécifique
+- Toggle `receive_mail` : permet de désactiver la réception de newsletters/notifications sur un email spécifique
 - Suppression d'un email : impossible si c'est le seul email vérifié
 - La connexion fonctionne avec n'importe quel email vérifié du membre
 
@@ -868,7 +868,7 @@
   - Clé secondaire (domaine `ecb.pm`) : overflow
   - Bascule automatique sur erreur de rate limit
   - Capacité combinée : 200 emails/jour (tiers gratuits)
-- Destinataires : tous les membres avec `receives_mail = true` sur au moins un email vérifié
+- Destinataires : tous les membres avec `receive_mail = true` sur au moins un email vérifié
 - L'envoi est asynchrone (job Redis via Horizon)
 - Chaque envoi est logé dans `email_logs`
 
@@ -1963,8 +1963,14 @@ erDiagram
     Event ||--o{ EventPhoto : has
     Event ||--o{ TripParticipant : has
     Event ||--o{ TripReceipt : has
+    Event ||--o{ InstructorAvailability : slots
     Event }o--|| Season : belongs_to
     Event }o--|| DiveSite : at
+    Event }o--|| User : "responsible_id"
+    Event }o--|| User : "instructor_id"
+    Event }o--|| User : "created_by"
+
+    User ||--o{ InstructorAvailability : declares
 
     Article ||--o{ ArticleTranslation : has
     Article ||--o{ ArticleImage : has

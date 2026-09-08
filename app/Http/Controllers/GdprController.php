@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class GdprController extends Controller
 {
@@ -84,6 +85,12 @@ class GdprController extends Controller
         }
         $user->documents()->delete();
 
+        // Legacy medical certificates predate the documents table: they live in
+        // private/medical/ as LASTNAME_Firstname.<ext> with no DB row, so the
+        // loop above misses them. Match on both name parts (folded) — read the
+        // name before the anonymisation block below runs.
+        $this->deleteLegacyMedicalFiles($user->detail?->first_name, $user->detail?->last_name);
+
         // Delete avatar
         if ($user->detail?->avatar_path) {
             Storage::disk('public')->delete($user->detail->avatar_path);
@@ -114,5 +121,41 @@ class GdprController extends Controller
         auth()->logout();
 
         return redirect('/')->with('success', __('Your data has been erased.'));
+    }
+
+    /**
+     * Remove untracked legacy medical certificates for a member. Files are named
+     * LASTNAME_Firstname.<ext> (optionally in a per-member sub-directory). Both
+     * name parts must fold-match so a shared surname alone never deletes another
+     * member's certificate.
+     */
+    private function deleteLegacyMedicalFiles(?string $firstName, ?string $lastName): void
+    {
+        if (! $firstName || ! $lastName) {
+            return;
+        }
+
+        $dir = storage_path('app/private/medical');
+        if (! is_dir($dir)) {
+            return;
+        }
+
+        $fold = fn (string $v): string => strtoupper(trim(Str::ascii($v)));
+        $wantLast = $fold($lastName);
+        $wantFirst = $fold($firstName);
+
+        $candidates = array_merge(glob("{$dir}/*") ?: [], glob("{$dir}/*/*") ?: []);
+        foreach ($candidates as $file) {
+            if (! is_file($file)) {
+                continue;
+            }
+            $parts = explode('_', pathinfo($file, PATHINFO_FILENAME), 2);
+            if (count($parts) !== 2) {
+                continue;
+            }
+            if ($fold($parts[0]) === $wantLast && $fold($parts[1]) === $wantFirst) {
+                @unlink($file);
+            }
+        }
     }
 }

@@ -20,6 +20,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -61,7 +62,15 @@ class ProfileController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'username' => 'nullable|string|max:255|unique:users,username,'.$target->id,
-            'nationality' => 'nullable|string|max:100',
+            // Canonical list from config/countries.php, but tolerate a member's
+            // already-stored legacy value so they can still save other fields.
+            'nationality' => [
+                'nullable', 'string',
+                Rule::in(array_values(array_filter(array_merge(
+                    (array) config('countries.all'),
+                    [$target->detail?->nationality],
+                )))),
+            ],
             'phone_private' => 'nullable|string|max:50',
             'phone_office' => 'nullable|string|max:50',
             'phone_mobile' => 'nullable|string|max:50',
@@ -82,7 +91,9 @@ class ProfileController extends Controller
             $rules['cotisation_years.*'] = 'integer|min:1900|max:'.(date('Y') + 1);
         }
 
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, [
+            'nationality.in' => __('Please choose a nationality from the list.'),
+        ]);
 
         // The chosen status must belong to the assigned set (consistency guard).
         if ($viewer->isBureau() && ! empty($validated['status_set_id']) && ! empty($validated['status_id'])) {
@@ -271,6 +282,10 @@ class ProfileController extends Controller
         $validated['show_icons'] = $request->input('show_icons') === '' ? null : (int) $request->input('show_icons');
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
+        // Keep users.preferred_locale (used by outgoing email / newsletters) in
+        // step with member_details.preferred_language (used by the UI locale) —
+        // the /locale/{locale} switcher already writes both.
+        $target->update(['preferred_locale' => $validated['preferred_language']]);
         IconHelper::flush();
 
         return back()->with('success', __('Language preference updated.'))->withInput(['tab' => 'language']);

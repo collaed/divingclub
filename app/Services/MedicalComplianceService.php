@@ -28,6 +28,16 @@ class MedicalComplianceService
     public function evaluateCertificate(Document $document): void
     {
         $user = $document->user;
+
+        // A member has exactly one current medical certificate. Demote any
+        // earlier ones up front so this also runs when no federation rules
+        // match and the method returns early below.
+        Document::where('user_id', $document->user_id)
+            ->where('category', 'medical')
+            ->where('is_current', true)
+            ->where('id', '!=', $document->id)
+            ->update(['is_current' => false, 'superseded_by' => $document->id]);
+
         $age = $user->detail?->date_of_birth?->age;
         $issueDate = $document->date_established ?? $document->created_at;
 
@@ -69,13 +79,6 @@ class MedicalComplianceService
             'is_compliant' => $latestExpiry->isFuture(),
             'compliance_notes' => $notes,
         ]);
-
-        // Supersede previous current medical certs
-        Document::where('user_id', $document->user_id)
-            ->where('category', 'medical')
-            ->where('is_current', true)
-            ->where('id', '!=', $document->id)
-            ->update(['is_current' => false, 'superseded_by' => $document->id]);
     }
 
     private function computeExpiry(Federation $fed, $rules, Carbon $issueDate, ?int $age): Carbon

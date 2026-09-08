@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -145,6 +146,17 @@ class Event extends Model
         return $this->registrations()->where('status', 'confirmed');
     }
 
+    /**
+     * Events that have not been cancelled — the public-visibility rule for
+     * calendars and every "upcoming events" list.
+     *
+     * @param  Builder<Event>  $query
+     */
+    public function scopeNotCancelled(Builder $query): void
+    {
+        $query->where('status', '!=', 'cancelled');
+    }
+
     public function waitingRegistrations(): HasMany
     {
         return $this->registrations()->where('status', 'waiting')->orderBy('waiting_list_position');
@@ -191,19 +203,27 @@ class Event extends Model
         return 'https://www.google.com/maps/search/'.urlencode($this->location);
     }
 
+    /**
+     * Badge / calendar colour for the event's type. Resolves from
+     * config/activity_types.php — the single source of truth shared with the
+     * instructor-planner legend and the `.activity-*` SCSS classes — so the
+     * same event shows the same colour everywhere. An explicit `color_hex`
+     * still wins; `match` only covers legacy `event_type` values that predate
+     * the config file.
+     */
     public function typeColor(): string
     {
         if ($this->color_hex) {
             return $this->color_hex;
         }
 
+        $configured = config("activity_types.{$this->event_type}.color");
+        if (is_string($configured)) {
+            return $configured;
+        }
+
         return match ($this->event_type) {
-            'pool' => '#0077be',
-            'dive' => '#003366',
-            'training' => '#28a745',
-            'apnea' => '#00bcd4',
-            'theory' => '#6f42c1',
-            'social' => '#ffc107',
+            'dive' => '#00695c',
             default => '#6c757d',
         };
     }

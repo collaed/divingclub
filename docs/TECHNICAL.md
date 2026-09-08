@@ -55,28 +55,28 @@ app/                          # Application code
 ├── Enums/                    # PHP 8.1 enums
 ├── Helpers/                  # HtmlSanitizer, etc.
 ├── Http/
-│   ├── Controllers/          # 62 controllers
-│   │   ├── Admin/            # 26 admin controllers
+│   ├── Controllers/          # 65 controllers
+│   │   ├── Admin/            # 28 admin controllers
 │   │   ├── Auth/             # 4 auth controllers (Login, Register, Social, EuLogin)
 │   │   ├── Api/              # 1 API controller (FederationApi)
 │   │   └── Concerns/         # Traits (PaginatesFromRequest)
 │   └── Middleware/           # 7 middleware classes
-├── Jobs/                     # 9 queued/scheduled jobs
-├── Models/                   # 58 Eloquent models
+├── Jobs/                     # 10 queued/scheduled jobs
+├── Models/                   # 61 Eloquent models
 ├── Providers/                # Service providers
-├── Services/                 # 28 service classes (incl. Homogeneity/)
+├── Services/                 # 34 service classes (incl. Homogeneity/)
 └── Traits/                   # Auditable, etc.
 bootstrap/
 ├── app.php                   # Middleware, routing, exception config
 └── providers.php             # Service provider registration
-config/                       # 18 config files
+config/                       # 21 config files
 database/
-├── migrations/               # 78 migration files
+├── migrations/               # 103 migration files
 ├── seeders/                  # DatabaseSeeder, SampleDataSeeder, CertificationSeeder, EquipmentSeeder
 └── factories/                # Model factories
 lang/                         # 15 locale directories + JSON files
 resources/
-├── views/                    # 157 Blade templates (22 subdirectories)
+├── views/                    # 166 Blade templates
 ├── scss/                     # 11 SCSS partials + app.scss
 ├── js/                       # app.js, table-utils.js, etc.
 └── css/                      # Base CSS (Vite entry)
@@ -86,12 +86,12 @@ routes/
 ├── api.php                   # API routes (federation endpoints)
 └── console.php               # Scheduled tasks
 tests/
-├── Feature/                  # 23 feature test files
-├── Unit/                     # 15 unit test files
-└── e2e/                      # 7 end-to-end test files
+├── Feature/                  # 55 feature test files
+├── Unit/                     # 17 unit test files
+└── e2e/                      # Playwright: test_ui / test_adversarial / test_journeys
 ```
 
-**Totals**: 341 routes, 58 models, 157 Blade templates, 28 services, 78 migrations, 38 test files (253 tests, 598 assertions).
+**Totals** (approx., 2026-09): 379 routes, 61 models, 166 Blade templates, 34 services, 103 migrations, 72 PHPUnit test files (~440 tests, ~1115 assertions).
 
 ---
 
@@ -102,8 +102,10 @@ The application uses **131 tables** organized into the following domains:
 ### Core / Members
 `users`, `member_details`, `user_emails`, `user_social_accounts`, `member_statuses`, `member_licences`, `guardian_links`, `parental_consents`, `gdpr_consents`, `user_certification_levels`, `certification_levels`, `federations`
 
-### Auth & Permissions (Spatie)
-`roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`, `legacy_roles`, `sessions`, `password_reset_tokens`, `failed_login_attempts`
+### Auth & Permissions
+Spatie: `roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`.
+Framework/auth: `sessions`, `password_reset_tokens`, `failed_login_attempts`.
+Legacy: `legacy_roles` (pre-Spatie role table, FK'd from `users.role_id`; see §5).
 
 ### Events & Registration
 `events`, `event_registrations`, `external_registrations`, `seasons`, `season_patterns`, `season_holidays`, `instructor_availabilities`
@@ -208,7 +210,7 @@ The application uses **131 tables** organized into the following domains:
 - **Password reset** with token-based flow
 
 ### Authorization (Spatie Permission)
-Six roles with hierarchical capabilities:
+Roles with hierarchical capabilities:
 
 | Role | Scope |
 |------|-------|
@@ -218,6 +220,14 @@ Six roles with hierarchical capabilities:
 | `instructor` | Instructor planning, event management |
 | `instructor_apnea` | Apnea-specific instructor role |
 | `member` | Default authenticated member |
+
+`$user->isBureau()` is `hasAnyRole(['bureau_master','bureau_finance','bureau_technical'])`.
+
+**Legacy role column:** `users.role_id` is a leftover FK to the `legacy_roles`
+table (`roles` on installs that skipped the rename), reachable via
+`$user->legacyRole()`. It is retained for imported data and some display labels
+only — all access checks go through Spatie. Tests that need a legacy row pick
+the table with `Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles'`.
 
 **Middleware**:
 - `CheckRole` — role-based route protection (`role:bureau_master,bureau_finance,...`)

@@ -4,6 +4,31 @@
 
 Two-tier file system: admin full management (LibraryController) and member-facing browsing with visibility filtering (DocumentBrowserController). Also includes event photo gallery with quality scoring.
 
+Separately, each member has **personal documents** (medical certificates,
+certification scans, insurance) — a different table, disk and controller from
+the club library. See below.
+
+## Personal Documents (`documents` table)
+
+Per-member files: medical certificates, certification scans, insurance papers.
+Not part of the club library and never browsable by other members.
+
+| | |
+|---|---|
+| Table | `documents` — `user_id`, `category` (`certification` / `medical` / `insurance` / `other`), `cert_type`, `file_path`, `original_filename`, `mime_type`, `size_bytes`, `date_established`, `expiry_date`, `is_verified` / `verified_by` / `verified_at`, `is_current`, `superseded_by`, `is_compliant`, `compliance_notes`, `reminder_{30,15,7,0}_sent_at`. `SoftDeletes` + `Auditable`. |
+| Disk | `Storage::disk('local')` — root `storage_path('app/private')` (→ `/mnt/data/<env>/pics/private/` on the servers). **Not** symlinked from `public/`; Caddy cannot reach it. |
+| Path | `documents/{user_id}/{filename}` |
+| Filename | `Str::slug("{last_name} {first_name} {cert_type ?? category} {date}").{ext}` (deterministic — re-upload for the same person/type/date overwrites). |
+| Legacy | `storage/app/private/medical/` holds imported certs with no `documents` row (per-member sub-dirs). |
+| Upload | `POST /profile/document` — `auth` + `verified.email`; `mimetypes:application/pdf,image/jpeg,image/png`, `max:10240` KB. Bureau may upload for another member via `target_user_id`. |
+| Download / view | `GET /profile/document/{document}` and `…/view` — 403 unless `$document->user_id === $viewer->id` **or** `$viewer->isBureau()`. |
+| Verify | `POST /profile/document/{document}/verify` — bureau only. |
+| `serve => true` route | `local` disk registers `GET /storage/{path}`, but for a private-visibility disk `ServeFile` demands a valid signed URL → unsigned = **404 (prod)** / 403 (staging). The app never generates one for docs. |
+| GDPR erasure | `GdprController::confirmErasure()` deletes the physical file for every **DB-tracked** doc then soft-deletes the rows. Legacy `private/medical/` files without a row are **not** touched. |
+
+Medical-specific flow (compliance evaluation, OCR, reminders, federation
+export) is in `medical.md`.
+
 ## Data Model
 
 | Table | Purpose | Key Columns |

@@ -131,6 +131,39 @@ class DataIntegrityTest extends TestCase
         $this->assertDatabaseMissing('documents', ['user_id' => $user->id, 'deleted_at' => null]);
     }
 
+    #[Test]
+    public function gdpr_erasure_deletes_untracked_legacy_medical_files(): void
+    {
+        $dir = storage_path('app/private/medical');
+        @mkdir($dir, 0755, true);
+        $mine = $dir.'/DUPONT_Jean.pdf';                 // matches Jean Dupont
+        $sameSurname = $dir.'/DUPONT_Autre.pdf';         // same surname, different person
+        $subdir = $dir.'/legacy';
+        @mkdir($subdir, 0755, true);
+        $mineNested = $subdir.'/DUPONT_Jean.pdf';
+        foreach ([$mine, $sameSurname, $mineNested] as $f) {
+            file_put_contents($f, 'x');
+        }
+
+        try {
+            $user = $this->createMember();
+
+            $this->actingAs($user)->post('/privacy/erasure', [
+                'confirm' => '1',
+                'password' => 'Password1',
+            ]);
+
+            $this->assertFileDoesNotExist($mine);
+            $this->assertFileDoesNotExist($mineNested);
+            $this->assertFileExists($sameSurname, 'a shared surname alone must not trigger deletion');
+        } finally {
+            foreach ([$mine, $sameSurname, $mineNested] as $f) {
+                @unlink($f);
+            }
+            @rmdir($subdir);
+        }
+    }
+
     // ── Member Delete Cascades ──
 
     #[Test]

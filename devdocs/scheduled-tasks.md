@@ -2,7 +2,7 @@
 
 ## Overview
 
-All scheduled tasks defined in `routes/console.php`. Laravel's scheduler runs via a single cron entry (`* * * * * php artisan schedule:run`). Each task records a heartbeat in `schedule_heartbeats` for monitoring.
+All scheduled tasks defined in `routes/console.php`. Laravel's scheduler runs via a per-deployment cron entry (`* * * * * php artisan schedule:run`). Each task records a heartbeat in `schedule_heartbeats` for monitoring — check that table (or the Kuma "PROD scheduler" push monitor) if a task looks stalled.
 
 ## Schedule
 
@@ -120,16 +120,26 @@ Commands run via `php artisan` directly or scheduled. Auto-registered from `app/
 
 ## Cron Setup
 
-Single cron entry required:
+**One cron entry per deployment** — staging and production are separate app
+directories on the same host, each needs its own:
 ```cron
-* * * * * cd /opt/deploy/apps/divingclub && php artisan schedule:run >> /dev/null 2>&1
+# staging
+* * * * * cd /opt/deploy/apps/divingclub      && /usr/bin/php8.3 artisan schedule:run >> /dev/null 2>&1
+# production
+* * * * * cd /opt/deploy/apps/divingclub-prod && /usr/bin/php8.3 artisan schedule:run >> /dev/null 2>&1
 ```
+Use `php8.3` explicitly: the box's default `php` is 8.5 and is missing
+`mbstring`/`bcmath`/`intl` (see `.kiro/steering/deployment.md`).
 
 ## Queue Worker
 
-Some jobs dispatch sub-tasks to the queue (email sending, translation chunks). Queue worker should run continuously:
-```bash
-php artisan queue:work --sleep=3 --tries=3 --max-time=3600
-```
+Queues run on **Redis via Laravel Horizon**, not the database driver
+(`QUEUE_CONNECTION=redis`). Horizon is kept alive by supervisor — programs
+`horizon` (staging) and `horizon-prod` (production), each running
+`php artisan horizon` from its app directory. Restart after a deploy with
+`supervisorctl restart horizon horizon-prod` (the nightly `auto-deploy.sh`
+does this). To drain gracefully on new code: `php artisan horizon:terminate`.
 
-Queue connection: `database` (uses `jobs` table).
+> Staging and production currently share one Redis instance with no `REDIS_DB`
+> separation, so a job dispatched by one environment's scheduler can be executed
+> by the other's Horizon workers. Set a distinct `REDIS_DB` per environment.

@@ -7,8 +7,25 @@ Diving requires valid medical certificates. Rules vary by federation, age, and c
 ## Data Model
 
 - `medical_compliance_rules` — per-federation rules: max_age_without_cert, cert_validity_months, age_brackets (JSON)
-- `documents` — uploaded medical certificates: category='medical', date_established, file_path
+- `documents` — uploaded personal documents (see **File storage** below). A
+  medical certificate is a row with `category = 'medical'`; the important
+  columns are `file_path`, `original_filename`, `mime_type`, `size_bytes`,
+  `date_established`, `expiry_date`, `is_verified` / `verified_by` /
+  `verified_at`, `is_current`, `superseded_by`, `is_compliant`,
+  `compliance_notes`, and `reminder_{30,15,7,0}_sent_at`. `SoftDeletes` +
+  `Auditable`.
 - `member_licences` — federation membership with expiry_date
+
+## File storage
+
+| | |
+|---|---|
+| Disk | `local` — root `storage_path('app/private')` (a symlink to `/mnt/data/<env>/pics/private/` on the servers). **Not** under `public/`, so not web-served. |
+| Path | `documents/{user_id}/{filename}` |
+| Filename | `Str::slug("{last_name} {first_name} {cert_type ?? category} {date}").{ext}` — e.g. `kraemer-roger-medical-2026-01-15.pdf`. `{date}` is the form's `date_established` or today; `{ext}` is the uploaded file's client extension (fallback `pdf`). Deterministic → re-uploading for the same person/type/date **overwrites the previous file** (a new `documents` row is still created). |
+| Legacy certs | `storage/app/private/medical/` (→ `/mnt/data/<env>/pics/private/medical/`), imported files with no `documents` row, in per-member subdirectories. |
+| Serving | Only via `ProfileDocumentController::download()` / `view()` — `auth` + `verified.email` + `abort` unless the viewer owns the doc or `isBureau()`. The framework `serve => true` route (`GET /storage/{path}`) requires a signed URL for this private disk and the app never mints one, so it returns 404 (prod) for these files. |
+| At rest | Files are `clubcep:clubcep`, mode ~0664/0775, **not encrypted**. Health data (GDPR Art. 9) — see `gdpr.md`. |
 
 ## Federation Rules (examples)
 
@@ -71,11 +88,41 @@ Social, theory, and long_trip events do NOT require medical compliance.
 
 ## Document Upload Flow
 
-1. Member uploads PDF/image via `/profile/document`
-2. `ProfileDocumentController::upload()` stores file, creates `Document` record
-3. `MedicalComplianceService::evaluateCertificate()` evaluates validity
-4. If no `date_established`: dispatches `OcrMedicalCert` job (background OCR)
-5. Email notification sent to bureau (medical upload notification)
+1. Member (or a bureau member, via `target_user_id`) POSTs a PDF/JPEG/PNG
+   (`max:10240` KB, `category in certification,medical,insurance,other`) to
+   `POST /profile/document`.
+2. `ProfileDocumentController::upload()` — `storeAs('documents/{user_id}', …, 'local')`,
+   creates the `Document` row with `is_current = true`.
+3. For `category = 'medical'`: `MedicalComplianceService::evaluateCertificate()`
+   sets `expiry_date` / `is_compliant` from the federation rule.
+4. If no `date_established` was supplied: dispatch `OcrMedicalCert` (background
+   OCR to detect the establishment date, then re-evaluate).
+5. Plain-text (`Mail::raw`) notification with member name + cert type + date to
+   `bureau_master` + `bureau_technical`.
+
+### Bureau verification
+
+`POST /profile/document/{document}/verify` (bureau only) sets `is_verified`,
+`verified_by`, `verified_at`, optionally corrects `date_established` /
+`cert_type`, and re-runs `evaluateCertificate()`.
+
+### Federation export — `Admin\MedicalExportController`
+
+| Route | Output |
+|-------|--------|
+| `GET /admin/medical-export` (`exportList`) | CSV of members + `date_established` of their current medical doc, for federation submission (semicolon-separated, BOM, FR headers). Optional `?federation_id=`. |
+| `GET /admin/medical-certificates` (`downloadCertificates`) | ZIP of the actual files: DB-tracked current medical docs **plus** legacy files from `private/medical/` that have no DB match. Entries named `"{LASTNAME} {Firstname} {member_id} {TYPE}.{ext}"`. |
+
+## Known limitations
+
+- **`is_current` is never demoted** — `upload()` never sets the previous
+  medical doc's `is_current = false` / `superseded_by`, so a member can have
+  several "current" medical docs; compliance and the export use an arbitrary
+  `->first()`.
+- **`downloadCertificates` currently 500s** — `glob("{private/medical}/*")`
+  returns the legacy per-member sub-directories and `ZipArchive::addFile()` on a
+  directory throws `Read error: Is a directory`. Needs an `is_file()` guard.
+- Deterministic filenames overwrite silently (see **File storage**).
 
 ## OCR Processing
 

@@ -169,7 +169,9 @@
     </form>
 
     <script>
-    const typeColors = {pool:'#0077be', dive:'#003366', training:'#28a745', theory:'#6f42c1', social:'#ffc107'};
+    // Keep in sync with config/activity_types.php (single source of truth).
+    const typeColors = @json(collect(config('activity_types'))->map(fn ($t) => $t['color'])->all());
+    typeColors.dive = '#00695c';
     document.getElementById('eventType').addEventListener('change', function() {
         document.getElementById('eventColor').value = typeColors[this.value] || '#6c757d';
     });

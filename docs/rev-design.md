@@ -545,14 +545,14 @@ tests/
 | # | Location | Type | Description | Impact |
 |---|----------|------|-------------|--------|
 | 1 | `AnnualReportController.php:73` | TODO | `departed` count hardcoded to 0 — needs member status change tracking | Low — annual report only |
-| 2 | `MedicalComplianceService.php:61` | Hardcode | `$lifrasId = 2` — should query `Federation::where('acronym','LIFRAS')` | Medium — breaks if federation IDs change |
+| 2 | `MedicalComplianceService.php` | ~~Hardcode~~ RESOLVED | Federation-specific rules (LIFRAS/FLASSA calendar dates) now branch on `$fed->acronym`, not a hardcoded id | — |
 | 3 | `Auditable.php` | Design | Hand-rolled 40-line trait. No batch disable, no restore tracking, no URL logging | Medium — import/seeding triggers unwanted audit entries |
 | 4 | `EuLoginController.php:42` | Security | `setNoCasServerValidation()` disables SSL cert verification on ticket validation | High — MITM risk on EU Login ticket validation |
 | 5 | `BackupService.php` | Hybrid | Spatie engine wrapped in custom service for admin UI compatibility. Two code paths for .tar.gz (legacy) and .zip (new) | Low — works but could be simplified |
 | 6 | `setup_permissions.php` | Not a migration | Permission matrix defined in a tinker script, not a seeder or migration. Must be run manually | Medium — easy to forget after fresh deploy |
 | 7 | `Event.event_type` | No enum | Event types defined as string column with match() in model, not a DB enum or PHP enum | Low — works but no DB-level constraint |
 | 8 | `MemberDetail` | 46 fields | Single table with 46 columns. Could benefit from JSON columns or separate tables for diving/instructor/emergency data | Low — works at current scale (101 members) |
-| 9 | `InstructorAvailability` | No constraint | No unique constraint on (user_id, date, activity_type) — duplicate entries possible via race condition on AJAX toggle | Low — unlikely with single-user AJAX |
+| 9 | `InstructorAvailability` | ~~No constraint~~ RESOLVED | `unique(user_id, date, slot, activity_type)` added in `2026_03_18_160000_add_activity_type_to_instructor_availabilities` | — |
 | 10 | `cotisation_years` on User | JSON column | Active status computed from JSON array. No index possible. Full table scan for "all active members" queries | Low at 101 members, would matter at 1000+ |
 
 ---

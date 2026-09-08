@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterUserRequest extends FormRequest
@@ -26,13 +27,21 @@ class RegisterUserRequest extends FormRequest
             'date_of_birth' => 'required|date|before:today',
             'sex' => 'required|in:M,F,X',
             'phone_mobile' => 'required|string|max:20',
-            'nationality' => 'nullable|string|max:100',
+            'nationality' => ['nullable', 'string', Rule::in(config('countries.all'))],
             'address_line1' => 'nullable|string|max:255',
             'postal_code' => 'nullable|string|max:10',
             'city' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
             'website' => 'size:0',
             '_ts' => 'required|integer',
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'nationality.in' => __('Please choose a nationality from the list.'),
         ];
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class VotePublicController extends Controller
 {
@@ -40,6 +41,10 @@ class VotePublicController extends Controller
 
         $tokenHash = hash('sha256', $token);
 
+        // Options must belong to *this* vote — otherwise a crafted request could
+        // record a ballot against an option from an unrelated vote.
+        $optionExists = Rule::exists('vote_options', 'id')->where('vote_id', $vote->id);
+
         // Election mode: anonymous, irreversible, multi-position
         if ($vote->mode === 'election') {
             if ($voteToken->is_consumed) {
@@ -51,11 +56,11 @@ class VotePublicController extends Controller
             if ($maxSelections > 1) {
                 $request->validate([
                     'option_ids' => 'required|array|min:1|max:'.$maxSelections,
-                    'option_ids.*' => 'exists:vote_options,id',
+                    'option_ids.*' => ['required', $optionExists],
                 ]);
                 $selectedIds = $request->option_ids;
             } else {
-                $request->validate(['option_id' => 'required|exists:vote_options,id']);
+                $request->validate(['option_id' => ['required', $optionExists]]);
                 $selectedIds = [$request->option_id];
             }
 
@@ -78,7 +83,7 @@ class VotePublicController extends Controller
         }
 
         if ($vote->allow_multiple) {
-            $request->validate(['option_ids' => 'required|array|min:1', 'option_ids.*' => 'exists:vote_options,id']);
+            $request->validate(['option_ids' => 'required|array|min:1', 'option_ids.*' => ['required', $optionExists]]);
             DB::transaction(function () use ($vote, $tokenHash, $request): void {
                 VoteBallot::where('vote_id', $vote->id)->where('token_hash', $tokenHash)->delete();
                 foreach ($request->option_ids as $optId) {
@@ -86,7 +91,7 @@ class VotePublicController extends Controller
                 }
             });
         } else {
-            $request->validate(['option_id' => 'required|exists:vote_options,id']);
+            $request->validate(['option_id' => ['required', $optionExists]]);
             VoteBallot::updateOrCreate(
                 ['vote_id' => $vote->id, 'token_hash' => $tokenHash],
                 ['vote_option_id' => $request->option_id]
