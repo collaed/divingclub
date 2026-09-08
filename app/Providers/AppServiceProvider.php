@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Auth\DivingClubUserProvider;
+use App\Models\LoginRecord;
 use App\Services\LicenseService;
 use App\Services\MailBalancer;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +45,22 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Microsoft Socialite provider
         Event::listen(SocialiteWasCalled::class, MicrosoftExtendSocialite::class);
+
+        // Record every successful login (form, social, EU Login) for the
+        // bureau_master login-history page. Never let a logging failure block auth.
+        Event::listen(Login::class, function (Login $event): void {
+            try {
+                LoginRecord::create([
+                    'user_id' => $event->user->getAuthIdentifier(),
+                    'guard' => $event->guard,
+                    'remember' => $event->remember,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => mb_substr((string) request()->userAgent(), 0, 1000),
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
 
         // Map 'email' → 'primary_email' for password reset and credential lookups
         Auth::provider('divingclub', fn ($app, $config) => new DivingClubUserProvider($app['hash'], $config['model'])

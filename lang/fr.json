@@ -1116,5 +1116,15 @@
     "— Select —": "— Sélectionner —",
     "Loanable": "Prêtable",
     "Child": "Enfant",
-    "Cold": "Eau froide"
+    "Cold": "Eau froide",
+    "Login history": "Historique des connexions",
+    "logins (24h)": "connexions (24 h)",
+    "distinct members (24h)": "membres distincts (24 h)",
+    "failed attempts (24h)": "échecs (24 h)",
+    "When": "Quand",
+    "Device": "Appareil",
+    "deleted user": "utilisateur supprimé",
+    "No logins recorded yet.": "Aucune connexion enregistrée pour l'instant.",
+    "Failed attempts (last 24h)": "Tentatives échouées (dernières 24 h)",
+    "Identifier": "Identifiant"
 }
