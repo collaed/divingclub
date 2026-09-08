@@ -44,12 +44,12 @@
             @endif
         </div>
         <div class="container position-relative" style="z-index:1">
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="/" class="dc-brand text-decoration-none d-flex align-items-center gap-2">
+            <div class="dc-header-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <a href="/" class="dc-brand text-decoration-none d-flex align-items-center gap-2 text-truncate">
                     <img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" height="36" class="d-inline-block">
                     <span>{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
                 </a>
-                <div class="text-white d-flex align-items-center gap-3">
+                <div class="text-white d-flex align-items-center gap-2 gap-sm-3 flex-shrink-0">
                     {{-- Dark mode toggle --}}
                     <button class="dc-dark-toggle" role="switch" aria-label="{{ __('Toggle dark mode') }}" onclick="toggleDarkMode()" title="{{ __('Toggle dark mode') }}" id="darkToggle">🌙</button>
                     {{-- Font size --}}
@@ -69,7 +69,7 @@
                         </ul>
                     </div>
                     @auth
-                        <a href="{{ route('profile.show') }}" class="text-white text-decoration-none">{{ auth()->user()->name }}</a>
+                        <a href="{{ route('profile.show') }}" class="dc-user-name text-white text-decoration-none text-truncate d-none d-sm-inline">{{ auth()->user()->name }}</a>
                     @endauth
                 </div>
             </div>
@@ -290,7 +290,7 @@
     </div>
 
     {{-- Content --}}
-    <main class="{{ $theme['layout_width'] ?? 'container-lg' }} my-4 flex-grow-1">
+    <main class="{{ $width ?? ($theme['layout_width'] ?? 'container-lg') }} my-4 flex-grow-1">
         <main id="main-content">{{ $slot }}</main>
     </main>
 

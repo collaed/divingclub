@@ -54,8 +54,7 @@
         </div>
     </form>
 
-    <div class="table-responsive">
-        <table id="table-members" class="table table-hover">
+    <x-table id="table-members" class="table-hover">
             <thead>
                 <tr>
                     <th></th>
@@ -119,8 +118,7 @@
                     </tr>
                 @endforeach
             </tbody>
-        </table>
-    </div>
+    </x-table>
 
     <div class="d-flex justify-content-between align-items-center">
         <x-per-page :current="request('per_page', 25)" />

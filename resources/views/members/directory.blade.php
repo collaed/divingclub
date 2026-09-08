@@ -38,21 +38,19 @@
         </div>
     </form>
 
-    <div class="table-responsive">
-        <table id="members-table" class="table table-hover">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th><x-sortable-th column="last_name" :label="__('Name')" /></th>
-                    <th><x-sortable-th column="certification_level" :label="__('Level')" /></th>
-                    <th>{{ __('Status') }}</th>
-                    <th><x-sortable-th column="adhesion_year" :label="__('Member Since')" /></th>
-                </tr>
-            </thead>
-            <tbody id="memberRows">
-                @include('members._directory_rows')
-            </tbody>
-        </table>
-    </div>
+    <x-table stack id="members-table" class="table-hover">
+        <thead>
+            <tr>
+                <th></th>
+                <th><x-sortable-th column="last_name" :label="__('Name')" /></th>
+                <th><x-sortable-th column="certification_level" :label="__('Level')" /></th>
+                <th>{{ __('Status') }}</th>
+                <th><x-sortable-th column="adhesion_year" :label="__('Member Since')" /></th>
+            </tr>
+        </thead>
+        <tbody id="memberRows">
+            @include('members._directory_rows')
+        </tbody>
+    </x-table>
     <div id="memberPagination">{{ $members->links() }}</div>
 </x-layout>

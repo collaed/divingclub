@@ -334,6 +334,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 ## Data Tables (all pages)
 
+- **Wrapper**: wrap every data table in `<x-table>` (renders `.table-responsive` + `<table class="table">`). Add `stack` for member-facing read-only tables to collapse rows into cards below 768px — then every `<td>` needs `data-label="{{ __('Column') }}"`. Don't `stack` tables with inline form controls. A bare `<table>` in page content still scrolls (CSS fallback in `_responsive.scss`), but new tables should use the component. Never let anything force `body` to scroll horizontally — `_responsive.scss` sets `overflow-x: clip`.
 - **Sortable headers**: All data tables must use `<x-sortable-th>` for sortable columns with ↑↓ indicators.
 - **Instant search**: Use `data-instant-search="table-id"` on search inputs for immediate JS-powered filtering without page reload.
 - **Clickable rows**: All table rows that represent a viewable entity must use `data-href` + the `clickable-rows` component. Do not add separate "View" buttons — the whole row is the link. Buttons/forms inside rows (e.g., Return, Delete) must still work without triggering row navigation.

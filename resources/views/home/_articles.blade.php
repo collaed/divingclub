@@ -12,7 +12,7 @@
             <h5 class="card-title">
                 <a href="{{ route('article.show', $article->slug) }}" class="stretched-link text-reset text-decoration-none">{{ $article->title }}</a>
             </h5>
-            <p class="card-text">{!! Str::limit(strip_tags($article->body), 300) !!}</p>
+            <div class="card-text article-card-preview">{!! $article->renderedBody() !!}</div>
             <a href="{{ route('article.show', $article->slug) }}" class="btn btn-outline-primary btn-sm position-relative">{{ __('Read more') }}</a>
         </div>
         <div class="card-footer text-muted small">

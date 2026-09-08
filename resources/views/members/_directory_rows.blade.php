@@ -11,9 +11,9 @@
             @endif
             </a>
         </td>
-        <td><a href="{{ route('admin.profile.show', $m) }}" class="text-decoration-none text-body">{{ $m->detail?->first_name }} {{ $m->detail?->last_name }}</a></td>
-        <td>{{ $m->detail?->certification_level ?? '—' }}</td>
-        <td>{{ $m->status?->name ?? '—' }}</td>
-        <td>{{ $m->detail?->adhesion_year ?? '—' }}</td>
+        <td data-label="{{ __('Name') }}"><a href="{{ route('admin.profile.show', $m) }}" class="text-decoration-none text-body">{{ $m->detail?->first_name }} {{ $m->detail?->last_name }}</a></td>
+        <td data-label="{{ __('Level') }}">{{ $m->detail?->certification_level ?? '—' }}</td>
+        <td data-label="{{ __('Status') }}">{{ $m->status?->name ?? '—' }}</td>
+        <td data-label="{{ __('Member Since') }}">{{ $m->detail?->adhesion_year ?? '—' }}</td>
     </tr>
 @endforeach
