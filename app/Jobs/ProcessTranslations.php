@@ -33,6 +33,26 @@ class ProcessTranslations implements ShouldQueue
             }
         }
 
+        // Gap-fill: a published article that has SOME translations but is missing
+        // enabled locales (an earlier translateAll aborted mid-loop). One per run.
+        $expected = count(array_diff($locales, ['fr']));
+        $partial = Article::where('is_published', true)
+            ->withCount('translations')
+            ->get()
+            ->first(fn (Article $a): bool => $a->translations_count > 0 && $a->translations_count < $expected);
+
+        if ($partial) {
+            $missing = array_values(array_diff($locales, $partial->translations()->pluck('locale')->all(), ['fr']));
+            foreach ($missing as $locale) {
+                try {
+                    $svc->translate($partial, $locale);
+                } catch (\Throwable $e) {
+                    Log::warning("Translation gap-fill failed: {$partial->title} [{$locale}]", ['error' => $e->getMessage()]);
+                }
+            }
+            Log::info("Filled {$partial->title}: ".count($missing).' locale(s)');
+        }
+
         $stale = ArticleTranslation::where('stale', true)
             ->where('retries', '<', 3)
             ->whereNull('flagged_at')
