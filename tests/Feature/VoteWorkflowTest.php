@@ -69,6 +69,36 @@ class VoteWorkflowTest extends TestCase
         $this->assertDatabaseHas('vote_ballots', ['vote_id' => $vote->id, 'vote_option_id' => $optionA->id]);
     }
 
+    public function test_cannot_cast_ballot_for_an_option_from_another_vote(): void
+    {
+        $vote = $this->openVote();
+        $otherVote = $this->openVote();
+        $foreignOption = $otherVote->options->first();
+
+        $member = $this->member();
+        VoteToken::create(['vote_id' => $vote->id, 'user_id' => $member->id, 'token' => 'cross-vote-token']);
+
+        $this->post('/vote/cross-vote-token', ['option_id' => $foreignOption->id])
+            ->assertSessionHasErrors('option_id');
+        $this->assertDatabaseMissing('vote_ballots', ['vote_id' => $vote->id, 'vote_option_id' => $foreignOption->id]);
+    }
+
+    public function test_election_ballot_rejects_option_from_another_vote(): void
+    {
+        $vote = $this->openVote('election');
+        $otherVote = $this->openVote('election');
+        $foreignOption = $otherVote->options->first();
+
+        $member = $this->member();
+        $token = VoteToken::create(['vote_id' => $vote->id, 'user_id' => $member->id, 'token' => 'cross-election-token']);
+
+        $this->post('/vote/cross-election-token', ['option_id' => $foreignOption->id])
+            ->assertSessionHasErrors('option_id');
+        $token->refresh();
+        $this->assertFalse((bool) $token->is_consumed);
+        $this->assertDatabaseMissing('vote_ballots', ['vote_id' => $vote->id]);
+    }
+
     public function test_simple_vote_can_change(): void
     {
         $vote = $this->openVote();
