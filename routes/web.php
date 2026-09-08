@@ -198,7 +198,14 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Document browser (role-based visibility, upload for instructors/bureau)
     Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');
-    Route::get('/photos/browse', function () {
+    Route::get('/photos/browse', function (\Illuminate\Http\Request $request) {
+        // JSON feed for the landing-page mosaic. A browser that navigates here
+        // directly (stale/shared link) gets the real gallery, not raw JSON.
+        if ($request->header('Sec-Fetch-Dest') === 'document'
+            || ($request->acceptsHtml() && ! $request->ajax() && ! $request->hasHeader('X-Requested-With'))) {
+            return redirect()->route('gallery');
+        }
+
         $user = auth()->user();
         $query = EventPhoto::where('approved', true)->where('gdpr_consent', true);
 
