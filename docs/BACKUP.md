@@ -59,35 +59,50 @@ rsync -a public/  /opt/deploy/apps/divingclub-prod/storage/app/public/
 
 ## Offsite copy — Google Drive via rclone
 
-Backups currently live only on `/mnt/data` on the same box (`BACKUP_OFFSITE_HOST`
-is unset). Recommended second copy using the club's Google account:
+Backups live on `/mnt/data` (same box). The offsite copy goes to **Google Drive**
+via `rclone`, driven by `deploy/gdrive-offsite.sh` (installed as
+`/opt/deploy/gdrive-offsite.sh`, run daily from the `clubcep` crontab).
 
-1. **One-time (needs a browser once):**
-   ```bash
-   sudo apt-get install -y rclone
-   rclone config    # n → name "gdrive" → drive → leave client id/secret blank
-                    # → scope 1 (full) → auto config → sign in as the club account
-                    # → optionally point at a Shared Drive
-   ```
-   Or use a **Google service account** (`rclone config` → `service_account_file`)
-   and share a Drive folder with its address — no token expiry, better for a
-   headless server.
+> **Not a service account.** `clubcep@gmail.com` is a consumer account — no
+> Shared Drives, and a service account has no Drive quota of its own, so its
+> uploads to a shared My-Drive folder fail. We use **OAuth as the shared
+> `clubcep@gmail.com` account** with the club's own OAuth client (project
+> `cep-prod-507014`), Publishing status **In production** so the refresh token
+> does not expire.
 
-2. **Nightly copy of the DB+private backups** (small, keep versions):
-   ```
-   15 3 * * * rclone copy /mnt/data/prod/backup/DivingClub gdrive:DCMS/prod/backups --max-age 8d --transfers 2 >/dev/null 2>&1
-   ```
+### One-time setup
 
-3. **Weekly mirror of the bulky media** that the zip excludes:
-   ```
-   0 4 * * 0 rclone sync /mnt/data/prod/pics/public gdrive:DCMS/prod/pics-public --fast-list --transfers 4 >/dev/null 2>&1
-   ```
-   `sync` is incremental — only changed/new files transfer. First run uploads
-   ~2.7 GB; subsequent runs are seconds.
+```bash
+# on prod (rclone is already installed):
+sudo -u clubcep rclone config
+#   n → name: gdrive → storage: drive
+#   client_id / client_secret: <the club OAuth client, Desktop-app type>
+#   scope: 1 (drive)
+#   service_account_file: (blank)
+#   Edit advanced config: n
+#   Use web browser to authenticate: n   → prints an `rclone authorize` command
+# run that command on a laptop with a browser, sign in as clubcep@gmail.com,
+# paste the token blob back into the prompt.
+#   Configure as Shared Drive: n
+```
 
-4. Feed a Kuma push monitor from each cron line (`&& curl …/api/push/<token>`)
-   so a silent failure is visible.
+The token lands in `/home/clubcep/.config/rclone/rclone.conf` (chmod 600).
+Revoke anytime at myaccount.google.com → Security → Third-party access.
 
-`spatie/laravel-backup` can also write straight to a Google Drive Flysystem disk
-(add it to `backup.backup.destination.disks`), but rclone keeps backup delivery
-decoupled from the app and covers the pics mirror in the same tool.
+### What the script does (`deploy/gdrive-offsite.sh`)
+
+1. `rclone copy` new `backup-*.zip` → `gdrive:DCMS/prod/backups`
+2. prune the remote to the **2 newest** zips (local keeps `BACKUP_RETENTION`=4)
+3. `rclone sync` `/mnt/data/prod/pics/public` → `gdrive:DCMS/prod/pics-public`
+   — mirror of the bulky media the zip excludes; incremental after the first
+   ~2.7 GB run
+4. push a Kuma heartbeat (pass the monitor token as `$1`)
+
+Cron (`clubcep`), after the nightly DB backup:
+```
+45 3 * * * /opt/deploy/gdrive-offsite.sh <kuma-push-token> >> /var/log/gdrive-offsite.log 2>&1
+```
+
+Restore from Drive: `rclone copy gdrive:DCMS/prod/backups/backup-….zip /tmp/` then
+`php artisan backup:restore /tmp/backup-….zip`; pics with `rclone copy
+gdrive:DCMS/prod/pics-public <target>`.
