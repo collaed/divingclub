@@ -193,17 +193,31 @@ class Event extends Model
         return ! ($this->inscription_open_at && $this->inscription_open_at->isFuture());
     }
 
+    /**
+     * "Open in Google Maps" link — safe for an <a href>. Never the Embed API
+     * URL (that only works inside an iframe).
+     */
     public function mapsUrl(): string
     {
         if (! $this->location) {
             return '';
         }
+
+        return 'https://www.google.com/maps/search/?api=1&query='.urlencode($this->location);
+    }
+
+    /**
+     * Maps Embed API URL — only valid as an <iframe src>. Empty unless a key
+     * is configured and the event has a location.
+     */
+    public function mapsEmbedUrl(): string
+    {
         $key = config('club.google_maps_key');
-        if ($key) {
-            return 'https://www.google.com/maps/embed/v1/search?key='.$key.'&q='.urlencode($this->location);
+        if (! $this->location || ! is_string($key) || $key === '') {
+            return '';
         }
 
-        return 'https://www.google.com/maps/search/'.urlencode($this->location);
+        return 'https://www.google.com/maps/embed/v1/search?key='.$key.'&q='.urlencode($this->location);
     }
 
     /**
