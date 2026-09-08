@@ -191,8 +191,12 @@
 @include('components.photo-gallery', ['galleryId' => 'h3m'])
 <script>
 document.getElementById('pg-h3m').dataset.photos=@json($photos->map(fn($p) => asset('storage/'.$p))->values());
-// Load more photos for browsing
-fetch('{{ route("photos.browse") }}').then(r=>r.json()).then(d=>{document.getElementById('pg-h3m').dataset.photos=JSON.stringify(d);});
+@auth
+// Logged-in visitors only: pull the full set for the lightbox. Never fetch this
+// as a guest — the auth guard would record /photos/browse as the "intended" URL
+// and the next login would land on it instead of the dashboard.
+fetch('{{ route("photos.browse") }}',{headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}}).then(r=>r.json()).then(d=>{document.getElementById('pg-h3m').dataset.photos=JSON.stringify(d);}).catch(()=>{});
+@endauth
 </script>
 @endif
 
