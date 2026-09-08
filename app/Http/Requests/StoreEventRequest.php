@@ -43,7 +43,7 @@ class StoreEventRequest extends FormRequest
             'deposit_3_amount' => 'nullable|numeric|min:0',
             'instructor_id' => 'nullable|exists:users,id',
             'permissions_expire_date' => 'nullable|date',
-            'status' => 'nullable|in:scheduled,cancelled,completed',
+            'status' => 'nullable|in:scheduled,published,cancelled,completed',
             'season_id' => 'nullable|exists:seasons,id',
             'dive_site_id' => 'nullable|exists:dive_sites,id',
         ];
