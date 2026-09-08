@@ -36,7 +36,10 @@ class DashboardController extends Controller
         $stats = [
             'total_members' => User::count(),
             'members_by_status' => MemberStatus::withCount('users')->get()->map(fn ($s): array => ['name' => $s->name, 'count' => $s->users_count]),
-            'new_members_this_year' => User::whereYear('created_at', $season)->count(),
+            // Year the member actually joined the club — users.created_at is the
+            // row-import date (the whole legacy roster was imported at once, so
+            // created_at year would report every member as "new").
+            'new_members_this_year' => MemberDetail::where('adhesion_year', $season)->count(),
             'events_count' => Event::whereYear('event_date', $season)->count(),
             'avg_attendance' => round(Event::whereYear('event_date', $season)->withCount('confirmedRegistrations')->get()->avg('confirmed_registrations_count') ?? 0, 1),
             'equipment_by_status' => Equipment::selectRaw('status, count(*) as cnt')->groupBy('status')->pluck('cnt', 'status'),
