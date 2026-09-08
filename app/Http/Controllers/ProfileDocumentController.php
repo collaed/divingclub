@@ -37,8 +37,18 @@ class ProfileDocumentController extends Controller
         $ext = $file->getClientOriginalExtension() ?: 'pdf';
         $detail = $target->detail;
         $datePart = $request->date_established ? date('Y-m-d', strtotime($request->date_established)) : date('Y-m-d');
-        $storedName = Str::slug($detail?->last_name.' '.$detail?->first_name.' '.($request->cert_type ?? $request->category).' '.$datePart).'.'.$ext;
-        $path = $file->storeAs('documents/'.$target->id, $storedName, 'local');
+        $dir = 'documents/'.$target->id;
+        $base = Str::slug($detail?->last_name.' '.$detail?->first_name.' '.($request->cert_type ?? $request->category).' '.$datePart);
+
+        // The slug is deterministic, so a second upload for the same person /
+        // type / date would overwrite the earlier file and leave its Document
+        // row pointing at the wrong content. Add a suffix when the name is taken.
+        $storedName = $base.'.'.$ext;
+        for ($i = 2; Storage::disk('local')->exists($dir.'/'.$storedName); $i++) {
+            $storedName = $base.'-'.$i.'.'.$ext;
+        }
+
+        $path = $file->storeAs($dir, $storedName, 'local');
 
         $doc = Document::create([
             'user_id' => $target->id,
