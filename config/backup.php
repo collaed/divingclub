@@ -23,18 +23,22 @@ return [
                     storage_path('app/private'),
                 ],
                 'exclude' => [
+                    // Bulky, lower-stakes public media — backed up separately
+                    // (see docs/BACKUP.md). Keeping these out holds a backup run
+                    // to ~0.5 GB instead of ~3 GB.
                     storage_path('app/public/library'),
                     storage_path('app/public/event-photos'),
                     storage_path('app/public/photos'),
                     storage_path('app/public/images'),
-                    storage_path('app/public/avatars'),
-                    storage_path('app/private/medical'),
-                    storage_path('app/private/scancards'),
+                    // Regenerable from source images.
                     storage_path('app/private/thumbnails'),
                     storage_path('app/backups'),
                     storage_path('app/backup-temp'),
                 ],
-                'follow_links' => false,
+                // On the servers, storage/app/{public,private}/* are symlinks to
+                // a separate data mount (/mnt/data/.../pics). Without this, a
+                // "with files" backup captures nothing but empty directory stubs.
+                'follow_links' => true,
                 'ignore_unreadable_directories' => true,
                 'relative_path' => storage_path('app'),
             ],

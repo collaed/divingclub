@@ -38,6 +38,11 @@ prefix separation — their queues and Horizon namespaces collide, so a job
 dispatched by one env can run on the other's workers. Set a distinct `REDIS_DB`
 per environment and restart both Horizons.
 
+**Backups:** `docs/BACKUP.md` — what's in a backup, retention, and the
+`backup:restore` command. On the servers `storage/app/{public,private}/*` are
+symlinks to `/mnt/data/.../pics`, so `config/backup.php` needs `follow_links => true`
+or a "with files" backup captures nothing.
+
 **Production safety:** on prod, never run seeders that create members, events,
 or other content unconditionally — `CepSeeder` (and its `seedMembers` /
 `seedEvents`) is **not** idempotent and would duplicate rows. Only run

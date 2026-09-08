@@ -60,6 +60,12 @@ class BackupService
         $destPath = "{$this->backupDir}/{$filename}";
         $this->moveFile($latestZip, $destPath);
 
+        // Embed a manifest.json inside the archive so the admin UI can report
+        // what the backup actually contains (row counts, file count / size).
+        // Spatie does not write one, so without this every backup renders as
+        // "DB only" regardless of what was captured.
+        $manifest = $this->embedManifest($destPath, $includeFiles);
+
         $size = (int) filesize($destPath);
         Log::info("Backup created via spatie: {$filename} (".$this->humanSize($size).')');
 
@@ -70,8 +76,49 @@ class BackupService
             'filename' => $filename,
             'path' => $destPath,
             'size' => $size,
-            'manifest' => $this->buildManifest($includeFiles),
+            'manifest' => $manifest,
         ];
+    }
+
+    /**
+     * Tally what the finished archive actually holds, write manifest.json into
+     * it, and return the manifest.
+     *
+     * @return array<string, mixed>
+     */
+    protected function embedManifest(string $zipPath, bool $includeFiles): array
+    {
+        $storageFiles = 0;
+        $storageSize = 0;
+
+        $zip = new \ZipArchive;
+        if ($zip->open($zipPath) === true) {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                if ($stat === false) {
+                    continue;
+                }
+                $name = $stat['name'];
+                if (str_ends_with($name, '/') || str_starts_with($name, 'db-dumps/') || $name === 'manifest.json') {
+                    continue;
+                }
+                $storageFiles++;
+                $storageSize += (int) $stat['size'];
+            }
+        }
+
+        $manifest = $this->buildManifest($includeFiles);
+        $manifest['storage_files'] = $storageFiles;
+        $manifest['storage_size'] = $storageSize;
+        $manifest['storage_size_human'] = $this->humanSize($storageSize);
+        $manifest['includes_files'] = $includeFiles && $storageFiles > 0;
+
+        if ($zip->open($zipPath) === true) {
+            $zip->addFromString('manifest.json', (string) json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $zip->close();
+        }
+
+        return $manifest;
     }
 
     /** Move a file, falling back to copy+delete when rename crosses a filesystem boundary. */
@@ -276,33 +323,8 @@ EOF',
             $tables[$table] = DB::table($table)->count();
         }
 
-        $storageFiles = 0;
-        $storageSize = 0;
-        if ($includeFiles) {
-            foreach (['app/public', 'app/private'] as $dir) {
-                $path = storage_path($dir);
-                if (! is_dir($path) || ! is_readable($path)) {
-                    continue;
-                }
-
-                try {
-                    $it = new \RecursiveIteratorIterator(
-                        new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS | \RecursiveDirectoryIterator::FOLLOW_SYMLINKS),
-                        \RecursiveIteratorIterator::LEAVES_ONLY,
-                        \RecursiveIteratorIterator::CATCH_GET_CHILD
-                    );
-                    foreach ($it as $file) {
-                        if ($file->isFile()) {
-                            $storageFiles++;
-                            $storageSize += $file->getSize();
-                        }
-                    }
-                } catch (\UnexpectedValueException) {
-                    // Skip unreadable directories
-                }
-            }
-        }
-
+        // storage_files / storage_size / includes_files are filled in by
+        // embedManifest() from the finished archive's real contents.
         return [
             'version' => config('app.version', '1.0'),
             'created_at' => now()->toIso8601String(),
@@ -311,9 +333,9 @@ EOF',
             'tables' => $tables,
             'total_rows' => array_sum($tables),
             'includes_files' => $includeFiles,
-            'storage_files' => $storageFiles,
-            'storage_size' => $storageSize,
-            'storage_size_human' => $this->humanSize($storageSize),
+            'storage_files' => 0,
+            'storage_size' => 0,
+            'storage_size_human' => $this->humanSize(0),
             'php_version' => PHP_VERSION,
             'laravel_version' => app()->version(),
         ];
