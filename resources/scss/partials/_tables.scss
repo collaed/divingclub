@@ -58,3 +58,18 @@
 @media (max-width: 768px) {
   .cell-truncate { max-width: 140px; }
 }
+
+// Client-side sortable headers (JS: resources/js/table-utils.js — th[data-sort-col]).
+th[data-sort-col] {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+
+  &::after {
+    content: " \2195"; // ⇅
+    opacity: 0.3;
+    font-size: 0.85em;
+  }
+  &[data-sort="asc"]::after  { content: " \25B2"; opacity: 0.85; } // ▲
+  &[data-sort="desc"]::after { content: " \25BC"; opacity: 0.85; } // ▼
+}
