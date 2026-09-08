@@ -309,5 +309,7 @@ The three CI gates (`.github/workflows/ci.yml`) that must pass: **lint** (`pint 
 
 ## Deployment
 
-- Edit locally → `vendor/bin/pint --dirty` → `php artisan test --compact` → push → pull on Hetzner staging (`/opt/deploy/apps/divingclub`) → `php artisan optimize:clear`.
+- Edit locally → `vendor/bin/pint --dirty` → `php artisan test --compact` → push → merge to `main` → `ssh prod.clubcep.eu /opt/deploy/auto-deploy.sh` (or wait for the 01:00 cron) → verify.
+- One Hetzner host runs **both** apps as user `clubcep`: staging `/opt/deploy/apps/divingclub` (`test.clubcep.eu`) and production `/opt/deploy/apps/divingclub-prod` (`prod.clubcep.eu`). SSH via the `test.clubcep.eu` / `prod.clubcep.eu` host aliases. Full ops detail in `.kiro/steering/deployment.md`.
+- Run server artisan as `sudo -u clubcep /usr/bin/php8.3 …` (default `php` is 8.5 and lacks `mbstring`). Queues are Redis + Horizon (`supervisorctl restart horizon horizon-prod`).
 - Commit message prefixes: `feat:`, `fix:`, `chore:`, `ci:`.
