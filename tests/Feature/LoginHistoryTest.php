@@ -47,6 +47,16 @@ class LoginHistoryTest extends TestCase
         $this->assertNotNull(LoginRecord::first()->created_at);
     }
 
+    public function test_impersonation_does_not_create_a_login_record(): void
+    {
+        $u = $this->user('member');
+        session(['impersonating' => 999]);
+
+        event(new Login('web', $u, false));
+
+        $this->assertDatabaseCount('login_records', 0);
+    }
+
     public function test_bureau_master_sees_the_page_with_records(): void
     {
         $master = $this->user('bureau_master');

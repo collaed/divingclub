@@ -49,6 +49,15 @@ class AppServiceProvider extends ServiceProvider
         // Record every successful login (form, social, EU Login) for the
         // bureau_master login-history page. Never let a logging failure block auth.
         Event::listen(Login::class, function (Login $event): void {
+            // Not a real member login: a console/tinker auth, an impersonation
+            // starting (the session flag is set before auth()->login()), or the
+            // admin being restored when impersonation ends.
+            if ((app()->runningInConsole() && ! app()->runningUnitTests())
+                || session()->has('impersonating')
+                || request()->routeIs('admin.stop-impersonation')) {
+                return;
+            }
+
             try {
                 LoginRecord::create([
                     'user_id' => $event->user->getAuthIdentifier(),

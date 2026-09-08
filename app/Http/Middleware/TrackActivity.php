@@ -46,6 +46,12 @@ class TrackActivity
             return;
         }
 
+        // While an admin impersonates a member, requests run as that member —
+        // don't attribute their activity to the impersonated user.
+        if ($request->hasSession() && $request->session()->has('impersonating')) {
+            return;
+        }
+
         $this->touchLastSeen($user);
         $this->recordVisit($request, $response, $user);
     }
