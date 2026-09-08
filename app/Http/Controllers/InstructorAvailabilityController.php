@@ -35,10 +35,11 @@ class InstructorAvailabilityController extends Controller
             ->get()
             ->groupBy(fn ($a) => $a->date->format('Y-m-d'));
 
-        $events = Event::where(function ($q) use ($start, $end): void {
-            $q->whereBetween('event_date', [$start, $end])
-                ->orWhere(fn ($q2) => $q2->where('event_date', '<=', $end)->where('end_date', '>=', $start));
-        })->orderBy('event_date')->get();
+        $events = Event::notCancelled()
+            ->where(function ($q) use ($start, $end): void {
+                $q->whereBetween('event_date', [$start, $end])
+                    ->orWhere(fn ($q2) => $q2->where('event_date', '<=', $end)->where('end_date', '>=', $start));
+            })->orderBy('event_date')->get();
 
         // Expand multi-day events into each day
         $eventsByDate = collect();

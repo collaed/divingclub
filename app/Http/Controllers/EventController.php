@@ -51,7 +51,7 @@ class EventController extends Controller
         $view = $request->get('view', 'month');
         $date = $request->get('date') ? Carbon::parse($request->get('date')) : now();
 
-        $query = Event::where('status', '!=', 'cancelled');
+        $query = Event::notCancelled();
 
         if ($view === 'month') {
             $start = $date->copy()->startOfMonth();
