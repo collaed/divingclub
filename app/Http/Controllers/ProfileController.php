@@ -282,6 +282,10 @@ class ProfileController extends Controller
         $validated['show_icons'] = $request->input('show_icons') === '' ? null : (int) $request->input('show_icons');
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
+        // Keep users.preferred_locale (used by outgoing email / newsletters) in
+        // step with member_details.preferred_language (used by the UI locale) —
+        // the /locale/{locale} switcher already writes both.
+        $target->update(['preferred_locale' => $validated['preferred_language']]);
         IconHelper::flush();
 
         return back()->with('success', __('Language preference updated.'))->withInput(['tab' => 'language']);
