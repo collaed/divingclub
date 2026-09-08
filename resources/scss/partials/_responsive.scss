@@ -94,3 +94,10 @@ iframe {
     }
   }
 }
+
+// ── Desktop width ─────────────────────────────────────────────────────────
+// Admin/bureau screens are data-dense and desktop-primary — let them use more
+// of the viewport than the public pages, while keeping a real margin.
+main.layout-admin {
+  max-width: min(1680px, 92vw);
+}

@@ -1,5 +1,5 @@
 {{-- Admin layout with sidebar --}}
-<x-layout :title="$title ?? __('Administration')">
+<x-layout :title="$title ?? __('Administration')" width="container-xl layout-admin">
     <div class="row">
         <div class="col-lg-2 d-none d-lg-block">
             <x-admin-sidebar />

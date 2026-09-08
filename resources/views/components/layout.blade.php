@@ -290,7 +290,7 @@
     </div>
 
     {{-- Content --}}
-    <main class="{{ $theme['layout_width'] ?? 'container-lg' }} my-4 flex-grow-1">
+    <main class="{{ $width ?? ($theme['layout_width'] ?? 'container-lg') }} my-4 flex-grow-1">
         <main id="main-content">{{ $slot }}</main>
     </main>
 
