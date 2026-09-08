@@ -62,7 +62,7 @@ Served as attachment download: `gdpr-export-{user_id}-{date}.json`
 
 ### Erasure Steps (in order)
 
-1. **Delete all documents**: iterate user's documents, delete physical files from `Storage::disk('local')`, then delete DB records
+1. **Delete all documents**: iterate the user's `documents` rows, delete each physical file from `Storage::disk('local')` (`storage/app/private/documents/{user_id}/…`), then `->delete()` the rows (soft delete — trashed rows remain for the audit trail, file is gone). Legacy certs in `storage/app/private/medical/` that have **no `documents` row** are not reached.
 2. **Delete avatar**: remove from `Storage::disk('public')`
 3. **Anonymize member_details**: set personal fields to `'ERASED'` or null:
    - `first_name` → "ERASED", `last_name` → "ERASED"
@@ -78,6 +78,8 @@ Served as attachment download: `gdpr-export-{user_id}-{date}.json`
 - Payment records (retained for accounting, person anonymized)
 - Audit log entry (proof of erasure for compliance)
 - The user record itself (soft-anonymized, not hard-deleted)
+- Soft-deleted `documents` rows (metadata only — the files are gone)
+- Legacy medical certs under `storage/app/private/medical/` with no `documents` row
 
 ## Model: `GdprConsent`
 
