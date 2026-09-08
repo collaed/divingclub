@@ -26,3 +26,5 @@ Schedule::command('sync:old-events')->everyTenMinutes()->after(fn () => Schedule
 Schedule::command('legacy:sync')->hourly()->after(fn () => ScheduleHeartbeat::beat('legacy-sync-bidi'));
 
 Schedule::command('incoming:process')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('incoming-files'));
+
+Schedule::command('tracking:prune')->dailyAt('04:30')->after(fn () => ScheduleHeartbeat::beat('tracking-prune'));
