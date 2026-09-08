@@ -76,6 +76,22 @@
                     <div class="article-body">{!! $article->renderedBody() !!}</div>
                 @endif
 
+                {{-- Dynamic bureau roster — live avatars, no hand-maintained grid to rot --}}
+                @if(isset($bureauMembers) && $bureauMembers->count())
+                    <div class="row g-3 text-center mt-3">
+                        @foreach($bureauMembers as $detail)
+                            <div class="col-6 col-md-4 mb-3">
+                                @if($detail->avatar_path && ! $detail->user?->hasPublicPhotosBanned())
+                                    <img src="{{ asset('storage/' . $detail->avatar_path) }}" class="rounded-circle" style="width:100px;height:100px;object-fit:cover" alt="">
+                                @else
+                                    <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center text-white fw-bold" style="width:100px;height:100px;background:#1a237e;font-size:1.5rem">{{ \Illuminate\Support\Str::upper(mb_substr($detail->first_name ?? '', 0, 1) . mb_substr($detail->last_name ?? '', 0, 1)) }}</div>
+                                @endif
+                                <h6 class="mt-2 mb-0">{{ trim(($detail->first_name ?? '') . ' ' . ($detail->last_name ?? '')) }}</h6>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
                 {{-- Admin: trigger translation --}}
                 @if(auth()->user()?->can('manage articles'))
                     <form method="POST" action="{{ route('admin.articles.translate', $article) }}" class="mt-2">

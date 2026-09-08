@@ -134,6 +134,27 @@ class HomeController extends Controller
             // Translation API unavailable — show existing/original
         }
 
+        // Dynamic bureau roster — replaces a hand-maintained avatar grid that
+        // broke whenever a member changed their photo. Runs after translations
+        // are (re)loaded so the strip is not undone by ->load('translations').
+        if ($slug === 'bureau') {
+            $extra['bureauMembers'] = MemberDetail::where('bureau_member', true)
+                ->with('user')
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->get();
+
+            $stripGrid = fn (?string $body): string => (string) preg_replace(
+                '#<div class="row g-3 text-center">.*?</div>\s*</div>#s',
+                '',
+                (string) $body
+            );
+            $article->body = $stripGrid($article->body);
+            foreach ($article->translations as $tr) {
+                $tr->body = $stripGrid($tr->body);
+            }
+        }
+
         // Available translation locales for tab UI
         $extra['translatedLocales'] = $article->translations->pluck('locale')->toArray();
 
