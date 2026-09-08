@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\PageVisit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/** @extends Factory<\App\Models\PageVisit> */
+/** @extends Factory<PageVisit> */
 class PageVisitFactory extends Factory
 {
     public function definition(): array

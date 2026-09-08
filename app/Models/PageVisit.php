@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Carbon\Carbon;
+use Database\Factories\PageVisitFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class PageVisit extends Model
 {
-    /** @use HasFactory<\Database\Factories\PageVisitFactory> */
+    /** @use HasFactory<PageVisitFactory> */
     use HasFactory;
 
     public const UPDATED_AT = null;
