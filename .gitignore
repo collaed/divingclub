@@ -54,3 +54,7 @@ prod-preview-credentials.md
 
 # Local branch/export artifacts (never commit)
 mail_branch.zip
+
+# Python E2E suite bytecode
+tests/e2e/__pycache__/
+*.pyc

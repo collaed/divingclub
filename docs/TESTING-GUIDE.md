@@ -321,14 +321,16 @@ The optimal path minimizes login/logout:
 ## Automated Test Coverage
 
 ```bash
-# PHPUnit backend tests (233 tests, 532 assertions)
+# PHPUnit backend tests (~440 tests)
 php artisan test --compact
 
-# Playwright E2E — standard suite (35 tests)
-python3 -m pytest tests/e2e/test_ui.py -v
+# Playwright E2E — connection details come from the environment:
+#   E2E_BASE (default https://test.clubcep.eu), E2E_USER, E2E_PASS (required)
+export E2E_PASS='…'
 
-# Playwright E2E — adversarial suite (49 tests)
+python3 -m pytest tests/e2e/test_ui.py -v
 python3 -m pytest tests/e2e/test_adversarial.py -v
+python3 -m pytest tests/e2e/test_journeys.py -v
 
 # All E2E tests
 python3 -m pytest tests/e2e/ -v
@@ -337,4 +339,4 @@ python3 -m pytest tests/e2e/ -v
 ---
 
 *This guide covers all 28 feature areas documented in the User Manual.*
-*Last updated: April 8, 2026.*
+*Last updated: September 2026.*

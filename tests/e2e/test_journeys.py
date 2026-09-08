@@ -6,7 +6,7 @@ Run: python3 -m pytest tests/e2e/test_journeys.py -v
 import pytest
 from playwright.sync_api import sync_playwright, expect
 
-BASE = "https://test.clubcep.eu"
+from _e2e_config import BASE, USER, submit_login
 
 
 @pytest.fixture(scope="module")
@@ -30,20 +30,9 @@ def auth_context(browser):
     """Persistent logged-in context as admin."""
     ctx = browser.new_context(ignore_https_errors=True)
     pg = ctx.new_page()
-    pg.goto(f"{BASE}/login")
-    pg.wait_for_load_state("networkidle")
-    pg.fill('input[name="email"]', "eddy.collart@gmail.com")
-    pg.fill('input[name="password"]', "E2eTest2026!")
-    pg.click('button[type="submit"]')
-    pg.wait_for_timeout(3000)
-    if "/login" in pg.url:
-        # Try Google OAuth or wait for rate limit
-        pg.wait_for_timeout(5000)
-        pg.goto(f"{BASE}/login")
-        pg.fill('input[name="email"]', "eddy.collart@gmail.com")
-        pg.fill('input[name="password"]', "E2eTest2026!")
-        pg.click('button[type="submit"]')
-        pg.wait_for_timeout(3000)
+    if not submit_login(pg):
+        pytest.skip(f"Could not log in as {USER} (check E2E_PASS / rate limit)")
+    pg.close()
     yield ctx
     ctx.close()
 
@@ -324,10 +313,12 @@ class TestMembersDirectory:
 # ─── Nationality & Language Dropdowns ─────────────────────────
 
 class TestProfileDropdowns:
-    def test_nationality_grouped_dropdown(self, auth_page):
+    def test_nationality_combobox(self, auth_page):
+        # PR #16 replaced the grouped <select> with the x-country-select
+        # combobox: a free-text <input list> backed by a <datalist>.
         auth_page.goto(f"{BASE}/profile")
-        nat = auth_page.locator("select[name='nationality']")
+        nat = auth_page.locator("input[name='nationality'][list]")
         if nat.count() > 0:
-            # Check optgroups exist
-            groups = auth_page.locator("select[name='nationality'] optgroup")
-            assert groups.count() >= 2  # Most common + EU at minimum
+            list_id = nat.first.get_attribute("list")
+            options = auth_page.locator(f"datalist#{list_id} option")
+            assert options.count() >= 20  # full country list, common ones first

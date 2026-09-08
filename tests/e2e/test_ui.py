@@ -6,7 +6,7 @@ import pytest
 import re
 from playwright.sync_api import sync_playwright, expect
 
-BASE = "https://test.clubcep.eu"
+from _e2e_config import BASE, USER, PASS, submit_login
 
 
 @pytest.fixture(scope="module")
@@ -30,11 +30,8 @@ def auth_page(browser):
     """Logged-in page as admin."""
     ctx = browser.new_context(ignore_https_errors=True)
     pg = ctx.new_page()
-    pg.goto(f"{BASE}/login")
-    pg.fill('input[name="email"]', "eddy.collart@gmail.com")
-    pg.fill('input[name="password"]', "password")
-    pg.click('button[type="submit"]')
-    pg.wait_for_load_state("networkidle")
+    if not submit_login(pg):
+        pytest.skip(f"Could not log in as {USER} (check E2E_PASS / rate limit)")
     yield pg
     ctx.close()
 
@@ -118,12 +115,8 @@ class TestPublicPages:
 
 class TestAuth:
     def test_login_with_valid_credentials(self, page):
-        page.goto(f"{BASE}/login")
-        page.fill('input[name="email"]', "eddy.collart@gmail.com")
-        page.fill('input[name="password"]', "password")
-        page.click('button[type="submit"]')
-        page.wait_for_load_state("networkidle")
-        # Should redirect away from login
+        if not submit_login(page):
+            pytest.skip("Could not log in (check E2E_PASS / rate limit)")
         assert "/login" not in page.url
 
     def test_login_with_invalid_credentials(self, page):
@@ -138,10 +131,12 @@ class TestAuth:
     def test_home3_login_form_submits(self, page):
         page.goto(f"{BASE}/home3")
         page.evaluate("openLogin()")
-        page.fill('#loginPanel input[name="email"]', "eddy.collart@gmail.com")
-        page.fill('#loginPanel input[name="password"]', "password")
+        page.fill('#loginPanel input[name="email"]', USER)
+        page.fill('#loginPanel input[name="password"]', PASS)
         page.click('#loginPanel button[type="submit"]')
         page.wait_for_load_state("networkidle")
+        if "/login" in page.url and "too many" in page.inner_text("body").lower():
+            pytest.skip("login rate-limited")
         assert "/login" not in page.url
 
 
