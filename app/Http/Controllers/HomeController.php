@@ -134,6 +134,22 @@ class HomeController extends Controller
             // Translation API unavailable — show existing/original
         }
 
+        // Dynamic bureau roster — replaces a hand-maintained avatar grid that
+        // broke whenever a member changed their photo. Runs after translations
+        // are (re)loaded so the strip is not undone by ->load('translations').
+        if ($slug === 'bureau') {
+            $extra['bureauMembers'] = MemberDetail::where('bureau_member', true)
+                ->with('user')
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->get();
+
+            $article->body = $this->stripLegacyBureauGrid($article->body);
+            foreach ($article->translations as $tr) {
+                $tr->body = $this->stripLegacyBureauGrid($tr->body);
+            }
+        }
+
         // Available translation locales for tab UI
         $extra['translatedLocales'] = $article->translations->pluck('locale')->toArray();
 
@@ -143,6 +159,47 @@ class HomeController extends Controller
     public function index3(): RedirectResponse|View
     {
         return $this->landing();
+    }
+
+    /**
+     * Remove the legacy hand-maintained avatar grid (`div.row.g-3.text-center`)
+     * from a bureau-article body. DOM removal, so it copes with translated
+     * bodies where whitespace/structure shifted. The dynamic roster in
+     * cms/article.blade.php replaces it.
+     */
+    private function stripLegacyBureauGrid(?string $html): string
+    {
+        $html = (string) $html;
+        if (! str_contains($html, 'row g-3 text-center')) {
+            return $html;
+        }
+
+        $dom = new \DOMDocument;
+        $prev = libxml_use_internal_errors(true);
+        $dom->loadHTML(
+            '<?xml encoding="UTF-8"?><div id="dc-wrap">'.$html.'</div>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+
+        $xpath = new \DOMXPath($dom);
+        $grids = $xpath->query('//div[contains(concat(" ", normalize-space(@class), " "), " row ") and contains(@class, "g-3") and contains(@class, "text-center")]');
+        foreach ($grids ? iterator_to_array($grids) : [] as $grid) {
+            $grid->parentNode?->removeChild($grid);
+        }
+
+        $wrap = $dom->getElementById('dc-wrap');
+        if (! $wrap) {
+            return $html;
+        }
+
+        $out = '';
+        foreach ($wrap->childNodes as $child) {
+            $out .= (string) $dom->saveHTML($child);
+        }
+
+        return $out;
     }
 
     /**
