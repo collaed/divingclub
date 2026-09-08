@@ -9,22 +9,25 @@
     @php
         $canManage = auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? []);
 
-        // Color coding by certification rank
-        function rankColor($rank) {
-            if (!$rank) return '#f8d7da'; // red-ish — no cert
-            if ($rank <= 20) return '#d4edda'; // green — beginner (1@icon('★')/OWD)
-            if ($rank <= 45) return '#cce5ff'; // blue — intermediate (2@icon('★')/AOWD)
-            if ($rank <= 69) return '#d1ecf1'; // cyan — advanced (3@icon('★'))
-            if ($rank <= 99) return '#fff3cd'; // yellow — guide de palanquée (4@icon('★'))
-            return '#e2d5f1'; // purple — instructor
-        }
-        function rankBadge($rank) {
-            if (!$rank) return 'danger';
-            if ($rank <= 20) return 'success';
-            if ($rank <= 45) return 'primary';
-            if ($rank <= 69) return 'info';
-            if ($rank <= 99) return 'warning';
-            return 'purple';
+        // Color coding by certification rank (guarded — a Blade view can be
+        // compiled+included more than once in a single process, e.g. tests)
+        if (! function_exists('rankColor')) {
+            function rankColor($rank) {
+                if (!$rank) return '#f8d7da'; // red-ish — no cert
+                if ($rank <= 20) return '#d4edda'; // green — beginner (1@icon('★')/OWD)
+                if ($rank <= 45) return '#cce5ff'; // blue — intermediate (2@icon('★')/AOWD)
+                if ($rank <= 69) return '#d1ecf1'; // cyan — advanced (3@icon('★'))
+                if ($rank <= 99) return '#fff3cd'; // yellow — guide de palanquée (4@icon('★'))
+                return '#e2d5f1'; // purple — instructor
+            }
+            function rankBadge($rank) {
+                if (!$rank) return 'danger';
+                if ($rank <= 20) return 'success';
+                if ($rank <= 45) return 'primary';
+                if ($rank <= 69) return 'info';
+                if ($rank <= 99) return 'warning';
+                return 'purple';
+            }
         }
 
         $purposes = [
