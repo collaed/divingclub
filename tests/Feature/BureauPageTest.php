@@ -8,6 +8,7 @@ use App\Models\Article;
 use App\Models\MemberDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class BureauPageTest extends TestCase
@@ -18,6 +19,10 @@ class BureauPageTest extends TestCase
     {
         parent::setUp();
         config(['app.locale' => 'fr']); // skip the auto-translate branch
+
+        $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
+        DB::table($roleTable)->insertOrIgnore(['id' => 2, 'name' => 'Member', 'slug' => 'member']);
+        DB::table('member_statuses')->insertOrIgnore(['id' => 1, 'name' => 'Active', 'slug' => 'active']);
     }
 
     private function bureauMember(string $first, string $last, ?string $avatar): void
