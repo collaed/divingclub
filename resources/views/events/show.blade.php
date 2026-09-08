@@ -150,9 +150,9 @@
                     @endif
 
                     {{-- Google Maps embed if API key available --}}
-                    @if($event->location && config('club.google_maps_key'))
+                    @if($event->mapsEmbedUrl())
                         <div class="mt-3 ratio ratio-16x9">
-                            <iframe src="{{ $event->mapsUrl() }}" allowfullscreen loading="lazy" style="border:0; border-radius:0.5rem;"></iframe>
+                            <iframe src="{{ $event->mapsEmbedUrl() }}" allowfullscreen loading="lazy" style="border:0; border-radius:0.5rem;"></iframe>
                         </div>
                     @endif
                 </div>
