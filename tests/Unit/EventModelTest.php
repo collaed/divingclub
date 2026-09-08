@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\Event;
 use Carbon\Carbon;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
@@ -17,39 +18,38 @@ class EventModelTest extends TestCase
         $this->assertSame('#ff0000', $event->typeColor());
     }
 
-    public function test_type_color_pool(): void
+    /**
+     * typeColor() resolves from config/activity_types.php so the calendar,
+     * the badges and the instructor-planner legend agree.
+     *
+     * @return array<string, array{string}>
+     */
+    public static function configuredTypes(): array
     {
-        $event = new Event(['event_type' => 'pool']);
-
-        $this->assertSame('#0077be', $event->typeColor());
+        return [
+            'pool' => ['pool'],
+            'training' => ['training'],
+            'apnea' => ['apnea'],
+            'theory' => ['theory'],
+            'social' => ['social'],
+            'quarry' => ['quarry'],
+            'long_trip' => ['long_trip'],
+        ];
     }
 
-    public function test_type_color_dive(): void
+    #[DataProvider('configuredTypes')]
+    public function test_type_color_matches_activity_types_config(string $type): void
+    {
+        $event = new Event(['event_type' => $type]);
+
+        $this->assertSame(config("activity_types.{$type}.color"), $event->typeColor());
+    }
+
+    public function test_type_color_legacy_dive_matches_planning_scss(): void
     {
         $event = new Event(['event_type' => 'dive']);
 
-        $this->assertSame('#003366', $event->typeColor());
-    }
-
-    public function test_type_color_training(): void
-    {
-        $event = new Event(['event_type' => 'training']);
-
-        $this->assertSame('#28a745', $event->typeColor());
-    }
-
-    public function test_type_color_theory(): void
-    {
-        $event = new Event(['event_type' => 'theory']);
-
-        $this->assertSame('#6f42c1', $event->typeColor());
-    }
-
-    public function test_type_color_social(): void
-    {
-        $event = new Event(['event_type' => 'social']);
-
-        $this->assertSame('#ffc107', $event->typeColor());
+        $this->assertSame('#00695c', $event->typeColor());
     }
 
     public function test_type_color_unknown_defaults_to_grey(): void
