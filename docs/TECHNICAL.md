@@ -102,8 +102,10 @@ The application uses **131 tables** organized into the following domains:
 ### Core / Members
 `users`, `member_details`, `user_emails`, `user_social_accounts`, `member_statuses`, `member_licences`, `guardian_links`, `parental_consents`, `gdpr_consents`, `user_certification_levels`, `certification_levels`, `federations`
 
-### Auth & Permissions (Spatie)
-`roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`, `legacy_roles`, `sessions`, `password_reset_tokens`, `failed_login_attempts`
+### Auth & Permissions
+Spatie: `roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`.
+Framework/auth: `sessions`, `password_reset_tokens`, `failed_login_attempts`.
+Legacy: `legacy_roles` (pre-Spatie role table, FK'd from `users.role_id`; see §5).
 
 ### Events & Registration
 `events`, `event_registrations`, `external_registrations`, `seasons`, `season_patterns`, `season_holidays`, `instructor_availabilities`
@@ -208,7 +210,7 @@ The application uses **131 tables** organized into the following domains:
 - **Password reset** with token-based flow
 
 ### Authorization (Spatie Permission)
-Six roles with hierarchical capabilities:
+Roles with hierarchical capabilities:
 
 | Role | Scope |
 |------|-------|
@@ -218,6 +220,14 @@ Six roles with hierarchical capabilities:
 | `instructor` | Instructor planning, event management |
 | `instructor_apnea` | Apnea-specific instructor role |
 | `member` | Default authenticated member |
+
+`$user->isBureau()` is `hasAnyRole(['bureau_master','bureau_finance','bureau_technical'])`.
+
+**Legacy role column:** `users.role_id` is a leftover FK to the `legacy_roles`
+table (`roles` on installs that skipped the rename), reachable via
+`$user->legacyRole()`. It is retained for imported data and some display labels
+only — all access checks go through Spatie. Tests that need a legacy row pick
+the table with `Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles'`.
 
 **Middleware**:
 - `CheckRole` — role-based route protection (`role:bureau_master,bureau_finance,...`)
