@@ -7,9 +7,13 @@ namespace Tests\Feature;
 use App\Models\MemberDetail;
 use App\Models\PageVisit;
 use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
@@ -131,7 +135,10 @@ class ActivityTrackingTest extends TestCase
             'created_at' => now()->subHour(),
         ]);
 
-        $this->actingAs($master)->get('/admin/logins?tab=members')->assertOk()->assertSee('Jane Doe');
+        $this->actingAs($master)->get('/admin/logins?tab=members')->assertOk()
+            ->assertSee('Jane Doe')
+            ->assertSee('data-sort-col', false)
+            ->assertSee('data-sort-value="'.$master->last_seen_at->timestamp, false); // chronological sort key, not the humanised text
         $this->actingAs($master)->get('/admin/logins?tab=activity')->assertOk()->assertSee('View trail');
         $this->actingAs($master)->get('/admin/logins?tab=activity&user='.$master->id)->assertOk()->assertSee('/events/42');
     }
@@ -139,5 +146,36 @@ class ActivityTrackingTest extends TestCase
     public function test_non_bureau_master_cannot_open_the_page(): void
     {
         $this->actingAs($this->user('member'))->get('/admin/logins')->assertForbidden();
+    }
+
+    /**
+     * Regression: during a code-before-migration deploy the tracking columns
+     * briefly do not exist. The middleware must swallow that, not 500 the page.
+     */
+    public function test_a_tracking_write_failure_never_breaks_the_request(): void
+    {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            $this->markTestSkipped('needs transactional DDL (PostgreSQL)');
+        }
+
+        Exceptions::fake();
+        $u = $this->user();
+        Schema::table('users', fn (Blueprint $t) => $t->dropColumn('last_seen_at'));
+        Schema::drop('page_visits');
+
+        $this->actingAs($u)->get('/__track_ping')->assertOk();
+
+        Exceptions::assertReported(QueryException::class);
+    }
+
+    public function test_impersonated_requests_are_not_tracked(): void
+    {
+        config(['tracking.page_visits' => true]);
+        $u = $this->user();
+
+        $this->actingAs($u)->withSession(['impersonating' => 999])->get('/__track_ping')->assertOk();
+
+        $this->assertDatabaseCount('page_visits', 0);
+        $this->assertNull($u->fresh()->last_seen_at);
     }
 }

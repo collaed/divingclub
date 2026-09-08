@@ -123,7 +123,13 @@ class ArticleTranslationService
             if ($locale === $sourceLocale) {
                 continue;
             }
-            $this->translate($article, $locale, $sourceLocale);
+            // One failing locale (a provider hiccup) must not abort the rest —
+            // the gap-fill pass in ProcessTranslations retries it next run.
+            try {
+                $this->translate($article, $locale, $sourceLocale);
+            } catch (\Throwable $e) {
+                Log::warning("translateAll: {$locale} failed for '{$article->title}'", ['error' => $e->getMessage()]);
+            }
         }
     }
 

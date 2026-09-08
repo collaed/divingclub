@@ -101,3 +101,22 @@ iframe {
 main.layout-admin {
   max-width: min(1680px, 92vw);
 }
+
+// ── Mobile nav ────────────────────────────────────────────────────────────
+// The navbar is `position: sticky`. When the hamburger menu opens, its
+// expanded list can be taller than the viewport — and a sticky box taller
+// than the screen pins to the top with its lower items clipped off-screen
+// and unreachable (seen on Brave / Android 9). Below the `lg` collapse
+// breakpoint: drop the sticky, and let a very long open menu scroll itself.
+@media (max-width: 991.98px) {
+  .dc-navbar {
+    position: static;
+  }
+
+  .dc-navbar .navbar-collapse.show,
+  .dc-navbar .navbar-collapse.collapsing {
+    max-height: calc(100vh - 3.5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
