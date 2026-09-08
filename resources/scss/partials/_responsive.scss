@@ -18,31 +18,11 @@ iframe {
   height: auto;
 }
 
-// A data table that isn't wrapped in .table-responsive still scrolls within
-// itself instead of widening the page. Scoped to page content so email / PDF
-// templates (rendered outside <main>) are untouched.
-main .table:not(.table-responsive *) {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
 .table-responsive {
   -webkit-overflow-scrolling: touch;
 }
 
-// Long unbroken tokens (IBAN, URLs, emails without a truncate class) wrap
-// rather than blow out a cell.
-.table td,
-.table th,
-.card-body,
-.list-group-item {
-  overflow-wrap: anywhere;
-}
-
-// ── Header top row ──────────────────────────────────────────────────────────
+// ── Header top row ─────────────────────────────────────────────────────────
 // The bar carries flex-wrap in markup; tighten the brand + user name on the
 // narrowest screens so it stays one line where it can.
 @media (max-width: 575.98px) {
@@ -56,9 +36,22 @@ main .table:not(.table-responsive *) {
   }
 }
 
-// ── Opt-in mobile card layout for data tables ──────────────────────────────
-// <x-table stack> adds `.table-stack`; each <td> carries data-label="Column".
+// ── Mobile only ────────────────────────────────────────────────────────────
 @media (max-width: 767.98px) {
+  // A data table that isn't wrapped in .table-responsive still scrolls within
+  // itself instead of widening the page. Scoped to page content (so email /
+  // PDF templates are untouched) and to mobile (desktop tables lay out as
+  // tables).
+  main .table:not(.table-responsive *) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  // Opt-in card layout: <x-table stack> adds `.table-stack`; each <td> carries
+  // data-label="Column".
   .table-stack {
     thead {
       display: none;
