@@ -18,21 +18,30 @@
 #
 set -Eeuo pipefail
 
-PHP=/usr/bin/php8.3
-COMPOSER="$PHP /usr/local/bin/composer"
 APP_USER=clubcep
 LOG=/var/log/auto-deploy.log
 HEALTH_URL="https://prod.clubcep.eu/health"
 KUMA_PUSH="${KUMA_DEPLOY_PUSH:-}"   # optional Uptime-Kuma push URL
 
 log() { echo "$(date '+%F %T') [deploy] $*" | tee -a "$LOG"; }
+
+# --- pick a PHP that can actually boot the framework -------------------------
+# FPM runs php8.3; the CLI default (`php`) is currently 8.5 and works via the
+# vendored symfony polyfills. Prefer 8.3 for parity, but only if it boots.
+PHP=""
+for cand in /usr/bin/php8.3 /usr/bin/php; do
+    [ -x "$cand" ] || continue
+    if "$cand" -r 'exit(PHP_VERSION_ID >= 80300 ? 0 : 1);' 2>/dev/null; then PHP="$cand"; break; fi
+done
+[ -n "$PHP" ] || { log "FATAL: no PHP >= 8.3 found"; exit 1; }
+COMPOSER="$PHP /usr/local/bin/composer"
+
 as_app() { sudo -u "$APP_USER" env -i HOME="/home/$APP_USER" PATH=/usr/local/bin:/usr/bin:/bin "$@"; }
 
-# --- preflight: a working PHP is non-negotiable -------------------------------
-[ -x "$PHP" ] || { log "FATAL: $PHP missing"; exit 1; }
-for ext in mbstring bcmath intl openssl tokenizer pdo_pgsql; do
-    $PHP -m | grep -qix "$ext" || { log "FATAL: $PHP is missing the '$ext' extension — aborting"; exit 1; }
-done
+# artisan must boot under the chosen PHP before we touch anything
+as_app "$PHP" "/opt/deploy/apps/divingclub-prod/artisan" --version >/dev/null 2>&1 \
+    || { log "FATAL: $PHP cannot boot artisan — aborting"; exit 1; }
+log "using $PHP ($($PHP -r 'echo PHP_VERSION;'))"
 
 deploy_site() {
     local DIR="$1" NAME="$2" SUPERVISOR="$3"
