@@ -198,7 +198,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Document browser (role-based visibility, upload for instructors/bureau)
     Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');
-    Route::get('/photos/browse', function (\Illuminate\Http\Request $request) {
+    Route::get('/photos/browse', function (Request $request) {
         // JSON feed for the landing-page mosaic. A browser that navigates here
         // directly (stale/shared link) gets the real gallery, not raw JSON.
         if ($request->header('Sec-Fetch-Dest') === 'document'
