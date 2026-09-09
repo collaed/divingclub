@@ -37,25 +37,39 @@ schema, and proposes the changes. §10 lists the decisions still open.
 
 ---
 
-## 2. Membership tiers (fee rate)
+## 2. Membership tiers (fee rate + rights)
 
-`member_statuses` is — and stays — the **fee-rate tier**, nothing else.
+`member_statuses` is — and stays — the **fee-rate tier**, plus a couple of
+rights flags that ride with it.
 
-| Slug | FR label | Who | Notes |
-|---|---|---|---|
-| `membre_de_droit` | Membre de droit | EU-institution employee; **also** external instructors | reduced rate |
-| `assimile` | Membre assimilé | retired (ex-fonctionnaire) | |
-| `associe` | Membre associé | child or spouse of a member | age → youth rate |
-| `externe` | Membre externe | external adult | full rate; age → youth rate |
-| `sympathisant` | Sympathisant | supporter — fee only, **never takes licences** | lighter fee |
-| `honoraire` | Honoraire | honorary — **no fee**, keeps access & licences | |
-| `junior` / `enfant` | | under-18 sub-tiers (if kept — may be just the youth rate on `associe`/`externe`) | see §10.4 |
+| Slug | FR label | Who | Licences? | AGA / EGA vote? |
+|---|---|---|---|---|
+| `membre_de_droit` | Membre de droit | EU-institution employee; **also** external instructors | yes | **yes** |
+| `assimile` | Membre assimilé | retired (ex-fonctionnaire) | yes | yes |
+| `associe` | Membre associé | child or spouse of a member | yes | adults only |
+| `externe` | Membre externe | external adult | yes | yes |
+| `sympathisant` | Sympathisant | supporter — fee only | **never** | **no** |
+| `honoraire` | Honoraire | honorary — **no fee**, keeps access & licences | yes | yes |
 
-The **rate table** already exists: `membership_fees` keyed by
-`(status_id, season_year)`, with the season fee-taper for mid-year joiners
-(`Season::taperPercentage()`). The tier is the *input*; nothing new is needed to
-price it. What's missing is a clean place to record **which tier applies for
-which season** and **why** — that goes on `season_memberships` below.
+- **Youth is age-banded, not a separate tier.** The authoritative bands live in
+  `.kiro/specs/membership-dues-calculation/` and are measured at the **prise-de-
+  licence anchor** (`seasons` shared anchor date), not at current age:
+  cotisation `coti_jeune_16_17` / `coti_jeune_12_15` / `coti_enfant` (<12) at
+  55 €, `coti_sympathisant` 30 €; FFESSM licence `lic_adulte` (16+),
+  `lic_jeune` (12–<16), `lic_enfant` (<12); FLASSA free below 18. Add
+  `member_statuses.votes_at_assembly` (bool) and a `minor` flag derived from
+  DOB + anchor rather than modelling `junior`/`enfant` as tiers.
+- The **rate table** already exists: `membership_fees` keyed by
+  `(status_id, season_year)` + the age-driven licence/cotisation derivation in
+  `FeeCalculationService`, with the season fee-taper for mid-year joiners
+  (`Season::taperPercentage()`). The tier is the *input*; pricing is done.
+- What's missing is a clean place to record **which tier applied for which
+  season** and **why** — that goes on `season_memberships` (§4a).
+
+> **Related specs.** Pricing and age bands:
+> `.kiro/specs/membership-dues-calculation/`. Pro-rata: `docs/FEE-PRORATA-DESIGN.md`.
+> This doc owns the *lifecycle* (states, coverage window, access, licence
+> validity), not the tariff.
 
 Whether a member "takes licences" is **not** a tier — it's per season
 (`sympathisant` never does; everyone else may). Model it as
@@ -127,22 +141,41 @@ unique (user_id, season_year)
   whose coverage window contains today" (via `Season::currentDuesYear()` — kill
   the hardcoded month check).
 
-### 4b. `member_licences` (extended) — one row per (user, federation, season)
+### 4b. `member_licences` (extended) — one row per (user, federation, target year)
 
 Add:
 ```
 status         enum: requested | ordered | active | expired | cancelled
+target_year    string             -- the year this licence is taken for (= a season_year)
 valid_from     date  nullable
-valid_until    date  nullable          -- computed, see below
+valid_until    date  nullable      -- computed, see below
 medical_doc_id FK documents nullable   -- the validated cert this validity rests on
 ```
 
-`valid_until` = the **earliest** of:
-- the federation's rule applied to the **validated medical certificate**
-  (`documents.date_established` / `expiry_date`, `cert_type`) —
-  `medical_compliance_rules` per federation,
-- an **age cap** (federation rules differ for minors / seniors),
-- the federation's **maximum licence term**.
+**`valid_until` = the earliest of:**
+
+1. **the federation's formula** applied to the validated medical certificate
+   (`documents.date_established`, `cert_type`) and the member's DOB;
+2. **`target_year`-12-31** — a licence only ever covers the calendar year it was
+   taken for. If the medical certificate reaches further, the member does **not**
+   need a new certificate next year, but they **do** need a fresh licence row
+   (`requested` again) for the new `target_year`.
+
+Federation formulas (bureau to supply the rest as Excel-style expressions):
+
+| Federation | `valid_until` before the year-end cap |
+|---|---|
+| **FFESSM** | `cert_date + 1 year − 1 day` |
+| FLASSA | _tbd_ |
+| others | _tbd_ |
+
+Minor/senior age caps, where a federation has them, apply as a further `min()`.
+
+**Licence coverage** (for diving / event eligibility) = the member has **at
+least one** `active` licence whose `valid_until >= today`. It is **not**
+required that every federation they hold be current — some members never
+complete both. (Federations may still each require a valid medical; that check
+stays per federation.)
 
 Recomputed whenever a newer validated medical certificate arrives
 (`LicenceValidityService::recompute($licence)`).
@@ -172,8 +205,8 @@ prospect → applicant → member → lapsed → suspended → closed
 | `applicant` | join form submitted, awaiting bureau approval | same |
 | `member` | approved **and** has coverage for today | full |
 | `lapsed` | coverage ended (set on 1 Jan after `covers_until`); within the grace window | login allowed, **persistent renewal warning banner** |
-| `suspended` | grace window elapsed | login blocked → redirected to a renewal / contact page |
-| `closed` | bureau closed the file / GDPR erased | blocked |
+| `suspended` | grace window elapsed | **login blocked** — a warm "we miss you — rejoin us" page with a one-click renewal / contact link, nothing else |
+| `closed` | bureau closed the file / GDPR erased | blocked (plain) |
 
 - **Approval** (`applicant → member`) is the one-time act that "makes the
   profile active and lets them log in".
@@ -286,7 +319,7 @@ stateDiagram-v2
 | Honoraire / waiver | `fee_due → waived` | `covers_*` set; `amount_due = 0` |
 | Licence requested | `∅ → requested` (licence) | requires season `state = paid` and `wants_licences` |
 | Club orders licence | `requested → ordered` | |
-| Licence number recorded | `ordered → active` | `LicenceValidityService::recompute()` sets `valid_from`/`valid_until` |
+| Licence number recorded | `ordered → active` | `LicenceValidityService::recompute()` sets `valid_from` and `valid_until = min(federation formula, target_year-12-31)` |
 | Medical cert uploaded | `∅ → pending` (cert) | supersede the previous `is_current` cert |
 | Bureau validates cert | `pending → validated` | recompute + extend `valid_until` on backed licences |
 | Bureau rejects cert | `pending → rejected` | notify member with `reject_reason` |
@@ -345,32 +378,43 @@ Steps 1–3 alone close the "paid member not shown as active" gap.
 
 ## 10. Open questions for the bureau
 
-1. **Blocked = ?** After the grace window, is `suspended` a hard login block,
-   or login allowed but every page redirects to a "renew / contact us" wall
-   until they pay?
-2. **`lapsed` and mail.** During the 1–2 month warning window, should the
-   member still receive club newsletters / event mail, or only renewal
-   reminders?
-3. **Grace length.** Fixed `lapsed_grace_days` (≈45–60), or a fixed date
-   ("blocked from 1 March")?
-4. **Youth.** One `youth_age` threshold applied as a rate on
-   `associe`/`externe`, or keep distinct `junior` / `enfant` tiers? What age(s)?
-5. **Retiree tier.** `assimile` = "retired ex-fonctionnaire" — does a retired
-   *externe* also become `assimile`, or stay `externe`? Who flips it, and when?
-6. **External instructors → `membre_de_droit`.** Is that automatic from the
-   `instructor` role, or a manual bureau call?
-7. **`paid` threshold.** With the fee taper and `payment_expected.provisional`,
-   does `fee_due → paid` need `amount_paid ≥ amount_due`, `≥ the tapered
-   amount`, or just "a payment was reconciled"?
-8. **Multiple federations.** For someone with FFESSM + FLASSA licences, is the
-   member "covered" if *any one* is valid, or must *all required* be valid?
-9. **Licence validity rules.** Are the per-federation age/cert/term rules
-   documented somewhere we can encode, or does the bureau compute `valid_until`
-   by hand today?
-10. **Honoraires.** Auto-create a `waived` `season_memberships` row each year,
-    or leave them outside the per-season model (always "covered")?
-11. **Partner-club / external divers** (`external_registrations`) — in scope for
-    this model or a separate track?
+**Settled (2026-09-09):**
+
+- **Suspended = hard block.** After the grace window, login is refused and the
+  member sees only a warm "we miss you — rejoin us" page with a renewal /
+  contact link. *(was Q1)*
+- **Licence coverage = any one.** A member is licence-covered if at least one
+  `active` licence is valid; both federations do not have to be current. *(was Q8)*
+- **Youth is age-banded, not a tier.** Bands come from
+  `.kiro/specs/membership-dues-calculation/`, measured at the prise-de-licence
+  anchor. Add `member_statuses.votes_at_assembly`; `sympathisant` = no vote,
+  no licence. *(was Q4)*
+- **FFESSM licence validity** = `min(cert_date + 1 year − 1 day, target_year-12-31)`.
+  A licence never outlives its target year even if the certificate does — a new
+  year needs a fresh licence row. *(partial answer to Q9)*
+
+**Still open:**
+
+1. **`lapsed` and mail.** During the warning window, does the member still get
+   club newsletters / event mail, or only renewal reminders?
+2. **Grace length.** Fixed `lapsed_grace_days` (≈45–60), or a fixed calendar
+   date ("blocked from 1 March")?
+3. **Retiree tier.** Does a retired *externe* also become `assimile`, or stay
+   `externe`? Who flips it, and when?
+4. **External instructors → `membre_de_droit`.** Automatic from the `instructor`
+   role, or a manual bureau call?
+5. **`paid` threshold.** With the taper and `payment_expected.provisional`, does
+   `fee_due → paid` need `amount_paid ≥ amount_due`, `≥ the tapered amount`, or
+   just "a payment was reconciled"?
+6. **Other federations' validity formulas.** FFESSM is settled above; FLASSA and
+   any others — the Excel-style expressions, please (`cert_date`, `dob`,
+   `target_year` as inputs).
+7. **`votes_at_assembly` for `associe`.** "adults only" in §2 — is the cutoff 18
+   at the anchor, or another age? Do minors of any tier ever vote?
+8. **Honoraires.** Auto-create a `waived` `season_memberships` row each year, or
+   leave them outside the per-season model (always "covered")?
+9. **Partner-club / external divers** (`external_registrations`) — in scope for
+   this model or a separate track?
 
 ---
 
