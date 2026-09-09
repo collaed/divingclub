@@ -1,256 +1,386 @@
 # Membership lifecycle — design proposal
 
-Status: **draft for review.** Nothing here is built. It describes the problem,
-a proposed model, and the open decisions, so the bureau can mark it up before
-any migration.
+Status: **draft for review (v2).** Nothing here is built. It captures the
+bureau's description of how membership actually works, maps it onto the current
+schema, and proposes the changes. §10 lists the decisions still open.
 
 ---
 
-## 1. Where "cotisation paid" lives today
+## 1. The lifecycle in the bureau's words
 
-"Is this person a paid-up member for the season?" is answered by **three
-records that never talk to each other**:
+1. A person **joins** the club (submits the join form).
+2. Someone from the **bureau approves** them → the profile goes **active** and
+   they can log into the site.
+3. **Every year:**
+   - **Rate** depends on who they are:
+     - EU-institution employee, or family of one, or an external instructor →
+       *membre de droit* (reduced rate).
+     - Retired → *membre assimilé*.
+     - Child or spouse of a member → *membre associé*.
+     - Otherwise → *membre externe* (adult rate); a **youth rate** applies below
+       an age threshold.
+   - They **pay the membership fee between September and December**. That
+     payment covers **the rest of the current year plus the following year**.
+   - If they are a **sympathisant**, it stops there — no licences.
+   - If they are **"more" (active)**, they want federation **licences**.
+4. **Licences** require **medical-certificate coverage**, and each federation
+   has its own rules. The club orders the licences and records them on the
+   profile. **Validity dates are computed from the member's age, the medical
+   certificate date, and the federation's rules.**
+5. **Any time during the year** a member can submit a **new medical certificate
+   to extend validity**. The bureau checks the **scan** (conforms to
+   requirements, properly filled in), **validates** it, and the licence validity
+   is extended.
+6. If, after some years, they **stop paying**: on **1 January of the first year
+   they are no longer covered**, they become a **lapsed member**. Site access
+   shows a **warning for 1–2 months maximum**, then is **blocked**.
 
-| Record | What it holds | Written by | Read by |
+---
+
+## 2. Membership tiers (fee rate)
+
+`member_statuses` is — and stays — the **fee-rate tier**, nothing else.
+
+| Slug | FR label | Who | Notes |
 |---|---|---|---|
-| `payment_expected` (`type = membership`, `season_year`) | the **money** — `status` `pending`/`partial`/`paid`, `amount_due`, `amount_paid`, `paid_at`, `communication` (bank-transfer reference), `reconciled_by/at`, `bank_statement_ref` | `FeeCalculationService::createPaymentExpected()` (dues calculator, `PaymentController::generateFee` / `generateBulkFees`); moved to `paid` by `BankReconciliationService::confirmMatch()` when a statement line is matched | finance dashboard, annual report, GDPR export |
-| `member_details.cotisation_years` | JSON array of year strings, e.g. `["2025","2026"]` | **only** the profile edit form (`ProfileController`, hand-ticked), or the retired legacy importers | the public "active members" count (`HomeController::memberStats()`), `User::isActive()`, member CSV export |
-| `users.status_id` → `member_statuses` | the member **tier** (`fonctionnaire`, `associe`, `honoraire`, `junior`, …, `former`) — drives the fee multiplier and mail/listing eligibility | the members-screen "Statut" dropdown (`MemberController::updateStatus`) | listings, `MemberStatus::INACTIVE_SLUGS = ['former']`, fee calculation |
+| `membre_de_droit` | Membre de droit | EU-institution employee; **also** external instructors | reduced rate |
+| `assimile` | Membre assimilé | retired (ex-fonctionnaire) | |
+| `associe` | Membre associé | child or spouse of a member | age → youth rate |
+| `externe` | Membre externe | external adult | full rate; age → youth rate |
+| `sympathisant` | Sympathisant | supporter — fee only, **never takes licences** | lighter fee |
+| `honoraire` | Honoraire | honorary — **no fee**, keeps access & licences | |
+| `junior` / `enfant` | | under-18 sub-tiers (if kept — may be just the youth rate on `associe`/`externe`) | see §10.4 |
 
-Consequences:
+The **rate table** already exists: `membership_fees` keyed by
+`(status_id, season_year)`, with the season fee-taper for mid-year joiners
+(`Season::taperPercentage()`). The tier is the *input*; nothing new is needed to
+price it. What's missing is a clean place to record **which tier applies for
+which season** and **why** — that goes on `season_memberships` below.
 
-- **Reconciling a bank payment changes nothing a member or the website can
-  see.** `confirmMatch()` sets `payment_expected.status = 'paid'` and stops
-  there — it does not touch `cotisation_years`, `status_id`, or
-  `member_licences`. Someone must then open the profile and tick the year by
-  hand.
-- **`member_statuses` does double duty**: it is the fee tier *and* the only
-  lifecycle signal (the single `former` slug). There is no state for prospect,
-  applicant, "paid but waiting for the federation licence", "lapsed this season
-  but might renew", or "left for good".
-- **`member_licences.licence_request_pending`** is a fourth, unconnected flag.
-- **`trial_requests`** (the "Try Diving" funnel) has no link to `users` — only
-  `confirmed_by` (the bureau handler). When a trialist joins, the connection is
-  lost.
-- The season-year rollover is computed **two different ways**:
-  `Season::currentDuesYear()` reads the actual season `start_date` month
-  (data-driven), while `HomeController::memberStats()` and `User::isActive()`
-  hardcode `now()->month >= 9`. They agree today; they will not if a club sets a
-  non-September season.
+Whether a member "takes licences" is **not** a tier — it's per season
+(`sympathisant` never does; everyone else may). Model it as
+`season_memberships.wants_licences` or infer it from "has ≥1 `member_licences`
+row for the season".
 
 ---
 
-## 2. Proposed model
+## 3. Current state — the disconnect
 
-Two axes, kept separate:
+"Is this person a covered member right now?" is answered by records that never
+talk to each other:
 
-- **Per-season membership** — a row per `(user, season_year)` carrying a small
-  state machine. This is where "paid / licensed / active" lives.
-- **Lifecycle stage** — one coarse value per user describing where they are in
-  the join → member → lapse → return → leave arc. Independent of any season.
+| Record | Holds | Written by | Read by |
+|---|---|---|---|
+| `payment_expected` (`type = membership`) | the money: `status` pending/partial/paid, amounts, `paid_at`, `communication`, reconciliation refs | `FeeCalculationService::createPaymentExpected()`; → `paid` by `BankReconciliationService::confirmMatch()` | finance dashboard, annual report |
+| `member_details.cotisation_years` | JSON year-string array | **only** the profile edit form, by hand | public "active members" count, `User::isActive()`, CSV export |
+| `users.status_id` | the tier (see §2); only `former` is lifecycle-ish | members-screen dropdown | listings, mail eligibility, fee lookup |
+| `member_licences` | `licence_number`, `federation_id`, `licence_request_pending`, `medical_cert_expiry`, `season` — **no licence `valid_from`/`valid_until`, no status** | licence admin screens | compliance checks |
+| `documents` (medical) | scan, `expiry_date`, `is_verified` + `verified_by/at`, `is_current`, `superseded_by`, `is_compliant` | upload + bureau review | `MedicalComplianceService` |
 
-`member_statuses` stays exactly as it is: the **fee tier** vocabulary. It stops
-being asked to mean "active" or "former".
+Key gaps:
+- `confirmMatch()` marks the payment `paid` and stops — nothing flows to
+  `cotisation_years`, `status_id`, licences, or access.
+- No **coverage window** — `cotisation_years` is a year list, but coverage is
+  "rest of this year + all of next", i.e. a date range.
+- No **licence validity** stored — only the backing cert's expiry.
+- No **access-control state** — "lapsed", "in the warning window", "blocked"
+  don't exist; `former` is a hand-set status.
+- Medical review has no **rejected** state (`is_verified` is a bool).
+- Rollover is computed two ways: `Season::currentDuesYear()` (data-driven off
+  the season `start_date`) vs. hardcoded `now()->month >= 9` in
+  `HomeController::memberStats()` and `User::isActive()`.
 
-### 2a. `season_memberships` (new table)
+---
+
+## 4. Proposed model
+
+Three record types + one derived arc.
+
+### 4a. `season_memberships` (new) — fee + coverage, one row per (user, season)
 
 ```
 id
 user_id            FK users
-season_year        string   (matches membership_fees.season_year / Season::currentDuesYear())
-member_status_id   FK member_statuses   -- the tier for THIS season; may differ year to year
-state              enum: applied | fee_due | fee_paid | licence_pending | active | lapsed | resigned
+season_year        string             -- Season::currentDuesYear() convention (e.g. "2027")
+member_status_id   FK member_statuses -- the tier FOR THIS SEASON (may differ year to year)
+rate_basis         enum: droit | assimile | associe | externe | youth | sympathisant | honoraire
+wants_licences     bool               -- false for sympathisant
+state              enum: fee_due | paid | waived | lapsed | resigned
 fee_payment_id     FK payment_expected  nullable
-joined_on          date     nullable    -- first season only
-activated_on       date     nullable
-lapsed_on          date     nullable
-notes              text     nullable
+covers_from        date  nullable      -- payment date (or approval date for waived)
+covers_until       date  nullable      -- 31 Dec of season_year
+amount_due         decimal nullable
+joined_on          date  nullable      -- first season only
+lapsed_on          date  nullable
+notes              text  nullable
 timestamps
 unique (user_id, season_year)
 ```
 
-- `member_details.cotisation_years` becomes **derived**: the set of
-  `season_year` where a row reached `active`. Keep it as a generated mirror
-  column for one release so nothing downstream breaks, then drop it and the
-  hand-editing UI.
-- Public "active members" = `season_memberships` where
-  `season_year = Season::currentDuesYear()` and `state = active`,
-  `distinct user_id`.
-- `User::isActive()` = "has an `active` row for the current dues year".
+- A **September–December payment** for season `Y` → `state = paid`,
+  `covers_from = paid_at` (in year `Y-1`), `covers_until = Y-12-31`. Coverage
+  therefore spans the tail of `Y-1` and all of `Y`, exactly as described.
+- **`member_details.cotisation_years` becomes derived**: the calendar years any
+  `paid`/`waived` row's `[covers_from, covers_until]` touches. Keep it as a
+  generated mirror column for one release, then drop it and its editor.
+- Public "active members" and `User::isActive()` = "has a `paid`/`waived` row
+  whose coverage window contains today" (via `Season::currentDuesYear()` — kill
+  the hardcoded month check).
 
-### 2b. `users.lifecycle_stage` (new column)
+### 4b. `member_licences` (extended) — one row per (user, federation, season)
+
+Add:
+```
+status         enum: requested | ordered | active | expired | cancelled
+valid_from     date  nullable
+valid_until    date  nullable          -- computed, see below
+medical_doc_id FK documents nullable   -- the validated cert this validity rests on
+```
+
+`valid_until` = the **earliest** of:
+- the federation's rule applied to the **validated medical certificate**
+  (`documents.date_established` / `expiry_date`, `cert_type`) —
+  `medical_compliance_rules` per federation,
+- an **age cap** (federation rules differ for minors / seniors),
+- the federation's **maximum licence term**.
+
+Recomputed whenever a newer validated medical certificate arrives
+(`LicenceValidityService::recompute($licence)`).
+
+### 4c. Medical certificates — `documents` (medical), small additions
 
 ```
-prospect  → applicant → member → alumnus → closed
+review_state   enum: pending | validated | rejected   -- replaces the is_verified bool
+reviewed_by    (rename of verified_by)
+reviewed_at    (rename of verified_at)
+reject_reason  text nullable
 ```
 
-| Stage | Meaning | Entered when |
+Flow: `pending → validated | rejected`. On `validated`, recompute
+`valid_until` for every `member_licences` row that names this doc (or every
+active licence for the member if none named yet), and extend them.
+
+### 4d. `users.lifecycle_stage` (new) — the arc + access control
+
+```
+prospect → applicant → member → lapsed → suspended → closed
+```
+
+| Stage | Meaning | Site access |
 |---|---|---|
-| `prospect` | showed interest, not a member | self-registered (`status_id` null) or a `trial_requests` row is linked |
-| `applicant` | submitted the join form, awaiting bureau approval | join form posted |
-| `member` | has (or had) at least one `season_memberships` row that reached `active` | first activation |
-| `alumnus` | was a member; last `active` season is before the current dues year; not explicitly closed | nightly job, or on the first day of a new season with no renewal |
-| `closed` | left for good / GDPR-erasable | bureau action |
+| `prospect` | self-registered or a linked `trial_requests` row; not approved | login blocked — "your request is pending" |
+| `applicant` | join form submitted, awaiting bureau approval | same |
+| `member` | approved **and** has coverage for today | full |
+| `lapsed` | coverage ended (set on 1 Jan after `covers_until`); within the grace window | login allowed, **persistent renewal warning banner** |
+| `suspended` | grace window elapsed | login blocked → redirected to a renewal / contact page |
+| `closed` | bureau closed the file / GDPR erased | blocked |
 
-- **`former` disappears as an assignable status.** "Former member" becomes
-  `lifecycle_stage = alumnus` (derived) — the mail/listing exclusion currently
-  keyed on `INACTIVE_SLUGS` keys on the stage instead.
-- **Returning** is natural: an `alumnus` gets a new `season_memberships` row →
-  back to `member` when it activates. All prior seasons stay on record.
-- `closed` is the only stage that blocks re-joining without a bureau override.
+- **Approval** (`applicant → member`) is the one-time act that "makes the
+  profile active and lets them log in".
+- **Renewal**: `lapsed`/`suspended` → `member` the moment a new
+  `season_memberships` row reaches `paid`.
+- `former` **disappears as an assignable status**; the mail/listing exclusion
+  currently keyed on `MemberStatus::INACTIVE_SLUGS` moves onto
+  `lifecycle_stage ∈ {lapsed, suspended, closed}` (with `lapsed` arguably still
+  mailable — that's §10.2).
+- The grace window is a setting: `lapsed_grace_days` (default ~60,
+  "1–2 months max").
+
+Enforced by one middleware on the authenticated route group; it reads
+`lifecycle_stage` and either passes, flashes the banner, or redirects.
 
 ---
 
-## 3. Per-season state machine
+## 5. Rate / tier assignment
+
+Deciding the tier is a bureau judgement, but it follows a table — worth making
+it an assisted picker on approval and on each renewal:
+
+```
+is external instructor?                         → membre_de_droit
+else EU-institution employee?                   → membre_de_droit
+else retired (was fonctionnaire)?               → membre_assimilé
+else child or spouse of a current member?       → membre_associé
+else                                            → membre_externe
+then: age < youth_age at season start?          → youth rate on that tier
+opt-in "supporter, no licences"                 → sympathisant  (overrides above)
+bureau-granted honorary                         → honoraire     (no fee)
+```
+
+`youth_age`, and whether `junior`/`enfant` stay as distinct tiers or collapse
+into "youth rate", are §10.4.
+
+---
+
+## 6. State machines
+
+### Per-season membership
 
 ```mermaid
 stateDiagram-v2
-    [*] --> applied: bureau adds member to the season\n(or member renews)
-    applied --> fee_due: bureau approves\n+ fee generated (payment_expected)
-    fee_due --> fee_paid: bank reconciliation confirms payment\n(BankReconciliationService::confirmMatch)
-    fee_paid --> licence_pending: federation licence requested\n(member_licences.licence_request_pending = true)
-    licence_pending --> active: licence issued\n(licence_number set)
-    fee_paid --> active: no licence required for this tier
-    fee_due --> active: fee waived (honoraire) or paid in cash\n(bureau override)
-
-    active --> lapsed: new season opens, not renewed\n(nightly)
+    [*] --> fee_due: bureau adds member to the season / member renews\n(tier chosen, payment_expected generated)
+    fee_due --> paid: bank reconciliation confirms the transfer\n(hook in confirmMatch) — or bureau marks cash/cheque
+    fee_due --> waived: honoraire, or fee forgiven
+    paid --> [*]: season closes, covered
+    waived --> [*]
     fee_due --> lapsed: unpaid past the grace cutoff
-    applied --> resigned: withdrew before joining
-    active --> resigned: quit mid-season
-    lapsed --> [*]
-    resigned --> [*]
+    fee_due --> resigned: withdrew before paying
+    paid --> resigned: quit mid-season (rare; usually just doesn't renew)
 ```
 
-Notes:
+`covers_from` / `covers_until` are set on entry to `paid` / `waived`.
+Non-renewal is not a transition here — it's the **absence** of next season's
+row, detected by the lapse job (§7).
 
-- **Honoraire / no-fee tiers** skip the money edges: `applied → active`
-  directly on approval (or `fee_due → active` "fee waived").
-- **Cash / cheque payments** need a manual `fee_due → fee_paid` on the chip —
-  reconciliation only covers bank transfers.
-- `lapsed` and `resigned` are terminal *for that season*; the user keeps
-  whatever `lifecycle_stage` the arc gives them.
+### Licence
 
-### Transition table (event → effect)
+```mermaid
+stateDiagram-v2
+    [*] --> requested: member (state=paid, wants_licences) asks for a licence
+    requested --> ordered: club orders it from the federation
+    ordered --> active: licence number recorded; valid_from/valid_until computed\nfrom the validated medical cert + federation rules
+    active --> active: newer medical cert validated → valid_until extended
+    active --> expired: valid_until passed
+    expired --> active: new validated cert → re-validated
+    requested --> cancelled: not pursued
+```
 
-| Event | From → To | Side effects |
-|---|---|---|
-| Bureau adds user to season / user renews | `∅ → applied` | create `season_memberships` row; `lifecycle_stage` `prospect`/`alumnus` → `applicant` if not already `member` |
-| Bureau approves + generates fee | `applied → fee_due` | `FeeCalculationService::createPaymentExpected()`; link `fee_payment_id` |
-| Bank line matched & confirmed | `fee_due → fee_paid` | **new hook in `confirmMatch()`**: if the payment is `type=membership` and now `paid`, advance the linked season row |
-| Licence requested | `fee_paid → licence_pending` | `member_licences.licence_request_pending = true` |
-| Licence issued | `licence_pending → active` | set `licence_number`; `activated_on = today`; `lifecycle_stage → member`; refresh `cotisation_years` mirror |
-| Tier needs no licence | `fee_paid → active` | as above minus the licence bits |
-| Fee waived / cash | `fee_due → active` | `payment_expected.status = 'paid'`, `amount_paid = 0` or cash note |
-| New season, not renewed | `active(prev) → lapsed` | nightly job; if user has no `active` row for the current year and last active < current → `lifecycle_stage → alumnus` |
-| Unpaid past grace | `fee_due → lapsed` | uses the existing `dues_cutoff_grace_days` setting |
-| Withdrew | `* → resigned` | bureau action + reason in `notes` |
-| Bureau closes the file | (any) | `lifecycle_stage → closed` |
+### Medical certificate
 
----
+```mermaid
+stateDiagram-v2
+    [*] --> pending: member uploads a scan
+    pending --> validated: bureau confirms it conforms + is filled in
+    pending --> rejected: does not conform → member notified, re-uploads
+    validated --> [*]: triggers LicenceValidityService.recompute for backed licences
+    rejected --> [*]
+```
 
-## 4. Lifecycle arc
+### Lifecycle / access
 
 ```mermaid
 stateDiagram-v2
     [*] --> prospect: self-register / Try-Diving request
     prospect --> applicant: submits join form
-    applicant --> member: first season_membership reaches active
-    applicant --> closed: rejected / withdrew
-    member --> alumnus: a full season with no active membership
-    alumnus --> member: renews (new season_membership activates)
-    alumnus --> closed: bureau closes the file / GDPR erase
-    member --> closed: bureau closes the file / GDPR erase
-    closed --> [*]
+    applicant --> member: bureau approves (login enabled)
+    applicant --> closed: rejected
+    member --> lapsed: 1 Jan after covers_until, not renewed
+    lapsed --> member: renews (season_membership reaches paid)
+    lapsed --> suspended: grace window (lapsed_grace_days) elapsed
+    suspended --> member: renews
+    suspended --> closed: bureau closes / GDPR
+    member --> closed: bureau closes / GDPR
 ```
-
-`closed` is deliberately not `[*]` from `member` directly — leaving is
-`member → alumnus` first; `closed` is an explicit, rarer act.
 
 ---
 
-## 5. Members screen — the per-season chip
+## 7. Transitions & side effects
+
+| Event | Change | Side effects |
+|---|---|---|
+| Join form submitted | `∅ → applicant` (lifecycle) | link `trial_requests` row if any |
+| Bureau approves | `applicant → member` | login enabled; prompt to create the first `season_memberships` row |
+| Add member to season / renew | `∅ → fee_due` (season) | pick tier → `member_status_id`, `rate_basis`; `FeeCalculationService::createPaymentExpected()` → `fee_payment_id` |
+| Bank line matched & confirmed | `fee_due → paid` (season) | **new hook** in `BankReconciliationService::confirmMatch()`: if `payment_expected.type = membership` and now `paid`, set the linked season row `paid`, `covers_from = paid_at`, `covers_until = <season_year>-12-31`; if lifecycle is `lapsed`/`suspended` → `member`; refresh `cotisation_years` mirror |
+| Cash / cheque | `fee_due → paid` | bureau click on the chip; `payment_expected` marked paid manually |
+| Honoraire / waiver | `fee_due → waived` | `covers_*` set; `amount_due = 0` |
+| Licence requested | `∅ → requested` (licence) | requires season `state = paid` and `wants_licences` |
+| Club orders licence | `requested → ordered` | |
+| Licence number recorded | `ordered → active` | `LicenceValidityService::recompute()` sets `valid_from`/`valid_until` |
+| Medical cert uploaded | `∅ → pending` (cert) | supersede the previous `is_current` cert |
+| Bureau validates cert | `pending → validated` | recompute + extend `valid_until` on backed licences |
+| Bureau rejects cert | `pending → rejected` | notify member with `reject_reason` |
+| Nightly, 1 Jan | `member → lapsed` | for users with no covering `season_memberships` row today; `lapsed_on = today` |
+| Nightly | `lapsed → suspended` | once `today - lapsed_on > lapsed_grace_days` |
+| Bureau closes file | `* → closed` | |
+
+---
+
+## 8. Members screen — the per-season chip
 
 Replace the single **Statut** dropdown on `admin/members` with a chip for the
-**current dues year** showing `season_memberships.state`:
+**current dues year**, showing `season_memberships.state` + coverage:
 
 ```
- ▢  —              no 2027 record        → click: create it (applied / fee_due)
- ▢  € due          fee_due               → click: advance
- ▢  paid           fee_paid
- ▢  licence…       licence_pending       ← "waiting for licence(s) this season"
- ▣  active         active                (green)
- ▢  lapsed         lapsed                (faded)
+ ▢  —                 no 2027 row           click → create (fee_due, tier picker)
+ ▢  € due             fee_due               click → mark paid (cash) / waive
+ ▣  paid · to 31/12   paid                  (green) — hover: coverage + licence status
+ ▢  lapsed            lapsed                (amber) — member is in the warning window
+ ▢  suspended         suspended             (red)   — login blocked
 ```
 
-- One click advances along the **allowed** transitions (a
-  `SeasonMembership::transitionTo($state)` guard — a plain match on an
-  allowed-transitions map, not an FSM package). Ambiguous forks (e.g.
-  `fee_paid → licence_pending` vs `→ active`) open a 2-item popover.
-- The **tier** select stays, but it now edits `season_memberships.member_status_id`
-  for the current year — so a member can be `fonctionnaire` in 2026 and
-  `associe` in 2027 without rewriting history.
-- The chip is **read-mostly**: bank reconciliation drives `fee_due → fee_paid`
-  on its own; the bureau only clicks it for cash payments, approvals, waivers,
-  and licence steps.
-- Hovering shows the season history (`2024 active · 2025 active · 2026 lapsed`).
+- Bank reconciliation drives `fee_due → paid` on its own; the bureau only
+  clicks for cash, waivers, and approvals.
+- The **tier** picker is attached to the chip and writes
+  `season_memberships.member_status_id` for that year — so a member can be
+  `associe` as a student in 2026 and `externe` in 2027 without touching history.
+- Second line / hover: licence chips per federation
+  (`FFESSM ✓ to 2027-08 · FLASSA ⧗ cert pending`).
+- Row hover: the season strip (`2024 paid · 2025 paid · 2026 lapsed · 2027 —`).
 
 ---
 
-## 6. Migration path (each step ships on its own)
+## 9. Migration path (each step shippable alone)
 
-1. **Add `season_memberships`.** Backfill: for every year in each
-   `member_details.cotisation_years`, insert a row with `state = active`,
-   `member_status_id = users.status_id`, `activated_on = null`.
-2. **Add `users.lifecycle_stage`.** Backfill: `status_id = former` → `alumnus`;
-   `status_id` null & email verified → `prospect`; else `member`.
-3. **Repoint reads.** `HomeController::memberStats()` and `User::isActive()`
-   query `season_memberships` and call `Season::currentDuesYear()` (kill the
-   hardcoded `month >= 9`). `cotisation_years` kept as a generated mirror.
-4. **Hook `BankReconciliationService::confirmMatch()`** → advance the linked
-   season row `fee_due → fee_paid`.
-5. **Members-screen chip** (this proposal's UI).
-6. **Link `trial_requests.user_id`** (+ a "convert to applicant" button on the
-   trial-requests screen).
-7. **Nightly `lapse` job**; retire the `former` status; move the mail/listing
-   exclusion onto `lifecycle_stage`.
-8. Drop `cotisation_years` and its profile-form editor.
+1. **`season_memberships`** + backfill from `cotisation_years` (one `paid` row
+   per year, `covers_from = Jan 1`, `covers_until = Dec 31`, tier = current
+   `status_id`).
+2. **`users.lifecycle_stage`** + backfill (`former` → `lapsed`; `status_id`
+   null & verified → `prospect`; else `member`).
+3. **Repoint reads**: `HomeController::memberStats()` + `User::isActive()` →
+   `season_memberships` via `Season::currentDuesYear()`. `cotisation_years`
+   kept as a generated mirror. *(Fixes the reported bug — no UI change yet.)*
+4. **Hook `confirmMatch()`** → advance the season row + lifecycle.
+5. **Access middleware** on `lifecycle_stage` (banner for `lapsed`, block for
+   `suspended`) + the nightly lapse job + `lapsed_grace_days` setting.
+6. **Members-screen chip** (§8).
+7. **Licence + medical additions** (4b/4c) + `LicenceValidityService`; wire the
+   cert-review screen to extend licence validity.
+8. **Link `trial_requests.user_id`**; retire `former`; drop `cotisation_years`
+   and its editor.
 
-Steps 1–3 already fix the reported bug (paid members not showing as active)
-without any UI change.
-
----
-
-## 7. Open questions for the bureau
-
-1. **Grace period.** `dues_cutoff_grace_days` exists as a setting — should
-   `fee_due` auto-move to `lapsed` after it, or always require a bureau click?
-2. **Provisional / taper.** `payment_expected.provisional` and the season fee
-   taper mean "paid" can be a partial or reduced amount. Does `fee_paid`
-   require `amount_paid >= amount_due`, or `>= the tapered amount`, or just
-   "a payment was reconciled"?
-3. **Licence-required per tier?** Is "needs a federation licence" a property of
-   the `member_status` (tier), of the season, or decided case by case?
-4. **Junior → adult, family groupings.** When a `junior` turns 18 mid-season,
-   is that a tier change on next season only, or immediate?
-5. **Multiple federations.** `member_licences` is per `(user, federation)`.
-   Does `active` need *all* required licences, or *any one*?
-6. **`alumnus` cutoff.** One missed season → `alumnus`? Or a grace of, say, 18
-   months before the arc flips (keeps recent lapsers in normal listings)?
-7. **Honorary members** never pay — should they get a `season_memberships` row
-   auto-created each year in `active`, or sit outside the per-season model
-   entirely?
-8. **External / partner-club divers** (`external_registrations`) — in scope for
-   this model, or a separate track?
+Steps 1–3 alone close the "paid member not shown as active" gap.
 
 ---
 
-## 8. What this deliberately avoids
+## 10. Open questions for the bureau
 
-- **No lifecycle values in `member_statuses`.** Tier and lifecycle are
-  different axes; merging them is what caused the current tangle.
-- **No FSM library.** An enum column plus an allowed-transitions map and a
-  `transitionTo()` guard is enough for eight states.
-- **No history rewrite on lapse/return.** Every season is its own row; the
-  arc is derived from them.
-- **No new "status set" concept.** `status_sets` already scopes which tiers a
-  member may hold; it is untouched.
+1. **Blocked = ?** After the grace window, is `suspended` a hard login block,
+   or login allowed but every page redirects to a "renew / contact us" wall
+   until they pay?
+2. **`lapsed` and mail.** During the 1–2 month warning window, should the
+   member still receive club newsletters / event mail, or only renewal
+   reminders?
+3. **Grace length.** Fixed `lapsed_grace_days` (≈45–60), or a fixed date
+   ("blocked from 1 March")?
+4. **Youth.** One `youth_age` threshold applied as a rate on
+   `associe`/`externe`, or keep distinct `junior` / `enfant` tiers? What age(s)?
+5. **Retiree tier.** `assimile` = "retired ex-fonctionnaire" — does a retired
+   *externe* also become `assimile`, or stay `externe`? Who flips it, and when?
+6. **External instructors → `membre_de_droit`.** Is that automatic from the
+   `instructor` role, or a manual bureau call?
+7. **`paid` threshold.** With the fee taper and `payment_expected.provisional`,
+   does `fee_due → paid` need `amount_paid ≥ amount_due`, `≥ the tapered
+   amount`, or just "a payment was reconciled"?
+8. **Multiple federations.** For someone with FFESSM + FLASSA licences, is the
+   member "covered" if *any one* is valid, or must *all required* be valid?
+9. **Licence validity rules.** Are the per-federation age/cert/term rules
+   documented somewhere we can encode, or does the bureau compute `valid_until`
+   by hand today?
+10. **Honoraires.** Auto-create a `waived` `season_memberships` row each year,
+    or leave them outside the per-season model (always "covered")?
+11. **Partner-club / external divers** (`external_registrations`) — in scope for
+    this model or a separate track?
+
+---
+
+## 11. What this deliberately avoids
+
+- **No lifecycle values in `member_statuses`** — tier and lifecycle stay
+  separate axes; conflating them is the current tangle.
+- **No FSM library** — enum columns + an allowed-transitions map +
+  `transitionTo()` guards are enough for these small machines.
+- **No history rewrite on lapse / return** — every season and every licence is
+  its own row; the arc and `cotisation_years` are derived.
+- **No change to `status_sets`** — it already scopes which tiers a member may
+  hold; untouched.
