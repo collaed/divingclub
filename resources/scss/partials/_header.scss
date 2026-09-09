@@ -38,8 +38,22 @@
   color: #ffffff;
   text-decoration: none;
 
+  // The responsive safety-net sets `img { height: auto }`, which overrides the
+  // markup `height` attribute and lets the ~174x144 logo render full size.
+  // Pin it here instead.
+  img {
+    height: 40px;
+    width: auto;
+  }
+
   .dc-brand-accent {
     color: var(--dc-accent, #ffc107);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .dc-brand img {
+    height: 32px;
   }
 }
 
