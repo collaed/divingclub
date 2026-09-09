@@ -68,9 +68,6 @@
                             @endforeach
                         </ul>
                     </div>
-                    @auth
-                        <a href="{{ route('profile.show') }}" class="dc-user-name text-white text-decoration-none text-truncate d-none d-sm-inline">{{ auth()->user()->name }}</a>
-                    @endauth
                 </div>
             </div>
         </div>

@@ -23,16 +23,12 @@ iframe {
 }
 
 // ── Header top row ─────────────────────────────────────────────────────────
-// The bar carries flex-wrap in markup; tighten the brand + user name on the
-// narrowest screens so it stays one line where it can.
+// The bar carries flex-wrap in markup; tighten the brand on the narrowest
+// screens so it stays one line where it can.
 @media (max-width: 575.98px) {
   .dc-header .dc-brand {
     font-size: 1.15rem;
     max-width: 60vw;
-  }
-
-  .dc-header .dc-user-name {
-    max-width: 34vw;
   }
 }
 
