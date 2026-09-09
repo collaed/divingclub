@@ -80,6 +80,7 @@
                                 </div>
                             @endif
                         </td>
+                        <td class="text-muted small">{{ $m->id }}</td>
                         <td>{{ $m->detail?->first_name }} {{ $m->detail?->last_name }}</td>
                         <td class="cell-truncate" title="{{ $m->primary_email }}">{{ $m->primary_email }}</td>
                         <td><span class="badge bg-secondary">{{ $m->roles->first()?->name ?? '—' }}</span></td>
