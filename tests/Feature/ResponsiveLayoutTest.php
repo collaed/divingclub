@@ -45,6 +45,22 @@ class ResponsiveLayoutTest extends TestCase
         $this->assertMatchesRegularExpression('/<table[^>]*\bclass="[^"]*\btable-stack\b/', $html);
     }
 
+    public function test_logout_control_stays_visible_when_icons_are_disabled(): void
+    {
+        $u = User::factory()->create(['status_id' => 1]);
+        $u->assignRole('member');
+        MemberDetail::factory()->create(['user_id' => $u->id, 'show_icons' => false]);
+        MemberStatus::firstOrCreate(['id' => 1], ['name' => 'Active', 'slug' => 'active']);
+
+        $res = $this->actingAs($u)->get('/');
+
+        $res->assertOk();
+        // The glyph is now a literal (not @icon), so it renders even with icons off…
+        $res->assertSee('🚪', false);
+        // …alongside a text label and higher-contrast styling.
+        $res->assertSee('btn-outline-danger', false);
+    }
+
     public function test_members_directory_uses_the_table_component_with_data_labels(): void
     {
         $bureau = User::factory()->create();
