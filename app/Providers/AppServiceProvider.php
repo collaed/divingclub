@@ -117,29 +117,27 @@ class AppServiceProvider extends ServiceProvider
             MailBalancer::recordSend($provider);
         });
 
-        // Record every sent email in email_log so it shows on /admin/email.
-        // Staging has its own capture (StagingMailServiceProvider) that tags
-        // rows 'staging_captured', so only run this outside staging. A logging
+        // Record notification-channel mail (password reset, email verification,
+        // …) in email_log so it shows on /admin/email. Feature paths that send
+        // bulk / newsletter / vote / contact mail already write their own
+        // EmailLog row and carry no __laravel_notification marker, so they are
+        // skipped here — otherwise every such send would be logged twice.
+        // Staging has its own capture (StagingMailServiceProvider); a logging
         // failure must never break the actual send.
         if (! config('app.staging_mode')) {
             Event::listen(MessageSent::class, function (MessageSent $event): void {
                 try {
+                    if (! isset($event->data['__laravel_notification'])) {
+                        return;
+                    }
+
                     $message = $event->message;
                     $to = collect($message->getTo())->map(fn ($a) => $a->getAddress())->implode(', ');
                     if ($to === '') {
                         return;
                     }
 
-                    $eventId = null;
-                    foreach ($message->getTo() as $addr) {
-                        if (preg_match('/^event-(\d+)@/i', $addr->getAddress(), $m)) {
-                            $eventId = (int) $m[1];
-                            break;
-                        }
-                    }
-
                     EmailLog::create([
-                        'event_id' => $eventId,
                         'to_email' => $to,
                         'subject' => $message->getSubject() ?: '(no subject)',
                         'body' => $message->getHtmlBody() ?: $message->getTextBody() ?: '',
