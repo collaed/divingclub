@@ -31,4 +31,4 @@ Schedule::command('tracking:prune')->dailyAt('04:30')->after(fn () => ScheduleHe
 
 // Feeds the Horizon "Metrics" dashboard (job/queue throughput + runtime graphs).
 // Without this the metrics page stays empty; retention is config/horizon.php → metrics.trim_snapshots.
-Schedule::command('horizon:snapshot')->everyFiveMinutes();
+Schedule::command('horizon:snapshot')->everyFifteenMinutes();
