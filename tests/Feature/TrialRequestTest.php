@@ -31,6 +31,41 @@ class TrialRequestTest extends TestCase
         $this->assertDatabaseHas('trial_requests', ['email' => 'jean@example.com', 'first_name' => 'Jean']);
     }
 
+    public function test_source_is_stored_in_admin_notes(): void
+    {
+        $this->post('/trial', [
+            'first_name' => 'Marie',
+            'last_name' => 'Curie',
+            'email' => 'marie@example.com',
+            'source' => 'Article: session-speciale',
+            'website' => '',
+            '_ts' => time() - 5,
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $this->assertDatabaseHas('trial_requests', [
+            'email' => 'marie@example.com',
+            'admin_notes' => 'Article: session-speciale',
+        ]);
+    }
+
+    public function test_article_interest_form_placeholder_renders_a_form(): void
+    {
+        \App\Models\Article::create([
+            'title' => 'Discovery evening',
+            'slug' => 'discovery-evening',
+            'body' => '<p>Come along.</p><p>[[interest-form]]</p>',
+            'article_type' => 'news',
+            'is_public' => true,
+            'is_published' => true,
+        ]);
+
+        $this->get('/article/discovery-evening')
+            ->assertOk()
+            ->assertDontSee('[[interest-form]]', false)
+            ->assertSee('name="first_name"', false)
+            ->assertSee(route('trial.store'), false);
+    }
+
     public function test_honeypot_rejects_bots(): void
     {
         $this->post('/trial', [
