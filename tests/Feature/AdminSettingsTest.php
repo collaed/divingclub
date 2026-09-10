@@ -77,7 +77,7 @@ class AdminSettingsTest extends TestCase
     public function test_bureau_can_crud_federation(): void
     {
         $this->actingAs($this->admin)
-            ->post(route('admin.settings.federation.store'), [
+            ->post(route('admin.federations.store'), [
                 'acronym' => 'TEST',
                 'full_name' => 'Test Federation',
                 'visibility' => 'active',
@@ -88,7 +88,7 @@ class AdminSettingsTest extends TestCase
         $this->assertNotNull($fed);
 
         $this->actingAs($this->admin)
-            ->put(route('admin.settings.federations.bulk-update'), [
+            ->put(route('admin.federations.bulk-update'), [
                 'fed' => [
                     $fed->id => ['acronym' => 'TST', 'full_name' => 'Test Fed Renamed', 'visibility' => 'recognized'],
                 ],
@@ -99,7 +99,7 @@ class AdminSettingsTest extends TestCase
         $this->assertEquals('recognized', $fed->fresh()->visibility);
 
         $this->actingAs($this->admin)
-            ->delete(route('admin.settings.federation.destroy', $fed))
+            ->delete(route('admin.federations.destroy', $fed))
             ->assertRedirect();
 
         $this->assertNull(Federation::find($fed->id));

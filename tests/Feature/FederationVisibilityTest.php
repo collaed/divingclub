@@ -59,7 +59,7 @@ class FederationVisibilityTest extends TestCase
     {
         $fed = Federation::create(['acronym' => 'TEST', 'full_name' => 'Test Fed', 'visibility' => 'active']);
 
-        $response = $this->actingAs($this->admin)->put(route('admin.settings.federations.bulk-update'), [
+        $response = $this->actingAs($this->admin)->put(route('admin.federations.bulk-update'), [
             'fed' => [
                 $fed->id => ['acronym' => 'TEST', 'full_name' => 'Test Fed', 'visibility' => 'invisible'],
             ],
@@ -94,7 +94,7 @@ class FederationVisibilityTest extends TestCase
 
     public function test_new_federation_defaults_to_active(): void
     {
-        $response = $this->actingAs($this->admin)->post(route('admin.settings.federation.store'), [
+        $response = $this->actingAs($this->admin)->post(route('admin.federations.store'), [
             'acronym' => 'NEW',
             'full_name' => 'New Federation',
         ]);
