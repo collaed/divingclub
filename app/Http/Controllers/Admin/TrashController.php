@@ -36,11 +36,39 @@ class TrashController extends Controller
         'members' => ['class' => User::class, 'label' => 'Members', 'icon' => '👥', 'name' => 'username'],
     ];
 
+    /** Pseudo-kind: cancelled (not deleted) events, so the bureau can un-cancel or bin them from one place. */
+    private const CANCELLED_EVENTS = 'cancelled-events';
+
     public function index(Request $request): View
     {
-        $kind = array_key_exists((string) $request->get('kind'), self::KINDS) ? (string) $request->get('kind') : 'events';
-        $spec = self::KINDS[$kind];
+        $requested = (string) $request->get('kind');
+        $cancelledMode = $requested === self::CANCELLED_EVENTS;
+        $kind = $cancelledMode ? self::CANCELLED_EVENTS
+            : (array_key_exists($requested, self::KINDS) ? $requested : 'events');
 
+        $counts = [];
+        foreach (self::KINDS as $k => $s) {
+            $counts[$k] = $s['class']::onlyTrashed()->count();
+        }
+        $counts[self::CANCELLED_EVENTS] = Event::query()->where('status', 'cancelled')->count();
+
+        if ($cancelledMode) {
+            $rows = Event::query()->where('status', 'cancelled')
+                ->orderByDesc('event_date')
+                ->paginate($this->perPage(25))->withQueryString();
+
+            return view('admin.trash.index', [
+                'kinds' => self::KINDS,
+                'kind' => $kind,
+                'spec' => ['label' => 'Cancelled events', 'icon' => '🚫', 'name' => 'title'],
+                'rows' => $rows,
+                'actors' => collect(),
+                'counts' => $counts,
+                'cancelledMode' => true,
+            ]);
+        }
+
+        $spec = self::KINDS[$kind];
         $query = $spec['class']::onlyTrashed()->orderByDesc('deleted_at');
 
         // Never surface GDPR-erased members as "restorable".
@@ -58,11 +86,6 @@ class TrashController extends Controller
             ->get()
             ->keyBy('model_id');
 
-        $counts = [];
-        foreach (self::KINDS as $k => $s) {
-            $counts[$k] = $s['class']::onlyTrashed()->count();
-        }
-
         return view('admin.trash.index', [
             'kinds' => self::KINDS,
             'kind' => $kind,
@@ -70,7 +93,26 @@ class TrashController extends Controller
             'rows' => $rows,
             'actors' => $actors,
             'counts' => $counts,
+            'cancelledMode' => false,
         ]);
+    }
+
+    /** Un-cancel a cancelled event (back to scheduled). */
+    public function restoreCancelledEvent(Event $event): RedirectResponse
+    {
+        abort_unless($event->status === 'cancelled', 400);
+        $event->update(['status' => 'scheduled', 'inscriptions_closed' => false]);
+
+        return back()->with('success', __(':name restored.', ['name' => $event->title]));
+    }
+
+    /** Move a cancelled event to the recycle bin proper (soft delete). */
+    public function trashCancelledEvent(Event $event): RedirectResponse
+    {
+        abort_unless($event->status === 'cancelled', 400);
+        $event->delete();
+
+        return back()->with('success', __(':name moved to the recycle bin.', ['name' => $event->title]));
     }
 
     public function restore(string $kind, int $id): RedirectResponse
