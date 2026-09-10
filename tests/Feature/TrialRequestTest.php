@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Article;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
@@ -50,7 +51,7 @@ class TrialRequestTest extends TestCase
 
     public function test_article_interest_form_placeholder_renders_a_form(): void
     {
-        \App\Models\Article::create([
+        Article::create([
             'title' => 'Discovery evening',
             'slug' => 'discovery-evening',
             'body' => '<p>Come along.</p><p>[[interest-form]]</p>',
