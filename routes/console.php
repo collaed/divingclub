@@ -21,8 +21,10 @@ Schedule::job(new PurgeAuditLogs)->monthlyOn(1, '04:00')->after(fn () => Schedul
 Schedule::job(new CleanupClassifieds)->monthlyOn(1, '05:00')->after(fn () => ScheduleHeartbeat::beat('classifieds-cleanup'));
 Schedule::job(new SendEquipmentReminders)->dailyAt('09:00')->after(fn () => ScheduleHeartbeat::beat('equipment-reminders'));
 
-Schedule::command('sync:old-events')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('joomla-sync'));
-
+// The old Joomla site at clubcep.eu is retired (DNS moved; /wrapp/*.php APIs
+// gone), so sync:old-events has nothing to poll. The `legacy:sync` DB sync
+// (LEGACY_DB_*) is kept scheduled for now — remove it too once that database
+// is decommissioned.
 Schedule::command('legacy:sync')->hourly()->after(fn () => ScheduleHeartbeat::beat('legacy-sync-bidi'));
 
 Schedule::command('incoming:process')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('incoming-files'));
