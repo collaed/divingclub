@@ -17,52 +17,10 @@
     <div class="tab-pane fade show active" id="tab-club">
     <div class="accordion" id="clubAccordion">
 
-        {{-- Federations --}}
-        <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#fedSection">{{ __('Federations') }}</button></h2>
-            <div id="fedSection" class="accordion-collapse collapse show" data-bs-parent="#clubAccordion">
-                <div class="accordion-body">
-                    <form id="fed-bulk" method="POST" action="{{ route('admin.settings.federations.bulk-update') }}">@csrf @method('PUT')</form>
-                    @error('fed')<div class="alert alert-danger py-1 small">{{ $message }}</div>@enderror
-                    <table class="table table-sm">
-                        <thead><tr><th>{{ __('Acronym') }}</th><th>{{ __('Full Name') }}</th><th>{{ __('Visibility') }}</th><th></th></tr></thead>
-                        <tbody>
-                        @foreach($federations as $fed)
-                            <tr>
-                                <td><input type="text" form="fed-bulk" name="fed[{{ $fed->id }}][acronym]" class="form-control form-control-sm" value="{{ $fed->acronym }}" required></td>
-                                <td><input type="text" form="fed-bulk" name="fed[{{ $fed->id }}][full_name]" class="form-control form-control-sm" value="{{ $fed->full_name }}" required></td>
-                                <td>
-                                    <select form="fed-bulk" name="fed[{{ $fed->id }}][visibility]" class="form-select form-select-sm">
-                                        <option value="active" @selected($fed->visibility === 'active')>{{ __('Active') }}</option>
-                                        <option value="recognized" @selected($fed->visibility === 'recognized')>{{ __('Recognized') }}</option>
-                                        <option value="invisible" @selected($fed->visibility === 'invisible')>{{ __('Invisible') }}</option>
-                                    </select>
-                                </td>
-                                <td class="text-end text-nowrap">
-                                    <form method="POST" action="{{ route('admin.settings.federation.destroy', $fed) }}" class="d-inline" data-confirm="{{ __('Delete :name?', ['name' => $fed->acronym]) }}" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
-                                        @csrf @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">✕</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
-                    <button type="submit" form="fed-bulk" class="btn btn-sm btn-primary">{{ __('Save all federations') }}</button>
-                    <form method="POST" action="{{ route('admin.settings.federation.store') }}" class="row g-2 mt-2">
-                        @csrf
-                        <div class="col-md-3"><input type="text" name="acronym" class="form-control form-control-sm" placeholder="{{ __('Acronym') }}" required></div>
-                        <div class="col-md-6"><input type="text" name="full_name" class="form-control form-control-sm" placeholder="{{ __('Full Name') }}" required></div>
-                        <div class="col-md-3"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Federation') }}</button></div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
         {{-- Member Statuses --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#statusSection">{{ __('Member Statuses') }}</button></h2>
-            <div id="statusSection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
+            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="true" data-bs-target="#statusSection">{{ __('Member Statuses') }}</button></h2>
+            <div id="statusSection" class="accordion-collapse collapse show" data-bs-parent="#clubAccordion">
                 <div class="accordion-body" id="statusesSection" data-statuses-region>
                     <table class="table table-sm align-middle">
                         <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Slug') }}</th><th>{{ __('Description') }}</th><th class="text-end">{{ __('Actions') }}</th></tr></thead>

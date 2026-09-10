@@ -32,6 +32,7 @@
     <div class="dc-admin-group">
         <div class="dc-admin-group-label">{{ __('Diving') }}</div>
         <div class="list-group">
+            <a href="{{ route('admin.federations.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.federations.*') ? 'active' : '' }}">@icon('🎖️') {{ __('Federations') }}</a>
             <a href="{{ route('admin.equipment.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.equipment.*') ? 'active' : '' }}">@icon('🤿') {{ __('Equipment') }}</a>
             <a href="{{ route('admin.dive-sites.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.dive-sites.*') ? 'active' : '' }}">@icon('🗺️') {{ __('Dive Sites') }}</a>
             <a href="{{ route('admin.partnerships.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.partnerships.*') ? 'active' : '' }}">@icon('🤝') {{ __('Partners') }}</a>
