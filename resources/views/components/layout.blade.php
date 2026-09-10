@@ -209,6 +209,14 @@
                                     </div>
                                 </div>
                             </li>
+                        @elseif(auth()->user()->can('manage federations'))
+                            {{-- Delegated specialist (technical_dir): just their area. --}}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Admin') }}</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a></li>
+                                </ul>
+                            </li>
                         @endif
                     @endauth
                 </ul>
