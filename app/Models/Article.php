@@ -100,14 +100,19 @@ class Article extends Model
             $body
         );
 
-        // [[interest-form]] — inline contact form → trial_requests (bureau inbox).
-        // Injected after sanitising so the form markup survives.
-        if (str_contains($body, '[[interest-form]]')) {
-            $form = view('articles._interest_form', ['slug' => $this->slug])->render();
-            $body = str_replace(['<p>[[interest-form]]</p>', '[[interest-form]]'], $form, $body);
-        }
+        // [[interest-form]] marker — the form itself is rendered by the article
+        // view (hasInterestForm()), so here we just strip the placeholder,
+        // tolerating whatever the auto-translator did to it (e.g. "[the form of
+        // interest]").
+        $body = preg_replace('#<p>\s*\[[^\]]*(?:interest|intér[êe]t)[^\]]*\]\s*</p>|\[[^\]]*(?:interest[- ]?form|form(?:ulaire)?[^\]]*int[ée]r[êe]t)[^\]]*\]#iu', '', $body);
 
         return $body;
+    }
+
+    /** The body carries the [[interest-form]] marker → show the inline contact form. */
+    public function hasInterestForm(): bool
+    {
+        return str_contains((string) $this->body, '[[interest-form]]');
     }
 
     public function canBeEditedBy(mixed $user): bool
