@@ -11,7 +11,6 @@ use App\Http\Controllers\Admin\DiveSiteController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EmailStatsController;
 use App\Http\Controllers\Admin\EquipmentController;
-use App\Http\Controllers\Admin\FederationController;
 use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\LibraryController;
@@ -147,17 +146,9 @@ Route::put('/seasons/patterns/{pattern}', [SeasonController::class, 'updatePatte
 Route::get('/seasons/{season}/preview', [SeasonController::class, 'previewGeneration'])->name('seasons.preview');
 Route::post('/seasons/{season}/generate', [SeasonController::class, 'generateEvents'])->name('seasons.generate');
 
-// Federations & their certification levels — full lifecycle in one place
-Route::middleware('can:manage settings')->group(function () {
-    Route::get('/federations', [FederationController::class, 'index'])->name('federations.index');
-    Route::post('/federations', [FederationController::class, 'store'])->name('federations.store');
-    Route::put('/federations', [FederationController::class, 'bulkUpdate'])->name('federations.bulk-update');
-    Route::delete('/federations/{federation}', [FederationController::class, 'destroy'])->name('federations.destroy');
-    Route::get('/federations/{federation}', [FederationController::class, 'show'])->name('federations.show');
-    Route::post('/federations/{federation}/levels', [FederationController::class, 'storeLevel'])->name('federations.levels.store');
-    Route::put('/federations/{federation}/levels', [FederationController::class, 'bulkUpdateLevels'])->name('federations.levels.bulk-update');
-    Route::delete('/federations/{federation}/levels/{level}', [FederationController::class, 'destroyLevel'])->name('federations.levels.destroy');
-});
+// Federations & their certification levels live in routes/web.php, gated by
+// `can:manage federations` (delegated to the technical_dir role) instead of a
+// bureau role.
 
 // Settings
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

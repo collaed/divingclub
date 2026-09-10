@@ -34,7 +34,7 @@ trait SeedsRoles
         SpatieRole::findOrCreate('member', 'web');
 
         // Give bureau_master all permissions used in admin tests
-        $permissions = ['manage seasons', 'manage events', 'manage members', 'manage settings', 'send email', 'view finances'];
+        $permissions = ['manage seasons', 'manage events', 'manage members', 'manage settings', 'send email', 'view finances', 'manage federations'];
         foreach ($permissions as $p) {
             Permission::findOrCreate($p, 'web');
         }

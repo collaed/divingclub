@@ -1,4 +1,18 @@
 {{-- Admin sidebar navigation — replaces the mega dropdown on admin pages --}}
+@php($isBureau = auth()->user()?->isBureau())
+@if(! $isBureau)
+    {{-- Delegated specialists (e.g. technical_dir) see only what they can reach. --}}
+    <nav class="dc-admin-sidebar">
+        <div class="dc-admin-group">
+            <div class="dc-admin-group-label">{{ __('Diving') }}</div>
+            <div class="list-group">
+                @can('manage federations')
+                    <a href="{{ route('admin.federations.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.federations.*') ? 'active' : '' }}">@icon('🎖️') {{ __('Federations') }}</a>
+                @endcan
+            </div>
+        </div>
+    </nav>
+@else
 <nav class="dc-admin-sidebar">
     <div class="dc-admin-group">
         <div class="dc-admin-group-label">{{ __('People') }}</div>
@@ -53,3 +67,4 @@
         </div>
     </div>
 </nav>
+@endif

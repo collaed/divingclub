@@ -31,6 +31,7 @@ $perms = [
     'verify documents',    // new
     'manage seasons',      // new
     'view email stats',    // new
+    'manage federations',  // new — delegated to technical_dir
 ];
 
 foreach ($perms as $p) {
@@ -57,6 +58,8 @@ $matrix = [
     'instructor' => [
         'manage events', 'verify documents', 'manage dive sites',
     ],
+
+    'technical_dir' => ['manage federations'],
 
     'member' => [],
     'public' => [],
