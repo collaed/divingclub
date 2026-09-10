@@ -19,38 +19,55 @@
         </li>
     </ul>
 
-    <x-table class="table-hover">
+    @php
+        $nameCol = ($cancelledMode || $isEvent) ? 'title' : $spec['name'];
+        $colspan = $cancelledMode ? 3 : ($isEvent ? 5 : 4);
+    @endphp
+
+    <x-table class="table-hover align-middle">
         <thead>
             <tr>
-                <th>{{ __($spec['label']) }}</th>
-                <th>{{ $cancelledMode ? __('Event date') : __('Deleted') }}</th>
-                @unless($cancelledMode)<th>{{ __('By') }}</th>@endunless
+                <th><x-sortable-th :column="$nameCol" :label="__($spec['label'])" /></th>
+                @if($isEvent)
+                    <th><x-sortable-th column="event_date" :label="__('Event date')" /></th>
+                @endif
+                @unless($cancelledMode)
+                    <th><x-sortable-th column="deleted_at" :label="__('Deleted')" /></th>
+                    <th>{{ __('By') }}</th>
+                @endunless
                 <th></th>
             </tr>
         </thead>
         <tbody>
             @forelse($rows as $row)
                 <tr>
-                    @if($cancelledMode)
-                        <td><a href="{{ route('events.show', $row) }}" class="text-decoration-none">{{ $row->title ?: '#'.$row->getKey() }}</a></td>
-                        <td class="small text-muted">{{ $row->event_date?->format('d/m/Y') }}</td>
-                        <td class="text-end text-nowrap">
+                    @if($isEvent)
+                        <td>
+                            <a href="{{ route('events.show', $row) }}" class="text-decoration-none fw-medium">{{ $row->title ?: '#'.$row->getKey() }}</a>
+                            <div class="small text-muted">{{ ucfirst($row->event_type) }}{{ $row->event_time ? ' · '.substr($row->event_time, 0, 5) : '' }}{{ $row->location ? ' · '.$row->location : '' }}</div>
+                        </td>
+                        <td class="small text-muted text-nowrap">{{ $row->event_date?->format('d/m/Y') }}</td>
+                    @else
+                        <td>{{ $row->{$spec['name']} ?: '#'.$row->getKey() }}</td>
+                    @endif
+
+                    @unless($cancelledMode)
+                        <td class="small text-muted text-nowrap">{{ $row->deleted_at?->format('d/m/Y H:i') }}</td>
+                        <td class="small text-muted">{{ $actors->get($row->id)?->user?->name ?? '—' }}</td>
+                    @endunless
+
+                    <td class="text-end text-nowrap">
+                        @if($cancelledMode)
                             <form method="POST" action="{{ route('admin.trash.cancelled-event.restore', $row) }}" class="d-inline">
                                 @csrf
                                 <button class="btn btn-sm btn-outline-success py-0 px-2">↩ {{ __('Restore') }}</button>
                             </form>
                             <form method="POST" action="{{ route('admin.trash.cancelled-event.trash', $row) }}" class="d-inline"
-                                  data-confirm="{{ __('Move “:name” to the recycle bin?', ['name' => $row->title]) }}" data-confirm-style="danger" data-confirm-btn="{{ __('Move to bin') }}">
+                                  data-confirm="{{ __('Move :name to the recycle bin?', ['name' => $row->title]) }}" data-confirm-style="danger" data-confirm-btn="{{ __('Move to bin') }}">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger py-0 px-2">🗑 {{ __('Bin it') }}</button>
                             </form>
-                        </td>
-                    @else
-                        @php $actor = $actors->get($row->id)?->user; @endphp
-                        <td>{{ $row->{$spec['name']} ?: '#'.$row->getKey() }}</td>
-                        <td class="small text-muted">{{ $row->deleted_at?->format('d/m/Y H:i') }}</td>
-                        <td class="small text-muted">{{ $actor?->name ?? '—' }}</td>
-                        <td class="text-end text-nowrap">
+                        @else
                             <form method="POST" action="{{ route('admin.trash.restore', [$kind, $row->getKey()]) }}" class="d-inline">
                                 @csrf
                                 <button class="btn btn-sm btn-outline-success py-0 px-2">↩ {{ __('Restore') }}</button>
@@ -62,11 +79,11 @@
                                     <button class="btn btn-sm btn-outline-danger py-0 px-2">✕</button>
                                 </form>
                             @endif
-                        </td>
-                    @endif
+                        @endif
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="4" class="text-center text-muted py-4">{{ __('Nothing here.') }}</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="text-center text-muted py-4">{{ __('Nothing here.') }}</td></tr>
             @endforelse
         </tbody>
     </x-table>
