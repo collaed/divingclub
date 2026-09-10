@@ -58,10 +58,10 @@ class FederationVisibilityTest extends TestCase
     {
         $fed = Federation::create(['acronym' => 'TEST', 'full_name' => 'Test Fed', 'visibility' => 'active']);
 
-        $response = $this->actingAs($this->admin)->put(route('admin.settings.federation.update', $fed), [
-            'acronym' => 'TEST',
-            'full_name' => 'Test Fed',
-            'visibility' => 'invisible',
+        $response = $this->actingAs($this->admin)->put(route('admin.settings.federations.bulk-update'), [
+            'fed' => [
+                $fed->id => ['acronym' => 'TEST', 'full_name' => 'Test Fed', 'visibility' => 'invisible'],
+            ],
         ]);
 
         $response->assertRedirect();

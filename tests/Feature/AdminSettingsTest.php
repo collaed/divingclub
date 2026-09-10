@@ -88,14 +88,15 @@ class AdminSettingsTest extends TestCase
         $this->assertNotNull($fed);
 
         $this->actingAs($this->admin)
-            ->put(route('admin.settings.federation.update', $fed), [
-                'acronym' => 'TST',
-                'full_name' => 'Test Fed Renamed',
-                'visibility' => 'recognized',
+            ->put(route('admin.settings.federations.bulk-update'), [
+                'fed' => [
+                    $fed->id => ['acronym' => 'TST', 'full_name' => 'Test Fed Renamed', 'visibility' => 'recognized'],
+                ],
             ])
             ->assertRedirect();
 
         $this->assertEquals('TST', $fed->fresh()->acronym);
+        $this->assertEquals('recognized', $fed->fresh()->visibility);
 
         $this->actingAs($this->admin)
             ->delete(route('admin.settings.federation.destroy', $fed))
