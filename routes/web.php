@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\FederationController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
 use App\Http\Controllers\Auth\LoginController;
@@ -342,6 +343,19 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Stop impersonation (must be outside bureau_master group — user is impersonated)
     Route::get('/admin/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('admin.stop-impersonation');
+
+    // Federations & certification levels — delegated area, permission-gated
+    // (technical_dir + bureau_master), so it is NOT behind the bureau-role wall.
+    Route::middleware('can:manage federations')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/federations', [FederationController::class, 'index'])->name('federations.index');
+        Route::post('/federations', [FederationController::class, 'store'])->name('federations.store');
+        Route::put('/federations', [FederationController::class, 'bulkUpdate'])->name('federations.bulk-update');
+        Route::delete('/federations/{federation}', [FederationController::class, 'destroy'])->name('federations.destroy');
+        Route::get('/federations/{federation}', [FederationController::class, 'show'])->name('federations.show');
+        Route::post('/federations/{federation}/levels', [FederationController::class, 'storeLevel'])->name('federations.levels.store');
+        Route::put('/federations/{federation}/levels', [FederationController::class, 'bulkUpdateLevels'])->name('federations.levels.bulk-update');
+        Route::delete('/federations/{federation}/levels/{level}', [FederationController::class, 'destroyLevel'])->name('federations.levels.destroy');
+    });
 
     // Admin routes (all bureau roles)
     Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->prefix('admin')->name('admin.')->group(
