@@ -30,3 +30,7 @@ Schedule::command('legacy:sync')->hourly()->after(fn () => ScheduleHeartbeat::be
 Schedule::command('incoming:process')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('incoming-files'));
 
 Schedule::command('tracking:prune')->dailyAt('04:30')->after(fn () => ScheduleHeartbeat::beat('tracking-prune'));
+
+// Feeds the Horizon "Metrics" dashboard (job/queue throughput + runtime graphs).
+// Without this the metrics page stays empty; retention is config/horizon.php → metrics.trim_snapshots.
+Schedule::command('horizon:snapshot')->everyFifteenMinutes();
