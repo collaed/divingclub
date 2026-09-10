@@ -52,7 +52,8 @@ class CancelledEventsHiddenTest extends TestCase
         $member = $this->createMemberUser();
 
         $this->actingAs($member)->get(route('events.index'))
-            ->assertOk()->assertSee('LivePoolQQ')->assertSee('ScrappedApneaQQ');
+            ->assertOk()->assertSee('LivePoolQQ')->assertSee('ScrappedApneaQQ')
+            ->assertSee('Cancelled'); // red badge beside the pill on the month grid
 
         $this->actingAs($member)->get(route('events.index', ['view' => 'week']))
             ->assertOk()->assertSee('ScrappedApneaQQ')->assertSee('Cancelled');

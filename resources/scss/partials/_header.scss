@@ -82,11 +82,13 @@
 
 
 // ── Admin mega-menu ───────────────────────────────────────────────────────
-// The admin section has ~22 destinations. As a single column it runs past the
-// fold even on a large desktop, so the dropdown becomes a grouped multi-column
-// panel mirroring the admin sidebar taxonomy (People / Finance / Content /
-// Diving / System). Inside the collapsed mobile navbar it falls back to one
-// grouped column.
+// The admin section has ~25 destinations. As a single column it runs past the
+// fold even on a large desktop, so the dropdown becomes a grouped panel
+// mirroring the admin sidebar taxonomy (People / Finance / Content / Diving /
+// System). CSS grid (not `column-count`) so each group is a real cell — the
+// old multi-column flow re-balanced whenever label widths changed (e.g. on a
+// FR↔EN switch) and could collapse to one visible column. Two columns on a
+// tablet, one inside the collapsed mobile navbar.
 .dc-admin-menu {
   min-width: 34rem;
   max-width: calc(100vw - 2rem);
@@ -98,17 +100,14 @@
   }
 
   .dc-admin-menu-cols {
-    column-count: 3;
-    column-gap: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(9rem, 1fr));
+    gap: 0 1.25rem;
+    align-items: start;
   }
 
   .dc-admin-menu-group {
-    break-inside: avoid;
     margin-bottom: 0.6rem;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
   }
 
   .dropdown-header {
@@ -131,7 +130,13 @@
     max-width: 100%;
 
     .dc-admin-menu-cols {
-      column-count: 1;
+      grid-template-columns: 1fr;
     }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .dc-admin-menu .dc-admin-menu-cols {
+    grid-template-columns: repeat(2, minmax(9rem, 1fr));
   }
 }

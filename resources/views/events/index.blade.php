@@ -68,9 +68,14 @@
                         <td class="p-1 {{ $isCurrentMonth ? '' : 'bg-light' }}" style="vertical-align:top; min-height:80px;">
                             <div class="small {{ $day->isToday() ? 'fw-bold text-primary' : 'text-muted' }}">{{ $day->day }}</div>
                             @foreach($dayEvents->take(3) as $ev)
-                                <a href="{{ route('events.show', $ev) }}" class="d-block text-decoration-none small text-truncate rounded px-1 mb-1 text-white {{ $ev->status === 'cancelled' ? 'text-decoration-line-through' : '' }}" style="background:{{ $ev->typeColor() }}; font-size:0.7rem; {{ $ev->status === 'cancelled' ? 'opacity:0.5;' : '' }}">
-                                    {{ $ev->event_time ? substr($ev->event_time, 0, 5) : '' }} {{ Str::limit($ev->title, 15) }}
-                                </a>
+                                <div class="d-flex align-items-center gap-1 mb-1">
+                                    <a href="{{ route('events.show', $ev) }}" class="flex-grow-1 text-decoration-none small text-truncate rounded px-1 text-white {{ $ev->status === 'cancelled' ? 'text-decoration-line-through' : '' }}" style="min-width:0; background:{{ $ev->typeColor() }}; font-size:0.7rem; {{ $ev->status === 'cancelled' ? 'opacity:0.5;' : '' }}">
+                                        {{ $ev->event_time ? substr($ev->event_time, 0, 5) : '' }} {{ Str::limit($ev->title, 15) }}
+                                    </a>
+                                    @if($ev->status === 'cancelled')
+                                        <span class="badge bg-danger flex-shrink-0" style="font-size:0.6rem;">{{ __('Cancelled') }}</span>
+                                    @endif
+                                </div>
                             @endforeach
                             @if($dayEvents->count() > 3)
                                 <span class="small text-muted">+{{ $dayEvents->count() - 3 }}</span>

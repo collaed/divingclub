@@ -188,6 +188,7 @@
                                         </div>
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('Diving') }}</h6>
+                                            <a class="dropdown-item" href="{{ route('admin.settings.index') }}#fedSection">@icon('🎖️') {{ __('Federations') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🔧') {{ __('Equipment') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a>
@@ -195,8 +196,12 @@
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('System') }}</h6>
                                             <a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">@icon('📜') {{ __('Audit Log') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.trash.index') }}">@icon('🗑️') {{ __('Recycle Bin') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.backups.index') }}">@icon('💾') {{ __('Backups') }}</a>
                                             <a class="dropdown-item" href="/horizon" target="_blank">@icon('⏱️') {{ __('Queue Monitor') }}</a>
+                                            @if(auth()->user()->hasRole('bureau_master'))
+                                            <a class="dropdown-item" href="{{ route('admin.logins.index') }}">@icon('🔑') {{ __('Login History') }}</a>
+                                            @endif
                                             <a class="dropdown-item" href="{{ route('admin.settings.index') }}">@icon('⚙️') {{ __('Settings') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.roles.index') }}">@icon('🔐') {{ __('Roles & Permissions') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.guide.index') }}">@icon('📖') {{ __('Admin Guide') }}</a>
