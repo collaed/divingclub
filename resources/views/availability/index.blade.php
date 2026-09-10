@@ -35,6 +35,18 @@
     #icStampBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2900; background: #00695c; color: #fff; padding: .6rem 1rem; display: none; align-items: center; justify-content: space-between; gap: .5rem; box-shadow: 0 -2px 8px rgba(0,0,0,.2); }
     #icStampBar.show { display: flex; }
     #icStampBar .ic-avatar { width: 24px; height: 24px; }
+
+    /* Info banners (class-based so dark mode can override) */
+    .ic-avail-hint { background: #e0f2f1; border: 1px solid #b2dfdb; color: #004d40; }
+    .ic-readonly-hint { background: #f8f9fa; color: #6c757d; }
+
+    /* Dark mode — the light cards/chips above are unreadable otherwise */
+    [data-bs-theme="dark"] .ic-stamp-toolbar { background: #2f3350; border-color: #4a4f75; }
+    [data-bs-theme="dark"] .ic-stamp-chip { background: #3a3a52; color: #e0e0e0; }
+    [data-bs-theme="dark"] .ic-stamp-chip.active { border-color: #26c6b0; box-shadow: 0 0 0 2px rgba(38, 198, 176, .3); }
+    [data-bs-theme="dark"] .stamp-active .ic-slot:hover { outline-color: #26c6b0; }
+    [data-bs-theme="dark"] .ic-avail-hint { background: #123b3a; border-color: #1c5b57; color: #a7e8e2; }
+    [data-bs-theme="dark"] .ic-readonly-hint { background: #2f3350; color: #c7c7d9; }
     </style>
 
     <div class="ic-header d-flex justify-content-between align-items-center">
@@ -47,11 +59,11 @@
     </div>
 
     @if($isInstructor)
-        <div class="alert alert-info small py-2 mb-0 rounded-0" style="background:#e0f2f1;border-color:#b2dfdb;color:#004d40">
+        <div class="alert small py-2 mb-0 rounded-0 border-0 ic-avail-hint">
             💡 {{ __('Click ✓ to mark yourself available. Click ✗ to remove.') }}
         </div>
     @else
-        <div class="alert alert-light small py-2 mb-0 rounded-0 border-0 text-muted">
+        <div class="alert small py-2 mb-0 rounded-0 border-0 ic-readonly-hint">
             👁 {{ __('Read-only view — see which instructors are available for each session.') }}
         </div>
     @endif
