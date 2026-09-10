@@ -40,9 +40,9 @@
 
   // The responsive safety-net sets `img { height: auto }`, which overrides the
   // markup `height` attribute and lets the ~174x144 logo render full size.
-  // Pin it here instead.
+  // Pin it here instead. 72px is a starting point — tune to taste.
   img {
-    height: 40px;
+    height: 72px;
     width: auto;
   }
 
@@ -53,7 +53,7 @@
 
 @media (max-width: 575.98px) {
   .dc-brand img {
-    height: 32px;
+    height: 48px;
   }
 }
 
