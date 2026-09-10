@@ -62,13 +62,15 @@ class AppServiceProvider extends ServiceProvider
             }
 
             try {
-                LoginRecord::create([
+                $record = LoginRecord::create([
                     'user_id' => $event->user->getAuthIdentifier(),
                     'guard' => $event->guard,
                     'remember' => $event->remember,
                     'ip_address' => request()->ip(),
                     'user_agent' => mb_substr((string) request()->userAgent(), 0, 1000),
                 ]);
+                // Resolve the country off the queue so login isn't slowed.
+                \App\Jobs\ResolveLoginGeo::dispatch($record->id)->afterCommit();
             } catch (\Throwable $e) {
                 report($e);
             }
