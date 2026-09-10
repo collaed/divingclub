@@ -132,53 +132,54 @@
     $ctaLive = $ctaText !== '' && ($ctaUntil === '' || \Illuminate\Support\Carbon::parse($ctaUntil)->endOfDay()->isFuture());
 @endphp
 @if($ctaLive)
-    <div class="h3-cta" role="region" aria-label="{{ __('Announcement') }}">
-        <a href="{{ $ctaUrl ?: '#' }}" class="h3-cta-link">
-            <span class="h3-cta-flag" aria-hidden="true">📣</span>
-            <span class="h3-cta-text">{{ $ctaText }}</span>
-            <span class="h3-cta-go">
+    <div class="h3-anno" role="region" aria-label="{{ __('Announcement') }}">
+        <a href="{{ $ctaUrl ?: '#' }}" class="h3-anno-link">
+            <span class="h3-anno-flag" aria-hidden="true">📣</span>
+            <span class="h3-anno-text">{{ $ctaText }}</span>
+            <span class="h3-anno-go">
                 {{ __('Find out more') }}
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
             </span>
         </a>
     </div>
     <style>
-        .h3-cta {
+        .h3-anno {
             position: relative; overflow: hidden;
             background: var(--h3-accent); color: #06121f;
             box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .5);
             transform: translateY(-100%);
-            animation: h3CtaDrop .55s cubic-bezier(.2, .9, .25, 1.15) .35s forwards;
+            animation: h3AnnoDrop .55s cubic-bezier(.2, .9, .25, 1.15) .35s forwards;
         }
-        .h3-cta::after {
-            content: ""; position: absolute; inset: 0;
+        .h3-anno::after {
+            content: ""; position: absolute; inset: 0; pointer-events: none;
             background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .55) 48%, transparent 66%);
             transform: translateX(-120%);
-            animation: h3CtaShimmer 1.1s ease-out 1.05s 1;
+            animation: h3AnnoShimmer 1.1s ease-out 1.05s 1;
         }
-        .h3-cta-link {
+        .h3-anno-link {
+            position: relative; z-index: 1;
             display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
             gap: .5rem .9rem; padding: 1rem 1.25rem;
             color: inherit; text-decoration: none;
             font-weight: 700; font-size: clamp(.95rem, 2.1vw, 1.12rem); line-height: 1.3;
         }
-        .h3-cta-flag { font-size: 1.2em; }
-        .h3-cta-text { text-align: center; }
-        .h3-cta-go {
+        .h3-anno-flag { font-size: 1.2em; }
+        .h3-anno-text { text-align: center; }
+        .h3-anno-go {
             display: inline-flex; align-items: center; gap: .3rem; flex-shrink: 0;
             padding: .3rem .75rem; border-radius: 999px;
             background: #06121f; color: var(--h3-accent);
             font-size: .85em; white-space: nowrap;
-            animation: h3CtaNudge 1s ease-in-out 1.9s 2;
+            animation: h3AnnoNudge 1s ease-in-out 1.9s 2;
         }
-        .h3-cta-link:hover .h3-cta-go { background: #0b2036; }
-        @keyframes h3CtaDrop { to { transform: translateY(0); } }
-        @keyframes h3CtaShimmer { to { transform: translateX(120%); } }
-        @keyframes h3CtaNudge { 25% { transform: translateX(4px); } 50% { transform: translateX(0); } }
+        .h3-anno-link:hover .h3-anno-go { background: #0b2036; }
+        @keyframes h3AnnoDrop { to { transform: translateY(0); } }
+        @keyframes h3AnnoShimmer { to { transform: translateX(120%); } }
+        @keyframes h3AnnoNudge { 25% { transform: translateX(4px); } 50% { transform: translateX(0); } }
         @media (prefers-reduced-motion: reduce) {
-            .h3-cta { transform: none; animation: none; }
-            .h3-cta::after, .h3-cta-go { animation: none; }
-            .h3-cta::after { display: none; }
+            .h3-anno { transform: none; animation: none; }
+            .h3-anno::after { display: none; }
+            .h3-anno-go { animation: none; }
         }
     </style>
 @endif
