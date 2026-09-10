@@ -24,6 +24,7 @@ class StoreTrialRequest extends FormRequest
             'phone' => 'nullable|string|max:30',
             'message' => 'nullable|string|max:2000',
             'preferred_date' => 'nullable|date|after:today',
+            'source' => 'nullable|string|max:150',
             'website' => 'nullable|string|max:0',
         ];
     }

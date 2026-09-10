@@ -100,6 +100,13 @@ class Article extends Model
             $body
         );
 
+        // [[interest-form]] — inline contact form → trial_requests (bureau inbox).
+        // Injected after sanitising so the form markup survives.
+        if (str_contains($body, '[[interest-form]]')) {
+            $form = view('articles._interest_form', ['slug' => $this->slug])->render();
+            $body = str_replace(['<p>[[interest-form]]</p>', '[[interest-form]]'], $form, $body);
+        }
+
         return $body;
     }
 
