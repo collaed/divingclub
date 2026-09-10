@@ -24,9 +24,27 @@
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mb-3">{{ __('Login') }}</button>
                         <div class="text-center">
-                            <a href="{{ route('password.request') }}" class="small">{{ __('Forgot your password?') }}</a>
+                            <a href="{{ route('password.request') }}" id="forgotLink" class="small">{{ __('Forgot your password?') }}</a>
                         </div>
                     </form>
+
+                    {{-- "Forgot password?" sends a reset link straight to the address
+                         typed above when it looks like an email; otherwise it opens
+                         the dedicated page. --}}
+                    <form method="POST" action="{{ route('password.email') }}" id="forgotForm" class="d-none">
+                        @csrf
+                        <input type="hidden" name="email" id="forgotEmail">
+                    </form>
+                    <script>
+                        document.getElementById('forgotLink').addEventListener('click', function (e) {
+                            var v = (document.getElementById('email').value || '').trim();
+                            if (v.indexOf('@') > 0) {
+                                e.preventDefault();
+                                document.getElementById('forgotEmail').value = v;
+                                document.getElementById('forgotForm').submit();
+                            }
+                        });
+                    </script>
 
                     @php
                         $providers = collect([

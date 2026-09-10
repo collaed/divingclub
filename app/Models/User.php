@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Carbon\Carbon;
+use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Collection as SupportCollection;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -66,6 +69,41 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getEmailForPasswordReset(): string
     {
         return $this->primary_email;
+    }
+
+    /**
+     * Send the reset link to every verified address the member owns, not just
+     * the primary one — this is what the forgot-password page promises. The
+     * token stays keyed by primary_email (getEmailForPasswordReset), and the
+     * reset form re-resolves the member from whichever address they type, so a
+     * link opened from a secondary address still validates.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        foreach ($this->passwordResetRecipients() as $address) {
+            Notification::route('mail', $address)->notify(new ResetPasswordNotification($token));
+        }
+    }
+
+    /**
+     * The primary address (always, even if unverified — never lock a member
+     * out) plus every other verified address that still has club mail enabled.
+     *
+     * @return SupportCollection<int, string>
+     */
+    protected function passwordResetRecipients(): SupportCollection
+    {
+        return $this->emails()
+            ->where('is_verified', true)
+            ->where('receive_mail', true)
+            ->pluck('email')
+            ->push($this->primary_email)
+            ->filter()
+            ->map(fn ($email): string => mb_strtolower((string) $email))
+            ->unique()
+            ->values();
     }
 
     public function getEmailForVerification(): string
