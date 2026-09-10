@@ -146,15 +146,15 @@
         .h3-anno {
             position: relative; overflow: hidden;
             background: var(--h3-accent); color: #06121f;
-            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .5);
-            transform: translateY(-100%);
-            animation: h3AnnoDrop .55s cubic-bezier(.2, .9, .25, 1.15) .35s forwards;
+            box-shadow: 0 10px 28px -8px rgba(0, 0, 0, .55);
+            transform-origin: top center;
+            animation: h3AnnoDrop .9s cubic-bezier(.16, 1, .3, 1) .25s both;
         }
         .h3-anno::after {
             content: ""; position: absolute; inset: 0; pointer-events: none;
-            background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .55) 48%, transparent 66%);
+            background: linear-gradient(115deg, transparent 28%, rgba(255, 255, 255, .6) 48%, transparent 68%);
             transform: translateX(-120%);
-            animation: h3AnnoShimmer 1.1s ease-out 1.05s 1;
+            animation: h3AnnoShimmer 1s ease-out 1.15s 1;
         }
         .h3-anno-link {
             position: relative; z-index: 1;
@@ -163,24 +163,33 @@
             color: inherit; text-decoration: none;
             font-weight: 700; font-size: clamp(.95rem, 2.1vw, 1.12rem); line-height: 1.3;
         }
-        .h3-anno-flag { font-size: 1.2em; }
+        .h3-anno-flag { font-size: 1.2em; display: inline-block; animation: h3AnnoWave .5s ease-in-out 1.7s 2; }
         .h3-anno-text { text-align: center; }
         .h3-anno-go {
             display: inline-flex; align-items: center; gap: .3rem; flex-shrink: 0;
             padding: .3rem .75rem; border-radius: 999px;
             background: #06121f; color: var(--h3-accent);
             font-size: .85em; white-space: nowrap;
-            animation: h3AnnoNudge 1s ease-in-out 1.9s 2;
+            animation: h3AnnoNudge 1s ease-in-out 2.2s 2;
         }
         .h3-anno-link:hover .h3-anno-go { background: #0b2036; }
-        @keyframes h3AnnoDrop { to { transform: translateY(0); } }
+        /* Overshoot bounce: drop past the rest position, settle back. */
+        @keyframes h3AnnoDrop {
+            0%   { transform: translateY(-105%); }
+            55%  { transform: translateY(7%); }
+            72%  { transform: translateY(-3%); }
+            86%  { transform: translateY(1%); }
+            100% { transform: translateY(0); }
+        }
         @keyframes h3AnnoShimmer { to { transform: translateX(120%); } }
         @keyframes h3AnnoNudge { 25% { transform: translateX(4px); } 50% { transform: translateX(0); } }
+        @keyframes h3AnnoWave { 25% { transform: rotate(16deg); } 75% { transform: rotate(-10deg); } }
         @media (prefers-reduced-motion: reduce) {
-            .h3-anno { transform: none; animation: none; }
-            .h3-anno::after { display: none; }
-            .h3-anno-go { animation: none; }
+            /* No vestibular motion — a plain fade is still fine here. */
+            .h3-anno { animation: h3AnnoFade .6s ease both; }
+            .h3-anno::after, .h3-anno-flag, .h3-anno-go { animation: none; }
         }
+        @keyframes h3AnnoFade { from { opacity: 0; } to { opacity: 1; } }
     </style>
 @endif
 
