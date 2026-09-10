@@ -76,6 +76,7 @@ class TrashController extends Controller
     public function restore(string $kind, int $id): RedirectResponse
     {
         $model = $this->find($kind, $id);
+        /** @phpstan-ignore-next-line — every KINDS model uses SoftDeletes; find() is typed as the base Model */
         $model->restore();
 
         // A member's 1:1 detail row is soft-deleted alongside the user.

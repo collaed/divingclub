@@ -95,7 +95,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected function passwordResetRecipients(): SupportCollection
     {
-        return $this->emails()
+        /** @var SupportCollection<int, string> $recipients */
+        $recipients = $this->emails()
             ->where('is_verified', true)
             ->where('receive_mail', true)
             ->pluck('email')
@@ -104,6 +105,8 @@ class User extends Authenticatable implements MustVerifyEmail
             ->map(fn ($email): string => mb_strtolower((string) $email))
             ->unique()
             ->values();
+
+        return $recipients;
     }
 
     public function getEmailForVerification(): string
