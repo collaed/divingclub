@@ -87,6 +87,8 @@ class PublicLandingTest extends TestCase
             ->assertSee('data-target="3"', false);
 
         Carbon::setTestNow();
+    }
+
     public function test_returning_guest_gets_the_widget_home_not_the_landing(): void
     {
         $this->withUnencryptedCookie('cep_seen_landing', (string) time())
