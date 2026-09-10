@@ -53,8 +53,9 @@ class TrashController extends Controller
         $counts[self::CANCELLED_EVENTS] = Event::query()->where('status', 'cancelled')->count();
 
         if ($cancelledMode) {
+            [$sort, $dir] = $this->resolveSort($request, ['title', 'event_date'], 'event_date');
             $rows = Event::query()->where('status', 'cancelled')
-                ->orderByDesc('event_date')
+                ->orderBy($sort, $dir)
                 ->paginate($this->perPage(25))->withQueryString();
 
             return view('admin.trash.index', [
@@ -65,11 +66,18 @@ class TrashController extends Controller
                 'actors' => collect(),
                 'counts' => $counts,
                 'cancelledMode' => true,
+                'isEvent' => true,
+                'sort' => $sort,
+                'dir' => $dir,
             ]);
         }
 
         $spec = self::KINDS[$kind];
-        $query = $spec['class']::onlyTrashed()->orderByDesc('deleted_at');
+        $isEvent = $kind === 'events';
+        $allowed = array_values(array_unique([$spec['name'], 'deleted_at', ...($isEvent ? ['event_date'] : [])]));
+        [$sort, $dir] = $this->resolveSort($request, $allowed, 'deleted_at');
+
+        $query = $spec['class']::onlyTrashed()->orderBy($sort, $dir);
 
         // Never surface GDPR-erased members as "restorable".
         if ($kind === 'members') {
@@ -94,7 +102,22 @@ class TrashController extends Controller
             'actors' => $actors,
             'counts' => $counts,
             'cancelledMode' => false,
+            'isEvent' => $isEvent,
+            'sort' => $sort,
+            'dir' => $dir,
         ]);
+    }
+
+    /**
+     * @param  list<string>  $allowed
+     * @return array{0: string, 1: string}
+     */
+    private function resolveSort(Request $request, array $allowed, string $default): array
+    {
+        $sort = in_array($request->input('sort'), $allowed, true) ? (string) $request->input('sort') : $default;
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        return [$sort, $dir];
     }
 
     /** Un-cancel a cancelled event (back to scheduled). */
