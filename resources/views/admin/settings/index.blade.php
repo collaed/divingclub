@@ -26,26 +26,27 @@
                         <thead><tr><th>{{ __('Acronym') }}</th><th>{{ __('Full Name') }}</th><th>{{ __('Visibility') }}</th><th></th></tr></thead>
                         <tbody>
                         @foreach($federations as $fed)
+                            @php $ff = 'fedform-'.$fed->id; @endphp
                             <tr>
-                                <form method="POST" action="{{ route('admin.settings.federation.update', $fed) }}">
-                                    @csrf @method('PUT')
-                                    <td><input type="text" name="acronym" class="form-control form-control-sm" value="{{ $fed->acronym }}" required></td>
-                                    <td><input type="text" name="full_name" class="form-control form-control-sm" value="{{ $fed->full_name }}" required></td>
-                                    <td>
-                                        <select name="visibility" class="form-select form-select-sm">
-                                            <option value="active" @selected($fed->visibility === 'active')>{{ __('Active') }}</option>
-                                            <option value="recognized" @selected($fed->visibility === 'recognized')>{{ __('Recognized') }}</option>
-                                            <option value="invisible" @selected($fed->visibility === 'invisible')>{{ __('Invisible') }}</option>
-                                        </select>
-                                    </td>
-                                    <td class="text-end text-nowrap">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
-                                </form>
-                                        <form method="POST" action="{{ route('admin.settings.federation.destroy', $fed) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">✕</button>
-                                        </form>
-                                    </td>
+                                <td><input type="text" form="{{ $ff }}" name="acronym" class="form-control form-control-sm" value="{{ $fed->acronym }}" required></td>
+                                <td><input type="text" form="{{ $ff }}" name="full_name" class="form-control form-control-sm" value="{{ $fed->full_name }}" required></td>
+                                <td>
+                                    <select form="{{ $ff }}" name="visibility" class="form-select form-select-sm">
+                                        <option value="active" @selected($fed->visibility === 'active')>{{ __('Active') }}</option>
+                                        <option value="recognized" @selected($fed->visibility === 'recognized')>{{ __('Recognized') }}</option>
+                                        <option value="invisible" @selected($fed->visibility === 'invisible')>{{ __('Invisible') }}</option>
+                                    </select>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <form id="{{ $ff }}" method="POST" action="{{ route('admin.settings.federation.update', $fed) }}" class="d-inline">
+                                        @csrf @method('PUT')
+                                    </form>
+                                    <button type="submit" form="{{ $ff }}" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
+                                    <form method="POST" action="{{ route('admin.settings.federation.destroy', $fed) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger">✕</button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -464,34 +465,35 @@
                         <thead><tr><th>{{ __('Federation') }}</th><th>{{ __('Age From') }}</th><th>{{ __('Age To') }}</th><th>{{ __('Cert Type') }}</th><th>{{ __('Validity (months)') }}</th><th></th></tr></thead>
                         <tbody>
                         @foreach($medicalRules as $r)
+                            @php $mf = 'medrule-'.$r->id; @endphp
                             <tr>
-                                <form method="POST" action="{{ route('admin.settings.medical-rule.update', $r) }}">
-                                    @csrf @method('PUT')
-                                    <td>
-                                        <select name="federation_id" class="form-select form-select-sm">
-                                            @foreach($federations as $f)
-                                                <option value="{{ $f->id }}" {{ $r->federation_id == $f->id ? 'selected' : '' }}>{{ $f->acronym }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td><input type="number" name="age_bracket_low" class="form-control form-control-sm" value="{{ $r->age_bracket_low }}" min="0" style="width:70px"></td>
-                                    <td><input type="number" name="age_bracket_high" class="form-control form-control-sm" value="{{ $r->age_bracket_high }}" min="0" style="width:70px"></td>
-                                    <td>
-                                        <select name="cert_type" class="form-select form-select-sm">
-                                            @foreach(['gp' => 'GP', 'ent' => 'ENT', 'cardio' => 'Cardio', 'ophthalmologist' => 'Ophthalmologist', 'other' => 'Other'] as $v => $l)
-                                                <option value="{{ $v }}" {{ $r->cert_type === $v ? 'selected' : '' }}>{{ $l }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td><input type="number" name="validity_months" class="form-control form-control-sm" value="{{ $r->validity_months }}" min="1" style="width:70px"></td>
-                                    <td class="text-end text-nowrap">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
-                                </form>
-                                        <form method="POST" action="{{ route('admin.settings.medical-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">✕</button>
-                                        </form>
-                                    </td>
+                                <td>
+                                    <select form="{{ $mf }}" name="federation_id" class="form-select form-select-sm">
+                                        @foreach($federations as $f)
+                                            <option value="{{ $f->id }}" {{ $r->federation_id == $f->id ? 'selected' : '' }}>{{ $f->acronym }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input type="number" form="{{ $mf }}" name="age_bracket_low" class="form-control form-control-sm" value="{{ $r->age_bracket_low }}" min="0" style="width:70px"></td>
+                                <td><input type="number" form="{{ $mf }}" name="age_bracket_high" class="form-control form-control-sm" value="{{ $r->age_bracket_high }}" min="0" style="width:70px"></td>
+                                <td>
+                                    <select form="{{ $mf }}" name="cert_type" class="form-select form-select-sm">
+                                        @foreach(['gp' => 'GP', 'ent' => 'ENT', 'cardio' => 'Cardio', 'ophthalmologist' => 'Ophthalmologist', 'other' => 'Other'] as $v => $l)
+                                            <option value="{{ $v }}" {{ $r->cert_type === $v ? 'selected' : '' }}>{{ $l }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input type="number" form="{{ $mf }}" name="validity_months" class="form-control form-control-sm" value="{{ $r->validity_months }}" min="1" style="width:70px"></td>
+                                <td class="text-end text-nowrap">
+                                    <form id="{{ $mf }}" method="POST" action="{{ route('admin.settings.medical-rule.update', $r) }}" class="d-inline">
+                                        @csrf @method('PUT')
+                                    </form>
+                                    <button type="submit" form="{{ $mf }}" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
+                                    <form method="POST" action="{{ route('admin.settings.medical-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger">✕</button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -528,25 +530,26 @@
                         <thead><tr><th>{{ __('Equipment Type') }}</th><th>{{ __('Maintenance') }}</th><th>{{ __('Interval (months)') }}</th><th>{{ __('Mandatory') }}</th><th>{{ __('Regulation') }}</th><th></th></tr></thead>
                         <tbody>
                         @foreach($maintenanceRules as $r)
+                            @php $rf = 'maintrule-'.$r->id; @endphp
                             <tr>
-                                <form method="POST" action="{{ route('admin.settings.maintenance-rule.update', $r) }}">
-                                    @csrf @method('PUT')
-                                    <td><input type="text" name="equipment_type" class="form-control form-control-sm" value="{{ $r->equipment_type }}" required></td>
-                                    <td><input type="text" name="maintenance_name" class="form-control form-control-sm" value="{{ $r->maintenance_name }}" required></td>
-                                    <td><input type="number" name="interval_months" class="form-control form-control-sm" value="{{ $r->interval_months }}" min="1" style="width:70px"></td>
-                                    <td>
-                                        <input type="hidden" name="is_mandatory" value="0">
-                                        <input type="checkbox" name="is_mandatory" value="1" class="form-check-input" {{ $r->is_mandatory ? 'checked' : '' }}>
-                                    </td>
-                                    <td><input type="text" name="regulation_reference" class="form-control form-control-sm" value="{{ $r->regulation_reference }}"></td>
-                                    <td class="text-end text-nowrap">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
-                                </form>
-                                        <form method="POST" action="{{ route('admin.settings.maintenance-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">✕</button>
-                                        </form>
-                                    </td>
+                                <td><input type="text" form="{{ $rf }}" name="equipment_type" class="form-control form-control-sm" value="{{ $r->equipment_type }}" required></td>
+                                <td><input type="text" form="{{ $rf }}" name="maintenance_name" class="form-control form-control-sm" value="{{ $r->maintenance_name }}" required></td>
+                                <td><input type="number" form="{{ $rf }}" name="interval_months" class="form-control form-control-sm" value="{{ $r->interval_months }}" min="1" style="width:70px"></td>
+                                <td>
+                                    <input type="hidden" form="{{ $rf }}" name="is_mandatory" value="0">
+                                    <input type="checkbox" form="{{ $rf }}" name="is_mandatory" value="1" class="form-check-input" {{ $r->is_mandatory ? 'checked' : '' }}>
+                                </td>
+                                <td><input type="text" form="{{ $rf }}" name="regulation_reference" class="form-control form-control-sm" value="{{ $r->regulation_reference }}"></td>
+                                <td class="text-end text-nowrap">
+                                    <form id="{{ $rf }}" method="POST" action="{{ route('admin.settings.maintenance-rule.update', $r) }}" class="d-inline">
+                                        @csrf @method('PUT')
+                                    </form>
+                                    <button type="submit" form="{{ $rf }}" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
+                                    <form method="POST" action="{{ route('admin.settings.maintenance-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger">✕</button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>
