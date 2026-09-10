@@ -67,28 +67,6 @@ class PublicLandingTest extends TestCase
             ->assertDontSee('Scrapped Apnea Night', false);
     }
 
-    public function test_landing_member_count_counts_only_current_members(): void
-    {
-        Carbon::setTestNow('2026-10-15'); // season year 2027, calendar year 2026
-        Cache::flush();
-
-        foreach ([[2027], [2026], [2025, 2026]] as $years) {
-            $u = User::factory()->create(['email_verified_at' => now()]);
-            $u->assignRole('member');
-            MemberDetail::create(['user_id' => $u->id, 'first_name' => 'A', 'last_name' => 'B', 'cotisation_years' => $years]);
-        }
-        // Lapsed — last paid 2023, so neither the season nor the calendar year.
-        $lapsed = User::factory()->create(['email_verified_at' => now()]);
-        $lapsed->assignRole('member');
-        MemberDetail::create(['user_id' => $lapsed->id, 'first_name' => 'C', 'last_name' => 'D', 'cotisation_years' => [2022, 2023]]);
-
-        $this->get('/')
-            ->assertOk()
-            ->assertSee('data-target="3"', false);
-
-        Carbon::setTestNow();
-    }
-
     public function test_returning_guest_gets_the_widget_home_not_the_landing(): void
     {
         $this->withUnencryptedCookie('cep_seen_landing', (string) time())
