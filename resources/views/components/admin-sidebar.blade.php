@@ -44,6 +44,7 @@
             <a href="{{ route('admin.roles.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">@icon('🔐') {{ __('Roles') }}</a>
             <a href="{{ route('admin.backups.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.backups.*') ? 'active' : '' }}">@icon('💾') {{ __('Backups') }}</a>
             <a href="{{ route('admin.audit-logs.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">@icon('📜') {{ __('Audit Log') }}</a>
+            <a href="{{ route('admin.trash.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.trash.*') ? 'active' : '' }}">@icon('🗑️') {{ __('Recycle Bin') }}</a>
             @if(auth()->user()->hasRole('bureau_master'))
                 <a href="{{ route('admin.logins.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.logins.*') ? 'active' : '' }}">@icon('🔑') {{ __('Login history') }}</a>
             @endif

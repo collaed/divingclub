@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\SeasonController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ThumbnailController;
+use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\TrialRequestController;
 use App\Http\Controllers\Admin\VoteController;
 use App\Http\Controllers\Admin\VoteGroupController;
@@ -80,6 +81,11 @@ Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->name('a
 Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
 Route::post('/audit-logs/purge', [AuditLogController::class, 'purge'])->name('audit-logs.purge');
 Route::post('/audit-logs/retention', [AuditLogController::class, 'updateRetention'])->name('audit-logs.retention');
+
+// Recycle bin (soft-deleted records)
+Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
+Route::post('/trash/{kind}/{id}/restore', [TrashController::class, 'restore'])->name('trash.restore');
+Route::delete('/trash/{kind}/{id}', [TrashController::class, 'forceDelete'])->name('trash.force-delete');
 
 // Backups
 Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');

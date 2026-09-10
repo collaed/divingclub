@@ -20,7 +20,7 @@ set -Eeuo pipefail
 
 APP_USER=clubcep
 LOG=/var/log/auto-deploy.log
-HEALTH_URL="https://prod.clubcep.eu/health"
+HEALTH_URL="https://www.clubcep.eu/health"
 KUMA_PUSH="${KUMA_DEPLOY_PUSH:-}"   # optional Uptime-Kuma push URL
 
 log() { echo "$(date '+%F %T') [deploy] $*" | tee -a "$LOG"; }

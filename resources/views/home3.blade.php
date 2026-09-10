@@ -385,7 +385,10 @@ document.addEventListener('click', function (e) {
     var hasErrors = @json($errors->any());
     if (hadRecentCookie && !hasErrors) {
         var TIMEOUT_MS = 10000;
-        var redirectTo = @json(route('login'));
+        // Returning visitor: forward to the home page, which now serves the
+        // widget home (public articles etc.) once the cep_seen_landing cookie
+        // is set.
+        var redirectTo = @json(url('/'));
         var timer = setTimeout(function () { window.location.href = redirectTo; }, TIMEOUT_MS);
         // Any interaction cancels the auto-forward so we never interrupt an
         // engaged visitor.

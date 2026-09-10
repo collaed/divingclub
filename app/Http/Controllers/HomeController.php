@@ -27,18 +27,20 @@ use App\Services\ThemeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
-    public function index(): RedirectResponse|View
+    public function index(Request $request): RedirectResponse|View
     {
         $user = auth()->user();
 
-        // Public visitors get the visual landing page (an editable, translatable
-        // article drives its intro text). Authenticated members get the
-        // configurable widget dashboard.
-        if (! $user) {
+        // First-time (or long-absent) visitors get the visual landing page; it
+        // sets the cep_seen_landing cookie. Returning guests — and all members —
+        // get the configurable widget home, which filters each widget by
+        // visibility (public widgets stay visible to guests).
+        if (! $user && ! $request->cookie('cep_seen_landing')) {
             return $this->landing();
         }
 
