@@ -35,7 +35,8 @@ class TrackedDocumentDispatchTest extends TestCase
 
         return LibraryFile::create([
             'filename' => 'agm.pdf', 'original_name' => 'AGM 2026.pdf', 'path' => 'lib/agm.pdf',
-            'mime_type' => 'application/pdf', 'size' => 20, 'visibility' => 'members', 'uploaded_by' => 1,
+            'mime_type' => 'application/pdf', 'size' => 20, 'visibility' => 'members',
+            'uploaded_by' => $this->member('uploader'.uniqid().'@x.com')->id,
         ]);
     }
 

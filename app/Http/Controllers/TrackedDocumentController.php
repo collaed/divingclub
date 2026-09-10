@@ -8,9 +8,9 @@ use App\Jobs\ResolveDocOpenGeo;
 use App\Models\DocumentDispatchOpen;
 use App\Models\DocumentDispatchRecipient;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TrackedDocumentController extends Controller
 {
@@ -18,7 +18,7 @@ class TrackedDocumentController extends Controller
      * Public per-recipient link: record the open, then serve the PDF.
      * The token is the authorisation — no login required.
      */
-    public function open(Request $request, string $token): Response
+    public function open(Request $request, string $token): StreamedResponse
     {
         $recipient = DocumentDispatchRecipient::with('dispatch.file')
             ->where('token', $token)
