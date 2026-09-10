@@ -53,6 +53,24 @@ class AdminTrashTest extends TestCase
         $this->assertDatabaseHas('events', ['id' => $event->id, 'status' => 'scheduled', 'deleted_at' => null]);
     }
 
+    public function test_trash_events_tab_shows_the_event_date_and_sorts(): void
+    {
+        $bureau = $this->createBureauUser();
+        $old = Event::factory()->create(['title' => 'OldDive', 'event_date' => now()->subMonths(3)]);
+        $soon = Event::factory()->create(['title' => 'SoonDive', 'event_date' => now()->addWeek()]);
+        $old->delete();
+        $soon->delete();
+
+        $html = $this->actingAs($bureau)
+            ->get(route('admin.trash.index', ['kind' => 'events', 'sort' => 'event_date', 'dir' => 'asc']))
+            ->assertOk()
+            ->assertSee($old->event_date->format('d/m/Y'))
+            ->getContent();
+
+        // event_date asc → OldDive appears before SoonDive
+        $this->assertLessThan(strpos($html, 'SoonDive'), strpos($html, 'OldDive'));
+    }
+
     public function test_binning_a_cancelled_event_soft_deletes_it(): void
     {
         $bureau = $this->createBureauUser();
