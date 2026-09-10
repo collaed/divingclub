@@ -132,19 +132,54 @@
     $ctaLive = $ctaText !== '' && ($ctaUntil === '' || \Illuminate\Support\Carbon::parse($ctaUntil)->endOfDay()->isFuture());
 @endphp
 @if($ctaLive)
-    <a href="{{ $ctaUrl ?: '#' }}" class="h3-cta-bar">
-        <span>{{ $ctaText }}</span>
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
-    </a>
+    <div class="h3-cta" role="region" aria-label="{{ __('Announcement') }}">
+        <a href="{{ $ctaUrl ?: '#' }}" class="h3-cta-link">
+            <span class="h3-cta-flag" aria-hidden="true">📣</span>
+            <span class="h3-cta-text">{{ $ctaText }}</span>
+            <span class="h3-cta-go">
+                {{ __('Find out more') }}
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+            </span>
+        </a>
+    </div>
     <style>
-        .h3-cta-bar {
-            display: flex; align-items: center; justify-content: center; gap: .6rem;
-            padding: .85rem 1.25rem; text-align: center;
-            background: var(--h3-accent); color: #06121f; text-decoration: none;
-            font-weight: 700; font-size: clamp(.95rem, 2.2vw, 1.1rem); line-height: 1.3;
+        .h3-cta {
+            position: relative; overflow: hidden;
+            background: var(--h3-accent); color: #06121f;
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .5);
+            transform: translateY(-100%);
+            animation: h3CtaDrop .55s cubic-bezier(.2, .9, .25, 1.15) .35s forwards;
         }
-        .h3-cta-bar:hover { filter: brightness(.94); color: #06121f; }
-        .h3-cta-bar svg { flex-shrink: 0; }
+        .h3-cta::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .55) 48%, transparent 66%);
+            transform: translateX(-120%);
+            animation: h3CtaShimmer 1.1s ease-out 1.05s 1;
+        }
+        .h3-cta-link {
+            display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+            gap: .5rem .9rem; padding: 1rem 1.25rem;
+            color: inherit; text-decoration: none;
+            font-weight: 700; font-size: clamp(.95rem, 2.1vw, 1.12rem); line-height: 1.3;
+        }
+        .h3-cta-flag { font-size: 1.2em; }
+        .h3-cta-text { text-align: center; }
+        .h3-cta-go {
+            display: inline-flex; align-items: center; gap: .3rem; flex-shrink: 0;
+            padding: .3rem .75rem; border-radius: 999px;
+            background: #06121f; color: var(--h3-accent);
+            font-size: .85em; white-space: nowrap;
+            animation: h3CtaNudge 1s ease-in-out 1.9s 2;
+        }
+        .h3-cta-link:hover .h3-cta-go { background: #0b2036; }
+        @keyframes h3CtaDrop { to { transform: translateY(0); } }
+        @keyframes h3CtaShimmer { to { transform: translateX(120%); } }
+        @keyframes h3CtaNudge { 25% { transform: translateX(4px); } 50% { transform: translateX(0); } }
+        @media (prefers-reduced-motion: reduce) {
+            .h3-cta { transform: none; animation: none; }
+            .h3-cta::after, .h3-cta-go { animation: none; }
+            .h3-cta::after { display: none; }
+        }
     </style>
 @endif
 
