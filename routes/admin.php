@@ -85,10 +85,12 @@ Route::post('/audit-logs/retention', [AuditLogController::class, 'updateRetentio
 
 // Recycle bin (soft-deleted records + cancelled events)
 Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
-Route::post('/trash/{kind}/{id}/restore', [TrashController::class, 'restore'])->name('trash.restore');
-Route::delete('/trash/{kind}/{id}', [TrashController::class, 'forceDelete'])->name('trash.force-delete');
+// Specific cancelled-event routes first — the generic {kind}/{id} routes below
+// would otherwise swallow /trash/cancelled-event/{id}.
 Route::post('/trash/cancelled-event/{event}/restore', [TrashController::class, 'restoreCancelledEvent'])->name('trash.cancelled-event.restore');
 Route::delete('/trash/cancelled-event/{event}', [TrashController::class, 'trashCancelledEvent'])->name('trash.cancelled-event.trash');
+Route::post('/trash/{kind}/{id}/restore', [TrashController::class, 'restore'])->name('trash.restore');
+Route::delete('/trash/{kind}/{id}', [TrashController::class, 'forceDelete'])->name('trash.force-delete');
 
 // Backups
 Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
