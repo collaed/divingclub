@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreFederationRequest;
 use App\Http\Requests\StoreMaintenanceRuleRequest;
 use App\Http\Requests\StoreMedicalRuleRequest;
 use App\Http\Requests\StoreMembershipFeeRequest;
 use App\Models\EquipmentMaintenanceRule;
-use App\Models\Federation;
 use App\Models\MedicalComplianceRule;
 use App\Models\MembershipFee;
 use App\Models\MemberStatus;
@@ -29,7 +27,6 @@ class SettingsController extends Controller
     public function index(): RedirectResponse|View
     {
         return view('admin.settings.index', [
-            'federations' => Federation::orderBy('acronym')->get(),
             'statuses' => MemberStatus::orderBy('name')->get(),
             'medicalRules' => MedicalComplianceRule::with('federation')->orderBy('federation_id')->orderBy('age_bracket_low')->get(),
             'maintenanceRules' => EquipmentMaintenanceRule::orderBy('equipment_type')->get(),
@@ -38,43 +35,6 @@ class SettingsController extends Controller
             'membershipFees' => MembershipFee::with('status')->orderBy('season_year', 'desc')->orderBy('status_id')->get(),
             'statusSets' => StatusSet::with('statuses')->orderBy('name')->get(),
         ]);
-    }
-
-    // --- Federations ---
-    public function storeFederation(StoreFederationRequest $request): RedirectResponse
-    {
-        Federation::create($request->validated());
-
-        return back()->with('success', __('Federation added.'));
-    }
-
-    /** Save every federation row in one submit. */
-    public function bulkUpdateFederations(Request $request): RedirectResponse
-    {
-        $rows = $request->validate([
-            'fed' => 'array',
-            'fed.*.acronym' => 'required|string|max:20',
-            'fed.*.full_name' => 'required|string|max:255',
-            'fed.*.visibility' => 'required|in:active,recognized,invisible',
-        ])['fed'] ?? [];
-
-        $acronyms = array_map('mb_strtoupper', array_column($rows, 'acronym'));
-        if (count($acronyms) !== count(array_unique($acronyms))) {
-            return back()->withErrors(['fed' => __('Two federations cannot share an acronym.')]);
-        }
-
-        Federation::whereKey(array_keys($rows))->get()->each(
-            fn (Federation $f) => $f->update($rows[$f->id])
-        );
-
-        return back()->with('success', __('Federations saved.'));
-    }
-
-    public function destroyFederation(Federation $federation): RedirectResponse
-    {
-        $federation->delete();
-
-        return back()->with('success', __('Federation deleted.'));
     }
 
     // --- Member Statuses ---
