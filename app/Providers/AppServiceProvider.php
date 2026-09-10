@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Auth\DivingClubUserProvider;
+use App\Jobs\ResolveLoginGeo;
 use App\Models\EmailLog;
 use App\Models\LoginRecord;
 use App\Services\LicenseService;
@@ -62,13 +63,15 @@ class AppServiceProvider extends ServiceProvider
             }
 
             try {
-                LoginRecord::create([
+                $record = LoginRecord::create([
                     'user_id' => $event->user->getAuthIdentifier(),
                     'guard' => $event->guard,
                     'remember' => $event->remember,
                     'ip_address' => request()->ip(),
                     'user_agent' => mb_substr((string) request()->userAgent(), 0, 1000),
                 ]);
+                // Resolve the country off the queue so login isn't slowed.
+                ResolveLoginGeo::dispatch($record->id)->afterCommit();
             } catch (\Throwable $e) {
                 report($e);
             }

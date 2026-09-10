@@ -89,6 +89,7 @@
                             <th data-sort-col>{{ __('Member') }}</th>
                             <th data-sort-col>{{ __('When') }}</th>
                             <th data-sort-col>{{ __('IP') }}</th>
+                            <th data-sort-col>{{ __('Country') }}</th>
                             <th data-sort-col>{{ __('Device') }}</th>
                             <th></th>
                         </tr>
@@ -109,11 +110,14 @@
                                     {{ $login->created_at?->diffForHumans() }}
                                 </td>
                                 <td class="text-nowrap"><code>{{ $login->ip_address ?? '—' }}</code></td>
+                                <td class="text-nowrap small" data-sort-value="{{ $login->country_code ?? 'zz' }}" title="{{ $login->country_name }}">
+                                    {{ $login->country_code ? \App\Support\GeoLocator::flag($login->country_code).' '.$login->country_code : '—' }}
+                                </td>
                                 <td class="text-nowrap small" title="{{ $login->user_agent }}">{{ $ua($login->user_agent) }}</td>
                                 <td>@if($login->remember)<span class="badge bg-light text-muted" title="{{ __('Remember me') }}">🔒</span>@endif</td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="text-muted text-center py-4">{{ __('No logins recorded yet.') }}</td></tr>
+                            <tr><td colspan="6" class="text-muted text-center py-4">{{ __('No logins recorded yet.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
