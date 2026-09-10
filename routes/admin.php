@@ -10,7 +10,6 @@ use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EmailStatsController;
-use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\LibraryController;
@@ -195,16 +194,8 @@ Route::post('/payments/suggest-matches', [PaymentController::class, 'suggestMatc
 Route::post('/payments/confirm/{transaction}', [PaymentController::class, 'confirmMatch'])->name('payments.confirm-match');
 Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignoreTransaction'])->name('payments.ignore');
 
-// Equipment
-Route::get('/equipment', [EquipmentController::class, 'index'])->name('equipment.index');
-Route::get('/equipment/create', [EquipmentController::class, 'create'])->name('equipment.create');
-Route::post('/equipment', [EquipmentController::class, 'store'])->name('equipment.store');
-Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('equipment.show');
-Route::put('/equipment/{equipment}', [EquipmentController::class, 'update'])->name('equipment.update');
-Route::post('/equipment/{equipment}/loan', [EquipmentController::class, 'loan'])->name('equipment.loan');
-Route::post('/equipment/quick-loan', [EquipmentController::class, 'quickLoan'])->name('equipment.quick-loan');
-Route::post('/equipment/return/{loan}', [EquipmentController::class, 'returnLoan'])->name('equipment.return');
-Route::post('/equipment/maintenance/{maintenance}/complete', [EquipmentController::class, 'completeMaintenance'])->name('equipment.maintenance.complete');
+// Equipment lives in routes/web.php, gated by `can:manage equipment`
+// (delegated to technical_dir) rather than a bureau role.
 
 // Email
 Route::get('/email', [EmailController::class, 'index'])->name('email.index');

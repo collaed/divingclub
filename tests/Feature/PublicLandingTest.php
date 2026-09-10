@@ -103,7 +103,8 @@ class PublicLandingTest extends TestCase
         Carbon::setTestNow('2026-10-15'); // season year 2027, calendar year 2026
         Cache::flush();
 
-        foreach ([[2027], [2026], [2025, 2026]] as $years) {
+        // Years are stored as strings by the member-edit form.
+        foreach ([['2027'], ['2026'], ['2025', '2026']] as $years) {
             $u = User::factory()->create(['email_verified_at' => now()]);
             $u->assignRole('member');
             MemberDetail::create(['user_id' => $u->id, 'first_name' => 'A', 'last_name' => 'B', 'cotisation_years' => $years]);
@@ -111,7 +112,7 @@ class PublicLandingTest extends TestCase
         // Lapsed — last paid 2023, so neither the season nor the calendar year.
         $lapsed = User::factory()->create(['email_verified_at' => now()]);
         $lapsed->assignRole('member');
-        MemberDetail::create(['user_id' => $lapsed->id, 'first_name' => 'C', 'last_name' => 'D', 'cotisation_years' => [2022, 2023]]);
+        MemberDetail::create(['user_id' => $lapsed->id, 'first_name' => 'C', 'last_name' => 'D', 'cotisation_years' => ['2022', '2023']]);
 
         $this->get('/')
             ->assertOk()
