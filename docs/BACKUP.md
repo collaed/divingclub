@@ -57,37 +57,110 @@ rsync -a private/ /opt/deploy/apps/divingclub-prod/storage/app/private/
 rsync -a public/  /opt/deploy/apps/divingclub-prod/storage/app/public/
 ```
 
-## Offsite copy — Google Drive via rclone
+## Offsite copy — SFTP drop-box on ecb.pm
 
-Backups currently live only on `/mnt/data` on the same box (`BACKUP_OFFSITE_HOST`
-is unset). Recommended second copy using the club's Google account:
+Backups live on `/mnt/data` on the prod box. The second copy goes over SFTP to
+**ecb.pm** (the monitoring host) via `BackupService::offsiteUpload()`, which fires
+whenever `BACKUP_OFFSITE_HOST` is set: `sftp -i <key> -b - <user>@<host>`, `cd
+<dir>`, `put <zip> dcms-bkp-<domain>-<date>.tar.gz`.
 
-1. **One-time (needs a browser once):**
-   ```bash
-   sudo apt-get install -y rclone
-   rclone config    # n → name "gdrive" → drive → leave client id/secret blank
-                    # → scope 1 (full) → auto config → sign in as the club account
-                    # → optionally point at a Shared Drive
-   ```
-   Or use a **Google service account** (`rclone config` → `service_account_file`)
-   and share a Drive folder with its address — no token expiry, better for a
-   headless server.
+> **Status: designed, not yet activated.** ecb.pm's root disk was at 92% (Sep
+> 2026) — reclaim ~13 GB of dangling docker volumes (`docker volume prune`) or
+> attach a small Hetzner volume first.
 
-2. **Nightly copy of the DB+private backups** (small, keep versions):
-   ```
-   15 3 * * * rclone copy /mnt/data/prod/backup/DivingClub gdrive:DCMS/prod/backups --max-age 8d --transfers 2 >/dev/null 2>&1
-   ```
+### On ecb.pm — a blind put-only account
 
-3. **Weekly mirror of the bulky media** that the zip excludes:
-   ```
-   0 4 * * 0 rclone sync /mnt/data/prod/pics/public gdrive:DCMS/prod/pics-public --fast-list --transfers 4 >/dev/null 2>&1
-   ```
-   `sync` is incremental — only changed/new files transfer. First run uploads
-   ~2.7 GB; subsequent runs are seconds.
+```bash
+sudo useradd -m -d /home/dcms-backup -s /usr/sbin/nologin -g backup dcms-backup
+sudo chown root:root /home/dcms-backup && sudo chmod 755 /home/dcms-backup   # chroot needs root-owned
+sudo install -d -o root -g root -m 755 /home/dcms-backup/.ssh
+sudo install -d -o dcms-backup -g backup -m 0300 /home/dcms-backup/upload    # write+traverse, NOT readable → cannot ls/get/rm
+# prod's public key:
+echo 'ssh-ed25519 AAAA… clubcep@prod' | sudo tee /home/dcms-backup/.ssh/authorized_keys
+sudo chown root:root /home/dcms-backup/.ssh/authorized_keys && sudo chmod 644 /home/dcms-backup/.ssh/authorized_keys
+```
 
-4. Feed a Kuma push monitor from each cron line (`&& curl …/api/push/<token>`)
-   so a silent failure is visible.
+`/etc/ssh/sshd_config.d/dcms-backup.conf`:
+```
+Match User dcms-backup
+    ChrootDirectory /home/dcms-backup
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    X11Forwarding no
+    PermitTunnel no
+    AuthorizedKeysFile /home/dcms-backup/.ssh/authorized_keys
+```
+`sudo sshd -t && sudo systemctl reload ssh`. The account can `cd upload && put`
+but the `0300` dir means it cannot list, download, or delete anything — a true
+drop-box.
 
-`spatie/laravel-backup` can also write straight to a Google Drive Flysystem disk
-(add it to `backup.backup.destination.disks`), but rclone keeps backup delivery
-decoupled from the app and covers the pics mirror in the same tool.
+### Retention + freshness cron on ecb.pm
+
+Runs as root (the account itself can't manage the dir). Keep the **2 newest**,
+alert Kuma if the newest is stale (weekly backup ⇒ threshold 8 days):
+```bash
+#!/bin/bash
+D=/home/dcms-backup/upload
+ls -t "$D"/dcms-bkp-* 2>/dev/null | tail -n +3 | xargs -r rm -f
+NEW=$(find "$D" -name 'dcms-bkp-*' -mtime -8 | head -1)
+curl -fsS -m10 "https://kuma.ecb.pm/api/push/<offsite-token>?status=$([ -n "$NEW" ] && echo up || echo down)&msg=$([ -n "$NEW" ] && echo fresh || echo stale)" >/dev/null 2>&1
+```
+`30 7 * * * /opt/scripts/dcms-offsite-prune.sh` — create a Kuma push monitor
+"PROD offsite backup" and drop its token in.
+
+### On prod
+
+```bash
+sudo -u clubcep ssh-keygen -t ed25519 -N '' -f /home/clubcep/.ssh/backup_key
+# put backup_key.pub into ecb.pm:/home/dcms-backup/.ssh/authorized_keys
+sudo -u clubcep ssh -i /home/clubcep/.ssh/backup_key -o StrictHostKeyChecking=accept-new dcms-backup@<ecb.pm host> true  # seed known_hosts
+```
+Then in prod `.env` (no config cache — `optimize:clear` after):
+```
+BACKUP_OFFSITE_HOST=<ecb.pm host>
+BACKUP_OFFSITE_USER=dcms-backup
+BACKUP_OFFSITE_KEY=/home/clubcep/.ssh/backup_key
+BACKUP_OFFSITE_DIR=upload
+```
+
+### Known limitations
+
+- Upload runs synchronously inside the backup (fine for the weekly job; a manual
+  UI backup blocks for the ~0.5 GB transfer).
+- Remote file is named `*.tar.gz` but is the `.zip` — cosmetic.
+- The bulky `public/*` media (~2.7 GB) is **not** in the backup zip and so not in
+  this offsite copy. Mirror it separately if it matters.
+
+## Deferred — Google Drive via rclone
+
+Set aside (`clubcep@gmail.com` is consumer Gmail → no Shared Drives, and a
+service account has no Drive quota → its uploads to a shared folder fail; the way
+in is OAuth as the shared account). The ready script is **`deploy/gdrive-offsite.sh`**
+— daily `rclone copy` of `backup-*.zip` to `gdrive:DCMS/prod/backups` (kept to the
+2 newest) + `rclone sync` of the pics, with a Kuma push. Revisit with:
+`sudo -u clubcep rclone config` (drive → client_id/secret → scope 1 → no service
+account → run the printed `rclone authorize` on a laptop, sign in as
+`clubcep@gmail.com`, paste the token back).
+
+## Deferred — Google Drive via rclone
+
+Set aside for now (see above). The ready-to-use pieces are kept for when it's
+revisited:
+
+- **`deploy/gdrive-offsite.sh`** — daily `rclone copy` of `backup-*.zip` to
+  `gdrive:DCMS/prod/backups` (pruned to the 2 newest on the remote) + `rclone
+  sync` of `/mnt/data/prod/pics/public`, with a Kuma push.
+- Blocked on: `clubcep@gmail.com` is **consumer** Gmail → no Shared Drives, and a
+  service account has no Drive quota, so its uploads to a shared My-Drive folder
+  fail. The path forward is **OAuth as the shared `clubcep@gmail.com` account**
+  with the club's own OAuth client (project `cep-prod-507014`, Desktop-app type,
+  consent screen "In production" so the refresh token doesn't expire):
+  ```bash
+  sudo -u clubcep rclone config      # n → gdrive → drive → client_id/secret →
+                                     # scope 1 → no service account → no browser
+                                     # → run the printed `rclone authorize` on a
+                                     # laptop, sign in as clubcep@gmail.com, paste
+                                     # the token back → not a Shared Drive
+  ```
+  Then install the script to `/opt/deploy/gdrive-offsite.sh` and cron it
+  (`45 3 * * * … <kuma-token>`).
