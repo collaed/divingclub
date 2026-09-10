@@ -1,7 +1,7 @@
 @php
     $d = $target->detail;
     $userCerts = $target->certificationLevels()->with('federation')->orderByPivot('display_priority', 'desc')->get();
-    $federations = \App\Models\Federation::active()->with(['certificationLevels' => fn($q) => $q->orderBy('category')->orderBy('rank')])->orderBy('acronym')->get();
+    $federations = \App\Models\Federation::visible()->with(['certificationLevels' => fn($q) => $q->orderBy('category')->orderBy('rank')])->orderBy('acronym')->get();
 @endphp
 
 <div class="row mb-4">
@@ -136,7 +136,7 @@
         <div class="mb-2 d-flex flex-wrap gap-1" id="fedFilter">
             @foreach($federations as $fed)
                 <label class="btn btn-sm btn-outline-primary py-0 px-2{{ $fed->certificationLevels->isEmpty() ? ' disabled' : '' }}">
-                    <input type="checkbox" class="d-none fed-check" value="{{ $fed->id }}" checked autocomplete="off"> {{ $fed->acronym }}
+                    <input type="checkbox" class="d-none fed-check" value="{{ $fed->id }}" {{ $fed->visibility === 'active' ? 'checked' : '' }} autocomplete="off"> {{ $fed->acronym }}
                 </label>
             @endforeach
         </div>
@@ -219,7 +219,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         c.closest('label').classList.toggle('active', c.checked);
     });
-    if (saved) filterFeds();
+    // Always sync the <select> optgroups to the checkbox state — on a first
+    // visit (no saved filter) this hides the optgroups of federations that are
+    // only "recognized", which render unchecked by default.
+    filterFeds();
 });
 </script>
 
@@ -254,3 +257,21 @@ document.addEventListener('DOMContentLoaded', function() {
     <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
 </form>
 @endif
+
+@push('styles')
+<style>
+    /* Federation headers in the "Add certification" picker read as dividers:
+       flush-left, bold and upright, with the levels indented beneath them.
+       Chromium honours this on native <select> popups; other browsers fall
+       back to their default optgroup rendering. */
+    #certSelect optgroup {
+        font-style: normal;
+        font-weight: 700;
+        padding-left: 0;
+    }
+    #certSelect option {
+        font-weight: 400;
+        padding-left: 1.25rem;
+    }
+</style>
+@endpush

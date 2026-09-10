@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CertificationLevel;
 use App\Models\Federation;
 use App\Models\MemberStatus;
 use App\Models\Role;
@@ -66,6 +67,29 @@ class FederationVisibilityTest extends TestCase
 
         $response->assertRedirect();
         $this->assertEquals('invisible', $fed->fresh()->visibility);
+    }
+
+    public function test_certification_selector_hides_invisible_and_leaves_recognized_unchecked(): void
+    {
+        $active = Federation::create(['acronym' => 'ACTV', 'full_name' => 'Active Fed', 'visibility' => 'active']);
+        $recognized = Federation::create(['acronym' => 'RECOG', 'full_name' => 'Recognized Fed', 'visibility' => 'recognized']);
+        $invisible = Federation::create(['acronym' => 'INVIS', 'full_name' => 'Invisible Fed', 'visibility' => 'invisible']);
+
+        foreach ([$active, $recognized, $invisible] as $fed) {
+            CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'L1', 'name' => 'Level 1', 'category' => 'diver', 'rank' => 1]);
+        }
+
+        $html = $this->actingAs($this->admin)->get(route('profile.show'))->assertOk()->getContent();
+
+        // Invisible federation is absent from the selector entirely.
+        $this->assertStringNotContainsString('fed-check" value="'.$invisible->id.'"', $html);
+
+        // Active federation renders pre-checked.
+        $this->assertStringContainsString('fed-check" value="'.$active->id.'" checked autocomplete="off"', $html);
+
+        // Recognized federation renders, but unchecked by default.
+        $this->assertStringContainsString('fed-check" value="'.$recognized->id.'"', $html);
+        $this->assertStringNotContainsString('fed-check" value="'.$recognized->id.'" checked', $html);
     }
 
     public function test_new_federation_defaults_to_active(): void
