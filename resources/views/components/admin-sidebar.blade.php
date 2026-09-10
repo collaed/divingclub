@@ -9,8 +9,19 @@
                 @can('manage federations')
                     <a href="{{ route('admin.federations.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.federations.*') ? 'active' : '' }}">@icon('🎖️') {{ __('Federations') }}</a>
                 @endcan
+                @can('manage equipment')
+                    <a href="{{ route('admin.equipment.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.equipment.*') ? 'active' : '' }}">@icon('🤿') {{ __('Equipment') }}</a>
+                @endcan
             </div>
         </div>
+        @can('view analytics')
+            <div class="dc-admin-group">
+                <div class="dc-admin-group-label">{{ __('System') }}</div>
+                <div class="list-group">
+                    <a href="{{ route('admin.analytics.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">@icon('📈') {{ __('Analytics') }}</a>
+                </div>
+            </div>
+        @endcan
     </nav>
 @else
 <nav class="dc-admin-sidebar">
@@ -63,6 +74,9 @@
             @if(auth()->user()->hasRole('bureau_master'))
                 <a href="{{ route('admin.logins.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.logins.*') ? 'active' : '' }}">@icon('🔑') {{ __('Login history') }}</a>
             @endif
+            @can('view analytics')
+                <a href="{{ route('admin.analytics.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">@icon('📈') {{ __('Analytics') }}</a>
+            @endcan
             <a href="{{ route('admin.guide.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.guide.*') ? 'active' : '' }}">@icon('📖') {{ __('Guide') }}</a>
         </div>
     </div>

@@ -96,5 +96,6 @@ return [
     'umami' => [
         'url' => env('UMAMI_URL'),
         'id' => env('UMAMI_WEBSITE_ID'),
+        'share_url' => env('UMAMI_SHARE_URL'),
     ],
 ];

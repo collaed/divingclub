@@ -202,6 +202,9 @@
                                             @if(auth()->user()->hasRole('bureau_master'))
                                             <a class="dropdown-item" href="{{ route('admin.logins.index') }}">@icon('🔑') {{ __('Login history') }}</a>
                                             @endif
+                                            @can('view analytics')
+                                            <a class="dropdown-item" href="{{ route('admin.analytics.index') }}">@icon('📈') {{ __('Analytics') }}</a>
+                                            @endcan
                                             <a class="dropdown-item" href="{{ route('admin.settings.index') }}">@icon('⚙️') {{ __('Settings') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.roles.index') }}">@icon('🔐') {{ __('Roles & Permissions') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.guide.index') }}">@icon('📖') {{ __('Admin Guide') }}</a>
@@ -209,12 +212,14 @@
                                     </div>
                                 </div>
                             </li>
-                        @elseif(auth()->user()->can('manage federations'))
-                            {{-- Delegated specialist (technical_dir): just their area. --}}
+                        @elseif(auth()->user()->canany(['manage federations', 'manage equipment', 'view analytics']))
+                            {{-- Delegated specialist (e.g. technical_dir): just their areas. --}}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Admin') }}</a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a></li>
+                                    @can('manage federations')<li><a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a></li>@endcan
+                                    @can('manage equipment')<li><a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🤿') {{ __('Equipment') }}</a></li>@endcan
+                                    @can('view analytics')<li><a class="dropdown-item" href="{{ route('admin.analytics.index') }}">@icon('📈') {{ __('Analytics') }}</a></li>@endcan
                                 </ul>
                             </li>
                         @endif
