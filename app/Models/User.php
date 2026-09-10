@@ -17,8 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -95,7 +95,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected function passwordResetRecipients(): SupportCollection
     {
-        return $this->emails()
+        /** @var SupportCollection<int, string> $recipients */
+        $recipients = $this->emails()
             ->where('is_verified', true)
             ->where('receive_mail', true)
             ->pluck('email')
@@ -104,6 +105,8 @@ class User extends Authenticatable implements MustVerifyEmail
             ->map(fn ($email): string => mb_strtolower((string) $email))
             ->unique()
             ->values();
+
+        return $recipients;
     }
 
     public function getEmailForVerification(): string
