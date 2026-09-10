@@ -104,7 +104,13 @@ class Article extends Model
         // view (hasInterestForm()), so here we just strip the placeholder,
         // tolerating whatever the auto-translator did to it (e.g. "[the form of
         // interest]").
-        $body = preg_replace('#<p>\s*\[[^\]]*(?:interest|intér[êe]t)[^\]]*\]\s*</p>|\[[^\]]*(?:interest[- ]?form|form(?:ulaire)?[^\]]*int[ée]r[êe]t)[^\]]*\]#iu', '', $body);
+        $intr = '(?:interest|int[ée]r[êe]t)';
+        $body = preg_replace(
+            '#<p>\s*\[{1,2}\s*[^\[\]]*?(?:'.$intr.'[\s-]*form|form[a-z]*[^\[\]]*'.$intr.'|'.$intr.'[^\[\]]*form[a-z]*)[^\[\]]*\s*\]{1,2}\s*</p>#iu',
+            '',
+            $body
+        );
+        $body = preg_replace('#\[{1,2}\s*interest[\s-]*form\s*\]{1,2}#i', '', $body);
 
         return $body;
     }
