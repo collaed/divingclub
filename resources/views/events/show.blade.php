@@ -454,8 +454,8 @@
                 @endif
             @endauth
 
-            {{-- Dive Groups link --}}
-            @if(in_array($event->event_type, ['dive', 'training']) || $isPrivileged)
+            {{-- Dive Groups link — planner is limited to instructors & bureau for now --}}
+            @if($isPrivileged || auth()->user()?->hasAnyRole(['instructor', 'instructor_apnea', 'assistant']))
                 <div class="card dc-card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>@icon('🤿') {{ __('Dive Groups') }}</span>
