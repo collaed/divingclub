@@ -591,6 +591,26 @@
                         </div>
                     </form>
 
+                    {{-- Landing announcement bar --}}
+                    <h6>{{ __('Landing announcement bar') }}</h6>
+                    <p class="text-muted small mb-2">{{ __('A one-line banner across the top of the visual landing page. Leave the text empty to hide it; it also hides itself after the "show until" date.') }}</p>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}" class="row g-2 mb-4">
+                        @csrf
+                        <div class="col-md-6">
+                            <label class="form-label small mb-1">{{ __('Text') }}</label>
+                            <input type="text" name="landing_cta_text" class="form-control form-control-sm" maxlength="160" value="{{ $themeSettings['landing_cta_text'] ?? '' }}" placeholder="{{ __('Free discovery evening — Wednesday 30 September') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">{{ __('Link') }}</label>
+                            <input type="url" name="landing_cta_url" class="form-control form-control-sm" value="{{ $themeSettings['landing_cta_url'] ?? '' }}" placeholder="https://…">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small mb-1">{{ __('Show until') }}</label>
+                            <input type="date" name="landing_cta_until" class="form-control form-control-sm" value="{{ $themeSettings['landing_cta_until'] ?? '' }}">
+                        </div>
+                        <div class="col-12"><button class="btn btn-sm btn-primary">{{ __('Save') }}</button></div>
+                    </form>
+
                     {{-- Site Layout --}}
                     <h6>{{ __('Site Layout') }}</h6>
                     <p class="text-muted small mb-2">{{ __('Controls the overall header, navigation, and page structure. Affects all visitors.') }}</p>

@@ -125,6 +125,29 @@
 </head>
 <body>
 
+@php
+    $ctaText = trim((string) ($theme['landing_cta_text'] ?? ''));
+    $ctaUrl = trim((string) ($theme['landing_cta_url'] ?? ''));
+    $ctaUntil = trim((string) ($theme['landing_cta_until'] ?? ''));
+    $ctaLive = $ctaText !== '' && ($ctaUntil === '' || \Illuminate\Support\Carbon::parse($ctaUntil)->endOfDay()->isFuture());
+@endphp
+@if($ctaLive)
+    <a href="{{ $ctaUrl ?: '#' }}" class="h3-cta-bar">
+        <span>{{ $ctaText }}</span>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+    </a>
+    <style>
+        .h3-cta-bar {
+            display: flex; align-items: center; justify-content: center; gap: .6rem;
+            padding: .85rem 1.25rem; text-align: center;
+            background: var(--h3-accent); color: #06121f; text-decoration: none;
+            font-weight: 700; font-size: clamp(.95rem, 2.2vw, 1.1rem); line-height: 1.3;
+        }
+        .h3-cta-bar:hover { filter: brightness(.94); color: #06121f; }
+        .h3-cta-bar svg { flex-shrink: 0; }
+    </style>
+@endif
+
 {{-- Sticky nav --}}
 <nav class="h3-nav" id="stickyNav">
     <a href="#hero" class="h3-nav-brand"><img src="/images/club-logo.png"> {{ $clubName }}</a>
