@@ -48,11 +48,26 @@ class SettingsController extends Controller
         return back()->with('success', __('Federation added.'));
     }
 
-    public function updateFederation(StoreFederationRequest $request, Federation $federation): RedirectResponse
+    /** Save every federation row in one submit. */
+    public function bulkUpdateFederations(Request $request): RedirectResponse
     {
-        $federation->update($request->validated());
+        $rows = $request->validate([
+            'fed' => 'array',
+            'fed.*.acronym' => 'required|string|max:20',
+            'fed.*.full_name' => 'required|string|max:255',
+            'fed.*.visibility' => 'required|in:active,recognized,invisible',
+        ])['fed'] ?? [];
 
-        return back()->with('success', __('Federation updated.'));
+        $acronyms = array_map('mb_strtoupper', array_column($rows, 'acronym'));
+        if (count($acronyms) !== count(array_unique($acronyms))) {
+            return back()->withErrors(['fed' => __('Two federations cannot share an acronym.')]);
+        }
+
+        Federation::whereKey(array_keys($rows))->get()->each(
+            fn (Federation $f) => $f->update($rows[$f->id])
+        );
+
+        return back()->with('success', __('Federations saved.'));
     }
 
     public function destroyFederation(Federation $federation): RedirectResponse
@@ -185,11 +200,23 @@ class SettingsController extends Controller
         return back()->with('success', __('Medical rule added.'));
     }
 
-    public function updateMedicalRule(StoreMedicalRuleRequest $request, MedicalComplianceRule $rule): RedirectResponse
+    /** Save every medical-rule row in one submit. */
+    public function bulkUpdateMedicalRules(Request $request): RedirectResponse
     {
-        $rule->update($request->validated());
+        $rows = $request->validate([
+            'rule' => 'array',
+            'rule.*.federation_id' => 'required|exists:federations,id',
+            'rule.*.age_bracket_low' => 'required|integer|min:0',
+            'rule.*.age_bracket_high' => 'required|integer|min:0|gte:rule.*.age_bracket_low',
+            'rule.*.cert_type' => 'required|string|in:gp,ent,cardio,ophthalmologist,other',
+            'rule.*.validity_months' => 'required|integer|min:1',
+        ])['rule'] ?? [];
 
-        return back()->with('success', __('Medical rule updated.'));
+        MedicalComplianceRule::whereKey(array_keys($rows))->get()->each(
+            fn (MedicalComplianceRule $r) => $r->update($rows[$r->id])
+        );
+
+        return back()->with('success', __('Medical rules saved.'));
     }
 
     public function destroyMedicalRule(MedicalComplianceRule $rule): RedirectResponse
@@ -209,13 +236,24 @@ class SettingsController extends Controller
         return back()->with('success', __('Maintenance rule added.'));
     }
 
-    public function updateMaintenanceRule(StoreMaintenanceRuleRequest $request, EquipmentMaintenanceRule $rule): RedirectResponse
+    /** Save every maintenance-rule row in one submit. */
+    public function bulkUpdateMaintenanceRules(Request $request): RedirectResponse
     {
-        $v = $request->validated();
-        $v['is_mandatory'] = $request->boolean('is_mandatory');
-        $rule->update($v);
+        $rows = $request->validate([
+            'rule' => 'array',
+            'rule.*.equipment_type' => 'required|string|max:100',
+            'rule.*.maintenance_name' => 'required|string|max:255',
+            'rule.*.interval_months' => 'required|integer|min:1',
+            'rule.*.regulation_reference' => 'nullable|string|max:255',
+        ])['rule'] ?? [];
 
-        return back()->with('success', __('Maintenance rule updated.'));
+        $checked = (array) $request->input('mandatory', []);
+
+        EquipmentMaintenanceRule::whereKey(array_keys($rows))->get()->each(function (EquipmentMaintenanceRule $r) use ($rows, $checked): void {
+            $r->update($rows[$r->id] + ['is_mandatory' => in_array((string) $r->id, $checked, true)]);
+        });
+
+        return back()->with('success', __('Maintenance rules saved.'));
     }
 
     public function destroyMaintenanceRule(EquipmentMaintenanceRule $rule): RedirectResponse

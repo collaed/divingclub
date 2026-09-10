@@ -139,7 +139,7 @@ Route::post('/seasons/{season}/generate', [SeasonController::class, 'generateEve
 // Settings
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
 Route::post('/settings/federation', [SettingsController::class, 'storeFederation'])->name('settings.federation.store');
-Route::put('/settings/federation/{federation}', [SettingsController::class, 'updateFederation'])->name('settings.federation.update');
+Route::put('/settings/federations', [SettingsController::class, 'bulkUpdateFederations'])->name('settings.federations.bulk-update');
 Route::delete('/settings/federation/{federation}', [SettingsController::class, 'destroyFederation'])->name('settings.federation.destroy');
 Route::post('/settings/status', [SettingsController::class, 'storeStatus'])->name('settings.status.store');
 Route::put('/settings/status/{status}', [SettingsController::class, 'updateStatus'])->name('settings.status.update');
@@ -148,10 +148,10 @@ Route::post('/settings/status-set', [SettingsController::class, 'storeStatusSet'
 Route::match(['put', 'patch'], '/settings/status-set/{statusSet}', [SettingsController::class, 'updateStatusSet'])->name('settings.status-set.update');
 Route::delete('/settings/status-set/{statusSet}', [SettingsController::class, 'destroyStatusSet'])->name('settings.status-set.destroy');
 Route::post('/settings/medical-rule', [SettingsController::class, 'storeMedicalRule'])->name('settings.medical-rule.store');
-Route::put('/settings/medical-rule/{rule}', [SettingsController::class, 'updateMedicalRule'])->name('settings.medical-rule.update');
+Route::put('/settings/medical-rules', [SettingsController::class, 'bulkUpdateMedicalRules'])->name('settings.medical-rules.bulk-update');
 Route::delete('/settings/medical-rule/{rule}', [SettingsController::class, 'destroyMedicalRule'])->name('settings.medical-rule.destroy');
 Route::post('/settings/maintenance-rule', [SettingsController::class, 'storeMaintenanceRule'])->name('settings.maintenance-rule.store');
-Route::put('/settings/maintenance-rule/{rule}', [SettingsController::class, 'updateMaintenanceRule'])->name('settings.maintenance-rule.update');
+Route::put('/settings/maintenance-rules', [SettingsController::class, 'bulkUpdateMaintenanceRules'])->name('settings.maintenance-rules.bulk-update');
 Route::delete('/settings/maintenance-rule/{rule}', [SettingsController::class, 'destroyMaintenanceRule'])->name('settings.maintenance-rule.destroy');
 Route::post('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');
 Route::post('/settings/theme/preset', [SettingsController::class, 'applyPreset'])->name('settings.theme.preset');
