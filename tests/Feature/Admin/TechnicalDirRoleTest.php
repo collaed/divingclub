@@ -37,11 +37,12 @@ class TechnicalDirRoleTest extends TestCase
         return $u;
     }
 
-    public function test_technical_dir_can_reach_the_federations_area(): void
+    public function test_technical_dir_can_reach_its_delegated_areas(): void
     {
-        $this->actingAs($this->technicalDir())
-            ->get(route('admin.federations.index'))
-            ->assertOk();
+        $td = $this->technicalDir();
+
+        $this->actingAs($td)->get(route('admin.federations.index'))->assertOk();
+        $this->actingAs($td)->get(route('admin.equipment.index'))->assertOk();
     }
 
     public function test_technical_dir_cannot_reach_other_admin_pages(): void
@@ -50,13 +51,15 @@ class TechnicalDirRoleTest extends TestCase
 
         $this->actingAs($td)->get(route('admin.members.index'))->assertForbidden();
         $this->actingAs($td)->get(route('admin.settings.index'))->assertForbidden();
+        $this->actingAs($td)->get(route('admin.analytics.index'))->assertForbidden();
     }
 
-    public function test_technical_dir_sees_only_the_federations_link_in_the_nav(): void
+    public function test_technical_dir_nav_shows_delegated_links_only(): void
     {
         $html = $this->actingAs($this->technicalDir())->get(route('admin.federations.index'))->getContent();
 
         $this->assertStringContainsString(route('admin.federations.index'), $html);
+        $this->assertStringContainsString(route('admin.equipment.index'), $html);
         $this->assertStringNotContainsString(route('admin.members.index'), $html);
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\FederationController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
@@ -355,6 +357,24 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/federations/{federation}/levels', [FederationController::class, 'storeLevel'])->name('federations.levels.store');
         Route::put('/federations/{federation}/levels', [FederationController::class, 'bulkUpdateLevels'])->name('federations.levels.bulk-update');
         Route::delete('/federations/{federation}/levels/{level}', [FederationController::class, 'destroyLevel'])->name('federations.levels.destroy');
+    });
+
+    // Equipment / gear — delegated area (technical_dir + bureau), permission-gated.
+    Route::middleware('can:manage equipment')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/equipment', [EquipmentController::class, 'index'])->name('equipment.index');
+        Route::get('/equipment/create', [EquipmentController::class, 'create'])->name('equipment.create');
+        Route::post('/equipment', [EquipmentController::class, 'store'])->name('equipment.store');
+        Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('equipment.show');
+        Route::put('/equipment/{equipment}', [EquipmentController::class, 'update'])->name('equipment.update');
+        Route::post('/equipment/{equipment}/loan', [EquipmentController::class, 'loan'])->name('equipment.loan');
+        Route::post('/equipment/quick-loan', [EquipmentController::class, 'quickLoan'])->name('equipment.quick-loan');
+        Route::post('/equipment/return/{loan}', [EquipmentController::class, 'returnLoan'])->name('equipment.return');
+        Route::post('/equipment/maintenance/{maintenance}/complete', [EquipmentController::class, 'completeMaintenance'])->name('equipment.maintenance.complete');
+    });
+
+    // Site analytics (Umami embed) — its own permission so it can be delegated.
+    Route::middleware('can:view analytics')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     });
 
     // Admin routes (all bureau roles)
