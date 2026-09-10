@@ -203,7 +203,7 @@
                                             <a class="dropdown-item" href="{{ route('admin.backups.index') }}">@icon('💾') {{ __('Backups') }}</a>
                                             <a class="dropdown-item" href="/horizon" target="_blank">@icon('⏱️') {{ __('Queue Monitor') }}</a>
                                             @if(auth()->user()->hasRole('bureau_master'))
-                                            <a class="dropdown-item" href="{{ route('admin.logins.index') }}">@icon('🔑') {{ __('Login History') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.logins.index') }}">@icon('🔑') {{ __('Login history') }}</a>
                                             @endif
                                             <a class="dropdown-item" href="{{ route('admin.settings.index') }}">@icon('⚙️') {{ __('Settings') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.roles.index') }}">@icon('🔐') {{ __('Roles & Permissions') }}</a>
