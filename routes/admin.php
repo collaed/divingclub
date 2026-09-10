@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
+use App\Http\Controllers\Admin\DocumentDispatchController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EmailStatsController;
 use App\Http\Controllers\Admin\GuardianController;
@@ -196,6 +197,14 @@ Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignore
 
 // Equipment lives in routes/web.php, gated by `can:manage equipment`
 // (delegated to technical_dir) rather than a bureau role.
+
+// Tracked document dispatch — bureau_master only (tracking data is sensitive)
+Route::middleware('role:bureau_master')->group(function () {
+    Route::get('/document-dispatch', [DocumentDispatchController::class, 'index'])->name('document-dispatch.index');
+    Route::get('/document-dispatch/create', [DocumentDispatchController::class, 'create'])->name('document-dispatch.create');
+    Route::post('/document-dispatch', [DocumentDispatchController::class, 'store'])->name('document-dispatch.store');
+    Route::get('/document-dispatch/{documentDispatch}', [DocumentDispatchController::class, 'show'])->name('document-dispatch.show');
+});
 
 // Email
 Route::get('/email', [EmailController::class, 'index'])->name('email.index');

@@ -177,21 +177,24 @@
                                             <a class="dropdown-item" href="{{ route('admin.annual-report') }}">@icon('📈') {{ __('Annual Report') }}</a>
                                         </div>
                                         <div class="dc-admin-menu-group">
+                                            <h6 class="dropdown-header">{{ __('Diving') }}</h6>
+                                            <a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🔧') {{ __('Equipment') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a>
+                                        </div>
+                                        <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('Content & comms') }}</h6>
                                             <a class="dropdown-item" href="{{ route('admin.articles.index') }}">@icon('📝') {{ __('Articles') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.links.index') }}">@icon('🔗') {{ __('Links') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.library.index') }}">@icon('📁') {{ __('Documents') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.email.index') }}">@icon('📧') {{ __('Email') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">@icon('📬') {{ __('Newsletters') }}</a>
+                                            @if(auth()->user()->hasRole('bureau_master'))
+                                            <a class="dropdown-item" href="{{ route('admin.document-dispatch.index') }}">@icon('📤') {{ __('Tracked docs') }}</a>
+                                            @endif
                                             <a class="dropdown-item" href="{{ route('admin.email-stats') }}">@icon('📊') {{ __('Email Stats') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.votes.index') }}">@icon('🗳️') {{ __('Votes') }}</a>
-                                        </div>
-                                        <div class="dc-admin-menu-group">
-                                            <h6 class="dropdown-header">{{ __('Diving') }}</h6>
-                                            <a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a>
-                                            <a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🔧') {{ __('Equipment') }}</a>
-                                            <a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a>
-                                            <a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a>
                                         </div>
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('System') }}</h6>
