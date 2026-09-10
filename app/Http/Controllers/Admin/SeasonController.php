@@ -360,6 +360,9 @@ class SeasonController extends Controller
                     'inscription_open_at' => $pattern->registration_opens_days_before
                         ? $entry['date']->copy()->subDays($pattern->registration_opens_days_before)->startOfDay()
                         : null,
+                    'inscription_close_at' => $pattern->registration_closes_days_before !== null
+                        ? $entry['date']->copy()->subDays((int) $pattern->registration_closes_days_before)->endOfDay()
+                        : null,
                     'inscriptions_closed' => false,
                     'status' => 'scheduled',
                     'season_id' => $season->id,
