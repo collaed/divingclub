@@ -391,9 +391,10 @@ fetch('{{ route("photos.browse") }}',{headers:{'X-Requested-With':'XMLHttpReques
         <hr>
         <p style="text-align:center;color:#999;font-size:.85rem;margin-bottom:.75rem">{{ __('Or sign in with') }}</p>
         <div style="display:grid;gap:.5rem">
+            @php $authBase = config('services.auth_base_url'); @endphp
             @foreach($providers as $provider => $label)
-                @php $authBase = config('services.auth_base_url'); @endphp
-                <a href="{{ $authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
+                <x-social-button :provider="$provider"
+                    :href="$authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider)" />
             @endforeach
         </div>
     @endif

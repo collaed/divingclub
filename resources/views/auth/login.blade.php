@@ -47,25 +47,18 @@
                     </script>
 
                     @php
-                        $providers = collect([
-                            'google' => '🔵  Google',
-                            'microsoft' => '🟦  Microsoft',
-                            'facebook' => '🔷  Facebook',
-                            'x' => '⬛  X',
-                        ])->filter(fn ($label, $key) => config("services.{$key}.client_id"));
+                        $providers = collect(['google', 'microsoft', 'facebook', 'x'])
+                            ->filter(fn ($key) => config("services.{$key}.client_id"));
+                        $authBase = config('services.auth_base_url');
                     @endphp
                     @if($providers->isNotEmpty())
                     <hr>
                     <p class="text-center text-muted small mb-3">{{ __('Or sign in with') }}</p>
                     <div class="d-grid gap-2">
-                        @foreach($providers as $provider => $label)
-                            @php $authBase = config('services.auth_base_url'); @endphp
-                            <a href="{{ $authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
+                        @foreach($providers as $provider)
+                            <x-social-button :provider="$provider"
+                                :href="$authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider)" />
                         @endforeach
-                    </div>
-                    @else
-                    <hr>
-                    <div class="d-grid gap-2">
                     </div>
                     @endif
                 </div>
