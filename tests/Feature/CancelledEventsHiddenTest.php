@@ -44,6 +44,31 @@ class CancelledEventsHiddenTest extends TestCase
             ->assertDontSee('ScrappedDiveZZ');
     }
 
+    public function test_cancelled_events_stay_on_the_calendar_for_members(): void
+    {
+        Event::factory()->create(['title' => 'LivePoolQQ', 'status' => 'scheduled', 'event_date' => now()]);
+        Event::factory()->create(['title' => 'ScrappedApneaQQ', 'status' => 'cancelled', 'event_date' => now()]);
+
+        $member = $this->createMemberUser();
+
+        $this->actingAs($member)->get(route('events.index'))
+            ->assertOk()->assertSee('LivePoolQQ')->assertSee('ScrappedApneaQQ');
+
+        $this->actingAs($member)->get(route('events.index', ['view' => 'week']))
+            ->assertOk()->assertSee('ScrappedApneaQQ')->assertSee('Cancelled');
+    }
+
+    public function test_only_bureau_gets_the_restore_action_on_a_cancelled_event(): void
+    {
+        Event::factory()->create(['title' => 'ScrappedApneaWW', 'status' => 'cancelled', 'event_date' => now()]);
+
+        $this->actingAs($this->createMemberUser())->get(route('events.index', ['view' => 'week']))
+            ->assertOk()->assertSee('ScrappedApneaWW')->assertDontSee('uncancel', false);
+
+        $this->actingAs($this->createBureauUser())->get(route('events.index', ['view' => 'week']))
+            ->assertOk()->assertSee('uncancel', false)->assertSee('Restore');
+    }
+
     public function test_instructor_planning_hides_cancelled(): void
     {
         $day = now()->startOfMonth()->addDay();
