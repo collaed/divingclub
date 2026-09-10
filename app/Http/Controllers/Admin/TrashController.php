@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
-use App\Models\AuditLog;
 use App\Models\Article;
+use App\Models\AuditLog;
 use App\Models\Document;
 use App\Models\Equipment;
 use App\Models\Event;
