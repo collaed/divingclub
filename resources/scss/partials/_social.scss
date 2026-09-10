@@ -1,0 +1,90 @@
+// ============================================================================
+// Social sign-in buttons — Google & Microsoft follow their brand button specs
+// (white surface, brand mark, brand text colour); the others reuse the shell.
+// ============================================================================
+
+.dc-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  border: 1px solid #747775;
+  border-radius: 4px;
+  background: #fff;
+  color: #1f1f1f;
+  font-family: "Roboto", -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: #f7f8f8;
+    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
+    color: #1f1f1f;
+  }
+
+  &:active {
+    background: #eef0f1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #0b57d0;
+    outline-offset: 1px;
+  }
+}
+
+.dc-social-icon {
+  display: flex;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+}
+
+.dc-social-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Microsoft: neutral grey border + text per their identity guidelines ──
+.dc-social-microsoft {
+  border-color: #8c8c8c;
+  color: #5e5e5e;
+
+  &:hover,
+  &:active {
+    color: #5e5e5e;
+  }
+
+  .dc-social-icon {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+// ── Fallbacks keep the same shell but their own mark colour ──
+.dc-social-facebook .dc-social-icon { color: #1877f2; }
+.dc-social-x .dc-social-icon { color: #000; }
+.dc-social-amazon .dc-social-icon { color: #ff9900; }
+.dc-social-apple .dc-social-icon { color: #000; }
+
+// Dark page chrome (home3 login panel is light, but be safe under data-bs-theme)
+[data-bs-theme="dark"] .dc-social-btn {
+  background: #2b2b2b;
+  border-color: #5f6368;
+  color: #e8eaed;
+
+  &:hover { background: #333; color: #e8eaed; }
+}
+[data-bs-theme="dark"] .dc-social-microsoft { color: #d2d2d2; }
