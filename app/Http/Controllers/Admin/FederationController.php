@@ -18,7 +18,9 @@ class FederationController extends Controller
     {
         return view('admin.federations.index', [
             'federations' => Federation::withCount(['certificationLevels', 'licences'])
+                ->with(['certificationLevels' => fn ($q) => $q->withCount('users')->orderBy('category')->orderBy('rank')])
                 ->orderBy('acronym')->get(),
+            'categories' => ['diver', 'instructor', 'specialty'],
         ]);
     }
 
