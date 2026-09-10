@@ -495,5 +495,10 @@ const numObs = new IntersectionObserver(entries => {
 const nr = document.getElementById('numbersRow');
 if (nr) numObs.observe(nr);
 </script>
+{{-- Umami no-JS pixel — counts the splash landing (the JS beacon in x-layout
+     never runs here since home3 has its own <head>). --}}
+@if(config('services.umami.url'))
+    <img src="{{ config('services.umami.url') }}/p/tFZobyplS" alt="" width="1" height="1" style="position:absolute;left:-9999px" referrerpolicy="no-referrer-when-downgrade">
+@endif
 </body>
 </html>
