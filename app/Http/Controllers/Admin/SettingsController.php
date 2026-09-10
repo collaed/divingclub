@@ -9,6 +9,7 @@ use App\Http\Requests\StoreMaintenanceRuleRequest;
 use App\Http\Requests\StoreMedicalRuleRequest;
 use App\Http\Requests\StoreMembershipFeeRequest;
 use App\Models\EquipmentMaintenanceRule;
+use App\Models\Federation;
 use App\Models\MedicalComplianceRule;
 use App\Models\MembershipFee;
 use App\Models\MemberStatus;
@@ -27,6 +28,9 @@ class SettingsController extends Controller
     public function index(): RedirectResponse|View
     {
         return view('admin.settings.index', [
+            // Federations are managed on their own page now, but the medical-rule
+            // editor here still needs them for its federation picker.
+            'federations' => Federation::orderBy('acronym')->get(),
             'statuses' => MemberStatus::orderBy('name')->get(),
             'medicalRules' => MedicalComplianceRule::with('federation')->orderBy('federation_id')->orderBy('age_bracket_low')->get(),
             'maintenanceRules' => EquipmentMaintenanceRule::orderBy('equipment_type')->get(),
