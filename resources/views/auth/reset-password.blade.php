@@ -22,10 +22,6 @@
                             <input type="password" name="password_confirmation" id="password_confirmation" autocomplete="new-password" class="form-control @error('password_confirmation') is-invalid @enderror" required>
                             @error('password_confirmation') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
-                        <div class="form-check mb-3">
-                            <input type="checkbox" class="form-check-input" id="show-password">
-                            <label class="form-check-label small text-muted" for="show-password">{{ __('Show password') }}</label>
-                        </div>
                         <button type="submit" class="btn btn-primary w-100">{{ __('Reset Password') }}</button>
                     </form>
                 </div>
@@ -33,14 +29,4 @@
         </div>
     </div>
     <x-auth-validation />
-
-    @push('scripts')
-        <script>
-            document.getElementById('show-password')?.addEventListener('change', function () {
-                const type = this.checked ? 'text' : 'password';
-                document.getElementById('password').type = type;
-                document.getElementById('password_confirmation').type = type;
-            });
-        </script>
-    @endpush
 </x-layout>
