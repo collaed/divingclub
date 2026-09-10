@@ -7,9 +7,10 @@
     </p>
 
     @error('fed')<div class="alert alert-danger py-1 small">{{ $message }}</div>@enderror
+    @error('level')<div class="alert alert-danger py-1 small">{{ $message }}</div>@enderror
 
     <form id="fed-bulk" method="POST" action="{{ route('admin.federations.bulk-update') }}">@csrf @method('PUT')</form>
-    <div class="card dc-card mb-3">
+    <div class="card dc-card mb-4">
         <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
                 <thead>
@@ -17,7 +18,7 @@
                         <th style="width:8rem">{{ __('Acronym') }}</th>
                         <th>{{ __('Full Name') }}</th>
                         <th style="width:11rem">{{ __('Visibility') }}</th>
-                        <th class="text-end" style="width:11rem">{{ __('Levels') }}</th>
+                        <th class="text-end" style="width:6rem">{{ __('Levels') }}</th>
                         <th style="width:3rem"></th>
                     </tr>
                 </thead>
@@ -34,9 +35,7 @@
                             </select>
                         </td>
                         <td class="text-end">
-                            <a href="{{ route('admin.federations.show', $fed) }}" class="btn btn-sm btn-outline-primary">
-                                {{ trans_choice('{0}No levels|{1}:count level|[2,*]:count levels', $fed->certification_levels_count, ['count' => $fed->certification_levels_count]) }} →
-                            </a>
+                            <a href="#fed-lvl-{{ $fed->id }}" class="text-decoration-none">{{ $fed->certification_levels_count }} ↓</a>
                         </td>
                         <td class="text-end">
                             <form method="POST" action="{{ route('admin.federations.destroy', $fed) }}" class="d-inline"
@@ -57,7 +56,7 @@
         </div>
     </div>
 
-    <div class="card dc-card">
+    <div class="card dc-card mb-4">
         <div class="card-header">{{ __('Add Federation') }}</div>
         <div class="card-body">
             <form method="POST" action="{{ route('admin.federations.store') }}" class="row g-2">
@@ -74,5 +73,30 @@
                 <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary w-100">{{ __('Add') }}</button></div>
             </form>
         </div>
+    </div>
+
+    <h5 class="mb-2">{{ __('Certification Levels') }}</h5>
+    <p class="text-muted small">
+        {{ __(':rank orders levels within a category (low → high). :group links equivalent levels across federations (e.g. cmas_2s) so the app can compare qualifications.', [
+            'rank' => __('Rank'), 'group' => __('Equivalence group'),
+        ]) }}
+    </p>
+    <div class="accordion" id="fedLevelsAcc">
+        @foreach($federations as $fed)
+            <div class="accordion-item" id="fed-lvl-{{ $fed->id }}">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fed-lvl-body-{{ $fed->id }}">
+                        <span class="fw-bold">{{ $fed->acronym }}</span>
+                        <span class="text-muted ms-2 text-truncate">{{ $fed->full_name }}</span>
+                        <span class="badge bg-secondary ms-auto me-2">{{ trans_choice('{0}no levels|{1}:count level|[2,*]:count levels', $fed->certification_levels_count, ['count' => $fed->certification_levels_count]) }}</span>
+                    </button>
+                </h2>
+                <div id="fed-lvl-body-{{ $fed->id }}" class="accordion-collapse collapse" data-bs-parent="#fedLevelsAcc">
+                    <div class="accordion-body">
+                        @include('admin.federations._levels', ['federation' => $fed, 'levels' => $fed->certificationLevels, 'categories' => $categories])
+                    </div>
+                </div>
+            </div>
+        @endforeach
     </div>
 </x-admin-layout>
