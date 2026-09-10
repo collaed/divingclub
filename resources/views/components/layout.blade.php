@@ -183,6 +183,9 @@
                                             <a class="dropdown-item" href="{{ route('admin.library.index') }}">@icon('📁') {{ __('Documents') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.email.index') }}">@icon('📧') {{ __('Email') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">@icon('📬') {{ __('Newsletters') }}</a>
+                                            @if(auth()->user()->hasRole('bureau_master'))
+                                            <a class="dropdown-item" href="{{ route('admin.document-dispatch.index') }}">@icon('📤') {{ __('Tracked docs') }}</a>
+                                            @endif
                                             <a class="dropdown-item" href="{{ route('admin.email-stats') }}">@icon('📊') {{ __('Email Stats') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.votes.index') }}">@icon('🗳️') {{ __('Votes') }}</a>
                                         </div>

@@ -13,6 +13,7 @@ use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\ClassifiedController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\TrackedDocumentController;
 use App\Http\Controllers\ContactMemberController;
 use App\Http\Controllers\DiveDataController;
 use App\Http\Controllers\DiveGroupController;
@@ -82,6 +83,9 @@ Route::get('/cotisation', fn () => redirect()->route('dues.show'))->name('cotisa
 Route::get('/calendar.ics', [CalendarFeedController::class, 'ical'])->name('calendar.ics');
 Route::get('/contact', fn () => view('contact'))->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->middleware('throttle:5,1')->name('contact.send');
+
+// Per-recipient tracked document link (records the open, then serves the PDF)
+Route::get('/d/{token}', [TrackedDocumentController::class, 'open'])->middleware('throttle:30,1')->name('tracked-doc.open');
 
 // Guest auth
 Route::middleware('guest')->group(function () {
