@@ -65,6 +65,15 @@ class PublicLandingTest extends TestCase
             ->assertDontSee('Scrapped Apnea Night', false);
     }
 
+    public function test_returning_guest_gets_the_widget_home_not_the_landing(): void
+    {
+        $this->withUnencryptedCookie('cep_seen_landing', (string) time())
+            ->get('/')
+            ->assertOk()
+            ->assertDontSee('h3-hero', false)
+            ->assertSee('zone-top', false);
+    }
+
     public function test_authenticated_root_shows_dashboard_not_landing(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
