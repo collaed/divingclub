@@ -188,7 +188,7 @@
                                         </div>
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('Diving') }}</h6>
-                                            <a class="dropdown-item" href="{{ route('admin.settings.index') }}#fedSection">@icon('🎖️') {{ __('Federations') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🔧') {{ __('Equipment') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a>
