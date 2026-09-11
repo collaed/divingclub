@@ -8,6 +8,7 @@ use App\Auth\DivingClubUserProvider;
 use App\Jobs\ResolveLoginGeo;
 use App\Models\EmailLog;
 use App\Models\LoginRecord;
+use App\Services\BrevoTransport;
 use App\Services\LicenseService;
 use App\Services\MailBalancer;
 use Illuminate\Auth\Events\Login;
@@ -46,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        Mail::extend('brevo', fn () => new BrevoTransport((string) config('services.brevo.key')));
 
         // Register Microsoft Socialite provider
         Event::listen(SocialiteWasCalled::class, MicrosoftExtendSocialite::class);

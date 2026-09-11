@@ -185,6 +185,35 @@
                 },
                 options: {scales: {y: {beginAtZero: true}}}
             });
+
+            var mailHistoryEl = document.getElementById('mailHistoryChart');
+            if (mailHistoryEl) {
+                new Chart(mailHistoryEl, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($mailHistory['dates']) !!},
+                        datasets: [
+                            {label: 'Resend (primary)', data: {!! json_encode($mailHistory['series']['resend_primary']) !!}, borderColor: '#0077be', backgroundColor: 'transparent', tension: 0.2},
+                            {label: 'Resend (secondary)', data: {!! json_encode($mailHistory['series']['resend_secondary']) !!}, borderColor: '#28a745', backgroundColor: 'transparent', tension: 0.2},
+                            {label: 'Mailjet', data: {!! json_encode($mailHistory['series']['mailjet']) !!}, borderColor: '#ffc107', backgroundColor: 'transparent', tension: 0.2},
+                            {label: 'Brevo', data: {!! json_encode($mailHistory['series']['brevo']) !!}, borderColor: '#dc3545', backgroundColor: 'transparent', tension: 0.2}
+                        ]
+                    },
+                    options: {scales: {y: {beginAtZero: true}}, elements: {point: {radius: 0}}}
+                });
+            }
+
+            var cfHistoryEl = document.getElementById('cloudflareHistoryChart');
+            if (cfHistoryEl) {
+                new Chart(cfHistoryEl, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($cloudflareHistory['dates']) !!},
+                        datasets: [{label: 'Neurons/day', data: {!! json_encode($cloudflareHistory['neurons']) !!}, borderColor: '#6f42c1', backgroundColor: 'rgba(111,66,193,.15)', fill: true, tension: 0.2}]
+                    },
+                    options: {scales: {y: {beginAtZero: true}}, elements: {point: {radius: 0}}}
+                });
+            }
         });
     </script>
 
@@ -220,6 +249,31 @@
         </div>
     </div>
     @endif
+
+    {{-- Usage history: email sends + Cloudflare AI neurons, last 60 days —
+         tells us when it's time to scale up or when there's headroom left. --}}
+    <div class="row g-3 mt-1">
+        <div class="col-md-6">
+            <div class="card dc-card">
+                <div class="card-header fw-bold">📈 {{ __('Email Sends — last 60 days') }}</div>
+                <div class="card-body">
+                    <canvas id="mailHistoryChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card dc-card">
+                <div class="card-header fw-bold">🧠 {{ __('Cloudflare AI Usage (neurons) — last 60 days') }}</div>
+                <div class="card-body">
+                    @if(array_sum($cloudflareHistory['neurons']))
+                        <canvas id="cloudflareHistoryChart" height="120"></canvas>
+                    @else
+                        <p class="text-muted small mb-0">{{ __('No usage data yet. This needs the Cloudflare API token to have the "Account Analytics: Read" permission — grant it, then wait for the next daily sync (05:00).') }}</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- System Update Check --}}
     <div class="card dc-card mt-4">

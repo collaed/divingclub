@@ -32,3 +32,8 @@ Schedule::command('tracking:prune')->dailyAt('04:30')->after(fn () => ScheduleHe
 // Feeds the Horizon "Metrics" dashboard (job/queue throughput + runtime graphs).
 // Without this the metrics page stays empty; retention is config/horizon.php → metrics.trim_snapshots.
 Schedule::command('horizon:snapshot')->everyFifteenMinutes();
+
+// Feeds the admin dashboard's "Cloudflare AI Usage" history chart. Requires
+// the CLOUDFLARE_API_TOKEN to carry "Account Analytics: Read" — without it
+// this is a no-op (see CloudflareUsageService).
+Schedule::command('cloudflare:sync-usage')->dailyAt('05:00')->after(fn () => ScheduleHeartbeat::beat('cloudflare-usage'));
