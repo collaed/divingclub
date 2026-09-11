@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Group;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Tests\TestCase;
 
 #[Group('p1')]
@@ -42,7 +43,7 @@ class BrevoTransportTest extends TestCase
     {
         Http::fake(['api.brevo.com/*' => Http::response(['message' => 'invalid key'], 401)]);
 
-        $this->expectException(\Symfony\Component\Mailer\Exception\TransportException::class);
+        $this->expectException(TransportException::class);
 
         Mail::mailer('brevo')->html('<p>x</p>', function ($m) {
             $m->to('member@example.com')->from('club@clubcep.eu')->subject('x');
