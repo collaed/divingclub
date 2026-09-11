@@ -178,6 +178,7 @@
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('Diving') }}</h6>
                                             <a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.licence-scans.index') }}">@icon('🪪') {{ __('Licence Scans') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🔧') {{ __('Equipment') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a>
@@ -223,6 +224,7 @@
                                 <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Admin') }}</a>
                                 <ul class="dropdown-menu">
                                     @can('manage federations')<li><a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a></li>@endcan
+                                    @can('manage federations')<li><a class="dropdown-item" href="{{ route('admin.licence-scans.index') }}">@icon('🪪') {{ __('Licence Scans') }}</a></li>@endcan
                                     @can('manage equipment')<li><a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🤿') {{ __('Equipment') }}</a></li>@endcan
                                     @can('view analytics')<li><a class="dropdown-item" href="{{ route('admin.analytics.index') }}">@icon('📈') {{ __('Analytics') }}</a></li>@endcan
                                 </ul>

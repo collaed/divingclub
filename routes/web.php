@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\FederationController;
+use App\Http\Controllers\Admin\LicenceScanController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
 use App\Http\Controllers\Admin\PartnershipController;
@@ -365,6 +366,12 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/federations/{federation}/levels', [FederationController::class, 'storeLevel'])->name('federations.levels.store');
         Route::put('/federations/{federation}/levels', [FederationController::class, 'bulkUpdateLevels'])->name('federations.levels.bulk-update');
         Route::delete('/federations/{federation}/levels/{level}', [FederationController::class, 'destroyLevel'])->name('federations.levels.destroy');
+
+        Route::get('/licence-scans', [LicenceScanController::class, 'index'])->name('licence-scans.index');
+        Route::post('/licence-scans', [LicenceScanController::class, 'store'])->name('licence-scans.store');
+        Route::get('/licence-scans/{licenceScan}/image', [LicenceScanController::class, 'image'])->name('licence-scans.image');
+        Route::post('/licence-scans/{licenceScan}/assign', [LicenceScanController::class, 'assign'])->name('licence-scans.assign');
+        Route::delete('/licence-scans/{licenceScan}', [LicenceScanController::class, 'destroy'])->name('licence-scans.destroy');
     });
 
     // Equipment / gear — delegated area (technical_dir + bureau), permission-gated.
