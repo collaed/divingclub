@@ -155,31 +155,36 @@
     </div>
 
     <script>
-        // Chart.js defaults to dark text/gridlines, which are invisible on the
-        // dark-mode card background — set the text/grid color explicitly to
-        // match the current theme so the charts aren't just blank rectangles.
-        (function () {
+        // @vite's app.js is a module script (deferred) and is what sets the
+        // global `Chart` this inline classic script needs — a classic script
+        // runs as soon as the parser reaches it, before deferred/module
+        // scripts, so `Chart` isn't defined yet at that point. Module scripts
+        // are guaranteed to run before DOMContentLoaded, so wait for that.
+        document.addEventListener('DOMContentLoaded', function () {
+            // Chart.js defaults to dark text/gridlines, which are invisible on
+            // the dark-mode card background — set them from the active theme
+            // so the charts aren't just blank rectangles.
             var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
             var fg = isDark ? '#e2e8f0' : '#495057';
             var grid = isDark ? 'rgba(226,232,240,.15)' : 'rgba(0,0,0,.1)';
             Chart.defaults.color = fg;
             Chart.defaults.borderColor = grid;
-        })();
 
-        new Chart(document.getElementById('statusChart'), {
-            type: 'doughnut',
-            data: {
-                labels: {!! json_encode($stats['members_by_status']->pluck('name')) !!},
-                datasets: [{data: {!! json_encode($stats['members_by_status']->pluck('count')) !!}, backgroundColor: ['#003366','#0077be','#28a745','#ffc107','#dc3545','#6f42c1']}]
-            }
-        });
-        new Chart(document.getElementById('equipChart'), {
-            type: 'bar',
-            data: {
-                labels: {!! json_encode($stats['equipment_by_status']->keys()) !!},
-                datasets: [{label: 'Count', data: {!! json_encode($stats['equipment_by_status']->values()) !!}, backgroundColor: '#0077be'}]
-            },
-            options: {scales: {y: {beginAtZero: true}}}
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: {!! json_encode($stats['members_by_status']->pluck('name')) !!},
+                    datasets: [{data: {!! json_encode($stats['members_by_status']->pluck('count')) !!}, backgroundColor: ['#003366','#0077be','#28a745','#ffc107','#dc3545','#6f42c1']}]
+                }
+            });
+            new Chart(document.getElementById('equipChart'), {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($stats['equipment_by_status']->keys()) !!},
+                    datasets: [{label: 'Count', data: {!! json_encode($stats['equipment_by_status']->values()) !!}, backgroundColor: '#0077be'}]
+                },
+                options: {scales: {y: {beginAtZero: true}}}
+            });
         });
     </script>
 
