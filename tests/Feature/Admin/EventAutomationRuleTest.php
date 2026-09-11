@@ -27,7 +27,7 @@ class EventAutomationRuleTest extends TestCase
 
     public function test_bureau_can_create_a_pattern_level_rule(): void
     {
-        $pattern = SeasonPattern::create(['season_id' => Season::factory()->create()->id, 'day_of_week' => 1, 'title' => 'Fosse']);
+        $pattern = SeasonPattern::create(['season_id' => Season::factory()->create()->id, 'day_of_week' => 1, 'start_time' => '19:00', 'title' => 'Fosse']);
 
         $this->actingAs($this->createBureauUser())
             ->post(route('admin.event-automation-rules.store'), [

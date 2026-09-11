@@ -25,7 +25,7 @@ class EventAutomationServiceTest extends TestCase
 
     private function pattern(): SeasonPattern
     {
-        return SeasonPattern::create(['season_id' => Season::factory()->create()->id, 'day_of_week' => 1, 'title' => 'Fosse Apnée']);
+        return SeasonPattern::create(['season_id' => Season::factory()->create()->id, 'day_of_week' => 1, 'start_time' => '19:00', 'title' => 'Fosse Apnée']);
     }
 
     private function confirmedParticipant(Event $event, bool $lifeguard = false): User
