@@ -13,7 +13,7 @@
             $qrPng = \Endroid\QrCode\Builder\Builder::create()
                 ->writer(new \Endroid\QrCode\Writer\PngWriter())
                 ->data($url)
-                ->size(150)
+                ->size(400)
                 ->build()
                 ->getString();
             $qrBase64 = base64_encode($qrPng);
@@ -40,14 +40,14 @@
         <img src="/images/logos/ffessm.png" alt="FFESSM" style="width:100%;height:100%;object-fit:contain">
     </div>
 
-    <div style="margin-top:3mm;text-align:center;z-index:2;width:100%">
-        <div style="color:#005696;font-size:4.8mm;font-weight:800;letter-spacing:.4mm;margin-bottom:1.5mm">LICENCE</div>
-        <div style="font-size:3mm;font-weight:800;margin:.8mm 0">N° {{ $licence->licence_number }}</div>
-        <div style="font-size:2.8mm;font-weight:800;text-transform:uppercase;margin-bottom:2.5mm">{{ $d->first_name }} {{ $d->last_name }}</div>
+    <div style="margin-top:2mm;text-align:center;z-index:2;width:100%">
+        <div style="color:#005696;font-size:4.8mm;font-weight:800;letter-spacing:.4mm;margin-bottom:1mm">LICENCE</div>
+        <div style="font-size:3mm;font-weight:800;margin:.6mm 0">N° {{ $licence->licence_number }}</div>
+        <div style="font-size:2.8mm;font-weight:800;text-transform:uppercase;margin-bottom:1.5mm">{{ $d->first_name }} {{ $d->last_name }}</div>
         @if($qrBase64)
-            <img src="data:image/png;base64,{{ $qrBase64 }}" alt="QR" style="width:15mm;height:15mm">
+            <img src="data:image/png;base64,{{ $qrBase64 }}" alt="QR" style="width:22mm;height:22mm">
         @else
-            <div style="width:15mm;height:15mm;background:#f9f9f9;border:.1mm solid #ccc;display:flex;justify-content:center;align-items:center;font-size:1.4mm;color:#999;margin:0 auto">{{ __('No QR key') }}</div>
+            <div style="width:22mm;height:22mm;background:#f9f9f9;border:.1mm solid #ccc;display:flex;justify-content:center;align-items:center;font-size:1.6mm;color:#999;margin:0 auto">{{ __('No QR key') }}</div>
         @endif
     </div>
     <div style="margin-top:auto;padding-top:1.5mm;font-size:1.5mm;color:#005696;font-weight:700;text-align:center;line-height:1.3;z-index:2;width:100%">
