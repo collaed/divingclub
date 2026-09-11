@@ -105,7 +105,7 @@ class ProcessLicenceScan implements ShouldQueue
         // Already an image (jpg/png upload) — just downscale, no external
         // binary needed (Intervention Image is already a dependency).
         try {
-            Image::read($sourcePath)->scaleDown(1200, 1200)->save($tmp);
+            Image::decode(file_get_contents($sourcePath))->scaleDown(1200, 1200)->save($tmp);
 
             return $tmp;
         } catch (\Throwable) {
