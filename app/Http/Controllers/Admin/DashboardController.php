@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BankTransaction;
+use App\Models\CloudflareAiUsageStat;
 use App\Models\Document;
 use App\Models\EmailLog;
 use App\Models\Equipment;
@@ -103,8 +104,10 @@ class DashboardController extends Controller
         $updateInfo = UpdateService::checkForUpdate();
         $commitInfo = UpdateService::currentCommit();
         $mailBalance = MailBalancer::status();
+        $mailHistory = MailBalancer::history(60);
+        $cloudflareHistory = CloudflareAiUsageStat::history(60);
 
-        return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats', 'updateInfo', 'commitInfo', 'mailBalance'));
+        return view('admin.dashboard.index', compact('stats', 'season', 'worklist', 'heartbeats', 'updateInfo', 'commitInfo', 'mailBalance', 'mailHistory', 'cloudflareHistory'));
     }
 
     public function exportCsv(Request $request): Response

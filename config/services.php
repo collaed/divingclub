@@ -14,6 +14,10 @@ return [
         'secret' => env('MAILJET_SECRET'),
     ],
 
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
+    ],
+
     'onemin' => [
         'key' => env('ONEMIN_AI_KEY'),
     ],
