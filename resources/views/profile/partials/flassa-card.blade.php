@@ -24,9 +24,9 @@
 
     {{-- Club / holder / address, centered like the PDF --}}
     <div style="text-align:center;margin-top:2.5mm;font-size:2.3mm;line-height:1.5">
-        <div>{{ strtoupper($theme['club_full_name'] ?? 'Club Européen de Plongée') }}</div>
+        <div>{{ mb_strtoupper($theme['club_full_name'] ?? 'Club Européen de Plongée') }}</div>
         <div>{{ $d->last_name }} {{ $d->first_name }} - {{ $d->date_of_birth?->format('d.m.Y') }}</div>
-        <div>{{ $d->address_line1 }} {{ $d->postal_code ? 'L-' . $d->postal_code : '' }} {{ strtoupper($d->city ?? '') }}</div>
+        <div>{{ $d->address_line1 }} {{ $d->postal_code ? 'L-' . $d->postal_code : '' }} {{ mb_strtoupper($d->city ?? '') }}</div>
     </div>
 
     {{-- Bold disclaimer band, as in the PDF --}}
