@@ -47,9 +47,9 @@
                             </div>
                         </div>
 
-                        {{-- Group 1 — COTISATION CEP (mandatory, user-chosen) --}}
+                        {{-- Group 1 — COTISATION (mandatory, user-chosen) --}}
                         <fieldset class="dc-group mb-3">
-                            <legend class="form-label h6">{{ __('Cotisation CEP') }} {{ $year }}</legend>
+                            <legend class="form-label h6">{{ __('Cotisation Club :season', ['season' => ($year - 1).'-'.$year]) }}</legend>
                             <div class="col-md-6">
                                 <label class="visually-hidden" for="dc-status">{{ __('Member Status') }}</label>
                                 <select id="dc-status" name="status_id" class="form-select @error('status_id') is-invalid @enderror" required data-dues-input>
@@ -69,7 +69,7 @@
 
                         {{-- Group 2 & 4 — LICENCE FFESSM + FLASSA (derived, read-only) --}}
                         <fieldset class="dc-group mb-3">
-                            <legend class="form-label h6">{{ __('Federation Licence') }} (FFESSM)</legend>
+                            <legend class="form-label h6">{{ __('Federation Licence') }}</legend>
                             <div class="dc-derived" role="status" aria-live="polite" data-dues-licence data-flassa-state="{{ $flassaState ?? 'not_applicable' }}" data-ffessm-licence="{{ $derivedFfessm ?? '' }}">
                                 @isset($derivedFfessm)
                                     @php $lic = $ffessmLicences[$derivedFfessm] ?? null; @endphp
@@ -87,7 +87,7 @@
                                         </div>
                                     @endif
                                 @else
-                                    <p class="text-muted mb-0">{{ __('The federation licence is determined automatically from your status and age.') }}</p>
+                                    <p class="text-muted mb-0">{{ __('The federation licence(s) is/are determined automatically from your status and age.') }}</p>
                                 @endisset
                             </div>
                         </fieldset>
