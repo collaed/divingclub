@@ -180,6 +180,9 @@
                                             <a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🔧') {{ __('Equipment') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a>
+                                            @can('manage partnerships')
+                                            <a class="dropdown-item" href="{{ route('admin.partnerships.index') }}">@icon('🤝') {{ __('Partners') }}</a>
+                                            @endcan
                                         </div>
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('Content & comms') }}</h6>

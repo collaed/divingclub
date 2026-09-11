@@ -1,20 +1,7 @@
-{{-- Admin layout with sidebar --}}
+{{-- Admin layout. Navigation lives in the "Admin" mega-menu (top nav) only —
+     a left sidebar used to duplicate the same ~24 links as a second, always-
+     fully-expanded nav column that towered over short pages (e.g. the
+     dashboard) and pushed later content around. --}}
 <x-layout :title="$title ?? __('Administration')" width="container-xl layout-admin">
-    <div class="row">
-        <div class="col-lg-2 d-none d-lg-block">
-            <x-admin-sidebar />
-        </div>
-        <div class="col-lg-10">
-            {{-- Mobile sidebar (collapsible) --}}
-            <div class="d-lg-none mb-3">
-                <button class="btn btn-sm btn-outline-primary w-100" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#adminNavMobile">
-                    @icon('☰') {{ __('Admin Menu') }}
-                </button>
-                <div class="collapse mt-2" id="adminNavMobile">
-                    <x-admin-sidebar />
-                </div>
-            </div>
-            {{ $slot }}
-        </div>
-    </div>
+    {{ $slot }}
 </x-layout>
