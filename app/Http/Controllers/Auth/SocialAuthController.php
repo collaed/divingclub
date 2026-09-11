@@ -67,7 +67,7 @@ class SocialAuthController extends Controller
             $social->update(['token' => $socialUser->token ?? null, 'refresh_token' => $socialUser->refreshToken ?? null]);
             Auth::login($social->user, true);
 
-            return redirect($this->originUrl('/profile'));
+            return redirect($this->originUrl('/'));
         }
 
         // 2. Email matches existing account — require confirmation (anti-takeover)
