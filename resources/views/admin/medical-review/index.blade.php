@@ -100,7 +100,13 @@
             select.addEventListener('change', function () {
                 if (!select.value) return;
                 var target = document.getElementById(select.dataset.target);
-                target.value = select.value;
+                var lines = target.value.split('\n').filter(Boolean);
+                if (!lines.includes(select.value)) {
+                    lines.push(select.value);
+                }
+                target.value = lines.join('\n');
+                target.classList.remove('is-invalid');
+                select.value = '';
             });
         });
 
