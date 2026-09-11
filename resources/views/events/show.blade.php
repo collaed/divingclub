@@ -471,7 +471,8 @@
                 @endif
             @endauth
 
-            {{-- Dive Groups link --}}
+            {{-- Dive Groups link — Dive Group Planner, still being built, bureau_master only for now --}}
+            @can('manage dive groups')
             @if(in_array($event->event_type, ['dive', 'training']) || $isPrivileged)
                 <div class="card dc-card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -494,6 +495,7 @@
                     </div>
                 </div>
             @endif
+            @endcan
 
             {{-- Event email --}}
             @if($event->participant_email)
