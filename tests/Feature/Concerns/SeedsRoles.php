@@ -31,6 +31,7 @@ trait SeedsRoles
         SpatieRole::findOrCreate('bureau_finance', 'web');
         SpatieRole::findOrCreate('bureau_technical', 'web');
         SpatieRole::findOrCreate('instructor', 'web');
+        SpatieRole::findOrCreate('instructor_apnea', 'web');
         SpatieRole::findOrCreate('member', 'web');
 
         // Give bureau_master all permissions used in admin tests

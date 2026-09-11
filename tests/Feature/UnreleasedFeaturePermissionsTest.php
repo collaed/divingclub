@@ -46,8 +46,8 @@ class UnreleasedFeaturePermissionsTest extends TestCase
         $master = $this->createBureauUser();
         $finance = $this->bureauFinanceUser();
 
-        $this->actingAs($master)->get(route('admin.dashboard'))->assertOk();
-        $this->actingAs($finance)->get(route('admin.dashboard'))
+        $this->actingAs($master)->get(route('admin.dashboard.index'))->assertOk();
+        $this->actingAs($finance)->get(route('admin.dashboard.index'))
             ->assertOk()
             ->assertDontSee(route('admin.partnerships.registrations'), false);
     }
