@@ -19,7 +19,6 @@ use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MemberExportController;
 use App\Http\Controllers\Admin\NewsletterController;
-use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\SeasonController;
@@ -226,15 +225,8 @@ Route::post('/votes/{vote}/open', [VoteController::class, 'open'])->name('votes.
 Route::post('/votes/{vote}/close', [VoteController::class, 'close'])->name('votes.close');
 Route::post('/votes/{vote}/cancel', [VoteController::class, 'cancel'])->name('votes.cancel');
 
-// Club Partnerships
-Route::get('/partnerships', [PartnershipController::class, 'index'])->name('partnerships.index');
-Route::get('/partnerships/create', [PartnershipController::class, 'create'])->name('partnerships.create');
-Route::post('/partnerships', [PartnershipController::class, 'store'])->name('partnerships.store');
-Route::delete('/partnerships/{partnership}', [PartnershipController::class, 'destroy'])->name('partnerships.destroy');
-Route::get('/partnerships/{partnership}/remote-events', [PartnershipController::class, 'remoteEvents'])->name('partnerships.remote-events');
-Route::get('/partnerships/registrations', [PartnershipController::class, 'registrations'])->name('partnerships.registrations');
-Route::post('/partnerships/registrations/{registration}/approve', [PartnershipController::class, 'approveRegistration'])->name('partnerships.registrations.approve');
-Route::post('/partnerships/registrations/{registration}/reject', [PartnershipController::class, 'rejectRegistration'])->name('partnerships.registrations.reject');
+// Club Partnerships — moved to routes/web.php (permission-gated, see
+// `can:manage partnerships`) so it isn't open to the whole bureau role wall.
 
 // Roles & Permissions
 Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles.index');

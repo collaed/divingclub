@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\FederationController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
+use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SocialAuthController;
@@ -309,18 +310,21 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/photos', [EventController::class, 'uploadPhoto'])->name('events.photo.upload');
     Route::delete('/events/{event}/photos/{photo}', [EventController::class, 'deletePhoto'])->name('events.photo.delete');
 
-    // Dive groups (palanquées)
-    Route::get('/events/{event}/dive-groups', [DiveGroupController::class, 'index'])->name('events.dive-groups');
-    Route::post('/events/{event}/dive-groups', [DiveGroupController::class, 'store'])->name('events.dive-groups.store');
-    Route::post('/dive-groups/{group}/members', [DiveGroupController::class, 'addMember'])->name('dive-groups.add-member');
-    Route::delete('/dive-group-members/{member}', [DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
-    Route::post('/dive-group-members/{member}/toggle-leader', [DiveGroupController::class, 'toggleLeader'])->name('dive-groups.toggle-leader');
-    Route::delete('/dive-groups/{group}', [DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
-    Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validateGroups'])->name('events.dive-groups.validate');
-    Route::get('/events/{event}/dive-groups/propose', [DiveGroupController::class, 'propose'])->name('events.dive-groups.propose');
-    Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
-    Route::get('/events/{event}/dive-groups/suggest-swaps', [DiveGroupController::class, 'suggestSwaps'])->name('events.dive-groups.suggest-swaps');
-    Route::get('/events/{event}/dive-groups/print', [DiveGroupController::class, 'printFiche'])->name('events.dive-groups.print');
+    // Dive groups (palanquées) — Dive Group Planner, still being built, its own
+    // permission so it isn't visible to everyone yet.
+    Route::middleware('can:manage dive groups')->group(function () {
+        Route::get('/events/{event}/dive-groups', [DiveGroupController::class, 'index'])->name('events.dive-groups');
+        Route::post('/events/{event}/dive-groups', [DiveGroupController::class, 'store'])->name('events.dive-groups.store');
+        Route::post('/dive-groups/{group}/members', [DiveGroupController::class, 'addMember'])->name('dive-groups.add-member');
+        Route::delete('/dive-group-members/{member}', [DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
+        Route::post('/dive-group-members/{member}/toggle-leader', [DiveGroupController::class, 'toggleLeader'])->name('dive-groups.toggle-leader');
+        Route::delete('/dive-groups/{group}', [DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
+        Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validateGroups'])->name('events.dive-groups.validate');
+        Route::get('/events/{event}/dive-groups/propose', [DiveGroupController::class, 'propose'])->name('events.dive-groups.propose');
+        Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
+        Route::get('/events/{event}/dive-groups/suggest-swaps', [DiveGroupController::class, 'suggestSwaps'])->name('events.dive-groups.suggest-swaps');
+        Route::get('/events/{event}/dive-groups/print', [DiveGroupController::class, 'printFiche'])->name('events.dive-groups.print');
+    });
 
     // Trip settlement
     Route::get('/events/{event}/settlement', [TripSettlementController::class, 'show'])->name('events.settlement');
@@ -375,6 +379,19 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Site analytics (Umami embed) — its own permission so it can be delegated.
     Route::middleware('can:view analytics')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    });
+
+    // Club Partnerships — not open to the whole bureau yet, its own permission
+    // so it can be delegated once the feature is ready.
+    Route::middleware('can:manage partnerships')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/partnerships', [PartnershipController::class, 'index'])->name('partnerships.index');
+        Route::get('/partnerships/create', [PartnershipController::class, 'create'])->name('partnerships.create');
+        Route::post('/partnerships', [PartnershipController::class, 'store'])->name('partnerships.store');
+        Route::delete('/partnerships/{partnership}', [PartnershipController::class, 'destroy'])->name('partnerships.destroy');
+        Route::get('/partnerships/{partnership}/remote-events', [PartnershipController::class, 'remoteEvents'])->name('partnerships.remote-events');
+        Route::get('/partnerships/registrations', [PartnershipController::class, 'registrations'])->name('partnerships.registrations');
+        Route::post('/partnerships/registrations/{registration}/approve', [PartnershipController::class, 'approveRegistration'])->name('partnerships.registrations.approve');
+        Route::post('/partnerships/registrations/{registration}/reject', [PartnershipController::class, 'rejectRegistration'])->name('partnerships.registrations.reject');
     });
 
     // Admin routes (all bureau roles)
