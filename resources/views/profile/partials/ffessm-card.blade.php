@@ -22,7 +22,7 @@
 @endphp
 <div style="width:53.98mm;height:85.60mm;background:#fff;border:.5px solid #aaa;border-radius:3.18mm;box-shadow:0 4px 10px rgba(0,0,0,.15);display:flex;flex-direction:column;align-items:center;padding:2.5mm;box-sizing:border-box;position:relative;overflow:hidden;font-family:Helvetica,Arial,sans-serif;color:#1a1a1a">
     {{-- Diagonal stripe band — top portion only, like the official card --}}
-    <div style="position:absolute;top:0;left:0;right:0;height:32mm;z-index:0;background:
+    <div style="position:absolute;top:0;left:0;right:0;height:20mm;z-index:0;background:
         linear-gradient(128deg,
             #062339 0%, #062339 8%,
             #0e2f52 8%, #0e2f52 16%,
