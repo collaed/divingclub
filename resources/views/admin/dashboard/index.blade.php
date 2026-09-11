@@ -33,7 +33,7 @@
         <div class="card-header bg-warning bg-opacity-10">@icon('📋') {{ __('Bureau Worklist') }}</div>
         <div class="list-group list-group-flush">
             @if($worklist['unverified_certs'] > 0)
-                <a href="{{ route('admin.members.index') }}?filter=unverified_cert" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Medical certificates to verify') }} <span class="badge bg-danger">{{ $worklist['unverified_certs'] }}</span></a>
+                <a href="{{ route('admin.medical-review.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Medical certificates to verify') }} <span class="badge bg-danger">{{ $worklist['unverified_certs'] }}</span></a>
             @endif
             @if($worklist['expiring_certs'] > 0)
                 <a href="{{ route('admin.members.index') }}?filter=expiring_cert" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Certificates expiring within 30 days') }} <span class="badge bg-warning text-dark">{{ $worklist['expiring_certs'] }}</span></a>

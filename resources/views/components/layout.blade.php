@@ -164,6 +164,7 @@
                                             <a class="dropdown-item" href="{{ route('admin.members.index') }}">@icon('👥') {{ __('Members') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.guardians.index') }}">@icon('👨‍👧') {{ __('Minors & Consent') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">@icon('🐠') {{ __('Trial Requests') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.medical-review.index') }}">@icon('🩺') {{ __('Medical Review') }}</a>
                                         </div>
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('Finance') }}</h6>
