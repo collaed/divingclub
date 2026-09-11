@@ -27,7 +27,7 @@
                 @if(!$doc->is_current) <span class="badge bg-secondary ms-2">{{ __('Superseded') }}</span> @endif
                 @if($doc->compliance_notes) <br><small class="text-muted">{{ $doc->compliance_notes }}</small> @endif
                 @if($doc->review_comment)
-                    <br><small class="{{ $doc->isRejected() ? 'text-danger' : 'text-muted' }}">@icon('💬') {{ $doc->review_comment }}</small>
+                    <br><small class="{{ $doc->isRejected() ? 'text-danger' : 'text-muted' }}" style="white-space: pre-wrap">@icon('💬') {{ $doc->review_comment }}</small>
                 @endif
             </div>
             <div>
