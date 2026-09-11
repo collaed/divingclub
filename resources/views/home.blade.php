@@ -20,7 +20,7 @@
                                 <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
-                        @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero']))
+                        @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero', 'classifieds', 'buddy_requests']))
                             <button class="btn btn-sm btn-outline-secondary hp-config-btn" data-index="{{ $i }}" title="{{ __('Settings') }}">⚙</button>
                         @endif
                         <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
@@ -46,7 +46,7 @@
                                         <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
-                                @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero']))
+                                @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero', 'classifieds', 'buddy_requests']))
                                     <button class="btn btn-sm btn-outline-secondary hp-config-btn" data-index="{{ $i }}" title="{{ __('Settings') }}">⚙</button>
                                 @endif
                                 <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
@@ -72,7 +72,7 @@
                                         <option value="{{ $v }}" {{ ($widget['visibility'] ?? 'public') === $v ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
-                                @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero']))
+                                @if(in_array($widget['type'], ['articles', 'photos', 'upcoming_events', 'hero', 'classifieds', 'buddy_requests']))
                                     <button class="btn btn-sm btn-outline-secondary hp-config-btn" data-index="{{ $i }}" title="{{ __('Settings') }}">⚙</button>
                                 @endif
                                 <button class="btn btn-sm btn-outline-danger ms-auto hp-remove" title="{{ __('Hide') }}">✕</button>
@@ -199,7 +199,7 @@
                 panel.className = 'hp-config-panel p-2 bg-light border-bottom small';
 
                 let html = '<div class="d-flex flex-wrap gap-2 align-items-center">';
-                if (type === 'articles' || type === 'upcoming_events') {
+                if (type === 'articles' || type === 'upcoming_events' || type === 'classifieds' || type === 'buddy_requests') {
                     html += `<label>{{ __('Items') }}: <input type="number" class="form-control form-control-sm d-inline-block" style="width:70px" data-cfg="limit" value="${cfg.limit || (type === 'articles' ? 10 : 5)}" min="1" max="50"></label>`;
                 }
                 if (type === 'photos' || type === 'hero') {
