@@ -34,4 +34,34 @@ class MembershipFee extends Model
     {
         return $this->belongsTo(Season::class, 'season_id');
     }
+
+    /**
+     * The fee row that applies to a status for a season: its own row when one
+     * is defined, otherwise the row for the status it's a fee-alias of (see
+     * `MemberStatus::FEE_ALIASES`) — e.g. "Famille"/"Associé"/"Assimilé" pay
+     * the same cotisation as "Membre de droit" unless the bureau sets a fee
+     * of their own.
+     */
+    public static function resolveForStatus(?MemberStatus $status, string $seasonYear): ?self
+    {
+        if (! $status instanceof MemberStatus) {
+            return null;
+        }
+
+        $fee = static::where('season_year', $seasonYear)->where('status_id', $status->id)->first();
+        if ($fee) {
+            return $fee;
+        }
+
+        $aliasSlug = $status->feeAliasSlug();
+        if (! $aliasSlug) {
+            return null;
+        }
+
+        $aliasStatus = MemberStatus::where('slug', $aliasSlug)->first();
+
+        return $aliasStatus
+            ? static::where('season_year', $seasonYear)->where('status_id', $aliasStatus->id)->first()
+            : null;
+    }
 }

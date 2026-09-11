@@ -34,10 +34,11 @@ class FeeCalculationService
     {
         $status = $statusOverride ?? $user->status;
 
-        // Look up the absolute fee for this status and year
-        $fee = MembershipFee::where('season_year', $seasonYear)
-            ->where('status_id', $status?->id)
-            ->first();
+        // Look up the absolute fee for this status and year — statuses that
+        // are a fee-alias of another (Famille/Associé/Assimilé → Membre de
+        // droit) fall back to that status's fee when they have none of their
+        // own. See MembershipFee::resolveForStatus().
+        $fee = MembershipFee::resolveForStatus($status, $seasonYear);
 
         $baseFee = (float) ($fee?->amount ?? 0);
 
