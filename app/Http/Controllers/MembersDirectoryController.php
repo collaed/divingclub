@@ -17,8 +17,17 @@ class MembersDirectoryController extends Controller
 
     public function directory(Request $request): View|Response
     {
+        // Member-facing directory: former/inactive members are never shown
+        // here (this is not a filter that can be turned off — the admin
+        // roster is the place to look up former members). Unconditional, so
+        // it also can't be bypassed by a crafted status_id in the URL.
+        $inactiveIds = MemberStatus::inactiveIds();
+
         $query = User::with(['detail', 'roles', 'status'])
-            ->whereHas('detail', fn ($q) => $q->whereNotNull('first_name'));
+            ->whereHas('detail', fn ($q) => $q->whereNotNull('first_name'))
+            ->where(function ($q) use ($inactiveIds): void {
+                $q->whereNull('status_id')->orWhereNotIn('status_id', $inactiveIds->all());
+            });
 
         // Text search
         if ($request->filled('search')) {
@@ -29,13 +38,11 @@ class MembersDirectoryController extends Controller
             }));
         }
 
-        // Status filter — "active" is a virtual group (all statuses except inactive/former)
-        if ($request->filled('status')) {
-            if ($request->status === 'active') {
-                $query->whereHas('status', fn ($q) => $q->whereNotIn('slug', MemberStatus::inactiveSlugs()));
-            } else {
-                $query->where('status_id', $request->status);
-            }
+        // Status filter narrows within current members only. "active" is a
+        // legacy virtual value from bookmarked links — same as no filter now
+        // that former members are always excluded above.
+        if ($request->filled('status') && $request->status !== 'active') {
+            $query->where('status_id', $request->status);
         }
 
         // Instructor filter
@@ -64,7 +71,7 @@ class MembersDirectoryController extends Controller
             ->select('users.*');
 
         $members = $query->paginate($this->perPage(50))->withQueryString();
-        $statuses = MemberStatus::orderBy('name')->get();
+        $statuses = MemberStatus::whereNotIn('slug', MemberStatus::inactiveSlugs())->orderBy('name')->get();
 
         if ($request->ajax()) {
             return view('members._directory_rows', compact('members'));
@@ -75,8 +82,11 @@ class MembersDirectoryController extends Controller
 
     public function trombinoscope(): View
     {
+        $inactiveIds = MemberStatus::inactiveIds();
+
         $members = User::with('detail')
             ->whereHas('detail', fn ($q) => $q->whereNotNull('avatar_path')->whereNotNull('first_name'))
+            ->where(fn ($q) => $q->whereNull('status_id')->orWhereNotIn('status_id', $inactiveIds->all()))
             ->get()
             ->sortBy(fn ($u) => $u->detail?->last_name);
 
