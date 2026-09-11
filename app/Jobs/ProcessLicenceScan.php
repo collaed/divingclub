@@ -128,9 +128,9 @@ class ProcessLicenceScan implements ShouldQueue
     /** @return list<string> Sorted, accent-stripped, uppercased name tokens. */
     private function normalize(string $name): array
     {
-        $tokens = array_filter(explode(' ', Str::of($name)->ascii()->upper()->squish()->toString()));
+        $tokens = array_values(array_filter(explode(' ', Str::of($name)->ascii()->upper()->squish()->toString())));
         sort($tokens);
 
-        return array_values($tokens);
+        return $tokens;
     }
 }
