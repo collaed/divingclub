@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Helpers\ArticleTranslationStaleness;
 use App\Helpers\HtmlSanitizer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -49,6 +50,23 @@ class Article extends Model
             'is_public' => 'boolean',
             'expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Any save that changes the source content must invalidate existing
+     * translations — regardless of whether it went through the admin form,
+     * a console command, or a one-off script/tinker fix. Without this, a
+     * direct DB edit silently leaves stale (or never-actually-translated,
+     * see ArticleTranslationService::translate()'s partial-failure handling)
+     * text live in every other locale indefinitely.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (self $article): void {
+            if ($article->wasChanged(['title', 'body'])) {
+                ArticleTranslationStaleness::markIfChanged($article);
+            }
+        });
     }
 
     public const TYPES = [
