@@ -21,9 +21,9 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-success">€{{ number_format($stats['revenue'], 2) }}</div><div class="dc-stat-label">{{ __('Revenue') }}</div></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-warning">€{{ number_format($stats['outstanding'], 2) }}</div><div class="dc-stat-label">{{ __('Outstanding') }}</div></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-danger">{{ $stats['certs_expiring_30d'] }}</div><div class="dc-stat-label">{{ __('Certs Expiring 30d') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value text-success">€{{ number_format($stats['revenue'], 2) }}</div><div class="dc-stat-label">{{ __('Revenue') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value text-warning">€{{ number_format($stats['outstanding'], 2) }}</div><div class="dc-stat-label">{{ __('Outstanding') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value text-danger">{{ $stats['certs_expiring_30d'] }}</div><div class="dc-stat-label">{{ __('Certs Expiring 30d') }}</div></div></div>
         <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value">{{ $stats['equipment_by_status']->sum() }}</div><div class="dc-stat-label">{{ __('Equipment Items') }}</div></div></div>
     </div>
 
@@ -155,6 +155,17 @@
     </div>
 
     <script>
+        // Chart.js defaults to dark text/gridlines, which are invisible on the
+        // dark-mode card background — set the text/grid color explicitly to
+        // match the current theme so the charts aren't just blank rectangles.
+        (function () {
+            var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            var fg = isDark ? '#e2e8f0' : '#495057';
+            var grid = isDark ? 'rgba(226,232,240,.15)' : 'rgba(0,0,0,.1)';
+            Chart.defaults.color = fg;
+            Chart.defaults.borderColor = grid;
+        })();
+
         new Chart(document.getElementById('statusChart'), {
             type: 'doughnut',
             data: {
