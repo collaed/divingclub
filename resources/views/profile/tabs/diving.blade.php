@@ -111,6 +111,9 @@
                         <td>
                             <form method="POST" action="{{ route('profile.cert.update', $cert->id) }}" class="d-inline">
                                 @csrf @method('PUT')
+                                @if($target->id !== auth()->id())
+                                    <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+                                @endif
                                 <input type="date" name="obtained_date" class="form-control form-control-sm d-inline-block" style="width:140px"
                                        value="{{ $cert->pivot->obtained_date ? \Carbon\Carbon::parse($cert->pivot->obtained_date)->format('Y-m-d') : '' }}" onchange="this.form.submit()">
                             </form>
@@ -119,10 +122,24 @@
                             @if($cert->pivot->is_primary)
                                 <span class="badge bg-success">★</span>
                             @else
-                                <form method="POST" action="{{ route('profile.cert.primary', $cert->id) }}" class="d-inline">@csrf<button class="btn btn-sm btn-outline-secondary py-0 px-1">{{ __('Set') }}</button></form>
+                                <form method="POST" action="{{ route('profile.cert.primary', $cert->id) }}" class="d-inline">
+                                    @csrf
+                                    @if($target->id !== auth()->id())
+                                        <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+                                    @endif
+                                    <button class="btn btn-sm btn-outline-secondary py-0 px-1">{{ __('Set') }}</button>
+                                </form>
                             @endif
                         </td>
-                        <td><form method="POST" action="{{ route('profile.cert.remove', $cert->id) }}" class="d-inline" data-confirm="{{ __('Remove this certification?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Remove') }}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger py-0 px-1">✕</button></form></td>
+                        <td>
+                            <form method="POST" action="{{ route('profile.cert.remove', $cert->id) }}" class="d-inline" data-confirm="{{ __('Remove this certification?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Remove') }}">
+                                @csrf @method('DELETE')
+                                @if($target->id !== auth()->id())
+                                    <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+                                @endif
+                                <button class="btn btn-sm btn-outline-danger py-0 px-1">✕</button>
+                            </form>
+                        </td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -142,6 +159,9 @@
         </div>
         <form method="POST" action="{{ route('profile.cert.add') }}">
             @csrf
+            @if($target->id !== auth()->id())
+                <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+            @endif
             <div class="row g-2">
                 <div class="col-md-7">
                     <select name="certification_level_id" id="certSelect" class="form-select form-select-sm" required>
