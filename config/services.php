@@ -44,6 +44,10 @@ return [
     'cloudflare' => [
         'account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
         'api_token' => env('CLOUDFLARE_API_TOKEN'),
+        // Separate credential for account analytics (dashboard neuron-usage
+        // chart) — kept apart from api_token, which is used for Workers AI
+        // inference calls that carry user-uploaded content.
+        'analytics_token' => env('CLOUDFLARE_ANALYTICS_TOKEN'),
     ],
 
     // Inbound mail processing
