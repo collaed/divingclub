@@ -78,4 +78,46 @@ class AdminMemberControllerTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('success');
     }
+
+    public function test_bureau_can_create_a_member_manually(): void
+    {
+        $this->actingAs($this->admin)
+            ->post(route('admin.members.store'), [
+                'first_name' => 'Jean',
+                'last_name' => 'Dupont',
+                'email' => 'jean.dupont@example.com',
+            ])
+            ->assertRedirect();
+
+        $user = User::where('primary_email', 'jean.dupont@example.com')->firstOrFail();
+        $this->assertSame('Jean', $user->detail->first_name);
+        $this->assertSame('Dupont', $user->detail->last_name);
+        $this->assertNotNull($user->email_verified_at);
+        $this->assertTrue($user->hasRole('member'));
+        $this->assertTrue($user->emails()->where('email', 'jean.dupont@example.com')->where('is_primary', true)->exists());
+    }
+
+    public function test_creating_a_member_requires_a_unique_email(): void
+    {
+        $existing = $this->createMemberUser();
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.members.store'), [
+                'first_name' => 'Jean',
+                'last_name' => 'Dupont',
+                'email' => $existing->primary_email,
+            ])
+            ->assertSessionHasErrors('email');
+    }
+
+    public function test_a_regular_member_cannot_create_a_member(): void
+    {
+        $this->actingAs($this->createMemberUser())
+            ->post(route('admin.members.store'), [
+                'first_name' => 'Jean',
+                'last_name' => 'Dupont',
+                'email' => 'jean.dupont@example.com',
+            ])
+            ->assertForbidden();
+    }
 }

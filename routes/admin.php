@@ -39,6 +39,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
 Route::get('/export-dan', [DiveDataController::class, 'exportDan'])->name('export-dan');
 Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
+Route::post('/members', [MemberController::class, 'store'])->name('members.store');
 Route::get('/members/export', [MemberExportController::class, 'index'])->name('members.export');
 Route::get('/members/export/download', [MemberExportController::class, 'download'])->name('members.export.download');
 
