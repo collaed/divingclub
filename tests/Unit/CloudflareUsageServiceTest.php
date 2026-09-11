@@ -20,12 +20,12 @@ class CloudflareUsageServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['services.cloudflare.account_id' => 'acc123', 'services.cloudflare.analytics_token' => 'tok123']);
+        config(['services.cloudflare.account_id' => 'acc123', 'services.cloudflare.api_token' => 'tok123']);
     }
 
     public function test_returns_empty_without_configured_credentials(): void
     {
-        config(['services.cloudflare.account_id' => null, 'services.cloudflare.analytics_token' => null]);
+        config(['services.cloudflare.account_id' => null, 'services.cloudflare.api_token' => null]);
 
         $rows = app(CloudflareUsageService::class)->fetchDailyUsage(today()->subDay(), today());
 

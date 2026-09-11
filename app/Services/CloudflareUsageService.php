@@ -44,12 +44,7 @@ class CloudflareUsageService
     public function fetchDailyUsage(\DateTimeInterface $since, \DateTimeInterface $until): array
     {
         $accountId = config('services.cloudflare.account_id');
-        // Deliberately a separate, more broadly-scoped credential from
-        // services.cloudflare.api_token — that one is used for Workers AI
-        // inference calls carrying user-uploaded content (licence scans);
-        // account analytics stays on its own token so the two trust levels
-        // never share a credential.
-        $token = config('services.cloudflare.analytics_token');
+        $token = config('services.cloudflare.api_token');
 
         if (! $accountId || ! $token) {
             return [];
