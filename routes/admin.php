@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\LoginHistoryController;
 use App\Http\Controllers\Admin\MedicalExportController;
+use App\Http\Controllers\Admin\MedicalReviewController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MemberExportController;
 use App\Http\Controllers\Admin\NewsletterController;
@@ -40,6 +41,13 @@ Route::get('/export-dan', [DiveDataController::class, 'exportDan'])->name('expor
 Route::get('/members', [MemberController::class, 'index'])->name('members.index');
 Route::get('/members/export', [MemberExportController::class, 'index'])->name('members.export');
 Route::get('/members/export/download', [MemberExportController::class, 'download'])->name('members.export.download');
+
+// Medical certificate review — actionable worklist (see admin dashboard link)
+Route::get('/medical-review', [MedicalReviewController::class, 'index'])->name('medical-review.index');
+Route::post('/medical-review/{document}/validate', [MedicalReviewController::class, 'validateCert'])->name('medical-review.validate');
+Route::post('/medical-review/{document}/reject', [MedicalReviewController::class, 'reject'])->name('medical-review.reject');
+Route::post('/medical-review-comments', [MedicalReviewController::class, 'storeComment'])->name('medical-review-comments.store');
+Route::delete('/medical-review-comments/{medicalReviewComment}', [MedicalReviewController::class, 'destroyComment'])->name('medical-review-comments.destroy');
 Route::match(['put', 'patch'], '/members/{user}/status', [MemberController::class, 'updateStatus'])->name('members.status.update');
 Route::get('/members/{user}/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');

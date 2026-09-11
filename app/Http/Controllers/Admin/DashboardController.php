@@ -64,7 +64,7 @@ class DashboardController extends Controller
 
         // Bureau worklist: pending actions
         $worklist = [
-            'unverified_certs' => Document::where('category', 'medical')->where('is_current', true)->whereNull('verified_at')->count(),
+            'unverified_certs' => Document::where('category', 'medical')->where('is_current', true)->whereNull('verified_at')->whereNull('rejected_at')->count(),
             'expiring_certs' => Document::where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)])->count(),
             'pending_payments' => PaymentExpected::where('status', 'pending')->where('season_year', $season)->count(),
             'pending_external_regs' => ExternalRegistration::where('status', 'pending')->count(),
