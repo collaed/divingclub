@@ -182,6 +182,7 @@
                                             <a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🔧') {{ __('Equipment') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.event-automation-rules.index') }}">@icon('🤖') {{ __('Event Automation') }}</a>
                                             @can('manage partnerships')
                                             <a class="dropdown-item" href="{{ route('admin.partnerships.index') }}">@icon('🤝') {{ __('Partners') }}</a>
                                             @endcan

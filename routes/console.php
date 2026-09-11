@@ -38,3 +38,5 @@ Schedule::command('horizon:snapshot')->everyFifteenMinutes();
 // the CLOUDFLARE_API_TOKEN to carry "Account Analytics: Read" — without it
 // this is a no-op (see CloudflareUsageService).
 Schedule::command('cloudflare:sync-usage')->dailyAt('05:00')->after(fn () => ScheduleHeartbeat::beat('cloudflare-usage'));
+
+Schedule::command('events:evaluate-automation')->everyFifteenMinutes()->after(fn () => ScheduleHeartbeat::beat('event-automation'));

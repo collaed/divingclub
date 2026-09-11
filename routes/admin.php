@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\DiveSiteController;
 use App\Http\Controllers\Admin\DocumentDispatchController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EmailStatsController;
+use App\Http\Controllers\Admin\EventAutomationRuleController;
 use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\LibraryController;
@@ -43,6 +44,12 @@ Route::get('/members/create', [MemberController::class, 'create'])->name('member
 Route::post('/members', [MemberController::class, 'store'])->name('members.store');
 Route::get('/members/export', [MemberExportController::class, 'index'])->name('members.export');
 Route::get('/members/export/download', [MemberExportController::class, 'download'])->name('members.export.download');
+
+// Event automation rules — headcount / lifeguard checks evaluated when
+// registrations close (see EventAutomationService, events:evaluate-automation)
+Route::get('/event-automation-rules', [EventAutomationRuleController::class, 'index'])->name('event-automation-rules.index');
+Route::post('/event-automation-rules', [EventAutomationRuleController::class, 'store'])->name('event-automation-rules.store');
+Route::delete('/event-automation-rules/{eventAutomationRule}', [EventAutomationRuleController::class, 'destroy'])->name('event-automation-rules.destroy');
 
 // Medical certificate review — actionable worklist (see admin dashboard link)
 Route::get('/medical-review', [MedicalReviewController::class, 'index'])->name('medical-review.index');
