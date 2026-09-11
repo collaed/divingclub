@@ -75,6 +75,6 @@ class PhotosBrowseTest extends TestCase
         // simulate a guest whose session already points at the JSON feed
         $this->withSession(['url.intended' => url('/photos/browse')])
             ->post('/login', ['email' => 'freddy@example.test', 'password' => 'secret-passphrase'])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('home'));
     }
 }

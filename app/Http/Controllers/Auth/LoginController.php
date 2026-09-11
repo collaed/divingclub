@@ -47,9 +47,9 @@ class LoginController extends Controller
             // poisoned target (the landing page's /photos/browse prefetch can be
             // recorded as "intended" for a guest) landing a fresh login on a
             // non-page endpoint.
-            $target = redirect()->intended(route('profile.show'));
+            $target = redirect()->intended(route('home'));
             if (str_contains($target->getTargetUrl(), '/photos/browse')) {
-                return redirect()->route('profile.show');
+                return redirect()->route('home');
             }
 
             return $target;
