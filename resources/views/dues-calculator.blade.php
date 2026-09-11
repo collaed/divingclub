@@ -101,7 +101,7 @@
                             @endif
                             @foreach($optionals as $opt)
                                 <div class="form-check">
-                                    <input type="checkbox" name="optionals[]" value="{{ $opt->slug }}" class="form-check-input"
+                                    <input type="radio" name="optionals[]" value="{{ $opt->slug }}" class="form-check-input"
                                            id="opt_{{ $opt->slug }}" data-dues-input
                                            {{ in_array($opt->slug, $selectedOptionals ?? []) ? 'checked' : '' }}
                                            @if($assuranceForced) disabled aria-disabled="true" @endif>
