@@ -61,7 +61,7 @@ class CloudflareUsageServiceTest extends TestCase
         $this->assertSame([], $rows);
     }
 
-    public function test_sync_command_upserts_rows_and_re_running_updates_them(): void
+    public function test_sync_command_creates_a_row_per_date_and_model(): void
     {
         Http::fake([
             'api.cloudflare.com/*' => Http::response([
@@ -77,6 +77,11 @@ class CloudflareUsageServiceTest extends TestCase
 
         $this->assertSame(1, CloudflareAiUsageStat::count());
         $this->assertSame(42, CloudflareAiUsageStat::first()->neurons);
+    }
+
+    public function test_re_syncing_the_same_date_and_model_updates_the_row_in_place(): void
+    {
+        CloudflareAiUsageStat::create(['date' => '2026-09-10', 'model_id' => '@cf/meta/m2m100-1.2b', 'neurons' => 42, 'requests' => 5]);
 
         Http::fake([
             'api.cloudflare.com/*' => Http::response([
