@@ -29,6 +29,7 @@ class LoginHistoryController extends Controller
             'profile.show' => __('My profile'),
         ];
     }
+
     public function index(Request $request): View
     {
         $since = now()->subDay();
