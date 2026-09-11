@@ -46,6 +46,8 @@ class MedicalReviewTest extends TestCase
             'category' => 'medical',
             'file_path' => 'private/medical/test.pdf',
             'original_filename' => 'cert.pdf',
+            'mime_type' => 'application/pdf',
+            'size_bytes' => 1024,
             'date_established' => now()->subDay(),
             'is_current' => true,
         ]);
