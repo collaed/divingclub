@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -19,10 +20,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property array<int, array<string, mixed>>|null $fee_taper_tiers
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  */
 class Season extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = ['year', 'name', 'start_date', 'end_date', 'is_active', 'fee_taper_tiers'];
 

@@ -28,6 +28,13 @@ class SeasonController extends Controller
         return view('admin.seasons.index', compact('seasons'));
     }
 
+    public function destroy(Season $season): RedirectResponse
+    {
+        $season->delete();
+
+        return back()->with('success', __(':name moved to the recycle bin.', ['name' => $season->name]));
+    }
+
     public function create(): JsonResponse|RedirectResponse|View
     {
         $previousSeasons = Season::orderByDesc('year')->get();

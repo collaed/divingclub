@@ -23,7 +23,15 @@
                             </form>
                         @endif
                     </td>
-                    <td><a href="{{ route('admin.seasons.show', $s) }}" class="btn btn-sm btn-outline-primary">{{ __('Manage') }}</a></td>
+                    <td class="d-flex gap-1">
+                        <a href="{{ route('admin.seasons.show', $s) }}" class="btn btn-sm btn-outline-primary">{{ __('Manage') }}</a>
+                        <form method="POST" action="{{ route('admin.seasons.destroy', $s) }}"
+                              data-confirm="{{ $s->events_count > 0 ? __(':name has :count event(s) — delete it anyway? It goes to the recycle bin and can be restored.', ['name' => $s->name, 'count' => $s->events_count]) : __('Delete :name? It goes to the recycle bin and can be restored.', ['name' => $s->name]) }}"
+                              data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
+                            @csrf @method('DELETE')
+                            <button class="btn btn-sm btn-outline-danger">@icon('🗑️') {{ __('Delete') }}</button>
+                        </form>
+                    </td>
                 </tr>
             @endforeach
             </tbody>

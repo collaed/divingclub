@@ -180,6 +180,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/profile/federation-key/{licence}', [ProfileController::class, 'updateFederationKey'])->name('profile.update.federation-key');
     Route::post('/profile/licence/{licence}', [ProfileController::class, 'updateLicence'])->name('profile.update.licence');
     Route::post('/profile/{user}/licence', [ProfileController::class, 'storeLicence'])->name('profile.store.licence');
+    Route::get('/profile/licence/{licence}/scan', [ProfileController::class, 'licenceScanImage'])->name('profile.licence.scan');
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage'])->name('profile.update.language');
     Route::post('/profile/{user}/equipment-sizing', [ProfileController::class, 'updateEquipmentSizing'])->name('profile.update-equipment');
     Route::post('/profile/document', [ProfileDocumentController::class, 'upload'])->name('profile.document.upload');

@@ -227,4 +227,33 @@ class AdminSeasonTest extends TestCase
         $this->assertGreaterThan(0, Event::where('season_id', $season->id)->where('status', 'scheduled')->count());
         $this->assertSame(0, Event::where('season_id', $season->id)->where('status', 'published')->count());
     }
+
+    public function test_bureau_can_delete_a_season_and_it_lands_in_the_recycle_bin(): void
+    {
+        $season = Season::create(['year' => 2091, 'name' => 'ToDelete', 'start_date' => '2091-09-01', 'end_date' => '2092-07-31']);
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.seasons.destroy', $season))
+            ->assertRedirect();
+
+        $this->assertSoftDeleted('seasons', ['id' => $season->id]);
+        $this->assertDatabaseMissing('seasons', ['id' => $season->id, 'deleted_at' => null]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.trash.index', ['kind' => 'seasons']))
+            ->assertOk()
+            ->assertSee('ToDelete');
+    }
+
+    public function test_a_deleted_season_can_be_restored_from_the_recycle_bin(): void
+    {
+        $season = Season::create(['year' => 2092, 'name' => 'Restorable', 'start_date' => '2092-09-01', 'end_date' => '2093-07-31']);
+        $season->delete();
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.trash.restore', ['kind' => 'seasons', 'id' => $season->id]))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('seasons', ['id' => $season->id, 'deleted_at' => null]);
+    }
 }

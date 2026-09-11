@@ -20,7 +20,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProfileController extends Controller
 {
@@ -182,6 +184,19 @@ class ProfileController extends Controller
         ]));
 
         return back()->with('success', __('Licence updated.'))->withInput(['tab' => 'renewal']);
+    }
+
+    /** The real rendered scan (see ProcessLicenceScan) behind a licence card, when one exists. */
+    public function licenceScanImage(MemberLicence $licence): Response
+    {
+        $user = auth()->user();
+        if ($licence->user_id !== $user->id && ! $user->isBureau()) {
+            abort(403);
+        }
+
+        abort_unless($licence->scan_image_path && Storage::disk('local')->exists($licence->scan_image_path), 404);
+
+        return response(Storage::disk('local')->get($licence->scan_image_path))->header('Content-Type', 'image/png');
     }
 
     public function updateFederationKey(Request $request, MemberLicence $licence): RedirectResponse
