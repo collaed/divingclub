@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Jobs\SendMedicalCertificateApprovedEmail;
 use App\Jobs\SendMedicalCertificateRejectedEmail;
 use App\Models\Document;
 use App\Models\MedicalReviewComment;
@@ -78,6 +79,7 @@ class MedicalReviewTest extends TestCase
 
     public function test_validate_without_comment_marks_verified(): void
     {
+        Bus::fake();
         $doc = $this->pendingDoc($this->member());
         $bureau = $this->createBureauUser();
 
@@ -88,10 +90,12 @@ class MedicalReviewTest extends TestCase
         $this->assertSame($bureau->id, $doc->verified_by);
         $this->assertNull($doc->review_comment);
         $this->assertFalse($doc->isRejected());
+        Bus::assertDispatched(SendMedicalCertificateApprovedEmail::class, fn ($job) => $job->documentId === $doc->id);
     }
 
     public function test_validate_with_comment_marks_verified_and_stores_the_comment(): void
     {
+        Bus::fake();
         $doc = $this->pendingDoc($this->member());
 
         $this->actingAs($this->createBureauUser())
@@ -101,6 +105,7 @@ class MedicalReviewTest extends TestCase
         $doc->refresh();
         $this->assertTrue($doc->is_verified);
         $this->assertSame('Please resubmit next year with a sharper scan.', $doc->review_comment);
+        Bus::assertDispatched(SendMedicalCertificateApprovedEmail::class, fn ($job) => $job->documentId === $doc->id);
     }
 
     public function test_reject_requires_a_comment_and_emails_the_member(): void

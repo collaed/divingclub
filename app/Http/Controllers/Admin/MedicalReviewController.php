@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendMedicalCertificateApprovedEmail;
 use App\Jobs\SendMedicalCertificateRejectedEmail;
 use App\Models\Document;
 use App\Models\MedicalReviewComment;
@@ -53,6 +54,8 @@ class MedicalReviewController extends Controller
         ]);
 
         app(MedicalComplianceService::class)->evaluateCertificate($document);
+
+        SendMedicalCertificateApprovedEmail::dispatch($document->id)->afterCommit();
 
         return back()->with('success', $comment ? __('Certificate validated with a comment.') : __('Certificate validated.'));
     }
