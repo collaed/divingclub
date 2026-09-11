@@ -25,7 +25,11 @@
                 </div>
                 <div class="col">
                     <label class="form-label small mb-1">{{ __('Scans (PDF or image, one per member)') }}</label>
-                    <input type="file" name="files[]" class="form-control form-control-sm" accept="application/pdf,image/jpeg,image/png" multiple required>
+                    <div class="dc-dropzone rounded d-flex align-items-center justify-content-center gap-2 text-muted small" style="border: 2px dashed #ccc;" tabindex="0" role="button">
+                        <span>@icon('📥')</span>
+                        <span class="dc-dropzone-label">{{ __('Drop files here, or click to browse') }}</span>
+                        <input type="file" name="files[]" class="dc-dropzone-input visually-hidden" accept="application/pdf,image/jpeg,image/png" multiple required>
+                    </div>
                 </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-sm btn-primary">@icon('⬆️') {{ __('Upload & process') }}</button>
@@ -98,8 +102,43 @@
         @endforeach
     </datalist>
 
+    <style>
+        .dc-dropzone { min-height: 38px; padding: 6px 10px; cursor: pointer; transition: border-color .15s, color .15s; }
+        .dc-dropzone.dc-dropzone-active { border-color: #0d6efd !important; color: #0d6efd; }
+        .dc-dropzone.dc-dropzone-filled { border-color: #198754 !important; color: #198754; }
+    </style>
+
     <script>
         // No inline handlers, event delegation per project JS convention.
+        document.querySelectorAll('.dc-dropzone').forEach(function (zone) {
+            var input = zone.querySelector('.dc-dropzone-input');
+            var label = zone.querySelector('.dc-dropzone-label');
+            var defaultLabel = label.textContent;
+
+            var updateLabel = function () {
+                var n = input.files.length;
+                zone.classList.toggle('dc-dropzone-filled', n > 0);
+                label.textContent = n > 0 ? n + ' ' + '{{ __('file(s) selected') }}' : defaultLabel;
+            };
+
+            zone.addEventListener('click', function () { input.click(); });
+            zone.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+            });
+            input.addEventListener('change', updateLabel);
+
+            ['dragenter', 'dragover'].forEach(function (evt) {
+                zone.addEventListener(evt, function (e) { e.preventDefault(); zone.classList.add('dc-dropzone-active'); });
+            });
+            ['dragleave', 'drop'].forEach(function (evt) {
+                zone.addEventListener(evt, function (e) { e.preventDefault(); zone.classList.remove('dc-dropzone-active'); });
+            });
+            zone.addEventListener('drop', function (e) {
+                input.files = e.dataTransfer.files;
+                updateLabel();
+            });
+        });
+
         // The datalist only carries names (browsers don't expose the option's
         // other attributes on match), so resolve the typed name back to a
         // user id by looking the option up again on change/blur.
