@@ -16,6 +16,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 /**
  * Renders a licence scan's first page to a lightweight image, reads the
@@ -97,11 +98,19 @@ class ProcessLicenceScan implements ShouldQueue
 
         if (str_contains(mime_content_type($sourcePath) ?: '', 'pdf')) {
             exec('pdftoppm -png -r 150 -singlefile '.escapeshellarg($sourcePath).' '.escapeshellarg($base).' 2>/dev/null');
-        } else {
-            exec('convert '.escapeshellarg($sourcePath).' -resize 1200x1200\> '.escapeshellarg($tmp).' 2>/dev/null');
+
+            return file_exists($tmp) ? $tmp : null;
         }
 
-        return file_exists($tmp) ? $tmp : null;
+        // Already an image (jpg/png upload) — just downscale, no external
+        // binary needed (Intervention Image is already a dependency).
+        try {
+            Image::read($sourcePath)->scaleDown(1200, 1200)->save($tmp);
+
+            return $tmp;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /** Only ever returns a member when the extracted name unambiguously names exactly one of them. */
