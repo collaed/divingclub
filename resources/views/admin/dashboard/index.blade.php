@@ -155,8 +155,8 @@
     </div>
 
     <script>
-        // @vite's app.js is a module script (deferred) and is what sets the
-        // global `Chart` this inline classic script needs — a classic script
+        // The Vite-built app.js is a module script (deferred) and is what sets
+        // the global `Chart` this inline classic script needs — a classic script
         // runs as soon as the parser reaches it, before deferred/module
         // scripts, so `Chart` isn't defined yet at that point. Module scripts
         // are guaranteed to run before DOMContentLoaded, so wait for that.
