@@ -130,6 +130,23 @@ class MedicalReviewTest extends TestCase
         Bus::assertDispatched(SendMedicalCertificateRejectedEmail::class, fn ($job) => $job->documentId === $doc->id);
     }
 
+    public function test_a_legacy_document_with_is_verified_true_but_no_verified_at_can_still_be_reviewed(): void
+    {
+        // Some documents were marked is_verified=true by an older/import path
+        // that never set verified_at — they still show up in the pending
+        // queue (index() filters on verified_at), so validate/reject must not
+        // 404 on them either.
+        $doc = $this->pendingDoc($this->member());
+        $doc->update(['is_verified' => true]);
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.medical-review.validate', $doc))
+            ->assertRedirect();
+
+        $doc->refresh();
+        $this->assertNotNull($doc->verified_at);
+    }
+
     public function test_a_regular_member_cannot_validate_or_reject(): void
     {
         $doc = $this->pendingDoc($this->member());

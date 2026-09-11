@@ -82,10 +82,17 @@ class Document extends Model
         return $this->rejected_at !== null;
     }
 
-    /** Pending review: neither verified nor rejected yet. */
+    /**
+     * Pending review: neither verified nor rejected yet. Checks verified_at
+     * (not is_verified) so this agrees with MedicalReviewController::index()'s
+     * queue query — some legacy documents have is_verified=true with
+     * verified_at still null (set true by an older/import path, never through
+     * this review flow), which made them appear in the queue yet 404 the
+     * moment validate/reject was attempted on them.
+     */
     public function isPendingReview(): bool
     {
-        return ! $this->is_verified && ! $this->isRejected();
+        return $this->verified_at === null && ! $this->isRejected();
     }
 
     /** @return BelongsTo<Document, $this> */
