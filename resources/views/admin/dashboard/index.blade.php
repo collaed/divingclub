@@ -21,9 +21,9 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-success">€{{ number_format($stats['revenue'], 2) }}</div><div class="dc-stat-label">{{ __('Revenue') }}</div></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-warning">€{{ number_format($stats['outstanding'], 2) }}</div><div class="dc-stat-label">{{ __('Outstanding') }}</div></div></div>
-        <div class="col-md-3"><div class="card dc-card text-center p-3"><h3 class="text-danger">{{ $stats['certs_expiring_30d'] }}</div><div class="dc-stat-label">{{ __('Certs Expiring 30d') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value text-success">€{{ number_format($stats['revenue'], 2) }}</div><div class="dc-stat-label">{{ __('Revenue') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value text-warning">€{{ number_format($stats['outstanding'], 2) }}</div><div class="dc-stat-label">{{ __('Outstanding') }}</div></div></div>
+        <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value text-danger">{{ $stats['certs_expiring_30d'] }}</div><div class="dc-stat-label">{{ __('Certs Expiring 30d') }}</div></div></div>
         <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value">{{ $stats['equipment_by_status']->sum() }}</div><div class="dc-stat-label">{{ __('Equipment Items') }}</div></div></div>
     </div>
 
@@ -33,7 +33,7 @@
         <div class="card-header bg-warning bg-opacity-10">@icon('📋') {{ __('Bureau Worklist') }}</div>
         <div class="list-group list-group-flush">
             @if($worklist['unverified_certs'] > 0)
-                <a href="{{ route('admin.members.index') }}?filter=unverified_cert" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Medical certificates to verify') }} <span class="badge bg-danger">{{ $worklist['unverified_certs'] }}</span></a>
+                <a href="{{ route('admin.medical-review.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Medical certificates to verify') }} <span class="badge bg-danger">{{ $worklist['unverified_certs'] }}</span></a>
             @endif
             @if($worklist['expiring_certs'] > 0)
                 <a href="{{ route('admin.members.index') }}?filter=expiring_cert" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Certificates expiring within 30 days') }} <span class="badge bg-warning text-dark">{{ $worklist['expiring_certs'] }}</span></a>
@@ -44,9 +44,11 @@
             @if($worklist['pending_payments'] > 0)
                 <a href="{{ route('admin.payments.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Pending payments') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_payments'] }}</span></a>
             @endif
-            @if($worklist['pending_external_regs'] > 0)
-                <a href="{{ route('admin.partnerships.registrations') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('External registrations to review') }} <span class="badge bg-info">{{ $worklist['pending_external_regs'] }}</span></a>
-            @endif
+            @can('manage partnerships')
+                @if($worklist['pending_external_regs'] > 0)
+                    <a href="{{ route('admin.partnerships.registrations') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('External registrations to review') }} <span class="badge bg-info">{{ $worklist['pending_external_regs'] }}</span></a>
+                @endif
+            @endcan
             @if($worklist['unverified_emails'] > 0)
                 <span class="list-group-item d-flex justify-content-between">{{ __('Members with unverified email') }} <span class="badge bg-secondary">{{ $worklist['unverified_emails'] }}</span></span>
             @endif
@@ -153,20 +155,65 @@
     </div>
 
     <script>
-        new Chart(document.getElementById('statusChart'), {
-            type: 'doughnut',
-            data: {
-                labels: {!! json_encode($stats['members_by_status']->pluck('name')) !!},
-                datasets: [{data: {!! json_encode($stats['members_by_status']->pluck('count')) !!}, backgroundColor: ['#003366','#0077be','#28a745','#ffc107','#dc3545','#6f42c1']}]
+        // The Vite-built app.js is a module script (deferred) and is what sets
+        // the global `Chart` this inline classic script needs — a classic script
+        // runs as soon as the parser reaches it, before deferred/module
+        // scripts, so `Chart` isn't defined yet at that point. Module scripts
+        // are guaranteed to run before DOMContentLoaded, so wait for that.
+        document.addEventListener('DOMContentLoaded', function () {
+            // Chart.js defaults to dark text/gridlines, which are invisible on
+            // the dark-mode card background — set them from the active theme
+            // so the charts aren't just blank rectangles.
+            var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            var fg = isDark ? '#e2e8f0' : '#495057';
+            var grid = isDark ? 'rgba(226,232,240,.15)' : 'rgba(0,0,0,.1)';
+            Chart.defaults.color = fg;
+            Chart.defaults.borderColor = grid;
+
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: {!! json_encode($stats['members_by_status']->pluck('name')) !!},
+                    datasets: [{data: {!! json_encode($stats['members_by_status']->pluck('count')) !!}, backgroundColor: ['#003366','#0077be','#28a745','#ffc107','#dc3545','#6f42c1']}]
+                }
+            });
+            new Chart(document.getElementById('equipChart'), {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($stats['equipment_by_status']->keys()) !!},
+                    datasets: [{label: 'Count', data: {!! json_encode($stats['equipment_by_status']->values()) !!}, backgroundColor: '#0077be'}]
+                },
+                options: {scales: {y: {beginAtZero: true}}}
+            });
+
+            var mailHistoryEl = document.getElementById('mailHistoryChart');
+            if (mailHistoryEl) {
+                new Chart(mailHistoryEl, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($mailHistory['dates']) !!},
+                        datasets: [
+                            {label: 'Resend (primary)', data: {!! json_encode($mailHistory['series']['resend_primary']) !!}, borderColor: '#0077be', backgroundColor: 'transparent', tension: 0.2},
+                            {label: 'Resend (secondary)', data: {!! json_encode($mailHistory['series']['resend_secondary']) !!}, borderColor: '#28a745', backgroundColor: 'transparent', tension: 0.2},
+                            {label: 'Mailjet', data: {!! json_encode($mailHistory['series']['mailjet']) !!}, borderColor: '#ffc107', backgroundColor: 'transparent', tension: 0.2},
+                            {label: 'Brevo', data: {!! json_encode($mailHistory['series']['brevo']) !!}, borderColor: '#dc3545', backgroundColor: 'transparent', tension: 0.2}
+                        ]
+                    },
+                    options: {scales: {y: {beginAtZero: true}}, elements: {point: {radius: 0}}}
+                });
             }
-        });
-        new Chart(document.getElementById('equipChart'), {
-            type: 'bar',
-            data: {
-                labels: {!! json_encode($stats['equipment_by_status']->keys()) !!},
-                datasets: [{label: 'Count', data: {!! json_encode($stats['equipment_by_status']->values()) !!}, backgroundColor: '#0077be'}]
-            },
-            options: {scales: {y: {beginAtZero: true}}}
+
+            var cfHistoryEl = document.getElementById('cloudflareHistoryChart');
+            if (cfHistoryEl) {
+                new Chart(cfHistoryEl, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($cloudflareHistory['dates']) !!},
+                        datasets: [{label: 'Neurons/day', data: {!! json_encode($cloudflareHistory['neurons']) !!}, borderColor: '#6f42c1', backgroundColor: 'rgba(111,66,193,.15)', fill: true, tension: 0.2}]
+                    },
+                    options: {scales: {y: {beginAtZero: true}}, elements: {point: {radius: 0}}}
+                });
+            }
         });
     </script>
 
@@ -202,6 +249,31 @@
         </div>
     </div>
     @endif
+
+    {{-- Usage history: email sends + Cloudflare AI neurons, last 60 days —
+         tells us when it's time to scale up or when there's headroom left. --}}
+    <div class="row g-3 mt-1">
+        <div class="col-md-6">
+            <div class="card dc-card">
+                <div class="card-header fw-bold">📈 {{ __('Email Sends — last 60 days') }}</div>
+                <div class="card-body">
+                    <canvas id="mailHistoryChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card dc-card">
+                <div class="card-header fw-bold">🧠 {{ __('Cloudflare AI Usage (neurons) — last 60 days') }}</div>
+                <div class="card-body">
+                    @if(array_sum($cloudflareHistory['neurons']))
+                        <canvas id="cloudflareHistoryChart" height="120"></canvas>
+                    @else
+                        <p class="text-muted small mb-0">{{ __('No usage data yet. This needs the Cloudflare API token to have the "Account Analytics: Read" permission — grant it, then wait for the next daily sync (05:00).') }}</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- System Update Check --}}
     <div class="card dc-card mt-4">

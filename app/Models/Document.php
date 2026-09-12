@@ -24,6 +24,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property bool $is_verified
  * @property string|null $verified_by
  * @property Carbon|null $verified_at
+ * @property Carbon|null $rejected_at
+ * @property int|null $rejected_by
+ * @property string|null $review_comment
  * @property string|null $superseded_by
  * @property bool $is_current
  * @property bool $is_compliant
@@ -41,7 +44,7 @@ class Document extends Model
     use Auditable;
     use SoftDeletes;
 
-    protected $fillable = ['user_id', 'category', 'cert_type', 'file_path', 'original_filename', 'mime_type', 'size_bytes', 'date_established', 'expiry_date', 'is_verified', 'verified_by', 'verified_at', 'superseded_by', 'is_current', 'is_compliant', 'compliance_notes', 'reminder_30_sent_at', 'reminder_15_sent_at', 'reminder_7_sent_at', 'reminder_0_sent_at'];
+    protected $fillable = ['user_id', 'category', 'cert_type', 'file_path', 'original_filename', 'mime_type', 'size_bytes', 'date_established', 'expiry_date', 'is_verified', 'verified_by', 'verified_at', 'rejected_at', 'rejected_by', 'review_comment', 'superseded_by', 'is_current', 'is_compliant', 'compliance_notes', 'reminder_30_sent_at', 'reminder_15_sent_at', 'reminder_7_sent_at', 'reminder_0_sent_at'];
 
     protected function casts(): array
     {
@@ -49,6 +52,7 @@ class Document extends Model
             'date_established' => 'date',
             'expiry_date' => 'date',
             'verified_at' => 'datetime',
+            'rejected_at' => 'datetime',
             'is_verified' => 'boolean',
             'is_current' => 'boolean',
             'is_compliant' => 'boolean',
@@ -65,6 +69,30 @@ class Document extends Model
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function rejecter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->rejected_at !== null;
+    }
+
+    /**
+     * Pending review: neither verified nor rejected yet. Checks verified_at
+     * (not is_verified) so this agrees with MedicalReviewController::index()'s
+     * queue query — some legacy documents have is_verified=true with
+     * verified_at still null (set true by an older/import path, never through
+     * this review flow), which made them appear in the queue yet 404 the
+     * moment validate/reject was attempted on them.
+     */
+    public function isPendingReview(): bool
+    {
+        return $this->verified_at === null && ! $this->isRejected();
     }
 
     /** @return BelongsTo<Document, $this> */

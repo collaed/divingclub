@@ -26,6 +26,14 @@ class TrialController extends Controller
             return back()->with('error', __('Please try again.'));
         }
 
+        // Where the request came from (e.g. an article's inline form) — for the
+        // bureau, kept out of the visitor-facing message.
+        $source = trim((string) ($data['source'] ?? ''));
+        unset($data['source']);
+        if ($source !== '') {
+            $data['admin_notes'] = $source;
+        }
+
         TrialRequest::create($data);
 
         return back()->with('success', __('Your request has been submitted! We will contact you to confirm a date and time.'));

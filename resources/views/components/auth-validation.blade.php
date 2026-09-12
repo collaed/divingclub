@@ -1,5 +1,38 @@
+<style>
+    .dc-pw-wrap { position: relative; }
+    .dc-pw-wrap > input { padding-right: 2.6rem; }
+    .dc-pw-eye {
+        position: absolute; top: 0; right: 0; height: calc(1.5em + 0.75rem + 2px);
+        width: 2.5rem; display: flex; align-items: center; justify-content: center;
+        background: none; border: 0; padding: 0; cursor: pointer;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+    .dc-pw-eye:hover { color: var(--bs-body-color, #212529); }
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide password — eye toggle inside the field
+    var EYE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var EYE_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    document.querySelectorAll('input[type="password"]').forEach(function (input) {
+        var wrap = document.createElement('div');
+        wrap.className = 'dc-pw-wrap';
+        input.parentNode.insertBefore(wrap, input);
+        wrap.appendChild(input);
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dc-pw-eye';
+        btn.setAttribute('aria-label', '{{ __("Show password") }}');
+        btn.innerHTML = EYE;
+        wrap.appendChild(btn);
+        btn.addEventListener('click', function () {
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            btn.innerHTML = show ? EYE_OFF : EYE;
+            btn.setAttribute('aria-label', show ? '{{ __("Hide password") }}' : '{{ __("Show password") }}');
+        });
+    });
+
     // Email validation
     document.querySelectorAll('input[type="email"]').forEach(el => {
         const fb = document.createElement('div');

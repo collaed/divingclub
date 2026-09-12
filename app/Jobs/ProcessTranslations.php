@@ -26,15 +26,21 @@ class ProcessTranslations implements ShouldQueue
         $new = Article::whereDoesntHave('translations')->where('is_published', true)->oldest()->first();
         if ($new) {
             try {
-                $svc->translateAll($new, $locales);
+                foreach ($locales as $locale) {
+                    if ($locale === 'fr') {
+                        continue;
+                    }
+                    $svc->translate($new, $locale);
+                }
                 Log::info("Auto-translated new article: {$new->title}");
+                self::dispatch()->delay(now()->addSeconds(10));
+
+                return;
             } catch (\Throwable $e) {
                 Log::warning("Auto-translation failed: {$new->title}", ['error' => $e->getMessage()]);
             }
         }
 
-        // Gap-fill: a published article that has SOME translations but is missing
-        // enabled locales (an earlier translateAll aborted mid-loop). One per run.
         $expected = count(array_diff($locales, ['fr']));
         $partial = Article::where('is_published', true)
             ->withCount('translations')
@@ -43,30 +49,34 @@ class ProcessTranslations implements ShouldQueue
 
         if ($partial) {
             $missing = array_values(array_diff($locales, $partial->translations()->pluck('locale')->all(), ['fr']));
-            foreach ($missing as $locale) {
+            if ($missing) {
+                $locale = reset($missing);
                 try {
                     $svc->translate($partial, $locale);
+                    Log::info("Filled {$partial->title} [{$locale}]");
+                    self::dispatch()->delay(now()->addSeconds(5));
+
+                    return;
                 } catch (\Throwable $e) {
                     Log::warning("Translation gap-fill failed: {$partial->title} [{$locale}]", ['error' => $e->getMessage()]);
                 }
             }
-            Log::info("Filled {$partial->title}: ".count($missing).' locale(s)');
         }
 
         $stale = ArticleTranslation::where('stale', true)
             ->where('retries', '<', 3)
             ->whereNull('flagged_at')
             ->with('article')
-            ->limit(5)->get();
+            ->first();
 
-        foreach ($stale as $t) {
-            if (! $t->article) {
-                continue;
-            }
+        if ($stale && $stale->article) {
             try {
-                $svc->translate($t->article, $t->locale);
+                $svc->translate($stale->article, $stale->locale);
+                self::dispatch()->delay(now()->addSeconds(5));
+
+                return;
             } catch (\Throwable $e) {
-                Log::warning("Translation refresh failed: {$t->article->title} [{$t->locale}]");
+                Log::warning("Translation refresh failed: {$stale->article->title} [{$stale->locale}]");
             }
         }
 
@@ -80,7 +90,7 @@ class ProcessTranslations implements ShouldQueue
             ->whereNotNull('source_word_count')
             ->whereNotNull('translated_word_count')
             ->whereRaw('translated_word_count < source_word_count * 0.3 OR translated_word_count > source_word_count * 3')
-            ->limit(10)
+            ->limit(1)
             ->each(fn ($t) => $t->update([
                 'flagged_at' => now(),
                 'flag_reason' => "Word count ratio: {$t->source_word_count} → {$t->translated_word_count}",

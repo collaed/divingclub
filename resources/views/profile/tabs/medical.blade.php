@@ -23,8 +23,12 @@
                 <small class="text-muted ms-2">{{ $doc->date_established?->format('d/m/Y') }}</small>
                 @if($doc->expiry_date) <small class="ms-2">→ {{ $doc->expiry_date->format('d/m/Y') }}</small> @endif
                 @if($doc->is_verified) <span class="badge bg-success ms-2">{{ __('Verified') }}</span> @endif
+                @if($doc->isRejected()) <span class="badge bg-danger ms-2">{{ __('Rejected') }}</span> @endif
                 @if(!$doc->is_current) <span class="badge bg-secondary ms-2">{{ __('Superseded') }}</span> @endif
                 @if($doc->compliance_notes) <br><small class="text-muted">{{ $doc->compliance_notes }}</small> @endif
+                @if($doc->review_comment)
+                    <br><small class="{{ $doc->isRejected() ? 'text-danger' : 'text-muted' }}" style="white-space: pre-wrap">@icon('💬') {{ $doc->review_comment }}</small>
+                @endif
             </div>
             <div>
                 @if($viewer->can('verify documents') && !$doc->is_verified)

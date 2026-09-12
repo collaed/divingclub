@@ -179,19 +179,33 @@ class DuesCalculatorController extends Controller
     private function feesForYear(string $year): Collection
     {
         $fees = MembershipFee::where('season_year', $year)->with('status')->get();
-        if ($fees->isNotEmpty()) {
-            return $fees->keyBy('status_id');
+        if ($fees->isEmpty()) {
+            $fallbackYear = MembershipFee::where('season_year', '<', $year)
+                ->orderByDesc('season_year')
+                ->value('season_year');
+
+            $fees = $fallbackYear === null
+                ? collect()
+                : MembershipFee::where('season_year', $fallbackYear)->with('status')->get();
         }
 
-        $fallbackYear = MembershipFee::where('season_year', '<', $year)
-            ->orderByDesc('season_year')
-            ->value('season_year');
+        $byStatusId = $fees->keyBy('status_id');
 
-        if ($fallbackYear === null) {
-            return collect();
+        // Fee-alias statuses (Famille/Associé/Assimilé) show their parent
+        // status's fee when they have none of their own for this year — same
+        // rule FeeCalculationService applies when actually charging a member.
+        $aliasStatuses = MemberStatus::whereIn('slug', array_keys(MemberStatus::FEE_ALIASES))->get();
+        foreach ($aliasStatuses as $status) {
+            if ($byStatusId->has($status->id)) {
+                continue;
+            }
+            $aliasFee = $byStatusId->first(fn (MembershipFee $f): bool => $f->status?->slug === $status->feeAliasSlug());
+            if ($aliasFee) {
+                $byStatusId->put($status->id, $aliasFee);
+            }
         }
 
-        return MembershipFee::where('season_year', $fallbackYear)->with('status')->get()->keyBy('status_id');
+        return $byStatusId;
     }
 
     /**

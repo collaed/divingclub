@@ -80,4 +80,14 @@
 .nav-tabs .nav-link {
   border-radius: var(--dc-radius) var(--dc-radius) 0 0 !important;
 }
+// The active tab is where the user already is — it must read as a label,
+// not as another clickable link next to it.
+.nav-tabs .nav-link.active {
+  color: var(--dc-text, #1a1a1a) !important;
+  font-weight: 600;
+  text-decoration: none !important;
+  cursor: default;
+  border-bottom-color: #fff !important;
+  border-top: 2px solid var(--dc-primary, #003366);
+}
 

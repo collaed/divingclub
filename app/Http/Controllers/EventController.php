@@ -51,7 +51,10 @@ class EventController extends Controller
         $view = $request->get('view', 'month');
         $date = $request->get('date') ? Carbon::parse($request->get('date')) : now();
 
-        $query = Event::notCancelled();
+        // Cancelled events stay on the calendar for everyone — struck through
+        // and clearly marked, so there's no "did it move or was it dropped?"
+        // doubt. Only the bureau can restore one.
+        $query = Event::query();
 
         if ($view === 'month') {
             $start = $date->copy()->startOfMonth();

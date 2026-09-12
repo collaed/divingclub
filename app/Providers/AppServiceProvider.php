@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Auth\DivingClubUserProvider;
+use App\Jobs\ResolveLoginGeo;
+use App\Models\EmailLog;
 use App\Models\LoginRecord;
+use App\Services\BrevoTransport;
 use App\Services\LicenseService;
 use App\Services\MailBalancer;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
@@ -43,6 +48,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
+        Mail::extend('brevo', fn () => new BrevoTransport((string) config('services.brevo.key')));
+
         // Register Microsoft Socialite provider
         Event::listen(SocialiteWasCalled::class, MicrosoftExtendSocialite::class);
 
@@ -59,13 +66,15 @@ class AppServiceProvider extends ServiceProvider
             }
 
             try {
-                LoginRecord::create([
+                $record = LoginRecord::create([
                     'user_id' => $event->user->getAuthIdentifier(),
                     'guard' => $event->guard,
                     'remember' => $event->remember,
                     'ip_address' => request()->ip(),
                     'user_agent' => mb_substr((string) request()->userAgent(), 0, 1000),
                 ]);
+                // Resolve the country off the queue so login isn't slowed.
+                ResolveLoginGeo::dispatch($record->id)->afterCommit();
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -73,6 +82,14 @@ class AppServiceProvider extends ServiceProvider
 
         // Map 'email' → 'primary_email' for password reset and credential lookups
         Auth::provider('divingclub', fn ($app, $config) => new DivingClubUserProvider($app['hash'], $config['model'])
+        );
+
+        // Reset links go to every verified address (User::sendPasswordResetNotification),
+        // which sends through anonymous notifiables, so the link can't carry a
+        // single ?email= hint. The reset form asks for the address anyway and the
+        // token is keyed by primary_email regardless of which address was used.
+        ResetPassword::createUrlUsing(
+            fn ($notifiable, string $token): string => url(route('password.reset', ['token' => $token], false))
         );
 
         View::composer('*', function ($view) {
@@ -105,6 +122,41 @@ class AppServiceProvider extends ServiceProvider
             $provider = MailBalancer::configureForNext();
             MailBalancer::recordSend($provider);
         });
+
+        // Record notification-channel mail (password reset, email verification,
+        // …) in email_log so it shows on /admin/email. Feature paths that send
+        // bulk / newsletter / vote / contact mail already write their own
+        // EmailLog row and carry no __laravel_notification marker, so they are
+        // skipped here — otherwise every such send would be logged twice.
+        // Staging has its own capture (StagingMailServiceProvider); a logging
+        // failure must never break the actual send.
+        if (! config('app.staging_mode')) {
+            Event::listen(MessageSent::class, function (MessageSent $event): void {
+                try {
+                    if (! isset($event->data['__laravel_notification'])) {
+                        return;
+                    }
+
+                    $message = $event->message;
+                    $to = collect($message->getTo())->map(fn ($a) => $a->getAddress())->implode(', ');
+                    if ($to === '') {
+                        return;
+                    }
+
+                    EmailLog::create([
+                        'to_email' => $to,
+                        'subject' => $message->getSubject() ?: '(no subject)',
+                        'body' => $message->getHtmlBody() ?: $message->getTextBody() ?: '',
+                        'from_email' => collect($message->getFrom())->map(fn ($a) => $a->getAddress())->first(),
+                        'from_name' => collect($message->getFrom())->map(fn ($a) => $a->getName())->first() ?: null,
+                        'status' => 'sent',
+                        'direction' => 'outbound',
+                    ]);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            });
+        }
 
         // @icon('🤿') — outputs emoji only when icons are enabled for current user
         Blade::directive('icon', function (string $expression) {

@@ -10,6 +10,7 @@ use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateProfileDivingRequest;
 use App\Http\Requests\UpdateProfileInfoRequest;
 use App\Http\Requests\UpdateProfileLanguageRequest;
+use App\Models\Document;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
@@ -20,7 +21,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProfileController extends Controller
 {
@@ -86,6 +89,7 @@ class ProfileController extends Controller
             $rules['status_set_id'] = 'nullable|exists:status_sets,id';
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
+            $rules['is_lifeguard'] = 'nullable|boolean';
             $rules['adhesion_year'] = 'nullable|integer|min:1900|max:'.date('Y');
             $rules['cotisation_years'] = 'nullable|array';
             $rules['cotisation_years.*'] = 'integer|min:1900|max:'.(date('Y') + 1);
@@ -106,7 +110,7 @@ class ProfileController extends Controller
             }
         }
 
-        if (! $viewer->isBureau() && ($request->has('bureau_member') || $request->has('active_instructor'))) {
+        if (! $viewer->isBureau() && ($request->has('bureau_member') || $request->has('active_instructor') || $request->has('is_lifeguard'))) {
             abort(403);
         }
 
@@ -128,6 +132,7 @@ class ProfileController extends Controller
             if ($viewer->isBureau()) {
                 $detailData['bureau_member'] = $validated['bureau_member'] ?? false;
                 $detailData['active_instructor'] = $validated['active_instructor'] ?? false;
+                $detailData['is_lifeguard'] = $validated['is_lifeguard'] ?? false;
                 $detailData['adhesion_year'] = $validated['adhesion_year'] ?? null;
                 if (isset($validated['cotisation_years'])) {
                     $detailData['cotisation_years'] = array_map('strval', $validated['cotisation_years']);
@@ -180,6 +185,73 @@ class ProfileController extends Controller
         ]));
 
         return back()->with('success', __('Licence updated.'))->withInput(['tab' => 'renewal']);
+    }
+
+    /**
+     * The member's real licence card as an image: the scan captured by the
+     * Licence Scans intake when there is one, otherwise their own uploaded
+     * licence_card PDF rendered to a PNG. Never the CSS recreation — that is
+     * the Blade-side fallback for members who have neither.
+     */
+    public function licenceScanImage(MemberLicence $licence): Response
+    {
+        $user = auth()->user();
+        if ($licence->user_id !== $user->id && ! $user->isBureau()) {
+            abort(403);
+        }
+
+        $path = $licence->scan_image_path && Storage::disk('local')->exists($licence->scan_image_path)
+            ? $licence->scan_image_path
+            : $this->renderLicenceCard($licence);
+
+        abort_unless($path !== null, 404);
+
+        return response(Storage::disk('local')->get($path), 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
+    }
+
+    /**
+     * Renders page 1 of the member's current licence_card PDF to a PNG, cached
+     * on disk so it is rendered once. Null when they have no such document.
+     */
+    private function renderLicenceCard(MemberLicence $licence): ?string
+    {
+        $document = Document::query()
+            ->where('user_id', $licence->user_id)
+            ->where('category', 'licence_card')
+            ->where('is_current', true)
+            ->latest()
+            ->first();
+
+        if (! $document) {
+            return null;
+        }
+
+        // The local disk root is already storage/app/private/.
+        $source = str_starts_with((string) $document->file_path, 'private/')
+            ? substr((string) $document->file_path, 8)
+            : (string) $document->file_path;
+
+        if (! Storage::disk('local')->exists($source)) {
+            return null;
+        }
+
+        $cached = 'licence-cards/'.$document->id.'.png';
+        if (Storage::disk('local')->exists($cached)) {
+            return $cached;
+        }
+
+        Storage::disk('local')->makeDirectory('licence-cards');
+        $destination = Storage::disk('local')->path('licence-cards/'.$document->id);
+        exec(sprintf(
+            'pdftoppm -png -f 1 -l 1 -scale-to 1000 -singlefile %s %s 2>/dev/null',
+            escapeshellarg(Storage::disk('local')->path($source)),
+            escapeshellarg($destination)
+        ));
+
+        return file_exists($destination.'.png') ? $cached : null;
     }
 
     public function updateFederationKey(Request $request, MemberLicence $licence): RedirectResponse

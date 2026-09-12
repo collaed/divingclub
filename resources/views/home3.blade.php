@@ -125,6 +125,74 @@
 </head>
 <body>
 
+@php
+    $ctaText = trim((string) ($theme['landing_cta_text'] ?? ''));
+    $ctaUrl = trim((string) ($theme['landing_cta_url'] ?? ''));
+    $ctaUntil = trim((string) ($theme['landing_cta_until'] ?? ''));
+    $ctaLive = $ctaText !== '' && ($ctaUntil === '' || \Illuminate\Support\Carbon::parse($ctaUntil)->endOfDay()->isFuture());
+@endphp
+@if($ctaLive)
+    <div class="h3-anno" role="region" aria-label="{{ __('Announcement') }}">
+        <a href="{{ $ctaUrl ?: '#' }}" class="h3-anno-link">
+            <span class="h3-anno-flag" aria-hidden="true">📣</span>
+            <span class="h3-anno-text">{{ $ctaText }}</span>
+            <span class="h3-anno-go">
+                {{ __('Find out more') }}
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+            </span>
+        </a>
+    </div>
+    <style>
+        .h3-anno {
+            position: relative; overflow: hidden;
+            background: var(--h3-accent); color: #06121f;
+            box-shadow: 0 10px 28px -8px rgba(0, 0, 0, .55);
+            transform-origin: top center;
+            animation: h3AnnoDrop .9s cubic-bezier(.16, 1, .3, 1) .25s both;
+        }
+        .h3-anno::after {
+            content: ""; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(115deg, transparent 28%, rgba(255, 255, 255, .6) 48%, transparent 68%);
+            transform: translateX(-120%);
+            animation: h3AnnoShimmer 1s ease-out 1.15s 1;
+        }
+        .h3-anno-link {
+            position: relative; z-index: 1;
+            display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+            gap: .5rem .9rem; padding: 1rem 1.25rem;
+            color: inherit; text-decoration: none;
+            font-weight: 700; font-size: clamp(.95rem, 2.1vw, 1.12rem); line-height: 1.3;
+        }
+        .h3-anno-flag { font-size: 1.2em; display: inline-block; animation: h3AnnoWave .5s ease-in-out 1.7s 2; }
+        .h3-anno-text { text-align: center; }
+        .h3-anno-go {
+            display: inline-flex; align-items: center; gap: .3rem; flex-shrink: 0;
+            padding: .3rem .75rem; border-radius: 999px;
+            background: #06121f; color: var(--h3-accent);
+            font-size: .85em; white-space: nowrap;
+            animation: h3AnnoNudge 1s ease-in-out 2.2s 2;
+        }
+        .h3-anno-link:hover .h3-anno-go { background: #0b2036; }
+        /* Overshoot bounce: drop past the rest position, settle back. */
+        @keyframes h3AnnoDrop {
+            0%   { transform: translateY(-105%); }
+            55%  { transform: translateY(7%); }
+            72%  { transform: translateY(-3%); }
+            86%  { transform: translateY(1%); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes h3AnnoShimmer { to { transform: translateX(120%); } }
+        @keyframes h3AnnoNudge { 25% { transform: translateX(4px); } 50% { transform: translateX(0); } }
+        @keyframes h3AnnoWave { 25% { transform: rotate(16deg); } 75% { transform: rotate(-10deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            /* No vestibular motion — a plain fade is still fine here. */
+            .h3-anno { animation: h3AnnoFade .6s ease both; }
+            .h3-anno::after, .h3-anno-flag, .h3-anno-go { animation: none; }
+        }
+        @keyframes h3AnnoFade { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+@endif
+
 {{-- Sticky nav --}}
 <nav class="h3-nav" id="stickyNav">
     <a href="#hero" class="h3-nav-brand"><img src="/images/club-logo.png"> {{ $clubName }}</a>
@@ -323,9 +391,10 @@ fetch('{{ route("photos.browse") }}',{headers:{'X-Requested-With':'XMLHttpReques
         <hr>
         <p style="text-align:center;color:#999;font-size:.85rem;margin-bottom:.75rem">{{ __('Or sign in with') }}</p>
         <div style="display:grid;gap:.5rem">
+            @php $authBase = config('services.auth_base_url'); @endphp
             @foreach($providers as $provider => $label)
-                @php $authBase = config('services.auth_base_url'); @endphp
-                <a href="{{ $authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
+                <x-social-button :provider="$provider"
+                    :href="$authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider)" />
             @endforeach
         </div>
     @endif
@@ -385,7 +454,10 @@ document.addEventListener('click', function (e) {
     var hasErrors = @json($errors->any());
     if (hadRecentCookie && !hasErrors) {
         var TIMEOUT_MS = 10000;
-        var redirectTo = @json(route('login'));
+        // Returning visitor: forward to the home page, which now serves the
+        // widget home (public articles etc.) once the cep_seen_landing cookie
+        // is set.
+        var redirectTo = @json(url('/'));
         var timer = setTimeout(function () { window.location.href = redirectTo; }, TIMEOUT_MS);
         // Any interaction cancels the auto-forward so we never interrupt an
         // engaged visitor.
@@ -423,5 +495,10 @@ const numObs = new IntersectionObserver(entries => {
 const nr = document.getElementById('numbersRow');
 if (nr) numObs.observe(nr);
 </script>
+{{-- Umami no-JS pixel — counts the splash landing (the JS beacon in x-layout
+     never runs here since home3 has its own <head>). --}}
+@if(config('services.umami.url'))
+    <img src="{{ config('services.umami.url') }}/p/tFZobyplS" alt="" width="1" height="1" style="position:absolute;left:-9999px" referrerpolicy="no-referrer-when-downgrade">
+@endif
 </body>
 </html>

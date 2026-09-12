@@ -17,53 +17,10 @@
     <div class="tab-pane fade show active" id="tab-club">
     <div class="accordion" id="clubAccordion">
 
-        {{-- Federations --}}
-        <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#fedSection">{{ __('Federations') }}</button></h2>
-            <div id="fedSection" class="accordion-collapse collapse show" data-bs-parent="#clubAccordion">
-                <div class="accordion-body">
-                    <table class="table table-sm">
-                        <thead><tr><th>{{ __('Acronym') }}</th><th>{{ __('Full Name') }}</th><th>{{ __('Visibility') }}</th><th></th></tr></thead>
-                        <tbody>
-                        @foreach($federations as $fed)
-                            <tr>
-                                <form method="POST" action="{{ route('admin.settings.federation.update', $fed) }}">
-                                    @csrf @method('PUT')
-                                    <td><input type="text" name="acronym" class="form-control form-control-sm" value="{{ $fed->acronym }}" required></td>
-                                    <td><input type="text" name="full_name" class="form-control form-control-sm" value="{{ $fed->full_name }}" required></td>
-                                    <td>
-                                        <select name="visibility" class="form-select form-select-sm">
-                                            <option value="active" @selected($fed->visibility === 'active')>{{ __('Active') }}</option>
-                                            <option value="recognized" @selected($fed->visibility === 'recognized')>{{ __('Recognized') }}</option>
-                                            <option value="invisible" @selected($fed->visibility === 'invisible')>{{ __('Invisible') }}</option>
-                                        </select>
-                                    </td>
-                                    <td class="text-end text-nowrap">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
-                                </form>
-                                        <form method="POST" action="{{ route('admin.settings.federation.destroy', $fed) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">✕</button>
-                                        </form>
-                                    </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
-                    <form method="POST" action="{{ route('admin.settings.federation.store') }}" class="row g-2 mt-2">
-                        @csrf
-                        <div class="col-md-3"><input type="text" name="acronym" class="form-control form-control-sm" placeholder="{{ __('Acronym') }}" required></div>
-                        <div class="col-md-6"><input type="text" name="full_name" class="form-control form-control-sm" placeholder="{{ __('Full Name') }}" required></div>
-                        <div class="col-md-3"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Federation') }}</button></div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
         {{-- Member Statuses --}}
         <div class="accordion-item">
-            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#statusSection">{{ __('Member Statuses') }}</button></h2>
-            <div id="statusSection" class="accordion-collapse collapse" data-bs-parent="#clubAccordion">
+            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" aria-expanded="true" data-bs-target="#statusSection">{{ __('Member Statuses') }}</button></h2>
+            <div id="statusSection" class="accordion-collapse collapse show" data-bs-parent="#clubAccordion">
                 <div class="accordion-body" id="statusesSection" data-statuses-region>
                     <table class="table table-sm align-middle">
                         <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Slug') }}</th><th>{{ __('Description') }}</th><th class="text-end">{{ __('Actions') }}</th></tr></thead>
@@ -460,42 +417,40 @@
             <div id="medRulesSection" class="accordion-collapse collapse show" data-bs-parent="#rulesAccordion">
                 <div class="accordion-body">
                     <p class="text-muted small">{{ __('Define which certificates are required per federation, age bracket, and type. Validity is in months from issue date.') }}</p>
+                    <form id="medrule-bulk" method="POST" action="{{ route('admin.settings.medical-rules.bulk-update') }}">@csrf @method('PUT')</form>
                     <table class="table table-sm">
                         <thead><tr><th>{{ __('Federation') }}</th><th>{{ __('Age From') }}</th><th>{{ __('Age To') }}</th><th>{{ __('Cert Type') }}</th><th>{{ __('Validity (months)') }}</th><th></th></tr></thead>
                         <tbody>
                         @foreach($medicalRules as $r)
                             <tr>
-                                <form method="POST" action="{{ route('admin.settings.medical-rule.update', $r) }}">
-                                    @csrf @method('PUT')
-                                    <td>
-                                        <select name="federation_id" class="form-select form-select-sm">
-                                            @foreach($federations as $f)
-                                                <option value="{{ $f->id }}" {{ $r->federation_id == $f->id ? 'selected' : '' }}>{{ $f->acronym }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td><input type="number" name="age_bracket_low" class="form-control form-control-sm" value="{{ $r->age_bracket_low }}" min="0" style="width:70px"></td>
-                                    <td><input type="number" name="age_bracket_high" class="form-control form-control-sm" value="{{ $r->age_bracket_high }}" min="0" style="width:70px"></td>
-                                    <td>
-                                        <select name="cert_type" class="form-select form-select-sm">
-                                            @foreach(['gp' => 'GP', 'ent' => 'ENT', 'cardio' => 'Cardio', 'ophthalmologist' => 'Ophthalmologist', 'other' => 'Other'] as $v => $l)
-                                                <option value="{{ $v }}" {{ $r->cert_type === $v ? 'selected' : '' }}>{{ $l }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td><input type="number" name="validity_months" class="form-control form-control-sm" value="{{ $r->validity_months }}" min="1" style="width:70px"></td>
-                                    <td class="text-end text-nowrap">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
-                                </form>
-                                        <form method="POST" action="{{ route('admin.settings.medical-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">✕</button>
-                                        </form>
-                                    </td>
+                                <td>
+                                    <select form="medrule-bulk" name="rule[{{ $r->id }}][federation_id]" class="form-select form-select-sm">
+                                        @foreach($federations as $f)
+                                            <option value="{{ $f->id }}" {{ $r->federation_id == $f->id ? 'selected' : '' }}>{{ $f->acronym }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][age_bracket_low]" class="form-control form-control-sm" value="{{ $r->age_bracket_low }}" min="0" style="width:70px"></td>
+                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][age_bracket_high]" class="form-control form-control-sm" value="{{ $r->age_bracket_high }}" min="0" style="width:70px"></td>
+                                <td>
+                                    <select form="medrule-bulk" name="rule[{{ $r->id }}][cert_type]" class="form-select form-select-sm">
+                                        @foreach(['gp' => 'GP', 'ent' => 'ENT', 'cardio' => 'Cardio', 'ophthalmologist' => 'Ophthalmologist', 'other' => 'Other'] as $v => $l)
+                                            <option value="{{ $v }}" {{ $r->cert_type === $v ? 'selected' : '' }}>{{ $l }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][validity_months]" class="form-control form-control-sm" value="{{ $r->validity_months }}" min="1" style="width:70px"></td>
+                                <td class="text-end text-nowrap">
+                                    <form method="POST" action="{{ route('admin.settings.medical-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger">✕</button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>
                     </table>
+                    <button type="submit" form="medrule-bulk" class="btn btn-sm btn-primary">{{ __('Save all rules') }}</button>
                     <form method="POST" action="{{ route('admin.settings.medical-rule.store') }}" class="row g-2 mt-2">
                         @csrf
                         <div class="col-md-2">
@@ -524,33 +479,28 @@
             <div id="eqptRulesSection" class="accordion-collapse collapse" data-bs-parent="#rulesAccordion">
                 <div class="accordion-body">
                     <p class="text-muted small">{{ __('Define maintenance requirements per equipment type. Mandatory rules affect equipment compliance status.') }}</p>
+                    <form id="maintrule-bulk" method="POST" action="{{ route('admin.settings.maintenance-rules.bulk-update') }}">@csrf @method('PUT')</form>
                     <table class="table table-sm">
                         <thead><tr><th>{{ __('Equipment Type') }}</th><th>{{ __('Maintenance') }}</th><th>{{ __('Interval (months)') }}</th><th>{{ __('Mandatory') }}</th><th>{{ __('Regulation') }}</th><th></th></tr></thead>
                         <tbody>
                         @foreach($maintenanceRules as $r)
                             <tr>
-                                <form method="POST" action="{{ route('admin.settings.maintenance-rule.update', $r) }}">
-                                    @csrf @method('PUT')
-                                    <td><input type="text" name="equipment_type" class="form-control form-control-sm" value="{{ $r->equipment_type }}" required></td>
-                                    <td><input type="text" name="maintenance_name" class="form-control form-control-sm" value="{{ $r->maintenance_name }}" required></td>
-                                    <td><input type="number" name="interval_months" class="form-control form-control-sm" value="{{ $r->interval_months }}" min="1" style="width:70px"></td>
-                                    <td>
-                                        <input type="hidden" name="is_mandatory" value="0">
-                                        <input type="checkbox" name="is_mandatory" value="1" class="form-check-input" {{ $r->is_mandatory ? 'checked' : '' }}>
-                                    </td>
-                                    <td><input type="text" name="regulation_reference" class="form-control form-control-sm" value="{{ $r->regulation_reference }}"></td>
-                                    <td class="text-end text-nowrap">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
-                                </form>
-                                        <form method="POST" action="{{ route('admin.settings.maintenance-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">✕</button>
-                                        </form>
-                                    </td>
+                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][equipment_type]" class="form-control form-control-sm" value="{{ $r->equipment_type }}" required></td>
+                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][maintenance_name]" class="form-control form-control-sm" value="{{ $r->maintenance_name }}" required></td>
+                                <td><input type="number" form="maintrule-bulk" name="rule[{{ $r->id }}][interval_months]" class="form-control form-control-sm" value="{{ $r->interval_months }}" min="1" style="width:70px"></td>
+                                <td><input type="checkbox" form="maintrule-bulk" name="mandatory[]" value="{{ $r->id }}" class="form-check-input" {{ $r->is_mandatory ? 'checked' : '' }}></td>
+                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][regulation_reference]" class="form-control form-control-sm" value="{{ $r->regulation_reference }}"></td>
+                                <td class="text-end text-nowrap">
+                                    <form method="POST" action="{{ route('admin.settings.maintenance-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger">✕</button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>
                     </table>
+                    <button type="submit" form="maintrule-bulk" class="btn btn-sm btn-primary">{{ __('Save all rules') }}</button>
                     <form method="POST" action="{{ route('admin.settings.maintenance-rule.store') }}" class="row g-2 mt-2">
                         @csrf
                         <div class="col-md-2"><input type="text" name="equipment_type" class="form-control form-control-sm" placeholder="{{ __('Type (e.g. regulator)') }}" required></div>
@@ -589,6 +539,26 @@
                             <input class="form-check-input" type="checkbox" name="ui_show_icons" value="1" id="uiShowIcons" {{ ($themeSettings['ui_show_icons'] ?? '1') === '1' ? 'checked' : '' }} onchange="this.form.submit()">
                             <label class="form-check-label" for="uiShowIcons">{{ __('Show emoji icons in menus and headings (default for guests; members can override in their profile)') }}</label>
                         </div>
+                    </form>
+
+                    {{-- Landing announcement bar --}}
+                    <h6>{{ __('Landing announcement bar') }}</h6>
+                    <p class="text-muted small mb-2">{{ __('A one-line banner across the top of the visual landing page. Leave the text empty to hide it; it also hides itself after the "show until" date.') }}</p>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}" class="row g-2 mb-4">
+                        @csrf
+                        <div class="col-md-6">
+                            <label class="form-label small mb-1">{{ __('Text') }}</label>
+                            <input type="text" name="landing_cta_text" class="form-control form-control-sm" maxlength="160" value="{{ $themeSettings['landing_cta_text'] ?? '' }}" placeholder="{{ __('Free discovery evening — Wednesday 30 September') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">{{ __('Link') }}</label>
+                            <input type="url" name="landing_cta_url" class="form-control form-control-sm" value="{{ $themeSettings['landing_cta_url'] ?? '' }}" placeholder="https://…">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small mb-1">{{ __('Show until') }}</label>
+                            <input type="date" name="landing_cta_until" class="form-control form-control-sm" value="{{ $themeSettings['landing_cta_until'] ?? '' }}">
+                        </div>
+                        <div class="col-12"><button class="btn btn-sm btn-primary">{{ __('Save') }}</button></div>
                     </form>
 
                     {{-- Site Layout --}}

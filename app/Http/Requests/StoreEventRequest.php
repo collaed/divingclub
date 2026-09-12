@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Event;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -19,7 +20,8 @@ class StoreEventRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'color_hex' => 'nullable|string|max:7',
+            // No color_hex: an event's colour is derived from its type
+            // (config/activity_types.php via Event::color()).
             'event_type' => 'required|in:pool,dive,training,theory,social',
             'event_date' => 'required|date',
             'event_time' => 'nullable|date_format:H:i',
@@ -31,6 +33,8 @@ class StoreEventRequest extends FormRequest
             'max_participants' => 'nullable|integer|min:1',
             'waiting_list_enabled' => 'boolean',
             'inscription_open_at' => 'nullable|date',
+            'inscription_close_at' => 'nullable|date',
+            'registration_mode' => 'nullable|in:'.implode(',', Event::REGISTRATION_MODES),
             'inscriptions_closed' => 'boolean',
             'levels_display' => 'boolean',
             'confirmation_required' => 'boolean',

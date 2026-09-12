@@ -61,6 +61,7 @@
                     <div class="tab-content">
                         <div class="tab-pane {{ !in_array($currentLocale, $translatedLocales ?? []) ? 'show active' : '' }}" id="tab-original">
                             <div class="article-body">{!! $article->renderedBody() !!}</div>
+                            @if($article->hasInterestForm())@include('articles._interest_form', ['slug' => $article->slug])@endif
                         </div>
                         @foreach($article->translations as $tr)
                             <div class="tab-pane {{ $tr->locale === $currentLocale ? 'show active' : '' }}" id="tab-{{ $tr->locale }}">
@@ -69,11 +70,13 @@
                                 @endif
                                 @if($tr->auto_translated) <small class="text-muted fst-italic mb-2 d-block">@icon('🤖') {{ __('Auto-translated') }}</small> @endif
                                 <div class="article-body">{!! (new \App\Models\Article(['body' => $tr->body]))->renderedBody() !!}</div>
+                                @if($article->hasInterestForm())@include('articles._interest_form', ['slug' => $article->slug])@endif
                             </div>
                         @endforeach
                     </div>
                 @else
                     <div class="article-body">{!! $article->renderedBody() !!}</div>
+                    @if($article->hasInterestForm())@include('articles._interest_form', ['slug' => $article->slug])@endif
                 @endif
 
                 {{-- Dynamic bureau roster — live avatars, no hand-maintained grid to rot --}}

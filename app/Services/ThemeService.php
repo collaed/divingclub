@@ -78,11 +78,14 @@ class ThemeService
         return Cache::remember('theme_settings', 300, fn (): array => ThemeSetting::all_settings());
     }
 
-    /** @return array<string, array<string, string>> Color presets (ocean, coral, lagoon, abyss, tropical, arctic). */
+    /** @return array<string, array<string, string>> Color presets (ocean, coral, lagoon, abyss, tropical, arctic, europe). */
     public static function presets(): array
     {
         return [
             'ocean' => ['primary_color' => '#003366', 'secondary_color' => '#0077be', 'accent_color' => '#ffc107', 'header_gradient_start' => '#001a33', 'header_gradient_end' => '#0059a6', 'footer_bg' => '#1a1a2e'],
+            // Designer palette from the CEP logo: EU-flag blue #003E92 + star gold
+            // #F3C118. Deep→bright blue header, gold accent, near-navy footer.
+            'europe' => ['primary_color' => '#003E92', 'secondary_color' => '#1E63C4', 'accent_color' => '#F3C118', 'header_gradient_start' => '#002766', 'header_gradient_end' => '#0050B8', 'footer_bg' => '#001A3D'],
             'coral' => ['primary_color' => '#c0392b', 'secondary_color' => '#e74c3c', 'accent_color' => '#f39c12', 'header_gradient_start' => '#7b241c', 'header_gradient_end' => '#e74c3c', 'footer_bg' => '#2c3e50'],
             'lagoon' => ['primary_color' => '#00695c', 'secondary_color' => '#26a69a', 'accent_color' => '#ffab40', 'header_gradient_start' => '#004d40', 'header_gradient_end' => '#00897b', 'footer_bg' => '#263238'],
             'abyss' => ['primary_color' => '#1a237e', 'secondary_color' => '#3949ab', 'accent_color' => '#00e5ff', 'header_gradient_start' => '#0d1642', 'header_gradient_end' => '#283593', 'footer_bg' => '#0a0a1a'],

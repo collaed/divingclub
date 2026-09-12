@@ -11,17 +11,14 @@
                 <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $event->title) }}" required>
                 @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
-            <div class="col-md-2 mb-3">
+            <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('Type') }} *</label>
                 <select name="event_type" id="eventType" class="form-select" required>
                     @foreach(['pool','dive','training','theory','social'] as $t)
                         <option value="{{ $t }}" {{ old('event_type', $event->event_type) === $t ? 'selected' : '' }}>{{ ucfirst($t) }}</option>
                     @endforeach
                 </select>
-            </div>
-            <div class="col-md-2 mb-3">
-                <label class="form-label">{{ __('Color') }}</label>
-                <input type="color" name="color_hex" id="eventColor" class="form-control form-control-color" value="{{ old('color_hex', $event->color_hex ?? '#0077be') }}">
+                <div class="form-text">{{ __('The event colour follows its type (config/activity_types.php).') }}</div>
             </div>
         </div>
 
@@ -128,6 +125,27 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label class="form-label">{{ __('Registration') }}</label>
+                @php $rm = old('registration_mode', $event->registration_mode ?? 'open'); @endphp
+                <select name="registration_mode" class="form-select">
+                    <option value="open" @selected($rm === 'open')>{{ __('Open (default)') }}</option>
+                    <option value="required" @selected($rm === 'required')>{{ __('Required') }}</option>
+                    <option value="not_needed" @selected($rm === 'not_needed')>{{ __('Not needed') }}</option>
+                </select>
+                <small class="text-muted">{{ __('"Not needed" still lets instructors register for planning.') }}</small>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">{{ __('Registration opens') }}</label>
+                <input type="datetime-local" name="inscription_open_at" class="form-control" value="{{ old('inscription_open_at', $event->inscription_open_at?->format('Y-m-d\TH:i')) }}">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">{{ __('Registration closes') }}</label>
+                <input type="datetime-local" name="inscription_close_at" class="form-control" value="{{ old('inscription_close_at', $event->inscription_close_at?->format('Y-m-d\TH:i')) }}">
+            </div>
+        </div>
+
         {{-- Deposits --}}
         <h6 class="mt-3">{{ __('Deposit Schedule') }}</h6>
         <div class="row">
@@ -168,13 +186,5 @@
         <a href="{{ route('events.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
     </form>
 
-    <script>
-    // Keep in sync with config/activity_types.php (single source of truth).
-    const typeColors = @json(collect(config('activity_types'))->map(fn ($t) => $t['color'])->all());
-    typeColors.dive = '#00695c';
-    document.getElementById('eventType').addEventListener('change', function() {
-        document.getElementById('eventColor').value = typeColors[this.value] || '#6c757d';
-    });
-    </script>
     <x-rich-editor />
 </x-layout>

@@ -68,9 +68,14 @@
                         <td class="p-1 {{ $isCurrentMonth ? '' : 'bg-light' }}" style="vertical-align:top; min-height:80px;">
                             <div class="small {{ $day->isToday() ? 'fw-bold text-primary' : 'text-muted' }}">{{ $day->day }}</div>
                             @foreach($dayEvents->take(3) as $ev)
-                                <a href="{{ route('events.show', $ev) }}" class="d-block text-decoration-none small text-truncate rounded px-1 mb-1 text-white {{ $ev->status === 'cancelled' ? 'text-decoration-line-through' : '' }}" style="background:{{ $ev->typeColor() }}; font-size:0.7rem; {{ $ev->status === 'cancelled' ? 'opacity:0.5;' : '' }}">
-                                    {{ $ev->event_time ? substr($ev->event_time, 0, 5) : '' }} {{ Str::limit($ev->title, 15) }}
-                                </a>
+                                <div class="d-flex align-items-center gap-1 mb-1">
+                                    <a href="{{ route('events.show', $ev) }}" class="flex-grow-1 text-decoration-none small text-truncate rounded px-1 text-white {{ $ev->status === 'cancelled' ? 'text-decoration-line-through' : '' }}" style="min-width:0; background:{{ $ev->typeColor() }}; font-size:0.7rem; {{ $ev->status === 'cancelled' ? 'opacity:0.5;' : '' }}">
+                                        {{ $ev->event_time ? substr($ev->event_time, 0, 5) : '' }} {{ Str::limit($ev->title, 15) }}
+                                    </a>
+                                    @if($ev->status === 'cancelled')
+                                        <span class="badge bg-danger flex-shrink-0" style="font-size:0.6rem;">{{ __('Cancelled') }}</span>
+                                    @endif
+                                </div>
                             @endforeach
                             @if($dayEvents->count() > 3)
                                 <span class="small text-muted">+{{ $dayEvents->count() - 3 }}</span>
@@ -86,12 +91,20 @@
     @else
         {{-- List view for week/day --}}
         @forelse($events as $event)
-            <div class="card dc-card mb-2">
+            <div class="card dc-card mb-2 {{ $event->status === 'cancelled' ? 'bg-light' : '' }}">
                 <div class="card-body py-2 d-flex align-items-center">
                     <span class="badge me-3" style="background:{{ $event->typeColor() }}">{{ ucfirst($event->event_type) }}</span>
                     <div class="flex-grow-1">
                         <a href="{{ route('events.show', $event) }}" class="text-decoration-none fw-bold {{ $event->status === 'cancelled' ? 'text-decoration-line-through text-muted' : '' }}">{{ $event->title }}</a>
-                        @if($event->status === 'cancelled')<span class="badge bg-danger ms-1">{{ __('Cancelled') }}</span>@endif
+                        @if($event->status === 'cancelled')
+                            <span class="badge bg-danger ms-1">{{ __('Cancelled') }}</span>
+                            @if(auth()->user()?->isBureau())
+                                <form method="POST" action="{{ route('events.uncancel', $event) }}" class="d-inline ms-1">
+                                    @csrf
+                                    <button class="btn btn-sm btn-outline-success py-0 px-2">↩ {{ __('Restore') }}</button>
+                                </form>
+                            @endif
+                        @endif
                         <div class="small text-muted">
                             {{ $event->event_date->format('D d/m/Y') }}
                             {{ $event->event_time ? '@ ' . substr($event->event_time, 0, 5) : '' }}
