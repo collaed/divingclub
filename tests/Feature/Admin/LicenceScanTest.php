@@ -92,6 +92,9 @@ class LicenceScanTest extends TestCase
         $this->assertNotNull($licence);
         $this->assertSame('12345', $licence->licence_number);
         $this->assertSame('2026', $licence->season);
+        // The scan's file_path ('x') doesn't exist on disk — issuance-date
+        // extraction must degrade to null, not throw.
+        $this->assertNull($licence->card_issued_at);
     }
 
     public function test_destroy_marks_the_scan_discarded_without_assigning_anyone(): void

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Helpers\FlassaLicenceTextParser;
+use App\Helpers\PdfMetadata;
 use App\Models\LicenceScan;
 use App\Models\MemberLicence;
 use App\Models\User;
 use App\Services\CloudflareVisionOcrService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -87,7 +89,12 @@ class ProcessLicenceScan implements ShouldQueue
 
         MemberLicence::updateOrCreate(
             ['user_id' => $match->id, 'federation_id' => $scan->federation_id],
-            ['licence_number' => $fields['licence_number'], 'season' => $fields['year'], 'scan_image_path' => $imageDisk],
+            [
+                'licence_number' => $fields['licence_number'],
+                'season' => $fields['year'],
+                'scan_image_path' => $imageDisk,
+                'card_issued_at' => $this->extractCardIssuedAt($sourcePath, $scan->federation->acronym),
+            ],
         );
 
         $scan->update(['status' => 'applied', 'matched_user_id' => $match->id]);
@@ -114,6 +121,20 @@ class ProcessLicenceScan implements ShouldQueue
         }
 
         return FlassaLicenceTextParser::parse($text);
+    }
+
+    /**
+     * The card's issuance date, read from the PDF's own CreationDate — only
+     * trusted for FLASSA (see PdfMetadata), and only meaningful for a PDF
+     * upload, not a photographed scan.
+     */
+    private function extractCardIssuedAt(string $sourcePath, ?string $federationAcronym): ?Carbon
+    {
+        if ($federationAcronym !== 'FLASSA' || ! str_contains(mime_content_type($sourcePath) ?: '', 'pdf')) {
+            return null;
+        }
+
+        return PdfMetadata::creationDate($sourcePath);
     }
 
     /** Renders the file's first page to a modest-resolution PNG; returns the temp path, or null on failure. */
