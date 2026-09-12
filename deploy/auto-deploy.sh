@@ -68,6 +68,8 @@ deploy_site() {
         as_app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
         as_app $PHP artisan package:discover --quiet || true
         as_app $PHP artisan optimize:clear --quiet || true
+        chown -R "$APP_USER:$APP_USER" . || true
+        chmod -R 755 . || true
         [ -n "$SUPERVISOR" ] && supervisorctl restart "$SUPERVISOR" >/dev/null 2>&1 || true
         [ -n "$KUMA_PUSH" ] && curl -fsS -m 10 "${KUMA_PUSH}?status=down&msg=deploy-rollback-${NAME}" >/dev/null 2>&1 || true
         log "[$NAME] rollback complete"
@@ -84,6 +86,10 @@ deploy_site() {
     as_app $PHP artisan package:discover --quiet
     as_app $PHP artisan migrate --force --quiet
     as_app $PHP artisan optimize:clear --quiet
+
+    # Fix file ownership (git pull may have created files owned by root)
+    chown -R "$APP_USER:$APP_USER" . || true
+    chmod -R 755 . || true
 
     # --- health gate ---------------------------------------------------------
     local code
