@@ -47,8 +47,13 @@ class FlassaLicenceTextParserTest extends TestCase
         $this->assertNull(FlassaLicenceTextParser::parse('This is not a licence card at all.'));
     }
 
-    public function test_returns_null_when_the_number_is_present_but_no_name_line_matches(): void
+    public function test_extracts_number_even_when_name_fails(): void
     {
-        $this->assertNull(FlassaLicenceTextParser::parse("2026LS-0409\n\nsomething else entirely"));
+        $fields = FlassaLicenceTextParser::parse("2026LS-0409\n\nsomething else entirely");
+
+        $this->assertNotNull($fields);
+        $this->assertSame('LS-0409', $fields['licence_number']);
+        $this->assertSame('2026', $fields['year']);
+        $this->assertNull($fields['name']);
     }
 }

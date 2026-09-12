@@ -67,22 +67,18 @@ class ProcessLicenceScan implements ShouldQueue
         $scan->update(['image_path' => $imageDisk]);
 
         $fields = $this->extractFromText($sourcePath, $scan->federation->acronym)
-            ?? $ocr->extractLicenceFields(Storage::disk('local')->path($imageDisk));
-        if (! $fields) {
-            $scan->update(['status' => 'needs_review', 'extraction_error' => 'Automatic field extraction failed — enter the fields manually.']);
-
-            return;
-        }
+            ?? $ocr->extractLicenceFields(Storage::disk('local')->path($imageDisk))
+            ?? ['name' => null, 'licence_number' => null, 'year' => null];
 
         $scan->update([
-            'extracted_name' => $fields['name'],
-            'extracted_number' => $fields['licence_number'],
-            'extracted_year' => $fields['year'],
+            'extracted_name' => $fields['name'] ?? null,
+            'extracted_number' => $fields['licence_number'] ?? null,
+            'extracted_year' => $fields['year'] ?? null,
         ]);
 
-        $match = $this->findExactMatch($fields['name']);
+        $match = $fields['name'] ? $this->findExactMatch($fields['name']) : null;
         if (! $match) {
-            $scan->update(['status' => 'needs_review']);
+            $scan->update(['status' => 'needs_review', 'extraction_error' => $fields['name'] ? null : 'Name extraction failed — please enter it manually.']);
 
             return;
         }
