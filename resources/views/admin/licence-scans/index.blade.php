@@ -218,12 +218,23 @@
             resolve();
         });
 
-        // Live refresh: poll for new scans every 3 seconds
+        // Live refresh: poll for new scans every 3 seconds (only if no form has focus)
         setInterval(function () {
+            // Don't refresh if user is actively editing a form
+            if (document.activeElement && document.activeElement.closest('#needsReviewSection form')) {
+                return;
+            }
             fetch(window.location.href).then(function (r) { return r.text(); }).then(function (html) {
                 var newSection = new DOMParser().parseFromString(html, 'text/html').querySelector('#needsReviewSection');
                 var oldSection = document.getElementById('needsReviewSection');
-                if (newSection && oldSection && newSection.innerHTML !== oldSection.innerHTML) {
+                if (!newSection || !oldSection) return;
+
+                // Count scans in old and new HTML
+                var oldCount = oldSection.querySelectorAll('[data-scan-id]').length;
+                var newCount = newSection.querySelectorAll('[data-scan-id]').length;
+
+                // Only refresh if there are new scans (processing finished)
+                if (newCount > oldCount) {
                     oldSection.innerHTML = newSection.innerHTML;
                     // Re-bind handlers to new elements
                     document.querySelectorAll('.dc-member-picker').forEach(function (input) {
