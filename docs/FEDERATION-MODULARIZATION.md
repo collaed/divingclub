@@ -111,18 +111,46 @@ been checked for any other federation's PDF generator. This is a case where
 scoping to one federation was the *correct* call, not a shortcut — worth
 naming so it isn't "fixed" into a false generalization later.
 
+### 3g. Per-federation medical certificate validity — data model gap
+
+Today, a medical certificate has one global `is_verified` flag and one expiry
+date, implying it's valid for *all* federations. But with modularization, a
+cert's validity depends on each federation's own rules:
+- FLASSA may require an up-to-date cert (calendar-anchored)
+- FFESSM may accept rolling validity (day-count based)
+- A single cert might be valid for FLASSA, expired for FFESSM, or vice versa
+
+Currently, there is **no way to store per-federation validity decisions** —
+the medical review UI shows one checkbox "valid/invalid" (global), and
+`MedicalComplianceService` computes whether a cert is valid *as a whole*.
+
+For a modularized federation to own its own validity rules, the system needs:
+1. **Storage**: `medical_certificates` needs a `per_federation_validity` field
+   (JSON or pivot table) to store `{ federation_id → is_valid }` decisions
+2. **UI**: Medical review shows one checkbox per active federation, not one global
+3. **Evaluation**: Each federation's provider evaluates validity against the stored
+   per-federation flag, not the global one
+4. **Display**: Member profile shows "Valid for FLASSA ✓ • Valid for FFESSM ✗"
+   per active federation, not one global status
+
+This is not just a UI change — without per-federation storage, the "plug-in"
+federation can't persist its own validation decisions.
+
 ## 4. Two different problems, two different fixes
 
-- **3b, 3c, 3d, 3e** are "behavior keyed on a string in several places."
-  Fixable by giving each federation a small class that implements a shared
-  interface, and replacing each `if (acronym === X)` with a lookup — no new
-  concepts, just moving code that already exists into the right seam. Low
-  risk, mechanical, testable step by step.
-- **3a** is "the domain doesn't have a shape for this yet." FFESSM and
-  FLASSA's fee rules aren't expressible as data of the same shape today, and
-  it isn't obvious a third federation's rule would fit either shape. This
-  needs a design decision (§7.1) before it can be "modularized" rather than
-  just moved.
+- **3b, 3c, 3d, 3e, 3f** are "behavior keyed on a string in several places" or
+  "isolated logic that just needs a lookup table." Fixable by giving each
+  federation a small class that implements a shared interface, and replacing
+  each `if (acronym === X)` with a lookup — no new concepts, just moving code
+  that already exists into the right seam. Low risk, mechanical, testable step
+  by step.
+- **3a, 3g** are "the domain doesn't have a shape for this yet."
+  - **3a**: FFESSM and FLASSA's fee rules aren't expressible as data of the
+    same shape, and a third federation might need a third shape entirely.
+  - **3g**: Today there's nowhere to *store* per-federation validity decisions
+    (no data model for "valid for FLASSA but not FFESSM"). The UI and
+    evaluation logic can't work without a place to put the decision.
+  These need design work (§7.1, §7.3 below) before modularization.
 
 ## 5. Proposed seam (for review, not decided)
 
@@ -211,3 +239,12 @@ plugins (see §7.3 for when that would actually matter).
    still genuinely undocumented (membership-lifecycle open question #6) —
    modularizing the *engine* doesn't remove the need to actually get each
    federation's real formula from the bureau.
+6. **Per-federation medical certificate validity storage** (§3g): A certificate
+   must be able to be "valid for FLASSA, invalid for FFESSM" (or any
+   combination). Today there's nowhere to store this — `medical_certificates`
+   has one global `is_verified` flag. Options:
+   (a) Add a JSON field `per_federation_validity: { federation_id → bool }`;
+   (b) Create a pivot table `certificate_federation_validity`;
+   (c) Store it on a related document/audit row. Which minimizes database
+   growth while keeping queries efficient for "is this member compliant for
+   federation X?"
