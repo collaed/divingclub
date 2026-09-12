@@ -26,58 +26,71 @@ class BackupService
      *
      * @return array{filename: string, path: string, size: int, manifest: array<string, mixed>}
      */
-    public function create(bool $includeFiles = true): array
+    public function create(bool $includeFiles = true, bool $includePrivate = true): array
     {
-        // Use spatie backup command
-        $options = $includeFiles ? '' : '--only-db';
-        $exitCode = Artisan::call(trim("backup:run {$options} --disable-notifications"));
-        $output = trim(Artisan::output());
+        // Store original env value to restore later
+        $originalPrivate = getenv('BACKUP_INCLUDE_PRIVATE');
+        putenv('BACKUP_INCLUDE_PRIVATE='.($includePrivate ? 'true' : 'false'));
 
-        if ($exitCode !== 0) {
-            throw new \RuntimeException("Spatie backup failed (exit {$exitCode}). Output: ".$this->lastLines($output));
+        try {
+            // Use spatie backup command
+            $options = $includeFiles ? '' : '--only-db';
+            $exitCode = Artisan::call(trim("backup:run {$options} --disable-notifications"));
+            $output = trim(Artisan::output());
+
+            if ($exitCode !== 0) {
+                throw new \RuntimeException("Spatie backup failed (exit {$exitCode}). Output: ".$this->lastLines($output));
+            }
+
+            // Spatie writes to the configured `backup` disk under a folder named after
+            // config('backup.backup.name'). Resolve that real path from config rather
+            // than assuming storage/app — the disk root is often relocated via
+            // BACKUP_DISK_PATH (e.g. a separate data mount on the servers).
+            $spatieDir = Storage::disk('backup')->path((string) config('backup.backup.name', config('app.name', 'DivingClub')));
+            $zips = glob("{$spatieDir}/*.zip") ?: [];
+
+            if ($zips === []) {
+                throw new \RuntimeException(
+                    "Spatie backup produced no archive in {$spatieDir}. backup:run output: ".$this->lastLines($output)
+                );
+            }
+
+            usort($zips, static fn (string $a, string $b): int => (int) filemtime($b) <=> (int) filemtime($a));
+            $latestZip = $zips[0];
+
+            // Move to our backups dir with our naming convention (copy+delete fallback
+            // because the spatie disk may live on a different filesystem).
+            $timestamp = now()->format('Y-m-d-His');
+            $filename = "backup-{$timestamp}.zip";
+            $destPath = "{$this->backupDir}/{$filename}";
+            $this->moveFile($latestZip, $destPath);
+
+            // Embed a manifest.json inside the archive so the admin UI can report
+            // what the backup actually contains (row counts, file count / size).
+            // Spatie does not write one, so without this every backup renders as
+            // "DB only" regardless of what was captured.
+            $manifest = $this->embedManifest($destPath, $includeFiles);
+
+            $size = (int) filesize($destPath);
+            Log::info("Backup created via spatie: {$filename} (".$this->humanSize($size).')');
+
+            // Offsite upload via SFTP if configured
+            $this->offsiteUpload($destPath, $filename);
+
+            return [
+                'filename' => $filename,
+                'path' => $destPath,
+                'size' => $size,
+                'manifest' => $manifest,
+            ];
+        } finally {
+            // Restore original env value
+            if ($originalPrivate !== false) {
+                putenv('BACKUP_INCLUDE_PRIVATE='.$originalPrivate);
+            } else {
+                putenv('BACKUP_INCLUDE_PRIVATE');
+            }
         }
-
-        // Spatie writes to the configured `backup` disk under a folder named after
-        // config('backup.backup.name'). Resolve that real path from config rather
-        // than assuming storage/app — the disk root is often relocated via
-        // BACKUP_DISK_PATH (e.g. a separate data mount on the servers).
-        $spatieDir = Storage::disk('backup')->path((string) config('backup.backup.name', config('app.name', 'DivingClub')));
-        $zips = glob("{$spatieDir}/*.zip") ?: [];
-
-        if ($zips === []) {
-            throw new \RuntimeException(
-                "Spatie backup produced no archive in {$spatieDir}. backup:run output: ".$this->lastLines($output)
-            );
-        }
-
-        usort($zips, static fn (string $a, string $b): int => (int) filemtime($b) <=> (int) filemtime($a));
-        $latestZip = $zips[0];
-
-        // Move to our backups dir with our naming convention (copy+delete fallback
-        // because the spatie disk may live on a different filesystem).
-        $timestamp = now()->format('Y-m-d-His');
-        $filename = "backup-{$timestamp}.zip";
-        $destPath = "{$this->backupDir}/{$filename}";
-        $this->moveFile($latestZip, $destPath);
-
-        // Embed a manifest.json inside the archive so the admin UI can report
-        // what the backup actually contains (row counts, file count / size).
-        // Spatie does not write one, so without this every backup renders as
-        // "DB only" regardless of what was captured.
-        $manifest = $this->embedManifest($destPath, $includeFiles);
-
-        $size = (int) filesize($destPath);
-        Log::info("Backup created via spatie: {$filename} (".$this->humanSize($size).')');
-
-        // Offsite upload via SFTP if configured
-        $this->offsiteUpload($destPath, $filename);
-
-        return [
-            'filename' => $filename,
-            'path' => $destPath,
-            'size' => $size,
-            'manifest' => $manifest,
-        ];
     }
 
     /**
