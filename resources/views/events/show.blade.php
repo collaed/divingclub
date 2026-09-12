@@ -10,8 +10,6 @@
                     <div>
                         <span class="badge" style="background:{{ $event->typeColor() }}">{{ ucfirst($event->event_type) }}</span>
                         <span class="badge bg-{{ $event->status === 'cancelled' ? 'danger' : ($event->status === 'completed' ? 'secondary' : 'success') }}">{{ __(ucfirst($event->status)) }}</span>
-                        @if($event->registrationRequired())<span class="badge bg-warning text-dark">@icon('❗') {{ __('Registration required') }}</span>
-                        @elseif($event->registrationNotNeeded())<span class="badge bg-info text-dark">{{ __('No registration needed') }}</span>@endif
                     </div>
                     @if(auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id()))
                         <div class="d-flex gap-1">
@@ -205,15 +203,6 @@
                 <div class="card dc-card mb-4">
                     <div class="card-header">{{ __('Registration') }}</div>
                     <div class="card-body">
-                        @if($event->registrationRequired())
-                            <div class="alert alert-warning py-2 small mb-3">@icon('❗') <strong>{{ __('Registration is mandatory for this event.') }}</strong></div>
-                        @elseif($event->registrationNotNeeded())
-                            <div class="alert alert-info py-2 small mb-3">
-                                @icon('ℹ️') {{ __('Registration is not required — just come along.') }}
-                                <span class="text-muted d-block">{{ __('Instructors still register for planning.') }}</span>
-                            </div>
-                        @endif
-
                         @if($userReg && $userReg->status !== 'cancelled')
                             <p>{{ __('Your status') }}: <span class="badge bg-{{ $userReg->status === 'confirmed' ? 'success' : 'warning text-dark' }}">{{ ucfirst($userReg->status) }}</span></p>
                             @if($userReg->status === 'waiting')
@@ -247,9 +236,6 @@
                             @if($event->isFull())
                                 <p class="small text-muted mt-2">{{ __('Event is full. You will be placed on the waiting list.') }}</p>
                             @endif
-                            @if($event->inscription_close_at && $event->inscription_close_at->isFuture())
-                                <p class="small text-muted mt-2">{{ __('Registration closes on :date', ['date' => $event->inscription_close_at->format('d/m/Y H:i')]) }}</p>
-                            @endif
                         @else
                             @if($event->status === 'cancelled')
                                 <p class="text-muted">{{ __('This event has been cancelled.') }}</p>
@@ -260,9 +246,6 @@
                             @elseif($event->inscription_open_at && $event->inscription_open_at->isFuture())
                                 <p class="text-muted">{{ __('Registration is not open yet.') }}</p>
                                 <p class="small">{{ __('Opens') }}: {{ $event->inscription_open_at->format('d/m/Y H:i') }}</p>
-                            @elseif($event->inscription_close_at && $event->inscription_close_at->isPast())
-                                <p class="text-muted">{{ __('Registration has closed.') }}</p>
-                                <p class="small">{{ __('Closed on :date', ['date' => $event->inscription_close_at->format('d/m/Y H:i')]) }}</p>
                             @else
                                 <p class="text-muted">{{ __('Registration is closed.') }}</p>
                             @endif
@@ -471,9 +454,8 @@
                 @endif
             @endauth
 
-            {{-- Dive Groups link — Dive Group Planner, still being built, bureau_master only for now --}}
-            @can('manage dive groups')
-            @if(in_array($event->event_type, ['dive', 'training']) || $isPrivileged)
+            {{-- Dive Groups link — planner is limited to instructors & bureau for now --}}
+            @if($isPrivileged || auth()->user()?->hasAnyRole(['instructor', 'instructor_apnea', 'assistant']))
                 <div class="card dc-card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>@icon('🤿') {{ __('Dive Groups') }}</span>
@@ -495,7 +477,6 @@
                     </div>
                 </div>
             @endif
-            @endcan
 
             {{-- Event email --}}
             @if($event->participant_email)
