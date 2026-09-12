@@ -244,13 +244,14 @@ class ProfileController extends Controller
         }
 
         Storage::disk('local')->makeDirectory('licence-cards');
+        $destination = Storage::disk('local')->path('licence-cards/'.$document->id);
         exec(sprintf(
             'pdftoppm -png -f 1 -l 1 -scale-to 1000 -singlefile %s %s 2>/dev/null',
             escapeshellarg(Storage::disk('local')->path($source)),
-            escapeshellarg(Storage::disk('local')->path('licence-cards/'.$document->id))
+            escapeshellarg($destination)
         ));
 
-        return Storage::disk('local')->exists($cached) ? $cached : null;
+        return file_exists($destination.'.png') ? $cached : null;
     }
 
     public function updateFederationKey(Request $request, MemberLicence $licence): RedirectResponse
