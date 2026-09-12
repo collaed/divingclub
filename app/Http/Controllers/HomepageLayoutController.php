@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\BuddyRequest;
 use App\Models\Event;
 use App\Models\EventPhoto;
 use App\Models\Link;
@@ -35,6 +36,8 @@ class HomepageLayoutController extends Controller
             ['type' => 'upcoming_events', 'enabled' => false, 'zone' => 'main', 'visibility' => 'members', 'config' => ['limit' => 5]],
             ['type' => 'quick_links', 'enabled' => true, 'zone' => 'sidebar', 'visibility' => 'public', 'config' => []],
             ['type' => 'photos', 'enabled' => true, 'zone' => 'sidebar', 'visibility' => 'public', 'config' => ['count' => 8]],
+            ['type' => 'classifieds', 'enabled' => true, 'zone' => 'sidebar', 'visibility' => 'members', 'config' => ['limit' => 5]],
+            ['type' => 'buddy_requests', 'enabled' => true, 'zone' => 'sidebar', 'visibility' => 'members', 'config' => ['limit' => 5]],
             ['type' => 'custom_html', 'enabled' => false, 'zone' => 'sidebar', 'visibility' => 'public', 'config' => ['html' => '']],
         ];
     }
@@ -49,6 +52,8 @@ class HomepageLayoutController extends Controller
             'upcoming_events' => ['icon' => '📅', 'label' => 'Upcoming Events', 'zones' => ['main', 'sidebar']],
             'quick_links' => ['icon' => '🔗', 'label' => 'Quick Links', 'zones' => ['sidebar']],
             'photos' => ['icon' => '📸', 'label' => 'Photo Gallery', 'zones' => ['sidebar', 'main']],
+            'classifieds' => ['icon' => '🏷️', 'label' => 'Classifieds', 'zones' => ['sidebar', 'main']],
+            'buddy_requests' => ['icon' => '🤝', 'label' => 'Buddy Requests', 'zones' => ['sidebar', 'main']],
             'custom_html' => ['icon' => '✏️', 'label' => 'Custom HTML', 'zones' => ['main', 'sidebar', 'top']],
         ];
     }
@@ -118,6 +123,15 @@ class HomepageLayoutController extends Controller
                 ? Event::notCancelled()->where('event_date', '>=', now())
                     ->withCount('registrations')
                     ->orderBy('event_date')->limit($widget['config']['limit'] ?? 5)->get()
+                : collect()],
+            'classifieds' => ['classifieds' => auth()->check()
+                ? Article::where('article_type', 'classified')->active()
+                    ->with('author.detail')->orderByDesc('created_at')
+                    ->limit($widget['config']['limit'] ?? 5)->get()
+                : collect()],
+            'buddy_requests' => ['requests' => auth()->check()
+                ? BuddyRequest::active()->with('user.detail')
+                    ->orderBy('dive_date')->limit($widget['config']['limit'] ?? 5)->get()
                 : collect()],
             default => [],
         };

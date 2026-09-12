@@ -28,6 +28,13 @@ class SeasonController extends Controller
         return view('admin.seasons.index', compact('seasons'));
     }
 
+    public function destroy(Season $season): RedirectResponse
+    {
+        $season->delete();
+
+        return back()->with('success', __(':name moved to the recycle bin.', ['name' => $season->name]));
+    }
+
     public function create(): JsonResponse|RedirectResponse|View
     {
         $previousSeasons = Season::orderByDesc('year')->get();
@@ -359,6 +366,9 @@ class SeasonController extends Controller
                     'waiting_list_enabled' => true,
                     'inscription_open_at' => $pattern->registration_opens_days_before
                         ? $entry['date']->copy()->subDays($pattern->registration_opens_days_before)->startOfDay()
+                        : null,
+                    'inscription_close_at' => $pattern->registration_closes_days_before !== null
+                        ? $entry['date']->copy()->subDays((int) $pattern->registration_closes_days_before)->endOfDay()
                         : null,
                     'inscriptions_closed' => false,
                     'status' => 'scheduled',

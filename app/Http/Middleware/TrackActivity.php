@@ -46,8 +46,27 @@ class TrackActivity
             return;
         }
 
-        $this->touchLastSeen($user);
-        $this->recordVisit($request, $response, $user);
+        // While an admin impersonates a member, requests run as that member —
+        // don't attribute their activity to the impersonated user.
+        if ($request->hasSession() && $request->session()->has('impersonating')) {
+            return;
+        }
+
+        // Tracking must never turn a served request into an error. This runs in
+        // terminate(), but an uncaught throw here still surfaces as a 500 under
+        // php-fpm — and there is a ~10s window during a code-before-migration
+        // deploy where last_seen_at / page_visits do not exist yet.
+        try {
+            $this->touchLastSeen($user);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        try {
+            $this->recordVisit($request, $response, $user);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     private function touchLastSeen(User $user): void
@@ -82,17 +101,13 @@ class TrackActivity
             }
         }
 
-        try {
-            PageVisit::create([
-                'user_id' => $user->getAuthIdentifier(),
-                'method' => 'GET',
-                'path' => Str::limit($path, 500, ''),
-                'route_name' => $request->route()?->getName(),
-                'status' => $response->getStatusCode(),
-                'ip_address' => $request->ip(),
-            ]);
-        } catch (\Throwable $e) {
-            report($e);
-        }
+        PageVisit::create([
+            'user_id' => $user->getAuthIdentifier(),
+            'method' => 'GET',
+            'path' => Str::limit($path, 500, ''),
+            'route_name' => $request->route()?->getName(),
+            'status' => $response->getStatusCode(),
+            'ip_address' => $request->ip(),
+        ]);
     }
 }

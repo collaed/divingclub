@@ -11,8 +11,7 @@
     z-index: 2;
     border-bottom: 2px solid var(--dc-primary, #003366);
     font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    font-weight: 600;
     color: #555;
   }
 }
@@ -57,4 +56,19 @@
 }
 @media (max-width: 768px) {
   .cell-truncate { max-width: 140px; }
+}
+
+// Client-side sortable headers (JS: resources/js/table-utils.js — th[data-sort-col]).
+th[data-sort-col] {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+
+  &::after {
+    content: " \2195"; // ⇅
+    opacity: 0.3;
+    font-size: 0.85em;
+  }
+  &[data-sort="asc"]::after  { content: " \25B2"; opacity: 0.85; } // ▲
+  &[data-sort="desc"]::after { content: " \25BC"; opacity: 0.85; } // ▼
 }

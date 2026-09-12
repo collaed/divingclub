@@ -30,7 +30,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $max_participants
  * @property bool $waiting_list_enabled
  * @property Carbon|null $inscription_open_at
+ * @property Carbon|null $inscription_close_at
  * @property bool $inscriptions_closed
+ * @property string $registration_mode
  * @property bool $levels_display
  * @property bool $confirmation_required
  * @property string|null $estimated_cost
@@ -66,7 +68,10 @@ class Event extends Model
     use HasFactory;
     use SoftDeletes;
 
-    protected $fillable = ['joomla_sortie_id', 'title', 'color_hex', 'event_type', 'event_date', 'event_time', 'end_time', 'end_date', 'location', 'description', 'responsible_id', 'max_participants', 'waiting_list_enabled', 'inscription_open_at', 'inscriptions_closed', 'levels_display', 'confirmation_required', 'estimated_cost', 'trip_settlement_enabled', 'driver_bounty_total', 'local_daily_charge', 'dive_unit_price', 'nitrox_supplement', 'instructor_daily_subsidy', 'dive_days', 'van_count', 'settlement_status', 'deposit_1_date', 'deposit_1_amount', 'deposit_2_date', 'deposit_2_amount', 'deposit_3_date', 'deposit_3_amount', 'instructor_id', 'assistant_ids', 'created_by', 'permissions_expire_date', 'status', 'is_federated', 'external_slots', 'season_id', 'season_pattern_id', 'participant_email', 'whatsapp_group_url', 'dive_site_id'];
+    /** Registration modes for `registration_mode`. */
+    public const REGISTRATION_MODES = ['open', 'required', 'not_needed'];
+
+    protected $fillable = ['joomla_sortie_id', 'title', 'color_hex', 'event_type', 'event_date', 'event_time', 'end_time', 'end_date', 'location', 'description', 'responsible_id', 'max_participants', 'waiting_list_enabled', 'inscription_open_at', 'inscription_close_at', 'registration_mode', 'inscriptions_closed', 'automation_evaluated_at', 'levels_display', 'confirmation_required', 'estimated_cost', 'trip_settlement_enabled', 'driver_bounty_total', 'local_daily_charge', 'dive_unit_price', 'nitrox_supplement', 'instructor_daily_subsidy', 'dive_days', 'van_count', 'settlement_status', 'deposit_1_date', 'deposit_1_amount', 'deposit_2_date', 'deposit_2_amount', 'deposit_3_date', 'deposit_3_amount', 'instructor_id', 'assistant_ids', 'created_by', 'permissions_expire_date', 'status', 'is_federated', 'external_slots', 'season_id', 'season_pattern_id', 'participant_email', 'whatsapp_group_url', 'dive_site_id'];
 
     protected function casts(): array
     {
@@ -74,6 +79,8 @@ class Event extends Model
             'event_date' => 'date',
             'end_date' => 'date',
             'inscription_open_at' => 'datetime',
+            'inscription_close_at' => 'datetime',
+            'automation_evaluated_at' => 'datetime',
             'inscriptions_closed' => 'boolean',
             'waiting_list_enabled' => 'boolean',
             'levels_display' => 'boolean',
@@ -183,24 +190,58 @@ class Event extends Model
         if ($this->inscriptions_closed) {
             return false;
         }
-        if ($this->status !== 'scheduled') {
+        // 'scheduled' and 'published' are both live states — imports and the
+        // season-pattern generator use them interchangeably. Only terminal
+        // states (cancelled, completed) close registration.
+        if (! in_array($this->status, ['scheduled', 'published'], true)) {
+            return false;
+        }
+        if ($this->inscription_open_at && $this->inscription_open_at->isFuture()) {
+            return false;
+        }
+        if ($this->inscription_close_at && $this->inscription_close_at->isPast()) {
             return false;
         }
 
-        return ! ($this->inscription_open_at && $this->inscription_open_at->isFuture());
+        // 'not_needed' does not close registration — instructors still sign up.
+        return true;
     }
 
+    public function registrationRequired(): bool
+    {
+        return $this->registration_mode === 'required';
+    }
+
+    public function registrationNotNeeded(): bool
+    {
+        return $this->registration_mode === 'not_needed';
+    }
+
+    /**
+     * "Open in Google Maps" link — safe for an <a href>. Never the Embed API
+     * URL (that only works inside an iframe).
+     */
     public function mapsUrl(): string
     {
         if (! $this->location) {
             return '';
         }
+
+        return 'https://www.google.com/maps/search/?api=1&query='.urlencode($this->location);
+    }
+
+    /**
+     * Maps Embed API URL — only valid as an <iframe src>. Empty unless a key
+     * is configured and the event has a location.
+     */
+    public function mapsEmbedUrl(): string
+    {
         $key = config('club.google_maps_key');
-        if ($key) {
-            return 'https://www.google.com/maps/embed/v1/search?key='.$key.'&q='.urlencode($this->location);
+        if (! $this->location || ! is_string($key) || $key === '') {
+            return '';
         }
 
-        return 'https://www.google.com/maps/search/'.urlencode($this->location);
+        return 'https://www.google.com/maps/embed/v1/search?key='.$key.'&q='.urlencode($this->location);
     }
 
     /**

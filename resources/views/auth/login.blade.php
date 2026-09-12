@@ -24,30 +24,41 @@
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mb-3">{{ __('Login') }}</button>
                         <div class="text-center">
-                            <a href="{{ route('password.request') }}" class="small">{{ __('Forgot your password?') }}</a>
+                            <a href="{{ route('password.request') }}" id="forgotLink" class="small">{{ __('Forgot your password?') }}</a>
                         </div>
                     </form>
 
+                    {{-- "Forgot password?" sends a reset link straight to the address
+                         typed above when it looks like an email; otherwise it opens
+                         the dedicated page. --}}
+                    <form method="POST" action="{{ route('password.email') }}" id="forgotForm" class="d-none">
+                        @csrf
+                        <input type="hidden" name="email" id="forgotEmail">
+                    </form>
+                    <script>
+                        document.getElementById('forgotLink').addEventListener('click', function (e) {
+                            var v = (document.getElementById('email').value || '').trim();
+                            if (v.indexOf('@') > 0) {
+                                e.preventDefault();
+                                document.getElementById('forgotEmail').value = v;
+                                document.getElementById('forgotForm').submit();
+                            }
+                        });
+                    </script>
+
                     @php
-                        $providers = collect([
-                            'google' => '🔵  Google',
-                            'microsoft' => '🟦  Microsoft',
-                            'facebook' => '🔷  Facebook',
-                            'x' => '⬛  X',
-                        ])->filter(fn ($label, $key) => config("services.{$key}.client_id"));
+                        $providers = collect(['google', 'microsoft', 'facebook', 'x'])
+                            ->filter(fn ($key) => config("services.{$key}.client_id"));
+                        $authBase = config('services.auth_base_url');
                     @endphp
                     @if($providers->isNotEmpty())
                     <hr>
                     <p class="text-center text-muted small mb-3">{{ __('Or sign in with') }}</p>
                     <div class="d-grid gap-2">
-                        @foreach($providers as $provider => $label)
-                            @php $authBase = config('services.auth_base_url'); @endphp
-                            <a href="{{ $authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
+                        @foreach($providers as $provider)
+                            <x-social-button :provider="$provider"
+                                :href="$authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider)" />
                         @endforeach
-                    </div>
-                    @else
-                    <hr>
-                    <div class="d-grid gap-2">
                     </div>
                     @endif
                 </div>

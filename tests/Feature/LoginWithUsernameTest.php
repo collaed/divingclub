@@ -48,7 +48,7 @@ class LoginWithUsernameTest extends TestCase
         $user = $this->member();
 
         $this->post('/login', ['email' => strtoupper($user->primary_email), 'password' => self::PW])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -57,7 +57,7 @@ class LoginWithUsernameTest extends TestCase
         $user = $this->member(['username' => 'eric.richard']);
 
         $this->post('/login', ['email' => 'ERIC.RICHARD', 'password' => self::PW])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -66,7 +66,7 @@ class LoginWithUsernameTest extends TestCase
         $user = $this->member(['username' => 'Michel B']);
 
         $this->post('/login', ['email' => '  michel b  ', 'password' => self::PW])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -76,7 +76,7 @@ class LoginWithUsernameTest extends TestCase
         UserEmail::create(['user_id' => $user->id, 'email' => 'Alt.Address@Example.com', 'is_verified' => true]);
 
         $this->post('/login', ['email' => 'alt.address@example.com', 'password' => self::PW])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -132,7 +132,7 @@ class LoginWithUsernameTest extends TestCase
         $user = $this->member(['primary_email' => 'diver+club@example.com']);
 
         $this->post('/login', ['email' => 'DIVER+CLUB@example.com', 'password' => self::PW])
-            ->assertRedirect(route('profile.show'));
+            ->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user);
 
         auth()->logout();

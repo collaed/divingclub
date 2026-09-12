@@ -6,5 +6,3 @@ Disallow: /privacy/
 Disallow: /install
 Disallow: /api/
 Allow: /
-
-Sitemap: /calendar.ics

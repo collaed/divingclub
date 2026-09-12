@@ -1,7 +1,7 @@
 @php
     $d = $target->detail;
     $userCerts = $target->certificationLevels()->with('federation')->orderByPivot('display_priority', 'desc')->get();
-    $federations = \App\Models\Federation::active()->with(['certificationLevels' => fn($q) => $q->orderBy('category')->orderBy('rank')])->orderBy('acronym')->get();
+    $federations = \App\Models\Federation::visible()->with(['certificationLevels' => fn($q) => $q->orderBy('category')->orderBy('rank')])->orderBy('acronym')->get();
 @endphp
 
 <div class="row mb-4">
@@ -111,6 +111,9 @@
                         <td>
                             <form method="POST" action="{{ route('profile.cert.update', $cert->id) }}" class="d-inline">
                                 @csrf @method('PUT')
+                                @if($target->id !== auth()->id())
+                                    <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+                                @endif
                                 <input type="date" name="obtained_date" class="form-control form-control-sm d-inline-block" style="width:140px"
                                        value="{{ $cert->pivot->obtained_date ? \Carbon\Carbon::parse($cert->pivot->obtained_date)->format('Y-m-d') : '' }}" onchange="this.form.submit()">
                             </form>
@@ -119,10 +122,24 @@
                             @if($cert->pivot->is_primary)
                                 <span class="badge bg-success">★</span>
                             @else
-                                <form method="POST" action="{{ route('profile.cert.primary', $cert->id) }}" class="d-inline">@csrf<button class="btn btn-sm btn-outline-secondary py-0 px-1">{{ __('Set') }}</button></form>
+                                <form method="POST" action="{{ route('profile.cert.primary', $cert->id) }}" class="d-inline">
+                                    @csrf
+                                    @if($target->id !== auth()->id())
+                                        <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+                                    @endif
+                                    <button class="btn btn-sm btn-outline-secondary py-0 px-1">{{ __('Set') }}</button>
+                                </form>
                             @endif
                         </td>
-                        <td><form method="POST" action="{{ route('profile.cert.remove', $cert->id) }}" class="d-inline" data-confirm="{{ __('Remove this certification?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Remove') }}">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger py-0 px-1">✕</button></form></td>
+                        <td>
+                            <form method="POST" action="{{ route('profile.cert.remove', $cert->id) }}" class="d-inline" data-confirm="{{ __('Remove this certification?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Remove') }}">
+                                @csrf @method('DELETE')
+                                @if($target->id !== auth()->id())
+                                    <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+                                @endif
+                                <button class="btn btn-sm btn-outline-danger py-0 px-1">✕</button>
+                            </form>
+                        </td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -136,12 +153,15 @@
         <div class="mb-2 d-flex flex-wrap gap-1" id="fedFilter">
             @foreach($federations as $fed)
                 <label class="btn btn-sm btn-outline-primary py-0 px-2{{ $fed->certificationLevels->isEmpty() ? ' disabled' : '' }}">
-                    <input type="checkbox" class="d-none fed-check" value="{{ $fed->id }}" checked autocomplete="off"> {{ $fed->acronym }}
+                    <input type="checkbox" class="d-none fed-check" value="{{ $fed->id }}" {{ $fed->visibility === 'active' ? 'checked' : '' }} autocomplete="off"> {{ $fed->acronym }}
                 </label>
             @endforeach
         </div>
         <form method="POST" action="{{ route('profile.cert.add') }}">
             @csrf
+            @if($target->id !== auth()->id())
+                <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+            @endif
             <div class="row g-2">
                 <div class="col-md-7">
                     <select name="certification_level_id" id="certSelect" class="form-select form-select-sm" required>
@@ -219,7 +239,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         c.closest('label').classList.toggle('active', c.checked);
     });
-    if (saved) filterFeds();
+    // Always sync the <select> optgroups to the checkbox state — on a first
+    // visit (no saved filter) this hides the optgroups of federations that are
+    // only "recognized", which render unchecked by default.
+    filterFeds();
 });
 </script>
 
@@ -254,3 +277,21 @@ document.addEventListener('DOMContentLoaded', function() {
     <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
 </form>
 @endif
+
+@push('styles')
+<style>
+    /* Federation headers in the "Add certification" picker read as dividers:
+       flush-left, bold and upright, with the levels indented beneath them.
+       Chromium honours this on native <select> popups; other browsers fall
+       back to their default optgroup rendering. */
+    #certSelect optgroup {
+        font-style: normal;
+        font-weight: 700;
+        padding-left: 0;
+    }
+    #certSelect option {
+        font-weight: 400;
+        padding-left: 1.25rem;
+    }
+</style>
+@endpush

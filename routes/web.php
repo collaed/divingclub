@@ -1,7 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\EquipmentController;
+use App\Http\Controllers\Admin\FederationController;
+use App\Http\Controllers\Admin\LicenceScanController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
+use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SocialAuthController;
@@ -30,6 +35,7 @@ use App\Http\Controllers\ProfileEmailController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\StagingMailController;
+use App\Http\Controllers\TrackedDocumentController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\TripSettlementController;
 use App\Http\Controllers\VoteGroupPublicController;
@@ -79,6 +85,9 @@ Route::get('/cotisation', fn () => redirect()->route('dues.show'))->name('cotisa
 Route::get('/calendar.ics', [CalendarFeedController::class, 'ical'])->name('calendar.ics');
 Route::get('/contact', fn () => view('contact'))->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])->middleware('throttle:5,1')->name('contact.send');
+
+// Per-recipient tracked document link (records the open, then serves the PDF)
+Route::get('/d/{token}', [TrackedDocumentController::class, 'open'])->middleware('throttle:30,1')->name('tracked-doc.open');
 
 // Guest auth
 Route::middleware('guest')->group(function () {
@@ -171,6 +180,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/profile/federation-key/{licence}', [ProfileController::class, 'updateFederationKey'])->name('profile.update.federation-key');
     Route::post('/profile/licence/{licence}', [ProfileController::class, 'updateLicence'])->name('profile.update.licence');
     Route::post('/profile/{user}/licence', [ProfileController::class, 'storeLicence'])->name('profile.store.licence');
+    Route::get('/profile/licence/{licence}/scan', [ProfileController::class, 'licenceScanImage'])->name('profile.licence.scan');
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage'])->name('profile.update.language');
     Route::post('/profile/{user}/equipment-sizing', [ProfileController::class, 'updateEquipmentSizing'])->name('profile.update-equipment');
     Route::post('/profile/document', [ProfileDocumentController::class, 'upload'])->name('profile.document.upload');
@@ -198,7 +208,14 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Document browser (role-based visibility, upload for instructors/bureau)
     Route::get('/gallery', [DocumentBrowserController::class, 'gallery'])->name('gallery');
-    Route::get('/photos/browse', function () {
+    Route::get('/photos/browse', function (Request $request) {
+        // JSON feed for the landing-page mosaic. A browser that navigates here
+        // directly (stale/shared link) gets the real gallery, not raw JSON.
+        if ($request->header('Sec-Fetch-Dest') === 'document'
+            || ($request->acceptsHtml() && ! $request->ajax() && ! $request->hasHeader('X-Requested-With'))) {
+            return redirect()->route('gallery');
+        }
+
         $user = auth()->user();
         $query = EventPhoto::where('approved', true)->where('gdpr_consent', true);
 
@@ -299,18 +316,21 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/photos', [EventController::class, 'uploadPhoto'])->name('events.photo.upload');
     Route::delete('/events/{event}/photos/{photo}', [EventController::class, 'deletePhoto'])->name('events.photo.delete');
 
-    // Dive groups (palanquées)
-    Route::get('/events/{event}/dive-groups', [DiveGroupController::class, 'index'])->name('events.dive-groups');
-    Route::post('/events/{event}/dive-groups', [DiveGroupController::class, 'store'])->name('events.dive-groups.store');
-    Route::post('/dive-groups/{group}/members', [DiveGroupController::class, 'addMember'])->name('dive-groups.add-member');
-    Route::delete('/dive-group-members/{member}', [DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
-    Route::post('/dive-group-members/{member}/toggle-leader', [DiveGroupController::class, 'toggleLeader'])->name('dive-groups.toggle-leader');
-    Route::delete('/dive-groups/{group}', [DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
-    Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validateGroups'])->name('events.dive-groups.validate');
-    Route::get('/events/{event}/dive-groups/propose', [DiveGroupController::class, 'propose'])->name('events.dive-groups.propose');
-    Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
-    Route::get('/events/{event}/dive-groups/suggest-swaps', [DiveGroupController::class, 'suggestSwaps'])->name('events.dive-groups.suggest-swaps');
-    Route::get('/events/{event}/dive-groups/print', [DiveGroupController::class, 'printFiche'])->name('events.dive-groups.print');
+    // Dive groups (palanquées) — Dive Group Planner, still being built, its own
+    // permission so it isn't visible to everyone yet.
+    Route::middleware('can:manage dive groups')->group(function () {
+        Route::get('/events/{event}/dive-groups', [DiveGroupController::class, 'index'])->name('events.dive-groups');
+        Route::post('/events/{event}/dive-groups', [DiveGroupController::class, 'store'])->name('events.dive-groups.store');
+        Route::post('/dive-groups/{group}/members', [DiveGroupController::class, 'addMember'])->name('dive-groups.add-member');
+        Route::delete('/dive-group-members/{member}', [DiveGroupController::class, 'removeMember'])->name('dive-groups.remove-member');
+        Route::post('/dive-group-members/{member}/toggle-leader', [DiveGroupController::class, 'toggleLeader'])->name('dive-groups.toggle-leader');
+        Route::delete('/dive-groups/{group}', [DiveGroupController::class, 'destroy'])->name('dive-groups.destroy');
+        Route::get('/events/{event}/dive-groups/validate', [DiveGroupController::class, 'validateGroups'])->name('events.dive-groups.validate');
+        Route::get('/events/{event}/dive-groups/propose', [DiveGroupController::class, 'propose'])->name('events.dive-groups.propose');
+        Route::post('/events/{event}/dive-groups/apply-proposal', [DiveGroupController::class, 'applyProposal'])->name('events.dive-groups.apply-proposal');
+        Route::get('/events/{event}/dive-groups/suggest-swaps', [DiveGroupController::class, 'suggestSwaps'])->name('events.dive-groups.suggest-swaps');
+        Route::get('/events/{event}/dive-groups/print', [DiveGroupController::class, 'printFiche'])->name('events.dive-groups.print');
+    });
 
     // Trip settlement
     Route::get('/events/{event}/settlement', [TripSettlementController::class, 'show'])->name('events.settlement');
@@ -335,6 +355,56 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Stop impersonation (must be outside bureau_master group — user is impersonated)
     Route::get('/admin/stop-impersonation', [MemberController::class, 'stopImpersonation'])->name('admin.stop-impersonation');
+
+    // Federations & certification levels — delegated area, permission-gated
+    // (technical_dir + bureau_master), so it is NOT behind the bureau-role wall.
+    Route::middleware('can:manage federations')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/federations', [FederationController::class, 'index'])->name('federations.index');
+        Route::post('/federations', [FederationController::class, 'store'])->name('federations.store');
+        Route::put('/federations', [FederationController::class, 'bulkUpdate'])->name('federations.bulk-update');
+        Route::delete('/federations/{federation}', [FederationController::class, 'destroy'])->name('federations.destroy');
+        Route::get('/federations/{federation}', [FederationController::class, 'show'])->name('federations.show');
+        Route::post('/federations/{federation}/levels', [FederationController::class, 'storeLevel'])->name('federations.levels.store');
+        Route::put('/federations/{federation}/levels', [FederationController::class, 'bulkUpdateLevels'])->name('federations.levels.bulk-update');
+        Route::delete('/federations/{federation}/levels/{level}', [FederationController::class, 'destroyLevel'])->name('federations.levels.destroy');
+
+        Route::get('/licence-scans', [LicenceScanController::class, 'index'])->name('licence-scans.index');
+        Route::post('/licence-scans', [LicenceScanController::class, 'store'])->name('licence-scans.store');
+        Route::get('/licence-scans/{licenceScan}/image', [LicenceScanController::class, 'image'])->name('licence-scans.image');
+        Route::post('/licence-scans/{licenceScan}/assign', [LicenceScanController::class, 'assign'])->name('licence-scans.assign');
+        Route::delete('/licence-scans/{licenceScan}', [LicenceScanController::class, 'destroy'])->name('licence-scans.destroy');
+    });
+
+    // Equipment / gear — delegated area (technical_dir + bureau), permission-gated.
+    Route::middleware('can:manage equipment')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/equipment', [EquipmentController::class, 'index'])->name('equipment.index');
+        Route::get('/equipment/create', [EquipmentController::class, 'create'])->name('equipment.create');
+        Route::post('/equipment', [EquipmentController::class, 'store'])->name('equipment.store');
+        Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('equipment.show');
+        Route::put('/equipment/{equipment}', [EquipmentController::class, 'update'])->name('equipment.update');
+        Route::post('/equipment/{equipment}/loan', [EquipmentController::class, 'loan'])->name('equipment.loan');
+        Route::post('/equipment/quick-loan', [EquipmentController::class, 'quickLoan'])->name('equipment.quick-loan');
+        Route::post('/equipment/return/{loan}', [EquipmentController::class, 'returnLoan'])->name('equipment.return');
+        Route::post('/equipment/maintenance/{maintenance}/complete', [EquipmentController::class, 'completeMaintenance'])->name('equipment.maintenance.complete');
+    });
+
+    // Site analytics (Umami embed) — its own permission so it can be delegated.
+    Route::middleware('can:view analytics')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    });
+
+    // Club Partnerships — not open to the whole bureau yet, its own permission
+    // so it can be delegated once the feature is ready.
+    Route::middleware('can:manage partnerships')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/partnerships', [PartnershipController::class, 'index'])->name('partnerships.index');
+        Route::get('/partnerships/create', [PartnershipController::class, 'create'])->name('partnerships.create');
+        Route::post('/partnerships', [PartnershipController::class, 'store'])->name('partnerships.store');
+        Route::delete('/partnerships/{partnership}', [PartnershipController::class, 'destroy'])->name('partnerships.destroy');
+        Route::get('/partnerships/{partnership}/remote-events', [PartnershipController::class, 'remoteEvents'])->name('partnerships.remote-events');
+        Route::get('/partnerships/registrations', [PartnershipController::class, 'registrations'])->name('partnerships.registrations');
+        Route::post('/partnerships/registrations/{registration}/approve', [PartnershipController::class, 'approveRegistration'])->name('partnerships.registrations.approve');
+        Route::post('/partnerships/registrations/{registration}/reject', [PartnershipController::class, 'rejectRegistration'])->name('partnerships.registrations.reject');
+    });
 
     // Admin routes (all bureau roles)
     Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->prefix('admin')->name('admin.')->group(

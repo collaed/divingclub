@@ -1,32 +1,37 @@
-{{-- FLASSA licence card — matches official card layout --}}
+{{-- FLASSA licence card — landscape ID-1 card format, matching the physical
+     FLASSA licence: thick brown border, logo + federation name header,
+     centered "Licence <number>" row, centered club/holder/address block,
+     bold disclaimer band. --}}
 @php $d = $user->detail; $theme = App\Services\ThemeService::settings(); @endphp
-<div style="width:85.60mm;height:53.98mm;background:#fff;border:.5px solid #aaa;border-radius:3.18mm;box-shadow:0 4px 10px rgba(0,0,0,.15);display:flex;flex-direction:column;padding:4mm;box-sizing:border-box;font-family:Helvetica,Arial,sans-serif;color:#1a1a1a;position:relative;overflow:hidden">
+<div style="width:85.60mm;height:53.98mm;background:#fff;border:1.2mm solid #6b4423;border-radius:4mm;box-shadow:0 4px 10px rgba(0,0,0,.15);display:flex;flex-direction:column;padding:2.5mm 4mm;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;color:#000;position:relative;overflow:hidden">
 
-    <div style="display:flex;flex-grow:1;gap:3mm">
-        {{-- Left: club + holder --}}
-        <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
-            <div>
-                <div style="font-size:2.5mm;font-weight:800;text-transform:uppercase;line-height:1.3">{{ $theme['club_full_name'] ?? 'Club Européen de Plongée' }}</div>
-                <div style="font-size:2.8mm;font-weight:700;margin-top:2mm">{{ $d->last_name }} {{ $d->first_name }} — {{ $d->date_of_birth?->format('d.m.Y') }}</div>
-                <div style="font-size:2mm;margin-top:1mm;color:#444">{{ $d->address_line1 }} {{ $d->postal_code ? 'L-' . $d->postal_code : '' }} {{ strtoupper($d->city ?? '') }}</div>
-            </div>
-            <div style="font-size:4mm;font-weight:900;letter-spacing:.3mm;margin-top:2mm">{{ $licence->season ? substr($licence->season, 0, 4) : '' }}{{ $licence->licence_number }}</div>
-        </div>
+    @if($pdfDoc)
+        <a href="{{ route('profile.document.download', $pdfDoc) }}" title="{{ __('Download PDF') }}" style="position:absolute;top:2mm;right:2mm;font-size:1.8mm;color:#005696;text-decoration:none;border:.2mm solid #005696;border-radius:1.5mm;padding:.6mm 1.4mm;font-weight:600;background:#fff;z-index:2">📄 PDF</a>
+    @endif
 
-        {{-- Right: federation --}}
-        <div style="width:28mm;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center">
-            <div style="font-size:5mm;font-weight:900;text-transform:uppercase">Licence</div>
-            <img src="/images/logos/flassa.png" alt="FLASSA" style="width:22mm;height:22mm;object-fit:contain;margin-top:1mm">
-            <div style="font-size:1.8mm;font-weight:700;line-height:1.3;margin-top:1mm">
-                FLASSA
-            </div>
-            @if($pdfDoc)
-                <a href="{{ route('profile.document.download', $pdfDoc) }}" style="font-size:1.8mm;color:#005696;text-decoration:none;border:.2mm solid #005696;border-radius:1.5mm;padding:.8mm 2mm;font-weight:600;margin-top:2mm">📄 PDF</a>
-            @endif
+    {{-- Logo + federation name, side by side like the physical card --}}
+    <div style="display:flex;align-items:center;gap:2.5mm">
+        <img src="/images/logos/flassa.png" alt="FLASSA" style="width:13mm;height:13mm;object-fit:contain;flex-shrink:0">
+        <div style="font-size:2.6mm;font-weight:700;line-height:1.2">
+            Fédération Luxembourgeoise des Activités et Sports Sub-Aquatiques
         </div>
     </div>
 
-    <div style="margin-top:auto;text-align:center;border-top:.1mm solid #ddd;padding-top:1mm">
-        <span style="font-size:1.6mm;font-style:italic;color:#555">Licence basée sur certificat médical / Medical certificate based license</span>
+    {{-- "Licence" + number, same row as the physical card --}}
+    <div style="display:flex;justify-content:center;align-items:baseline;gap:6mm;margin-top:3mm">
+        <div style="font-size:4mm;font-weight:800">Licence</div>
+        <div style="font-size:5mm;font-weight:800;white-space:nowrap">{{ $licence->season ? substr($licence->season, 0, 4) : '' }}{{ $licence->licence_number }}</div>
+    </div>
+
+    {{-- Club / holder / address, centered like the physical card --}}
+    <div style="text-align:center;margin-top:2.5mm;font-size:2.6mm;line-height:1.45">
+        <div>{{ mb_strtoupper($theme['club_full_name'] ?? 'Club Européen de Plongée') }}</div>
+        <div>{{ $d->last_name }} {{ $d->first_name }} - {{ $d->date_of_birth?->format('d.m.Y') }}</div>
+        <div>{{ $d->address_line1 }} {{ $d->postal_code ? 'L-' . $d->postal_code : '' }} {{ mb_strtoupper($d->city ?? '') }}</div>
+    </div>
+
+    {{-- Bold disclaimer band, as in the physical card --}}
+    <div style="margin-top:auto;text-align:center">
+        <span style="font-size:2mm;font-weight:800;font-stretch:condensed;font-family:'Arial Narrow',Arial,sans-serif;letter-spacing:.1mm">Licence basée sur certificat médical / Medical certificate based license</span>
     </div>
 </div>

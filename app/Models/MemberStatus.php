@@ -34,6 +34,27 @@ class MemberStatus extends Model
     public const INACTIVE_SLUGS = ['former'];
 
     /**
+     * Statuses that are sub-categories of another status for membership-fee
+     * purposes: they pay the same cotisation as the status they map to, and
+     * the bureau does not enter a separate `membership_fees` row for them
+     * unless one is deliberately set (a direct row always takes precedence
+     * over the alias — see `MembershipFee::resolveForStatus()`).
+     *
+     * @var array<string, string>
+     */
+    public const FEE_ALIASES = [
+        'famille' => 'membre_de_droit',
+        'associe' => 'membre_de_droit',
+        'assimile' => 'membre_de_droit',
+    ];
+
+    /** The status slug whose membership fee this status inherits, if any. */
+    public function feeAliasSlug(): ?string
+    {
+        return self::FEE_ALIASES[$this->slug] ?? null;
+    }
+
+    /**
      * All slugs that count as "active members" for mailing and listings.
      * Any status that is not explicitly inactive is active.
      *

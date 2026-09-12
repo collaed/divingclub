@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\MailSendStat;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -20,6 +21,7 @@ class MailBalancer
         'resend_primary' => 98,
         'resend_secondary' => 98,
         'mailjet' => 200,  // 6000/month ≈ 200/day
+        'brevo' => 300,  // Brevo's standard free-tier daily cap
     ];
 
     /** Pick the best provider for the next send. Returns the provider key. */
@@ -44,6 +46,38 @@ class MailBalancer
         Cache::increment($key);
         // Auto-expire at midnight
         Cache::put($key, Cache::get($key, 1), now()->endOfDay());
+
+        // Cache::increment resets at midnight — this is the durable record
+        // the dashboard's history chart reads from.
+        $stat = MailSendStat::firstOrCreate(['date' => today(), 'provider' => $provider], ['count' => 0]);
+        $stat->increment('count');
+    }
+
+    /**
+     * Daily send counts per provider for the last $days days, for the
+     * dashboard history chart. Days with no sends are included as zero.
+     *
+     * @return array{dates: list<string>, series: array<string, list<int>>}
+     */
+    public static function history(int $days = 60): array
+    {
+        $since = today()->subDays($days - 1);
+        $rows = MailSendStat::where('date', '>=', $since)->get()
+            ->groupBy(fn (MailSendStat $s) => $s->date->format('Y-m-d'));
+
+        $dates = [];
+        $series = array_fill_keys(array_keys(self::LIMITS), []);
+
+        for ($d = $since->copy(); $d->lte(today()); $d->addDay()) {
+            $key = $d->format('Y-m-d');
+            $dates[] = $key;
+            $forDay = $rows->get($key, collect())->keyBy('provider');
+            foreach (self::LIMITS as $provider => $limit) {
+                $series[$provider][] = $forDay->get($provider)?->count ?? 0;
+            }
+        }
+
+        return ['dates' => $dates, 'series' => $series];
     }
 
     /** Get today's send counts per provider. */
@@ -202,6 +236,10 @@ class MailBalancer
 
             case 'mailjet':
                 config(['mail.default' => 'sendmail']);
+                break;
+
+            case 'brevo':
+                config(['mail.default' => 'brevo']);
                 break;
         }
 

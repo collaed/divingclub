@@ -155,6 +155,13 @@
                     <label class="form-check-label">{{ __('Active Instructor') }}</label>
                 </div>
             </div>
+            <div class="col-md-4 mb-3">
+                <div class="form-check">
+                    <input type="hidden" name="is_lifeguard" value="0">
+                    <input type="checkbox" name="is_lifeguard" value="1" class="form-check-input" {{ old('is_lifeguard', $d?->is_lifeguard) ? 'checked' : '' }}>
+                    <label class="form-check-label">{{ __('Lifeguard-qualified') }}</label>
+                </div>
+            </div>
         </div>
     @else
         {{-- Show read-only for members --}}

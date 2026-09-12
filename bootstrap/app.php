@@ -35,6 +35,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
+        // Set client-side by the landing page's JS, so it must not be encrypted.
+        $middleware->encryptCookies(except: ['cep_seen_landing']);
         $middleware->alias([
             'role' => CheckRole::class,
             'verified.email' => EnsureEmailVerified::class,

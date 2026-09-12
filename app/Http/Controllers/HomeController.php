@@ -27,18 +27,20 @@ use App\Services\ThemeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
-    public function index(): RedirectResponse|View
+    public function index(Request $request): RedirectResponse|View
     {
         $user = auth()->user();
 
-        // Public visitors get the visual landing page (an editable, translatable
-        // article drives its intro text). Authenticated members get the
-        // configurable widget dashboard.
-        if (! $user) {
+        // First-time (or long-absent) visitors get the visual landing page; it
+        // sets the cep_seen_landing cookie. Returning guests — and all members —
+        // get the configurable widget home, which filters each widget by
+        // visibility (public widgets stay visible to guests).
+        if (! $user && ! $request->cookie('cep_seen_landing')) {
             return $this->landing();
         }
 
@@ -260,10 +262,13 @@ class HomeController extends Controller
     private function memberStats(): array
     {
         return Cache::remember('member_stats', 3600, function (): array {
-            // Only count active members (paid current season or event in last 18mo)
-            $currentYear = (string) (now()->month >= 9 ? now()->year + 1 : now()->year);
-            $cutoff = now()->subMonths(18)->format('Y-m-d');
-            $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id')->where(fn ($u) => $u->whereJsonContains('cotisation_years', $currentYear)->orWhereHas('eventRegistrations', fn ($r) => $r->where('status', 'confirmed')->whereHas('event', fn ($e) => $e->where('event_date', '>=', $cutoff)))))->get();
+            // Active members: have a status set and have paid for either the
+            // current season year or the current calendar year.
+            $seasonYear = (string) (now()->month >= 9 ? now()->year + 1 : now()->year);
+            $calendarYear = (string) now()->year;
+            $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id')
+                ->where(fn ($u) => $u->whereJsonContains('cotisation_years', $seasonYear)
+                    ->orWhereJsonContains('cotisation_years', $calendarYear)))->get();
 
             return [
                 'total' => $details->count(),

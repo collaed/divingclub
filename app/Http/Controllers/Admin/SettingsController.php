@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreFederationRequest;
 use App\Http\Requests\StoreMaintenanceRuleRequest;
 use App\Http\Requests\StoreMedicalRuleRequest;
 use App\Http\Requests\StoreMembershipFeeRequest;
@@ -29,6 +28,8 @@ class SettingsController extends Controller
     public function index(): RedirectResponse|View
     {
         return view('admin.settings.index', [
+            // Federations are managed on their own page now, but the medical-rule
+            // editor here still needs them for its federation picker.
             'federations' => Federation::orderBy('acronym')->get(),
             'statuses' => MemberStatus::orderBy('name')->get(),
             'medicalRules' => MedicalComplianceRule::with('federation')->orderBy('federation_id')->orderBy('age_bracket_low')->get(),
@@ -38,28 +39,6 @@ class SettingsController extends Controller
             'membershipFees' => MembershipFee::with('status')->orderBy('season_year', 'desc')->orderBy('status_id')->get(),
             'statusSets' => StatusSet::with('statuses')->orderBy('name')->get(),
         ]);
-    }
-
-    // --- Federations ---
-    public function storeFederation(StoreFederationRequest $request): RedirectResponse
-    {
-        Federation::create($request->validated());
-
-        return back()->with('success', __('Federation added.'));
-    }
-
-    public function updateFederation(StoreFederationRequest $request, Federation $federation): RedirectResponse
-    {
-        $federation->update($request->validated());
-
-        return back()->with('success', __('Federation updated.'));
-    }
-
-    public function destroyFederation(Federation $federation): RedirectResponse
-    {
-        $federation->delete();
-
-        return back()->with('success', __('Federation deleted.'));
     }
 
     // --- Member Statuses ---
@@ -185,11 +164,23 @@ class SettingsController extends Controller
         return back()->with('success', __('Medical rule added.'));
     }
 
-    public function updateMedicalRule(StoreMedicalRuleRequest $request, MedicalComplianceRule $rule): RedirectResponse
+    /** Save every medical-rule row in one submit. */
+    public function bulkUpdateMedicalRules(Request $request): RedirectResponse
     {
-        $rule->update($request->validated());
+        $rows = $request->validate([
+            'rule' => 'array',
+            'rule.*.federation_id' => 'required|exists:federations,id',
+            'rule.*.age_bracket_low' => 'required|integer|min:0',
+            'rule.*.age_bracket_high' => 'required|integer|min:0|gte:rule.*.age_bracket_low',
+            'rule.*.cert_type' => 'required|string|in:gp,ent,cardio,ophthalmologist,other',
+            'rule.*.validity_months' => 'required|integer|min:1',
+        ])['rule'] ?? [];
 
-        return back()->with('success', __('Medical rule updated.'));
+        MedicalComplianceRule::whereKey(array_keys($rows))->get()->each(
+            fn (MedicalComplianceRule $r) => $r->update($rows[$r->id])
+        );
+
+        return back()->with('success', __('Medical rules saved.'));
     }
 
     public function destroyMedicalRule(MedicalComplianceRule $rule): RedirectResponse
@@ -209,13 +200,24 @@ class SettingsController extends Controller
         return back()->with('success', __('Maintenance rule added.'));
     }
 
-    public function updateMaintenanceRule(StoreMaintenanceRuleRequest $request, EquipmentMaintenanceRule $rule): RedirectResponse
+    /** Save every maintenance-rule row in one submit. */
+    public function bulkUpdateMaintenanceRules(Request $request): RedirectResponse
     {
-        $v = $request->validated();
-        $v['is_mandatory'] = $request->boolean('is_mandatory');
-        $rule->update($v);
+        $rows = $request->validate([
+            'rule' => 'array',
+            'rule.*.equipment_type' => 'required|string|max:100',
+            'rule.*.maintenance_name' => 'required|string|max:255',
+            'rule.*.interval_months' => 'required|integer|min:1',
+            'rule.*.regulation_reference' => 'nullable|string|max:255',
+        ])['rule'] ?? [];
 
-        return back()->with('success', __('Maintenance rule updated.'));
+        $checked = (array) $request->input('mandatory', []);
+
+        EquipmentMaintenanceRule::whereKey(array_keys($rows))->get()->each(function (EquipmentMaintenanceRule $r) use ($rows, $checked): void {
+            $r->update($rows[$r->id] + ['is_mandatory' => in_array((string) $r->id, $checked, true)]);
+        });
+
+        return back()->with('success', __('Maintenance rules saved.'));
     }
 
     public function destroyMaintenanceRule(EquipmentMaintenanceRule $rule): RedirectResponse
@@ -246,7 +248,7 @@ class SettingsController extends Controller
 
     public function updateTheme(Request $request): RedirectResponse
     {
-        $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'club_bank_name', 'dues_cutoff_grace_days', 'fee_taper_reference_date', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'ui_show_icons', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x', 'newsletter_article_base_url', 'newsletter_font', 'default_locale', 'site_layout'];
+        $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'club_bank_name', 'dues_cutoff_grace_days', 'fee_taper_reference_date', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'ui_show_icons', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x', 'newsletter_article_base_url', 'newsletter_font', 'default_locale', 'site_layout', 'landing_cta_text', 'landing_cta_url', 'landing_cta_until'];
 
         // Handle enabled_locales checkbox array separately
         if ($request->has('enabled_locales')) {

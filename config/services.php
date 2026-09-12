@@ -14,6 +14,10 @@ return [
         'secret' => env('MAILJET_SECRET'),
     ],
 
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
+    ],
+
     'onemin' => [
         'key' => env('ONEMIN_AI_KEY'),
     ],
@@ -96,5 +100,6 @@ return [
     'umami' => [
         'url' => env('UMAMI_URL'),
         'id' => env('UMAMI_WEBSITE_ID'),
+        'share_url' => env('UMAMI_SHARE_URL'),
     ],
 ];

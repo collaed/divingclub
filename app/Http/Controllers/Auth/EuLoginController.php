@@ -73,7 +73,7 @@ class EuLoginController extends Controller
         if ($social) {
             Auth::login($social->user, true);
 
-            return redirect()->intended(route('profile.show'));
+            return redirect()->intended(route('home'));
         }
 
         // 2. Email matches existing account — auto-link (EU Login is trusted)
@@ -88,7 +88,7 @@ class EuLoginController extends Controller
             ]);
             Auth::login($user, true);
 
-            return redirect()->intended(route('profile.show'));
+            return redirect()->intended(route('home'));
         }
 
         // 3. New user

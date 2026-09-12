@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Event;
 use App\Models\LoginRecord;
 use App\Models\MemberDetail;
+use App\Models\PageVisit;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -47,6 +49,16 @@ class LoginHistoryTest extends TestCase
         $this->assertNotNull(LoginRecord::first()->created_at);
     }
 
+    public function test_impersonation_does_not_create_a_login_record(): void
+    {
+        $u = $this->user('member');
+        session(['impersonating' => 999]);
+
+        event(new Login('web', $u, false));
+
+        $this->assertDatabaseCount('login_records', 0);
+    }
+
     public function test_bureau_master_sees_the_page_with_records(): void
     {
         $master = $this->user('bureau_master');
@@ -59,6 +71,22 @@ class LoginHistoryTest extends TestCase
         $res->assertSee('Login history');
         $res->assertSee('203.0.113.9');
         $res->assertSee('Chrome · Windows');
+    }
+
+    public function test_activity_trail_shows_the_visited_events_title(): void
+    {
+        $master = $this->user('bureau_master');
+        $member = $this->user('member');
+        $event = Event::factory()->create(['title' => 'Sortie Grotte Bleue']);
+
+        PageVisit::create(['user_id' => $member->id, 'method' => 'GET', 'path' => "/events/{$event->id}", 'route_name' => 'events.show', 'status' => 200]);
+        PageVisit::create(['user_id' => $member->id, 'method' => 'GET', 'path' => '/', 'route_name' => 'home', 'status' => 200]);
+
+        $res = $this->actingAs($master)->get('/admin/logins?tab=activity&user='.$member->id);
+
+        $res->assertOk()
+            ->assertSee('Sortie Grotte Bleue')
+            ->assertSee('Home');
     }
 
     public function test_non_bureau_master_is_forbidden(): void

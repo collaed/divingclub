@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Helpers\ArticleTranslationStaleness;
 use App\Helpers\HtmlSanitizer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -49,6 +50,23 @@ class Article extends Model
             'is_public' => 'boolean',
             'expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Any save that changes the source content must invalidate existing
+     * translations — regardless of whether it went through the admin form,
+     * a console command, or a one-off script/tinker fix. Without this, a
+     * direct DB edit silently leaves stale (or never-actually-translated,
+     * see ArticleTranslationService::translate()'s partial-failure handling)
+     * text live in every other locale indefinitely.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (self $article): void {
+            if ($article->wasChanged(['title', 'body'])) {
+                ArticleTranslationStaleness::markIfChanged($article);
+            }
+        });
     }
 
     public const TYPES = [
@@ -100,7 +118,25 @@ class Article extends Model
             $body
         );
 
+        // [[interest-form]] marker — the form itself is rendered by the article
+        // view (hasInterestForm()), so here we just strip the placeholder,
+        // tolerating whatever the auto-translator did to it (e.g. "[the form of
+        // interest]").
+        $intr = '(?:interest|int[ée]r[êe]t)';
+        $body = preg_replace(
+            '#<p>\s*\[{1,2}\s*[^\[\]]*?(?:'.$intr.'[\s-]*form|form[a-z]*[^\[\]]*'.$intr.'|'.$intr.'[^\[\]]*form[a-z]*)[^\[\]]*\s*\]{1,2}\s*</p>#iu',
+            '',
+            $body
+        );
+        $body = preg_replace('#\[{1,2}\s*interest[\s-]*form\s*\]{1,2}#i', '', $body);
+
         return $body;
+    }
+
+    /** The body carries the [[interest-form]] marker → show the inline contact form. */
+    public function hasInterestForm(): bool
+    {
+        return str_contains((string) $this->body, '[[interest-form]]');
     }
 
     public function canBeEditedBy(mixed $user): bool

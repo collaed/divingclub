@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Requests\StoreEventRequest;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\MemberDetail;
@@ -111,5 +112,55 @@ class EventRegistrationWorkflowTest extends TestCase
         $pos3 = EventRegistration::where('user_id', $u3->id)->value('waiting_list_position');
 
         $this->assertLessThan($pos3, $pos2);
+    }
+
+    public function test_published_events_are_open_for_registration(): void
+    {
+        $event = $this->event(['status' => 'published']);
+        $this->assertTrue($event->isRegistrationOpen());
+
+        $u = $this->member();
+        $this->actingAs($u)->post("/events/{$event->id}/register");
+
+        $this->assertDatabaseHas('event_registrations', ['event_id' => $event->id, 'user_id' => $u->id, 'status' => 'confirmed']);
+    }
+
+    public function test_cancelled_and_completed_events_are_not_open(): void
+    {
+        $this->assertFalse($this->event(['status' => 'cancelled'])->isRegistrationOpen());
+        $this->assertFalse($this->event(['status' => 'completed'])->isRegistrationOpen());
+    }
+
+    public function test_inscription_close_at_gates_registration(): void
+    {
+        $this->assertFalse($this->event(['inscription_close_at' => now()->subDay()])->isRegistrationOpen());
+        $this->assertTrue($this->event(['inscription_close_at' => now()->addDays(3)])->isRegistrationOpen());
+    }
+
+    public function test_registration_mode_helpers_and_not_needed_stays_open(): void
+    {
+        $this->assertTrue($this->event(['registration_mode' => 'required'])->registrationRequired());
+        $notNeeded = $this->event(['registration_mode' => 'not_needed']);
+        $this->assertTrue($notNeeded->registrationNotNeeded());
+        $this->assertTrue($notNeeded->isRegistrationOpen()); // instructors still sign up
+    }
+
+    public function test_new_registration_fields_are_mass_assignable(): void
+    {
+        $e = $this->event([
+            'registration_mode' => 'not_needed',
+            'inscription_close_at' => now()->addDays(2),
+        ])->fresh();
+
+        $this->assertSame('not_needed', $e->registration_mode);
+        $this->assertNotNull($e->inscription_close_at);
+    }
+
+    public function test_store_request_accepts_the_registration_mode_values(): void
+    {
+        $rules = (new StoreEventRequest)->rules();
+        $this->assertStringContainsString('required', $rules['registration_mode']);
+        $this->assertStringContainsString('not_needed', $rules['registration_mode']);
+        $this->assertArrayHasKey('inscription_close_at', $rules);
     }
 }

@@ -58,6 +58,23 @@ sudo supervisorctl restart horizon-prod
 Rollback: `sudo -u clubcep git reset --hard $BEFORE`, then repeat composer /
 `rm -f bootstrap/cache/*.php` / `package:discover` / `optimize:clear` / restart.
 
+## Migrations that new code depends on
+
+`git reset --hard` puts the new code live **before** `migrate` runs. For a
+code-only change that window is harmless. But when new code hard-references a
+column/table the migration is about to add (a new global middleware, a query
+with `whereNotNull('new_col')`, …), requests in that ~10 s gap hit
+`column "x" does not exist` and 500.
+
+- For such deploys, wrap the risky steps: `sudo -u clubcep php8.3 artisan down`
+  before `git reset`, `... artisan up` after `optimize:clear`. Members see the
+  maintenance page for ~15 s instead of intermittent 500s.
+- Middleware/listeners that write "nice to have" data (e.g. `TrackActivity`)
+  must catch their own DB errors so this gap degrades silently — but that does
+  not cover controller queries, hence `artisan down`.
+- Seen on 2026-09-08 (`#51`): 4× `last_seen_at does not exist` at 16:22:49,
+  self-cleared once `migrate` finished.
+
 ## Runbook — "every route returns 500, error page won't render"
 
 Symptom in `storage/logs/laravel-*.log`:

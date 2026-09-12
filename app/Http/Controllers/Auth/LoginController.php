@@ -43,7 +43,16 @@ class LoginController extends Controller
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
-            return redirect()->intended(route('profile.show'));
+            // redirect()->intended() also clears the stored URL. Guard against a
+            // poisoned target (the landing page's /photos/browse prefetch can be
+            // recorded as "intended" for a guest) landing a fresh login on a
+            // non-page endpoint.
+            $target = redirect()->intended(route('home'));
+            if (str_contains($target->getTargetUrl(), '/photos/browse')) {
+                return redirect()->route('home');
+            }
+
+            return $target;
         }
 
         RateLimiter::hit($throttleKey, 600); // 10 minute decay

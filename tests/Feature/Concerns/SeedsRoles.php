@@ -31,10 +31,11 @@ trait SeedsRoles
         SpatieRole::findOrCreate('bureau_finance', 'web');
         SpatieRole::findOrCreate('bureau_technical', 'web');
         SpatieRole::findOrCreate('instructor', 'web');
+        SpatieRole::findOrCreate('instructor_apnea', 'web');
         SpatieRole::findOrCreate('member', 'web');
 
         // Give bureau_master all permissions used in admin tests
-        $permissions = ['manage seasons', 'manage events', 'manage members', 'manage settings', 'send email', 'view finances'];
+        $permissions = ['manage seasons', 'manage events', 'manage members', 'manage settings', 'send email', 'view finances', 'manage federations', 'manage equipment', 'view analytics', 'manage partnerships', 'manage dive groups'];
         foreach ($permissions as $p) {
             Permission::findOrCreate($p, 'web');
         }

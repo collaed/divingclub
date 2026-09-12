@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Helpers\ArticleTranslationStaleness;
 use App\Models\Article;
 use App\Models\ArticleTranslation;
 use Illuminate\Support\Facades\Http;
@@ -81,6 +82,13 @@ class ArticleTranslationService
             );
         }
 
+        // A field that came back null failed to translate and falls back to
+        // the French source so the row is never left blank — but that means
+        // the translation is only partial. Keep it stale (and count a retry)
+        // rather than marking it a clean success, so the next ProcessTranslations
+        // sweep picks it back up instead of leaving untranslated text stuck as
+        // "done".
+        $partial = ! $title || ! $body;
         $translatedTitle = $title ?: $article->title;
         $translatedBody = $body ?: $article->body;
         $translatedWords = self::wordCount($translatedTitle.' '.$translatedBody);
@@ -89,11 +97,11 @@ class ArticleTranslationService
             'title' => $translatedTitle,
             'body' => $translatedBody,
             'auto_translated' => true,
-            'stale' => false,
+            'stale' => $partial,
             'source_hash' => $sourceHash,
             'source_word_count' => $sourceWords,
             'translated_word_count' => $translatedWords,
-            'retries' => 0,
+            'retries' => $partial ? (($existing?->retries ?? 0) + 1) : 0,
             'flagged_at' => null,
             'flag_reason' => null,
         ];
@@ -123,7 +131,13 @@ class ArticleTranslationService
             if ($locale === $sourceLocale) {
                 continue;
             }
-            $this->translate($article, $locale, $sourceLocale);
+            // One failing locale (a provider hiccup) must not abort the rest —
+            // the gap-fill pass in ProcessTranslations retries it next run.
+            try {
+                $this->translate($article, $locale, $sourceLocale);
+            } catch (\Throwable $e) {
+                Log::warning("translateAll: {$locale} failed for '{$article->title}'", ['error' => $e->getMessage()]);
+            }
         }
     }
 
@@ -147,7 +161,7 @@ class ArticleTranslationService
     /** Compute a hash of the article source content for change detection. */
     public static function sourceHash(Article $article): string
     {
-        return hash('xxh3', $article->title.'|'.$article->body);
+        return ArticleTranslationStaleness::sourceHash($article);
     }
 
     /** Count words in text (strip HTML first). */
@@ -158,19 +172,15 @@ class ArticleTranslationService
 
     /**
      * Mark translations stale if the source article has changed.
-     * Called from ArticleController::update().
+     *
+     * Also runs automatically from a model event on every Article save (see
+     * Article::booted()) — this explicit call from ArticleController::update()
+     * is now redundant but harmless (the query is idempotent), kept so the
+     * controller's intent stays obvious at the call site.
      */
     public static function markStaleIfChanged(Article $article): int
     {
-        $currentHash = self::sourceHash($article);
-
-        return $article->translations()
-            ->where('auto_translated', true)
-            ->where(function ($q) use ($currentHash): void {
-                $q->where('source_hash', '!=', $currentHash)
-                    ->orWhereNull('source_hash');
-            })
-            ->update(['stale' => true]);
+        return ArticleTranslationStaleness::markIfChanged($article);
     }
 
     /**
@@ -315,12 +325,20 @@ class ArticleTranslationService
     /**
      * Translate HTML content via Cloudflare by extracting text nodes,
      * translating them individually, and reassembling.
+     *
+     * A segment that fails to translate falls back to its original (source
+     * language) text so the reassembled HTML stays well-formed — but if
+     * every segment fails (rate limit, outage), the whole call must report
+     * failure rather than silently return the untranslated body as if it
+     * had succeeded: the caller only retries/logs when this returns null.
      */
     protected function cloudflareTranslateHtml(string $html, string $sourceLang, string $targetLang, string $url, string $apiToken): ?string
     {
         // Split HTML into tags and text segments
         $parts = preg_split('/(<[^>]+>)/', $html, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
         $result = '';
+        $segmentsToTranslate = 0;
+        $segmentsTranslated = 0;
 
         foreach ($parts as $part) {
             // Skip HTML tags
@@ -337,6 +355,8 @@ class ArticleTranslationService
                 continue;
             }
 
+            $segmentsToTranslate++;
+
             try {
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer '.$apiToken,
@@ -347,11 +367,23 @@ class ArticleTranslationService
                 ]);
 
                 $translated = $response->ok() ? $response->json('result.translated_text') : null;
+                if ($translated) {
+                    $segmentsTranslated++;
+                } else {
+                    Log::warning('Cloudflare AI error (HTML segment)', ['status' => $response->status(), 'target' => $targetLang]);
+                }
                 $result .= $translated ?? $part;
                 usleep(100000); // 100ms between calls to avoid rate limiting
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                Log::warning('Cloudflare translation failed (HTML segment)', ['error' => $e->getMessage(), 'target' => $targetLang]);
                 $result .= $part;
             }
+        }
+
+        // Every segment failed (e.g. rate-limited for the whole request) —
+        // report total failure instead of the untranslated original.
+        if ($segmentsToTranslate > 0 && $segmentsTranslated === 0) {
+            return null;
         }
 
         return $result;

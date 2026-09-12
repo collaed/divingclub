@@ -7,6 +7,13 @@
     text-decoration: none;
     &:hover { color: #ffffff; }
   }
+
+  // `img { height: auto }` (responsive safety-net) otherwise ignores the
+  // markup `height` and renders the logo full size.
+  img {
+    height: 22px;
+    width: auto;
+  }
 }
 
 .dc-badge-compliant {

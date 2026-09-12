@@ -49,7 +49,7 @@
                     <img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" height="36" class="d-inline-block">
                     <span>{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
                 </a>
-                <div class="text-white d-flex align-items-center gap-2 gap-sm-3 flex-shrink-0">
+                <div class="text-white d-flex flex-wrap align-items-center justify-content-end gap-2 gap-sm-3 flex-shrink-0">
                     {{-- Dark mode toggle --}}
                     <button class="dc-dark-toggle" role="switch" aria-label="{{ __('Toggle dark mode') }}" onclick="toggleDarkMode()" title="{{ __('Toggle dark mode') }}" id="darkToggle">🌙</button>
                     {{-- Font size --}}
@@ -68,9 +68,6 @@
                             @endforeach
                         </ul>
                     </div>
-                    @auth
-                        <a href="{{ route('profile.show') }}" class="dc-user-name text-white text-decoration-none text-truncate d-none d-sm-inline">{{ auth()->user()->name }}</a>
-                    @endauth
                 </div>
             </div>
         </div>
@@ -124,26 +121,24 @@
 
                         {{-- Members --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('buddies.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Members') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('buddies.*') || request()->routeIs('classifieds.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Members') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ route('members.directory') }}">@icon('📇') {{ __('Directory') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('members.trombinoscope') }}">@icon('📸') {{ __('Trombinoscope') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('buddies.index') }}">@icon('🤝') {{ __('Buddies') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ route('classifieds.index') }}">@icon('🏷️') {{ __('Classifieds') }}</a></li>
                             </ul>
                         </li>
 
                         {{-- Resources --}}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') || request()->routeIs('classifieds.*') || request()->routeIs('dues.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ url('/article/first-certification') }}">@icon('🎓') {{ __('First Certification') }}</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('documents.index') }}">@icon('📁') {{ __('Documents') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ route('gallery') }}">@icon('📸') {{ __('Photo Gallery') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('classifieds.index') }}">@icon('🏷️') {{ __('Classifieds') }}</a></li>
                                 <li><a class="dropdown-item" href="{{ url('/article/local') }}">@icon('🏠') {{ __('Our Warehouse') }}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('dues.show') }}">@icon('💶') {{ __('Membership Fees') }}</a></li>
                             </ul>
                         </li>
 
@@ -161,42 +156,78 @@
                         @if(auth()->user()->isBureau())
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Admin') }}</a>
+                                <div class="dropdown-menu dc-admin-menu p-3">
+                                    <a class="dropdown-item dc-admin-menu-dash" href="{{ route('admin.dashboard.index') }}">@icon('📊') {{ __('Dashboard') }}</a>
+                                    <div class="dc-admin-menu-cols">
+                                        <div class="dc-admin-menu-group">
+                                            <h6 class="dropdown-header">{{ __('People') }}</h6>
+                                            <a class="dropdown-item" href="{{ route('admin.members.index') }}">@icon('👥') {{ __('Members') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.guardians.index') }}">@icon('👨‍👧') {{ __('Minors & Consent') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">@icon('🐠') {{ __('Trial Requests') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.medical-review.index') }}">@icon('🩺') {{ __('Medical Review') }}</a>
+                                        </div>
+                                        <div class="dc-admin-menu-group">
+                                            <h6 class="dropdown-header">{{ __('Finance') }}</h6>
+                                            <a class="dropdown-item" href="{{ route('admin.seasons.index') }}">@icon('📅') {{ __('Seasons') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.payments.index') }}">@icon('💶') {{ __('Payments') }}</a>
+                                            @can('view finances')
+                                            <a class="dropdown-item" href="{{ route('admin.audit-finances') }}">@icon('📋') {{ __('Financial Audit') }}</a>
+                                            @endcan
+                                            <a class="dropdown-item" href="{{ route('admin.annual-report') }}">@icon('📈') {{ __('Annual Report') }}</a>
+                                        </div>
+                                        <div class="dc-admin-menu-group">
+                                            <h6 class="dropdown-header">{{ __('Diving') }}</h6>
+                                            <a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.licence-scans.index') }}">@icon('🪪') {{ __('Licence Scans') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🔧') {{ __('Equipment') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">@icon('🤿') {{ __('Dive Sites') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">@icon('📋') {{ __('Dive Group Rules') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.event-automation-rules.index') }}">@icon('🤖') {{ __('Event Automation') }}</a>
+                                            @can('manage partnerships')
+                                            <a class="dropdown-item" href="{{ route('admin.partnerships.index') }}">@icon('🤝') {{ __('Partners') }}</a>
+                                            @endcan
+                                        </div>
+                                        <div class="dc-admin-menu-group">
+                                            <h6 class="dropdown-header">{{ __('Content & comms') }}</h6>
+                                            <a class="dropdown-item" href="{{ route('admin.articles.index') }}">@icon('📝') {{ __('Articles') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.links.index') }}">@icon('🔗') {{ __('Links') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.library.index') }}">@icon('📁') {{ __('Documents') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.email.index') }}">@icon('📧') {{ __('Email') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">@icon('📬') {{ __('Newsletters') }}</a>
+                                            @if(auth()->user()->hasRole('bureau_master'))
+                                            <a class="dropdown-item" href="{{ route('admin.document-dispatch.index') }}">@icon('📤') {{ __('Tracked docs') }}</a>
+                                            @endif
+                                            <a class="dropdown-item" href="{{ route('admin.email-stats') }}">@icon('📊') {{ __('Email Stats') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.votes.index') }}">@icon('🗳️') {{ __('Votes') }}</a>
+                                        </div>
+                                        <div class="dc-admin-menu-group">
+                                            <h6 class="dropdown-header">{{ __('System') }}</h6>
+                                            <a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">@icon('📜') {{ __('Audit Log') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.trash.index') }}">@icon('🗑️') {{ __('Recycle Bin') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.backups.index') }}">@icon('💾') {{ __('Backups') }}</a>
+                                            <a class="dropdown-item" href="/horizon" target="_blank">@icon('⏱️') {{ __('Queue Monitor') }}</a>
+                                            @if(auth()->user()->hasRole('bureau_master'))
+                                            <a class="dropdown-item" href="{{ route('admin.logins.index') }}">@icon('🔑') {{ __('Login history') }}</a>
+                                            @endif
+                                            @can('view analytics')
+                                            <a class="dropdown-item" href="{{ route('admin.analytics.index') }}">@icon('📈') {{ __('Analytics') }}</a>
+                                            @endcan
+                                            <a class="dropdown-item" href="{{ route('admin.settings.index') }}">@icon('⚙️') {{ __('Settings') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.roles.index') }}">@icon('🔐') {{ __('Roles & Permissions') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.guide.index') }}">@icon('📖') {{ __('Admin Guide') }}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        @elseif(auth()->user()->canany(['manage federations', 'manage equipment', 'view analytics']))
+                            {{-- Delegated specialist (e.g. technical_dir): just their areas. --}}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active fw-bold' : '' }}" href="#" data-bs-toggle="dropdown">{{ __('Admin') }}</a>
                                 <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="{{ route('admin.dashboard.index') }}">@icon('📊') {{ __('Dashboard') }}</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        {{-- People --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.members.index') }}">👥 {{ __('Members') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.guardians.index') }}">👨‍👧 {{ __('Minors & Consent') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.trial-requests.index') }}">🐠 {{ __('Trial Requests') }}</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        {{-- Finance --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.seasons.index') }}">📅 {{ __('Seasons') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.payments.index') }}">💶 {{ __('Payments') }}</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        {{-- Content --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.articles.index') }}">📝 {{ __('Articles') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.links.index') }}">🔗 {{ __('Links') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.library.index') }}">📁 {{ __('Documents') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.email.index') }}">📧 {{ __('Email') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">📬 {{ __('Newsletters') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.email-stats') }}">📊 {{ __('Email Stats') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.votes.index') }}">🗳️ {{ __('Votes') }}</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        {{-- Diving --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.equipment.index') }}">🔧 {{ __('Equipment') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.dive-sites.index') }}">🤿 {{ __('Dive Sites') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.dive-group-rules.index') }}">📋 {{ __('Dive Group Rules') }}</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        {{-- System --}}
-                                        <li><a class="dropdown-item" href="{{ route('admin.audit-logs.index') }}">📜 {{ __('Audit Log') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.backups.index') }}">💾 {{ __('Backups') }}</a></li>
-                                        <li><a class="dropdown-item" href="/horizon" target="_blank">⏱️ {{ __('Queue Monitor') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">⚙️ {{ __('Settings') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">🔐 {{ __('Roles & Permissions') }}</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.guide.index') }}">📖 {{ __('Admin Guide') }}</a></li>
-                                        @can('view finances')
-                                        <li><a class="dropdown-item" href="{{ route('admin.audit-finances') }}">📋 {{ __('Financial Audit') }}</a></li>
-                                        @endcan                                        <li><a class="dropdown-item" href="{{ route('admin.annual-report') }}">@icon('📊') {{ __('Annual Report') }}</a></li>
+                                    @can('manage federations')<li><a class="dropdown-item" href="{{ route('admin.federations.index') }}">@icon('🎖️') {{ __('Federations') }}</a></li>@endcan
+                                    @can('manage federations')<li><a class="dropdown-item" href="{{ route('admin.licence-scans.index') }}">@icon('🪪') {{ __('Licence Scans') }}</a></li>@endcan
+                                    @can('manage equipment')<li><a class="dropdown-item" href="{{ route('admin.equipment.index') }}">@icon('🤿') {{ __('Equipment') }}</a></li>@endcan
+                                    @can('view analytics')<li><a class="dropdown-item" href="{{ route('admin.analytics.index') }}">@icon('📈') {{ __('Analytics') }}</a></li>@endcan
                                 </ul>
                             </li>
                         @endif
@@ -218,7 +249,10 @@
                             </a>
                             <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                 @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2" title="{{ __('Logout') }}">@icon('🚪')</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 px-2 py-1" title="{{ __('Logout') }}">
+                                    <span class="fs-5 lh-1" aria-hidden="true">🚪</span>
+                                    <span class="d-none d-sm-inline">{{ __('Logout') }}</span>
+                                </button>
                             </form>
                         </li>
                     @endguest

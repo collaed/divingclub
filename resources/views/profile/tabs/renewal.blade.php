@@ -10,7 +10,17 @@
 @if($licences->isNotEmpty())
 <div class="d-flex flex-wrap gap-3 mb-4">
     @foreach($licences as $lic)
-        @if($lic->federation->acronym === 'FLASSA' && $lic->licence_number)
+        @if($lic->federation->acronym === 'FLASSA' && $lic->licence_number && ($lic->scan_image_path || $licCard))
+            {{-- The real card: the intake scan, or the member's own licence PDF rendered to an image. --}}
+            <div>
+                <a href="{{ $licCard ? route('profile.document.view', $licCard) : route('profile.licence.scan', $lic) }}" target="_blank" rel="noopener">
+                    <img src="{{ route('profile.licence.scan', $lic) }}" alt="{{ __('FLASSA licence card') }}" class="rounded shadow-sm" style="max-width: 420px; height: auto;">
+                </a>
+                @if($lic->card_issued_at)
+                    <div class="small text-muted mt-1">{{ __('Issued by FLASSA on :date', ['date' => $lic->card_issued_at->format('d/m/Y')]) }}</div>
+                @endif
+            </div>
+        @elseif($lic->federation->acronym === 'FLASSA' && $lic->licence_number)
             @include('profile.partials.flassa-card', ['licence' => $lic, 'user' => $target, 'pdfDoc' => $licCard])
         @elseif($lic->federation->acronym === 'FFESSM' && $lic->licence_number)
             @include('profile.partials.ffessm-card', ['licence' => $lic, 'user' => $target])

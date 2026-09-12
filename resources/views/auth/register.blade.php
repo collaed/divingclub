@@ -95,14 +95,21 @@
                         <button type="submit" class="btn btn-primary w-100">{{ __('Register') }}</button>
                     </form>
 
+                    @php
+                        $providers = collect(['google', 'microsoft', 'facebook', 'x', 'amazon'])
+                            ->filter(fn ($key) => config("services.{$key}.client_id"));
+                        $authBase = config('services.auth_base_url');
+                    @endphp
+                    @if($providers->isNotEmpty())
                     <hr>
                     <p class="text-center text-muted small mb-3">{{ __('Or register with') }}</p>
                     <div class="d-grid gap-2">
-                        @foreach(['google' => '🔵  Google', 'microsoft' => '🟦  Microsoft', 'facebook' => '🔷  Facebook', 'x' => '⬛  X', 'amazon' => '🟠  Amazon'] as $provider => $label)
-                            @php $authBase = config('services.auth_base_url'); @endphp
-                            <a href="{{ $authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider) }}" class="btn btn-outline-secondary btn-sm">{{ $label }}</a>
+                        @foreach($providers as $provider)
+                            <x-social-button :provider="$provider" action="signup"
+                                :href="$authBase ? $authBase.'/auth/'.$provider.'/redirect' : route('auth.social.redirect', $provider)" />
                         @endforeach
                     </div>
+                    @endif
                 </div>
             </div>
         </div>

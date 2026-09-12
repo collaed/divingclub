@@ -321,7 +321,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 ## Privacy
 
 - Regular members cannot see other members' email or phone — only the profile owner and bureau roles
-- `TrackActivity` middleware keeps `users.last_seen_at` fresh (throttled 5 min) on every authenticated request, and — when `config('tracking.page_visits')` is on (`TRACKING_PAGE_VISITS`) — logs authenticated GET page views to `page_visits` (path, route, status). It is a support/debugging aid: visible only on `/admin/logins` (bureau_master), pruned to `tracking.retention_days` (default 3) by the `tracking:prune` scheduled command. Flip `TRACKING_PAGE_VISITS=false` to stop logging without a deploy.
+- `TrackActivity` middleware keeps `users.last_seen_at` fresh (throttled 5 min) on every authenticated request, and — when `config('tracking.page_visits')` is on (`TRACKING_PAGE_VISITS`) — logs authenticated GET page views to `page_visits` (path, route, status). It is a support/debugging aid: visible only on `/admin/logins` (bureau_master), pruned to `tracking.retention_days` (default 3) by the `tracking:prune` scheduled command. Flip `TRACKING_PAGE_VISITS=false` to stop logging without a deploy. Impersonated requests (`session('impersonating')`) are **not** tracked, and the `Login` listener that fills `login_records` skips impersonation start/stop and console/tinker logins.
 
 </laravel-boost-guidelines>
 
@@ -431,7 +431,54 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 - New code MUST follow all rules above.
 - Existing code: bring into compliance when touching a file for a feature/fix. Do not refactor files you're not otherwise changing.
-- Priority order for cleanup: onclick handlers > missing translations > inline validation > sortable headers.
+- Priority order for cleanup: missing translations > onclick handlers > inline validation > sortable headers > design-review findings (see below).
+
+## Design Review Compliance (2026-09-11 UX audit)
+
+A full structural/UX review of every screen (guest, bureau, member) lives in
+`docs/design-review-2026-09-11/` — `README.md` has the index and the
+"Highest-leverage fixes" list; each `NN-slug.md` has the detail for one
+screen. This is not a backlog to batch-fix — per **Incremental Compliance**
+above, bring a screen into line with its findings whenever you're already
+touching it for something else. Do not proactively rewrite screens the
+current task doesn't touch.
+
+When you edit a Blade view, controller, or partial that has an entry in
+`docs/design-review-2026-09-11/`:
+1. Read that screen's `NN-slug.md` first.
+2. Apply at least its Effort S / S–M items as part of the change. Leave
+   larger (M/L) restructuring as a `<!-- TODO(design-review): ... -->` note
+   if it's out of scope for the task at hand, rather than skipping it silently.
+
+Also apply these recurring findings wherever they appear, even on screens
+without their own writeup:
+- **Every user-facing string localized.** No hard-coded French/English text
+  in Blade — wrap in `__()`; status/enum labels are translation keys, never
+  stored display text. This was the single biggest defect found (member
+  screens mixed 3–4 languages on one page) — treat it as the top priority
+  in the Incremental Compliance list below.
+- **One admin nav per destination.** Don't add a new admin page to both the
+  admin sidebar and the "Admin" mega-menu — use whichever nearby items
+  already use, not both.
+- **Tables**: rows read-only by default — no permanent wall of per-row
+  `<select>`s; put inline edits behind a ⋯ menu or an edit drawer instead.
+  `<x-sortable-th>` on every usefully-sortable column (already required
+  above). Never let a table's columns overflow the viewport — freeze or
+  trim columns instead of letting the page scroll horizontally. Hide or
+  merge a column whose value is `—`/identical on every visible row.
+- **Forms**: group anything past ~10 fields into labelled, collapsible
+  sections with sane defaults so the common case is short. One control per
+  value — don't pair a `<select>` with a free-text fallback for the same
+  field. Size rich-text editors to their typical content (~120px) with an
+  expand control, not a large fixed toolbar+body.
+- **Empty states** get one sentence explaining the feature plus the primary
+  action inside the empty region — never just "Nothing here yet."
+- **Never surface a config key, env var name, or file path** (e.g.
+  `UMAMI_SHARE_URL`, `config/activity_types.php`) in end-user-facing copy —
+  those belong in code comments or `docs/`, not the UI.
+- **Member-facing pages get their own purpose-built view.** Don't ship the
+  bureau/admin screen to members with a few fields hidden or greyed out
+  (seen on `/profile`, `/documents`, `/availability`).
 
 ## Trip Settlement Engine
 

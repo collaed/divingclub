@@ -8,24 +8,26 @@ use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
+use App\Http\Controllers\Admin\DocumentDispatchController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EmailStatsController;
-use App\Http\Controllers\Admin\EquipmentController;
+use App\Http\Controllers\Admin\EventAutomationRuleController;
 use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\LoginHistoryController;
 use App\Http\Controllers\Admin\MedicalExportController;
+use App\Http\Controllers\Admin\MedicalReviewController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MemberExportController;
 use App\Http\Controllers\Admin\NewsletterController;
-use App\Http\Controllers\Admin\PartnershipController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\SeasonController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ThumbnailController;
+use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\TrialRequestController;
 use App\Http\Controllers\Admin\VoteController;
 use App\Http\Controllers\Admin\VoteGroupController;
@@ -38,8 +40,23 @@ use Illuminate\Support\Facades\Route;
 Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
 Route::get('/export-dan', [DiveDataController::class, 'exportDan'])->name('export-dan');
 Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
+Route::post('/members', [MemberController::class, 'store'])->name('members.store');
 Route::get('/members/export', [MemberExportController::class, 'index'])->name('members.export');
 Route::get('/members/export/download', [MemberExportController::class, 'download'])->name('members.export.download');
+
+// Event automation rules — headcount / lifeguard checks evaluated when
+// registrations close (see EventAutomationService, events:evaluate-automation)
+Route::get('/event-automation-rules', [EventAutomationRuleController::class, 'index'])->name('event-automation-rules.index');
+Route::post('/event-automation-rules', [EventAutomationRuleController::class, 'store'])->name('event-automation-rules.store');
+Route::delete('/event-automation-rules/{eventAutomationRule}', [EventAutomationRuleController::class, 'destroy'])->name('event-automation-rules.destroy');
+
+// Medical certificate review — actionable worklist (see admin dashboard link)
+Route::get('/medical-review', [MedicalReviewController::class, 'index'])->name('medical-review.index');
+Route::post('/medical-review/{document}/validate', [MedicalReviewController::class, 'validateCert'])->name('medical-review.validate');
+Route::post('/medical-review/{document}/reject', [MedicalReviewController::class, 'reject'])->name('medical-review.reject');
+Route::post('/medical-review-comments', [MedicalReviewController::class, 'storeComment'])->name('medical-review-comments.store');
+Route::delete('/medical-review-comments/{medicalReviewComment}', [MedicalReviewController::class, 'destroyComment'])->name('medical-review-comments.destroy');
 Route::match(['put', 'patch'], '/members/{user}/status', [MemberController::class, 'updateStatus'])->name('members.status.update');
 Route::get('/members/{user}/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->name('profile.update.info');
@@ -80,6 +97,15 @@ Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->name('a
 Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
 Route::post('/audit-logs/purge', [AuditLogController::class, 'purge'])->name('audit-logs.purge');
 Route::post('/audit-logs/retention', [AuditLogController::class, 'updateRetention'])->name('audit-logs.retention');
+
+// Recycle bin (soft-deleted records + cancelled events)
+Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
+// Specific cancelled-event routes first — the generic {kind}/{id} routes below
+// would otherwise swallow /trash/cancelled-event/{id}.
+Route::post('/trash/cancelled-event/{event}/restore', [TrashController::class, 'restoreCancelledEvent'])->name('trash.cancelled-event.restore');
+Route::delete('/trash/cancelled-event/{event}', [TrashController::class, 'trashCancelledEvent'])->name('trash.cancelled-event.trash');
+Route::post('/trash/{kind}/{id}/restore', [TrashController::class, 'restore'])->name('trash.restore');
+Route::delete('/trash/{kind}/{id}', [TrashController::class, 'forceDelete'])->name('trash.force-delete');
 
 // Backups
 Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
@@ -126,6 +152,7 @@ Route::get('/seasons', [SeasonController::class, 'index'])->name('seasons.index'
 Route::get('/seasons/create', [SeasonController::class, 'create'])->name('seasons.create');
 Route::post('/seasons', [SeasonController::class, 'store'])->name('seasons.store');
 Route::get('/seasons/{season}', [SeasonController::class, 'show'])->name('seasons.show');
+Route::delete('/seasons/{season}', [SeasonController::class, 'destroy'])->name('seasons.destroy');
 Route::post('/seasons/{season}/activate', [SeasonController::class, 'activate'])->name('seasons.activate');
 Route::post('/seasons/{season}/taper', [SeasonController::class, 'updateTaper'])->name('seasons.taper.update');
 Route::post('/seasons/{season}/holidays', [SeasonController::class, 'storeHoliday'])->name('seasons.holiday.store');
@@ -136,11 +163,12 @@ Route::put('/seasons/patterns/{pattern}', [SeasonController::class, 'updatePatte
 Route::get('/seasons/{season}/preview', [SeasonController::class, 'previewGeneration'])->name('seasons.preview');
 Route::post('/seasons/{season}/generate', [SeasonController::class, 'generateEvents'])->name('seasons.generate');
 
+// Federations & their certification levels live in routes/web.php, gated by
+// `can:manage federations` (delegated to the technical_dir role) instead of a
+// bureau role.
+
 // Settings
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
-Route::post('/settings/federation', [SettingsController::class, 'storeFederation'])->name('settings.federation.store');
-Route::put('/settings/federation/{federation}', [SettingsController::class, 'updateFederation'])->name('settings.federation.update');
-Route::delete('/settings/federation/{federation}', [SettingsController::class, 'destroyFederation'])->name('settings.federation.destroy');
 Route::post('/settings/status', [SettingsController::class, 'storeStatus'])->name('settings.status.store');
 Route::put('/settings/status/{status}', [SettingsController::class, 'updateStatus'])->name('settings.status.update');
 Route::delete('/settings/status/{status}', [SettingsController::class, 'destroyStatus'])->name('settings.status.destroy');
@@ -148,10 +176,10 @@ Route::post('/settings/status-set', [SettingsController::class, 'storeStatusSet'
 Route::match(['put', 'patch'], '/settings/status-set/{statusSet}', [SettingsController::class, 'updateStatusSet'])->name('settings.status-set.update');
 Route::delete('/settings/status-set/{statusSet}', [SettingsController::class, 'destroyStatusSet'])->name('settings.status-set.destroy');
 Route::post('/settings/medical-rule', [SettingsController::class, 'storeMedicalRule'])->name('settings.medical-rule.store');
-Route::put('/settings/medical-rule/{rule}', [SettingsController::class, 'updateMedicalRule'])->name('settings.medical-rule.update');
+Route::put('/settings/medical-rules', [SettingsController::class, 'bulkUpdateMedicalRules'])->name('settings.medical-rules.bulk-update');
 Route::delete('/settings/medical-rule/{rule}', [SettingsController::class, 'destroyMedicalRule'])->name('settings.medical-rule.destroy');
 Route::post('/settings/maintenance-rule', [SettingsController::class, 'storeMaintenanceRule'])->name('settings.maintenance-rule.store');
-Route::put('/settings/maintenance-rule/{rule}', [SettingsController::class, 'updateMaintenanceRule'])->name('settings.maintenance-rule.update');
+Route::put('/settings/maintenance-rules', [SettingsController::class, 'bulkUpdateMaintenanceRules'])->name('settings.maintenance-rules.bulk-update');
 Route::delete('/settings/maintenance-rule/{rule}', [SettingsController::class, 'destroyMaintenanceRule'])->name('settings.maintenance-rule.destroy');
 Route::post('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');
 Route::post('/settings/theme/preset', [SettingsController::class, 'applyPreset'])->name('settings.theme.preset');
@@ -184,16 +212,16 @@ Route::post('/payments/suggest-matches', [PaymentController::class, 'suggestMatc
 Route::post('/payments/confirm/{transaction}', [PaymentController::class, 'confirmMatch'])->name('payments.confirm-match');
 Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignoreTransaction'])->name('payments.ignore');
 
-// Equipment
-Route::get('/equipment', [EquipmentController::class, 'index'])->name('equipment.index');
-Route::get('/equipment/create', [EquipmentController::class, 'create'])->name('equipment.create');
-Route::post('/equipment', [EquipmentController::class, 'store'])->name('equipment.store');
-Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('equipment.show');
-Route::put('/equipment/{equipment}', [EquipmentController::class, 'update'])->name('equipment.update');
-Route::post('/equipment/{equipment}/loan', [EquipmentController::class, 'loan'])->name('equipment.loan');
-Route::post('/equipment/quick-loan', [EquipmentController::class, 'quickLoan'])->name('equipment.quick-loan');
-Route::post('/equipment/return/{loan}', [EquipmentController::class, 'returnLoan'])->name('equipment.return');
-Route::post('/equipment/maintenance/{maintenance}/complete', [EquipmentController::class, 'completeMaintenance'])->name('equipment.maintenance.complete');
+// Equipment lives in routes/web.php, gated by `can:manage equipment`
+// (delegated to technical_dir) rather than a bureau role.
+
+// Tracked document dispatch — bureau_master only (tracking data is sensitive)
+Route::middleware('role:bureau_master')->group(function () {
+    Route::get('/document-dispatch', [DocumentDispatchController::class, 'index'])->name('document-dispatch.index');
+    Route::get('/document-dispatch/create', [DocumentDispatchController::class, 'create'])->name('document-dispatch.create');
+    Route::post('/document-dispatch', [DocumentDispatchController::class, 'store'])->name('document-dispatch.store');
+    Route::get('/document-dispatch/{documentDispatch}', [DocumentDispatchController::class, 'show'])->name('document-dispatch.show');
+});
 
 // Email
 Route::get('/email', [EmailController::class, 'index'])->name('email.index');
@@ -224,15 +252,8 @@ Route::post('/votes/{vote}/open', [VoteController::class, 'open'])->name('votes.
 Route::post('/votes/{vote}/close', [VoteController::class, 'close'])->name('votes.close');
 Route::post('/votes/{vote}/cancel', [VoteController::class, 'cancel'])->name('votes.cancel');
 
-// Club Partnerships
-Route::get('/partnerships', [PartnershipController::class, 'index'])->name('partnerships.index');
-Route::get('/partnerships/create', [PartnershipController::class, 'create'])->name('partnerships.create');
-Route::post('/partnerships', [PartnershipController::class, 'store'])->name('partnerships.store');
-Route::delete('/partnerships/{partnership}', [PartnershipController::class, 'destroy'])->name('partnerships.destroy');
-Route::get('/partnerships/{partnership}/remote-events', [PartnershipController::class, 'remoteEvents'])->name('partnerships.remote-events');
-Route::get('/partnerships/registrations', [PartnershipController::class, 'registrations'])->name('partnerships.registrations');
-Route::post('/partnerships/registrations/{registration}/approve', [PartnershipController::class, 'approveRegistration'])->name('partnerships.registrations.approve');
-Route::post('/partnerships/registrations/{registration}/reject', [PartnershipController::class, 'rejectRegistration'])->name('partnerships.registrations.reject');
+// Club Partnerships — moved to routes/web.php (permission-gated, see
+// `can:manage partnerships`) so it isn't open to the whole bureau role wall.
 
 // Roles & Permissions
 Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles.index');

@@ -8,17 +8,14 @@ use PHPUnit\Framework\TestCase;
 #[Group('p2')]
 class ThemeServiceTest extends TestCase
 {
-    public function test_presets_returns_six_themes(): void
+    public function test_presets_returns_the_known_themes(): void
     {
         $presets = ThemeService::presets();
 
-        $this->assertCount(6, $presets);
-        $this->assertArrayHasKey('ocean', $presets);
-        $this->assertArrayHasKey('coral', $presets);
-        $this->assertArrayHasKey('lagoon', $presets);
-        $this->assertArrayHasKey('abyss', $presets);
-        $this->assertArrayHasKey('tropical', $presets);
-        $this->assertArrayHasKey('arctic', $presets);
+        $this->assertCount(7, $presets);
+        foreach (['ocean', 'coral', 'lagoon', 'abyss', 'tropical', 'arctic', 'europe'] as $key) {
+            $this->assertArrayHasKey($key, $presets);
+        }
     }
 
     public function test_each_preset_has_required_color_keys(): void

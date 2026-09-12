@@ -10,6 +10,8 @@
                     <div>
                         <span class="badge" style="background:{{ $event->typeColor() }}">{{ ucfirst($event->event_type) }}</span>
                         <span class="badge bg-{{ $event->status === 'cancelled' ? 'danger' : ($event->status === 'completed' ? 'secondary' : 'success') }}">{{ __(ucfirst($event->status)) }}</span>
+                        @if($event->registrationRequired())<span class="badge bg-warning text-dark">@icon('❗') {{ __('Registration required') }}</span>
+                        @elseif($event->registrationNotNeeded())<span class="badge bg-info text-dark">{{ __('No registration needed') }}</span>@endif
                     </div>
                     @if(auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id()))
                         <div class="d-flex gap-1">
@@ -46,6 +48,16 @@
                         @if($event->estimated_cost)<tr><th>{{ __('Est. Cost') }}</th><td>€{{ number_format($event->estimated_cost, 2) }}</td></tr>@endif
                         <tr><th>{{ __('Participants') }}</th><td>{{ $event->confirmedRegistrations->count() }}{{ $event->max_participants ? ' / ' . $event->max_participants : '' }}</td></tr>
                     </table>
+
+                    {{-- Small map square below the details (matches the dive-site map box) --}}
+                    @if($event->mapsEmbedUrl())
+                        <div class="mb-3" style="max-width:280px">
+                            <div class="ratio ratio-1x1 rounded border overflow-hidden">
+                                <iframe src="{{ $event->mapsEmbedUrl() }}" allowfullscreen loading="lazy" style="border:0" title="{{ __('Map') }} — {{ $event->location }}"></iframe>
+                            </div>
+                            <a href="{{ $event->mapsUrl() }}" target="_blank" class="btn btn-sm btn-outline-primary w-100 mt-1">@icon('📍') {{ __('View on Map') }}</a>
+                        </div>
+                    @endif
 
                     @if($event->description)
                         <hr>
@@ -148,13 +160,6 @@
                             @endif
                         </div>
                     @endif
-
-                    {{-- Google Maps embed if API key available --}}
-                    @if($event->location && config('club.google_maps_key'))
-                        <div class="mt-3 ratio ratio-16x9">
-                            <iframe src="{{ $event->mapsUrl() }}" allowfullscreen loading="lazy" style="border:0; border-radius:0.5rem;"></iframe>
-                        </div>
-                    @endif
                 </div>
             </div>
 
@@ -200,6 +205,15 @@
                 <div class="card dc-card mb-4">
                     <div class="card-header">{{ __('Registration') }}</div>
                     <div class="card-body">
+                        @if($event->registrationRequired())
+                            <div class="alert alert-warning py-2 small mb-3">@icon('❗') <strong>{{ __('Registration is mandatory for this event.') }}</strong></div>
+                        @elseif($event->registrationNotNeeded())
+                            <div class="alert alert-info py-2 small mb-3">
+                                @icon('ℹ️') {{ __('Registration is not required — just come along.') }}
+                                <span class="text-muted d-block">{{ __('Instructors still register for planning.') }}</span>
+                            </div>
+                        @endif
+
                         @if($userReg && $userReg->status !== 'cancelled')
                             <p>{{ __('Your status') }}: <span class="badge bg-{{ $userReg->status === 'confirmed' ? 'success' : 'warning text-dark' }}">{{ ucfirst($userReg->status) }}</span></p>
                             @if($userReg->status === 'waiting')
@@ -233,10 +247,24 @@
                             @if($event->isFull())
                                 <p class="small text-muted mt-2">{{ __('Event is full. You will be placed on the waiting list.') }}</p>
                             @endif
+                            @if($event->inscription_close_at && $event->inscription_close_at->isFuture())
+                                <p class="small text-muted mt-2">{{ __('Registration closes on :date', ['date' => $event->inscription_close_at->format('d/m/Y H:i')]) }}</p>
+                            @endif
                         @else
-                            <p class="text-muted">{{ __('Registration is closed.') }}</p>
-                            @if($event->inscription_open_at && $event->inscription_open_at->isFuture())
+                            @if($event->status === 'cancelled')
+                                <p class="text-muted">{{ __('This event has been cancelled.') }}</p>
+                            @elseif($event->status === 'completed')
+                                <p class="text-muted">{{ __('This event has already taken place.') }}</p>
+                            @elseif($event->inscriptions_closed)
+                                <p class="text-muted">{{ __('Registration has been closed by the organiser.') }}</p>
+                            @elseif($event->inscription_open_at && $event->inscription_open_at->isFuture())
+                                <p class="text-muted">{{ __('Registration is not open yet.') }}</p>
                                 <p class="small">{{ __('Opens') }}: {{ $event->inscription_open_at->format('d/m/Y H:i') }}</p>
+                            @elseif($event->inscription_close_at && $event->inscription_close_at->isPast())
+                                <p class="text-muted">{{ __('Registration has closed.') }}</p>
+                                <p class="small">{{ __('Closed on :date', ['date' => $event->inscription_close_at->format('d/m/Y H:i')]) }}</p>
+                            @else
+                                <p class="text-muted">{{ __('Registration is closed.') }}</p>
                             @endif
                         @endif
 
@@ -443,7 +471,8 @@
                 @endif
             @endauth
 
-            {{-- Dive Groups link --}}
+            {{-- Dive Groups link — Dive Group Planner, still being built, bureau_master only for now --}}
+            @can('manage dive groups')
             @if(in_array($event->event_type, ['dive', 'training']) || $isPrivileged)
                 <div class="card dc-card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -466,6 +495,7 @@
                     </div>
                 </div>
             @endif
+            @endcan
 
             {{-- Event email --}}
             @if($event->participant_email)
