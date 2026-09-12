@@ -17,6 +17,11 @@ use Illuminate\Support\Str;
 
 class VoteController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(fn () => abort_unless(auth()->user()?->hasRole('bureau_master'), 403))->except(['index']);
+    }
+
     public function index(): RedirectResponse|View
     {
         $votes = Vote::withCount(['tokens', 'ballots'])->orderByDesc('created_at')->get();

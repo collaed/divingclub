@@ -25,9 +25,10 @@ class BackupController extends Controller
     public function create(Request $request): BinaryFileResponse|RedirectResponse|View
     {
         $includeFiles = $request->boolean('include_files', true);
+        $includePrivate = $request->boolean('include_private', true);
 
         try {
-            $result = $this->backup->create($includeFiles);
+            $result = $this->backup->create($includeFiles, $includePrivate);
             $this->backup->prune((int) config('backup.retention', 4));
 
             return back()->with('success', __('Backup created: :file (:size)', [

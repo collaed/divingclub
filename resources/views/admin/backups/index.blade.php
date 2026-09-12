@@ -1,11 +1,17 @@
 <x-admin-layout :title="__('Backups')">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">@icon('💾') {{ __('Backups') }}</h4>
-        <form method="POST" action="{{ route('admin.backups.create') }}" class="d-flex gap-2 align-items-center">
+        <form method="POST" action="{{ route('admin.backups.create') }}" class="d-flex gap-3 align-items-center flex-wrap">
             @csrf
-            <div class="form-check">
-                <input type="checkbox" name="include_files" value="1" checked class="form-check-input" id="incFiles">
-                <label class="form-check-label small" for="incFiles">{{ __('Include files') }}</label>
+            <div class="d-flex gap-2">
+                <div class="form-check">
+                    <input type="checkbox" name="include_files" value="1" checked class="form-check-input" id="incFiles">
+                    <label class="form-check-label small" for="incFiles">{{ __('Include files') }}</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" name="include_private" value="1" checked class="form-check-input" id="incPrivate">
+                    <label class="form-check-label small" for="incPrivate">{{ __('Include private files') }}</label>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.innerHTML='⏳ {{ __('Creating…') }}';this.form.submit();">
                 {{ __('Create Backup Now') }}
