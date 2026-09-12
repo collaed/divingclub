@@ -12,16 +12,19 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Group;
+use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
 
 #[Group('p1')]
 class BackfillLicenceCardIssuedDatesTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsRoles;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seedRoles();
         Storage::fake('local');
     }
 
