@@ -198,7 +198,9 @@
                                             <a class="dropdown-item" href="{{ route('admin.document-dispatch.index') }}">@icon('📤') {{ __('Tracked docs') }}</a>
                                             @endif
                                             <a class="dropdown-item" href="{{ route('admin.email-stats') }}">@icon('📊') {{ __('Email Stats') }}</a>
-                                            <a class="dropdown-item" href="{{ route('admin.votes.index') }}">@icon('🗳️') {{ __('Votes') }}</a>
+                                            @if(auth()->user()->hasRole('bureau_master'))
+                                            <a class="dropdown-item text-danger" href="{{ route('admin.votes.index') }}">@icon('🗳️') {{ __('Votes') }}</a>
+                                            @endif
                                         </div>
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('System') }}</h6>

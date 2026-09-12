@@ -19,6 +19,11 @@ use Illuminate\Support\Str;
 
 class VoteGroupController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(fn () => abort_unless(auth()->user()?->hasRole('bureau_master'), 403))->except(['index']);
+    }
+
     public function index(): View
     {
         $groups = VoteGroup::withCount(['votes', 'tokens'])->orderByDesc('created_at')->get();
