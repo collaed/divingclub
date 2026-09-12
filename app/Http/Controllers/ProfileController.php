@@ -10,6 +10,7 @@ use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateProfileDivingRequest;
 use App\Http\Requests\UpdateProfileInfoRequest;
 use App\Http\Requests\UpdateProfileLanguageRequest;
+use App\Models\Document;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
@@ -186,7 +187,12 @@ class ProfileController extends Controller
         return back()->with('success', __('Licence updated.'))->withInput(['tab' => 'renewal']);
     }
 
-    /** The real rendered scan (see ProcessLicenceScan) behind a licence card, when one exists. */
+    /**
+     * The member's real licence card as an image: the scan captured by the
+     * Licence Scans intake when there is one, otherwise their own uploaded
+     * licence_card PDF rendered to a PNG. Never the CSS recreation — that is
+     * the Blade-side fallback for members who have neither.
+     */
     public function licenceScanImage(MemberLicence $licence): Response
     {
         $user = auth()->user();
@@ -194,9 +200,57 @@ class ProfileController extends Controller
             abort(403);
         }
 
-        abort_unless($licence->scan_image_path && Storage::disk('local')->exists($licence->scan_image_path), 404);
+        $path = $licence->scan_image_path && Storage::disk('local')->exists($licence->scan_image_path)
+            ? $licence->scan_image_path
+            : $this->renderLicenceCard($licence);
 
-        return response(Storage::disk('local')->get($licence->scan_image_path))->header('Content-Type', 'image/png');
+        abort_unless($path !== null, 404);
+
+        return response(Storage::disk('local')->get($path), 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
+    }
+
+    /**
+     * Renders page 1 of the member's current licence_card PDF to a PNG, cached
+     * on disk so it is rendered once. Null when they have no such document.
+     */
+    private function renderLicenceCard(MemberLicence $licence): ?string
+    {
+        $document = Document::query()
+            ->where('user_id', $licence->user_id)
+            ->where('category', 'licence_card')
+            ->where('is_current', true)
+            ->latest()
+            ->first();
+
+        if (! $document) {
+            return null;
+        }
+
+        // The local disk root is already storage/app/private/.
+        $source = str_starts_with((string) $document->file_path, 'private/')
+            ? substr((string) $document->file_path, 8)
+            : (string) $document->file_path;
+
+        if (! Storage::disk('local')->exists($source)) {
+            return null;
+        }
+
+        $cached = 'licence-cards/'.$document->id.'.png';
+        if (Storage::disk('local')->exists($cached)) {
+            return $cached;
+        }
+
+        Storage::disk('local')->makeDirectory('licence-cards');
+        exec(sprintf(
+            'pdftoppm -png -f 1 -l 1 -scale-to 1000 -singlefile %s %s 2>/dev/null',
+            escapeshellarg(Storage::disk('local')->path($source)),
+            escapeshellarg(Storage::disk('local')->path('licence-cards/'.$document->id))
+        ));
+
+        return Storage::disk('local')->exists($cached) ? $cached : null;
     }
 
     public function updateFederationKey(Request $request, MemberLicence $licence): RedirectResponse
