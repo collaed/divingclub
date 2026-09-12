@@ -18,10 +18,10 @@ return [
 
         'source' => [
             'files' => [
-                'include' => [
+                'include' => array_filter([
                     storage_path('app/public'),
-                    storage_path('app/private'),
-                ],
+                    env('BACKUP_INCLUDE_PRIVATE', true) ? storage_path('app/private') : null,
+                ]),
                 'exclude' => [
                     // Bulky, lower-stakes public media — backed up separately
                     // (see docs/BACKUP.md). Keeping these out holds a backup run

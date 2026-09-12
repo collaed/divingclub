@@ -26,12 +26,26 @@ class BackupService
      *
      * @return array{filename: string, path: string, size: int, manifest: array<string, mixed>}
      */
-    public function create(bool $includeFiles = true): array
+    public function create(bool $includeFiles = true, bool $includePrivateFiles = true): array
     {
-        // Use spatie backup command
+        // Use spatie backup command; configure which files to include via env
         $options = $includeFiles ? '' : '--only-db';
-        $exitCode = Artisan::call(trim("backup:run {$options} --disable-notifications"));
-        $output = trim(Artisan::output());
+
+        // Set environment variable before calling backup command
+        $prevValue = $_ENV['BACKUP_INCLUDE_PRIVATE'] ?? null;
+        $_ENV['BACKUP_INCLUDE_PRIVATE'] = $includePrivateFiles ? 'true' : 'false';
+
+        try {
+            $exitCode = Artisan::call(trim("backup:run {$options} --disable-notifications"));
+            $output = trim(Artisan::output());
+        } finally {
+            // Restore previous value
+            if ($prevValue === null) {
+                unset($_ENV['BACKUP_INCLUDE_PRIVATE']);
+            } else {
+                $_ENV['BACKUP_INCLUDE_PRIVATE'] = $prevValue;
+            }
+        }
 
         if ($exitCode !== 0) {
             throw new \RuntimeException("Spatie backup failed (exit {$exitCode}). Output: ".$this->lastLines($output));
