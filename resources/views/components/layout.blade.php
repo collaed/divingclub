@@ -45,9 +45,12 @@
         </div>
         <div class="container position-relative" style="z-index:1">
             <div class="dc-header-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <a href="/" class="dc-brand text-decoration-none d-flex align-items-center gap-2 text-truncate">
-                    <img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" height="36" class="d-inline-block">
-                    <span>{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
+                <a href="/" class="dc-brand text-decoration-none d-flex align-items-center gap-2 flex-grow-1">
+                    <img src="/images/club-logo.png" alt="{{ config('app.name', 'DivingClub') }}" height="36" class="d-inline-block flex-shrink-0">
+                    <span class="text-nowrap">
+                        <span class="d-none d-sm-inline">{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
+                        <span class="d-sm-none">CEP</span>
+                    </span>
                 </a>
                 <div class="text-white d-flex flex-wrap align-items-center justify-content-end gap-2 gap-sm-3 flex-shrink-0">
                     {{-- Dark mode toggle --}}
@@ -68,6 +71,21 @@
                             @endforeach
                         </ul>
                     </div>
+                    {{-- User info --}}
+                    @auth
+                    <a href="{{ route('profile.show') }}" class="dc-user-pill d-flex align-items-center gap-1">
+                        @if(auth()->user()->detail?->avatar_path)
+                            <img src="{{ asset('storage/' . auth()->user()->detail->avatar_path) }}" alt="" class="dc-user-avatar" style="width:28px;height:28px;border-radius:50%">
+                        @else
+                            <span class="dc-user-initials" style="width:28px;height:28px;font-size:0.75rem">{{ strtoupper(substr(auth()->user()->detail?->first_name ?? '?', 0, 1) . substr(auth()->user()->detail?->last_name ?? '', 0, 1)) }}</span>
+                        @endif
+                        <span class="d-none d-sm-inline" style="color:#fff">{{ auth()->user()->detail?->first_name ?? auth()->user()->username }}</span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="{{ __('Logout') }}">🚪</button>
+                    </form>
+                    @endauth
                 </div>
             </div>
         </div>
@@ -239,24 +257,6 @@
                     @guest
                         <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a></li>
-                    @else
-                        <li class="nav-item d-flex align-items-center gap-2">
-                            <a href="{{ route('profile.show') }}" class="dc-user-pill">
-                                @if(auth()->user()->detail?->avatar_path)
-                                    <img src="{{ asset('storage/' . auth()->user()->detail->avatar_path) }}" alt="" class="dc-user-avatar">
-                                @else
-                                    <span class="dc-user-initials">{{ strtoupper(substr(auth()->user()->detail?->first_name ?? '?', 0, 1) . substr(auth()->user()->detail?->last_name ?? '', 0, 1)) }}</span>
-                                @endif
-                                {{ auth()->user()->detail?->first_name ?? auth()->user()->username }}
-                            </a>
-                            <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 px-2 py-1" title="{{ __('Logout') }}">
-                                    <span class="fs-5 lh-1" aria-hidden="true">🚪</span>
-                                    <span class="d-none d-sm-inline">{{ __('Logout') }}</span>
-                                </button>
-                            </form>
-                        </li>
                     @endguest
                 </ul>
             </div>
