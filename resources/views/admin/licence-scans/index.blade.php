@@ -38,63 +38,68 @@
         </div>
     </div>
 
-    @if($needsReview->isEmpty())
-        <div class="card dc-card"><div class="card-body text-center py-5 text-muted">{{ __('Nothing waiting for review.') }}</div></div>
-    @else
-        <h6>{{ __('Needs review') }}</h6>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>{{ __('Scan') }}</th>
-                        <th>{{ __('Federation') }}</th>
-                        <th>{{ __('Extracted') }}</th>
-                        <th style="min-width:280px">{{ __('Assign to') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($needsReview as $scan)
+    <div id="needsReviewSection">
+        @if($needsReview->isEmpty())
+            <div class="card dc-card"><div class="card-body text-center py-5 text-muted">{{ __('Nothing waiting for review.') }}</div></div>
+        @else
+            <h6>{{ __('Needs review') }}</h6>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
                         <tr>
-                            <td>
-                                @if($scan->image_path)
-                                    <a href="{{ route('admin.licence-scans.image', $scan) }}" target="_blank" rel="noopener">
-                                        <img src="{{ route('admin.licence-scans.image', $scan) }}" alt="" style="max-width:80px; max-height:52px; object-fit:cover; border-radius:4px;">
-                                    </a>
-                                @else
-                                    <span class="text-muted small">{{ __('No preview') }}</span>
-                                @endif
-                                <div class="small text-muted">{{ $scan->original_filename }}</div>
-                                @if($scan->extraction_error)
-                                    <div class="small text-danger">{{ $scan->extraction_error }}</div>
-                                @endif
-                            </td>
-                            <td>{{ $scan->federation->acronym }}</td>
-                            <td class="small">
-                                {{ $scan->extracted_name ?? __('(no name read)') }}<br>
-                                @if($scan->extracted_number) #{{ $scan->extracted_number }} @endif
-                                @if($scan->extracted_year) · {{ $scan->extracted_year }} @endif
-                            </td>
-                            <td>
-                                <form method="POST" action="{{ route('admin.licence-scans.assign', $scan) }}" class="d-flex flex-wrap gap-1">
-                                    @csrf
-                                    <input type="text" list="dc-members-list" class="form-control form-control-sm dc-member-picker" placeholder="{{ __('Search member…') }}" style="min-width:180px" value="{{ $scan->extracted_name }}">
-                                    <input type="hidden" name="user_id" class="dc-member-id">
-                                    <input type="text" name="licence_number" class="form-control form-control-sm" style="width:100px" placeholder="{{ __('Number') }}" value="{{ $scan->extracted_number }}">
-                                    <input type="text" name="year" class="form-control form-control-sm" style="width:80px" placeholder="{{ __('Year') }}" value="{{ $scan->extracted_year }}">
-                                    <button type="submit" class="btn btn-sm btn-success">@icon('✅') {{ __('Assign') }}</button>
-                                </form>
-                                <form method="POST" action="{{ route('admin.licence-scans.destroy', $scan) }}" class="d-inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger mt-1">@icon('🗑️') {{ __('Discard') }}</button>
-                                </form>
-                            </td>
+                            <th>{{ __('Scan') }}</th>
+                            <th>{{ __('Federation') }}</th>
+                            <th>{{ __('Extracted') }}</th>
+                            <th style="min-width:350px">{{ __('Assign to') }}</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        {{ $needsReview->links() }}
-    @endif
+                    </thead>
+                    <tbody>
+                        @foreach($needsReview as $scan)
+                            <tr data-scan-id="{{ $scan->id }}">
+                                <td>
+                                    @if($scan->image_path)
+                                        <a href="{{ route('admin.licence-scans.image', $scan) }}" target="_blank" rel="noopener">
+                                            <img src="{{ route('admin.licence-scans.image', $scan) }}" alt="" style="max-width:80px; max-height:52px; object-fit:cover; border-radius:4px;">
+                                        </a>
+                                    @else
+                                        <span class="text-muted small">{{ __('No preview') }}</span>
+                                    @endif
+                                    <div class="small text-muted">{{ $scan->original_filename }}</div>
+                                    @if($scan->extraction_error)
+                                        <div class="small text-danger">{{ $scan->extraction_error }}</div>
+                                    @endif
+                                </td>
+                                <td>{{ $scan->federation->acronym }}</td>
+                                <td class="small">
+                                    {{ $scan->extracted_name ?? __('(no name read)') }}<br>
+                                    @if($scan->extracted_number) <strong>#{{ $scan->extracted_number }}</strong> @endif
+                                    @if($scan->extracted_year) <span class="text-muted">{{ $scan->extracted_year }}</span> @endif
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ route('admin.licence-scans.assign', $scan) }}" class="d-flex flex-column gap-2">
+                                        @csrf
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <input type="text" list="dc-members-list" class="form-control form-control-sm dc-member-picker" placeholder="{{ __('Search member…') }}" style="min-width:160px" value="{{ $scan->extracted_name }}" autocomplete="off">
+                                            <input type="hidden" name="user_id" class="dc-member-id">
+                                            <input type="text" name="licence_number" class="form-control form-control-sm" style="width:90px" placeholder="{{ __('Number') }}" value="{{ $scan->extracted_number }}">
+                                            <input type="text" name="year" class="form-control form-control-sm" style="width:70px" placeholder="{{ __('Year') }}" value="{{ $scan->extracted_year }}">
+                                            <button type="submit" class="btn btn-sm btn-success flex-shrink-0">@icon('✅') {{ __('Assign') }}</button>
+                                        </div>
+                                        <div class="dc-fuzzy-suggestions small text-muted" style="display:none;"></div>
+                                    </form>
+                                    <form method="POST" action="{{ route('admin.licence-scans.destroy', $scan) }}" class="d-inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@icon('🗑️') {{ __('Discard') }}</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            {{ $needsReview->links() }}
+        @endif
+    </div>
 
     <datalist id="dc-members-list">
         @foreach($members as $member)
@@ -109,7 +114,7 @@
     </style>
 
     <script>
-        // No inline handlers, event delegation per project JS convention.
+        // Dropzone handler
         document.querySelectorAll('.dc-dropzone').forEach(function (zone) {
             var input = zone.querySelector('.dc-dropzone-input');
             var label = zone.querySelector('.dc-dropzone-label');
@@ -139,17 +144,112 @@
             });
         });
 
-        // The datalist only carries names (browsers don't expose the option's
-        // other attributes on match), so resolve the typed name back to a
-        // user id by looking the option up again on change/blur.
+        // Member picker with fuzzy matching
+        function levenshtein(a, b) {
+            var m = a.length, n = b.length;
+            var dp = Array(n + 1).fill(null).map(() => Array(m + 1).fill(0));
+            for (var i = 0; i <= m; i++) dp[i][0] = i;
+            for (var j = 0; j <= n; j++) dp[0][j] = j;
+            for (var i = 1; i <= m; i++) {
+                for (var j = 1; j <= n; j++) {
+                    dp[i][j] = Math.min(
+                        dp[i-1][j] + 1,
+                        dp[i][j-1] + 1,
+                        dp[i-1][j-1] + (a[i-1] !== b[j-1] ? 1 : 0)
+                    );
+                }
+            }
+            return dp[m][n];
+        }
+
+        function fuzzyMatch(query, target) {
+            query = query.toUpperCase().trim();
+            target = target.toUpperCase().trim();
+            if (!query) return 100;
+            if (target.indexOf(query) !== -1) return 100;
+            var dist = levenshtein(query, target);
+            var maxLen = Math.max(query.length, target.length);
+            return Math.round((1 - dist / maxLen) * 100);
+        }
+
         document.querySelectorAll('.dc-member-picker').forEach(function (input) {
-            var hidden = input.closest('form').querySelector('.dc-member-id');
+            var form = input.closest('form');
+            var hidden = form.querySelector('.dc-member-id');
+            var suggestions = form.querySelector('.dc-fuzzy-suggestions');
+            var membersList = Array.from(document.querySelectorAll('#dc-members-list option')).map(function (opt) {
+                return { id: opt.dataset.id, name: opt.value };
+            });
+
             var resolve = function () {
-                var match = document.querySelector('#dc-members-list option[value="' + CSS.escape(input.value) + '"]');
-                hidden.value = match ? match.dataset.id : '';
+                var query = input.value.trim();
+                if (!query) {
+                    hidden.value = '';
+                    suggestions.style.display = 'none';
+                    return;
+                }
+
+                var matches = membersList.map(function (m) {
+                    return { ...m, score: fuzzyMatch(query, m.name) };
+                }).filter(function (m) { return m.score >= 70; }).sort(function (a, b) { return b.score - a.score; });
+
+                if (matches.length === 0) {
+                    hidden.value = '';
+                    suggestions.style.display = 'none';
+                } else if (matches[0].score === 100) {
+                    // Exact match — auto-select
+                    hidden.value = matches[0].id;
+                    suggestions.style.display = 'none';
+                } else if (matches[0].score >= 80) {
+                    // High confidence — suggest it
+                    hidden.value = matches[0].id;
+                    var html = '<strong>💡 Suggested:</strong> ' + matches.slice(0, 3).map(function (m) {
+                        return m.name + ' (' + m.score + '%)' + (m.id === matches[0].id ? ' <em>selected</em>' : '');
+                    }).join(', ');
+                    suggestions.innerHTML = html;
+                    suggestions.style.display = 'block';
+                } else {
+                    hidden.value = '';
+                    suggestions.style.display = 'none';
+                }
             };
+
             input.addEventListener('input', resolve);
+            input.addEventListener('blur', function () { setTimeout(resolve, 50); });
             resolve();
         });
+
+        // Live refresh: poll for new scans every 3 seconds
+        setInterval(function () {
+            fetch(window.location.href).then(function (r) { return r.text(); }).then(function (html) {
+                var newSection = new DOMParser().parseFromString(html, 'text/html').querySelector('#needsReviewSection');
+                var oldSection = document.getElementById('needsReviewSection');
+                if (newSection && oldSection && newSection.innerHTML !== oldSection.innerHTML) {
+                    oldSection.innerHTML = newSection.innerHTML;
+                    // Re-bind handlers to new elements
+                    document.querySelectorAll('.dc-member-picker').forEach(function (input) {
+                        var form = input.closest('form');
+                        var hidden = form.querySelector('.dc-member-id');
+                        var suggestions = form.querySelector('.dc-fuzzy-suggestions');
+                        var membersList = Array.from(document.querySelectorAll('#dc-members-list option')).map(function (opt) {
+                            return { id: opt.dataset.id, name: opt.value };
+                        });
+                        var resolve = function () {
+                            var query = input.value.trim();
+                            if (!query) { hidden.value = ''; suggestions.style.display = 'none'; return; }
+                            var matches = membersList.map(function (m) {
+                                return { ...m, score: fuzzyMatch(query, m.name) };
+                            }).filter(function (m) { return m.score >= 70; }).sort(function (a, b) { return b.score - a.score; });
+                            if (matches.length === 0) { hidden.value = ''; suggestions.style.display = 'none'; }
+                            else if (matches[0].score === 100) { hidden.value = matches[0].id; suggestions.style.display = 'none'; }
+                            else if (matches[0].score >= 80) { hidden.value = matches[0].id; suggestions.innerHTML = '<strong>💡 Suggested:</strong> ' + matches.slice(0, 3).map(function (m) { return m.name + ' (' + m.score + '%)' + (m.id === matches[0].id ? ' <em>selected</em>' : ''); }).join(', '); suggestions.style.display = 'block'; }
+                            else { hidden.value = ''; suggestions.style.display = 'none'; }
+                        };
+                        input.addEventListener('input', resolve);
+                        input.addEventListener('blur', function () { setTimeout(resolve, 50); });
+                        resolve();
+                    });
+                }
+            }).catch(function () { /* Silently fail on network error */ });
+        }, 3000);
     </script>
 </x-admin-layout>
