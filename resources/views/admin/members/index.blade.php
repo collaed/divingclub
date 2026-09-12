@@ -1,7 +1,10 @@
 <x-admin-layout :title="__('Members')">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <h4 class="mb-0">{{ __('Member Management') }}</h4>
-        <a href="{{ route('admin.members.export') }}" class="btn btn-outline-primary btn-sm">@icon('📊') {{ __('Member Data Export') }}</a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.members.create') }}" class="btn btn-primary btn-sm">@icon('➕') {{ __('Add Member') }}</a>
+            <a href="{{ route('admin.members.export') }}" class="btn btn-outline-primary btn-sm">@icon('📊') {{ __('Member Data Export') }}</a>
+        </div>
     </div>
 
     <form method="GET" class="row g-2 mb-4">

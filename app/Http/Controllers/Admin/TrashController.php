@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\Document;
 use App\Models\Equipment;
 use App\Models\Event;
+use App\Models\Season;
 use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Contracts\View\View;
@@ -29,6 +30,7 @@ class TrashController extends Controller
     /** @var array<string, array{class: class-string<Model>, label: string, icon: string, name: string}> */
     private const KINDS = [
         'events' => ['class' => Event::class, 'label' => 'Events', 'icon' => '📅', 'name' => 'title'],
+        'seasons' => ['class' => Season::class, 'label' => 'Seasons', 'icon' => '📆', 'name' => 'name'],
         'articles' => ['class' => Article::class, 'label' => 'Articles', 'icon' => '📝', 'name' => 'title'],
         'documents' => ['class' => Document::class, 'label' => 'Documents', 'icon' => '📁', 'name' => 'original_filename'],
         'equipment' => ['class' => Equipment::class, 'label' => 'Equipment', 'icon' => '🤿', 'name' => 'name'],

@@ -21,9 +21,10 @@ Schedule::job(new PurgeAuditLogs)->monthlyOn(1, '04:00')->after(fn () => Schedul
 Schedule::job(new CleanupClassifieds)->monthlyOn(1, '05:00')->after(fn () => ScheduleHeartbeat::beat('classifieds-cleanup'));
 Schedule::job(new SendEquipmentReminders)->dailyAt('09:00')->after(fn () => ScheduleHeartbeat::beat('equipment-reminders'));
 
-Schedule::command('sync:old-events')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('joomla-sync'));
-
-Schedule::command('legacy:sync')->hourly()->after(fn () => ScheduleHeartbeat::beat('legacy-sync-bidi'));
+// The old Joomla site moved to np.clubcep.eu and both sync directions are
+// suspended: sync:old-events (HTTP, /wrapp/*.php — gone) and legacy:sync
+// (bidirectional DB sync over LEGACY_DB_*). Re-add either only if the legacy
+// integration is deliberately revived.
 
 Schedule::command('incoming:process')->everyTenMinutes()->after(fn () => ScheduleHeartbeat::beat('incoming-files'));
 
@@ -37,3 +38,5 @@ Schedule::command('horizon:snapshot')->everyFifteenMinutes();
 // the CLOUDFLARE_API_TOKEN to carry "Account Analytics: Read" — without it
 // this is a no-op (see CloudflareUsageService).
 Schedule::command('cloudflare:sync-usage')->dailyAt('05:00')->after(fn () => ScheduleHeartbeat::beat('cloudflare-usage'));
+
+Schedule::command('events:evaluate-automation')->everyFifteenMinutes()->after(fn () => ScheduleHeartbeat::beat('event-automation'));

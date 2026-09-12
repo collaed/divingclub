@@ -198,17 +198,20 @@
                     <h5 class="mb-3">@icon('👣') {{ $memberName($trailUser) }}</h5>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover">
-                            <thead><tr><th data-sort-col>{{ __('When') }}</th><th data-sort-col>{{ __('Page') }}</th><th data-sort-col>{{ __('Route') }}</th><th data-sort-col>{{ __('Status') }}</th></tr></thead>
+                            <thead><tr><th data-sort-col>{{ __('When') }}</th><th data-sort-col>{{ __('Page') }}</th><th data-sort-col>{{ __('Title') }}</th><th data-sort-col>{{ __('Route') }}</th><th data-sort-col>{{ __('Status') }}</th></tr></thead>
                             <tbody>
                                 @forelse($trail as $visit)
                                     <tr>
                                         <td class="text-nowrap small" data-sort-value="{{ $visit->created_at?->timestamp ?? 0 }}" title="{{ $visit->created_at?->format('Y-m-d H:i:s') }}">{{ $visit->created_at?->diffForHumans() }}</td>
                                         <td class="small"><code>{{ $visit->path }}</code></td>
+                                        <td class="small" style="max-width: 220px;">
+                                            <span class="d-inline-block text-truncate align-bottom" style="max-width: 220px;" title="{{ $trailTitles[$visit->id] ?? '' }}">{{ $trailTitles[$visit->id] ?? '—' }}</span>
+                                        </td>
                                         <td class="small text-muted">{{ $visit->route_name ?? '—' }}</td>
                                         <td class="small {{ $statusClass($visit->status) }}">{{ $visit->status ?? '—' }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="4" class="text-muted text-center py-4">{{ __('No page views in the retention window.') }}</td></tr>
+                                    <tr><td colspan="5" class="text-muted text-center py-4">{{ __('No page views in the retention window.') }}</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

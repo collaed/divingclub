@@ -8,8 +8,10 @@ use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
+use App\Http\Controllers\Admin\DocumentDispatchController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EmailStatsController;
+use App\Http\Controllers\Admin\EventAutomationRuleController;
 use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\LibraryController;
@@ -38,8 +40,16 @@ use Illuminate\Support\Facades\Route;
 Route::post('/homepage-layout', [HomepageLayoutController::class, 'saveLayout'])->name('homepage-layout.save');
 Route::get('/export-dan', [DiveDataController::class, 'exportDan'])->name('export-dan');
 Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
+Route::post('/members', [MemberController::class, 'store'])->name('members.store');
 Route::get('/members/export', [MemberExportController::class, 'index'])->name('members.export');
 Route::get('/members/export/download', [MemberExportController::class, 'download'])->name('members.export.download');
+
+// Event automation rules — headcount / lifeguard checks evaluated when
+// registrations close (see EventAutomationService, events:evaluate-automation)
+Route::get('/event-automation-rules', [EventAutomationRuleController::class, 'index'])->name('event-automation-rules.index');
+Route::post('/event-automation-rules', [EventAutomationRuleController::class, 'store'])->name('event-automation-rules.store');
+Route::delete('/event-automation-rules/{eventAutomationRule}', [EventAutomationRuleController::class, 'destroy'])->name('event-automation-rules.destroy');
 
 // Medical certificate review — actionable worklist (see admin dashboard link)
 Route::get('/medical-review', [MedicalReviewController::class, 'index'])->name('medical-review.index');
@@ -142,6 +152,7 @@ Route::get('/seasons', [SeasonController::class, 'index'])->name('seasons.index'
 Route::get('/seasons/create', [SeasonController::class, 'create'])->name('seasons.create');
 Route::post('/seasons', [SeasonController::class, 'store'])->name('seasons.store');
 Route::get('/seasons/{season}', [SeasonController::class, 'show'])->name('seasons.show');
+Route::delete('/seasons/{season}', [SeasonController::class, 'destroy'])->name('seasons.destroy');
 Route::post('/seasons/{season}/activate', [SeasonController::class, 'activate'])->name('seasons.activate');
 Route::post('/seasons/{season}/taper', [SeasonController::class, 'updateTaper'])->name('seasons.taper.update');
 Route::post('/seasons/{season}/holidays', [SeasonController::class, 'storeHoliday'])->name('seasons.holiday.store');
@@ -203,6 +214,14 @@ Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignore
 
 // Equipment lives in routes/web.php, gated by `can:manage equipment`
 // (delegated to technical_dir) rather than a bureau role.
+
+// Tracked document dispatch — bureau_master only (tracking data is sensitive)
+Route::middleware('role:bureau_master')->group(function () {
+    Route::get('/document-dispatch', [DocumentDispatchController::class, 'index'])->name('document-dispatch.index');
+    Route::get('/document-dispatch/create', [DocumentDispatchController::class, 'create'])->name('document-dispatch.create');
+    Route::post('/document-dispatch', [DocumentDispatchController::class, 'store'])->name('document-dispatch.store');
+    Route::get('/document-dispatch/{documentDispatch}', [DocumentDispatchController::class, 'show'])->name('document-dispatch.show');
+});
 
 // Email
 Route::get('/email', [EmailController::class, 'index'])->name('email.index');

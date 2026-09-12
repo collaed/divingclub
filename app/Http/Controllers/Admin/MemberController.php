@@ -6,15 +6,21 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreMemberByBureauRequest;
 use App\Models\AuditLog;
+use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
 use App\Models\User;
+use App\Models\UserEmail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class MemberController extends Controller
@@ -66,6 +72,64 @@ class MemberController extends Controller
         $roles = Role::orderBy('name')->get();
 
         return view('admin.members.index', compact('members', 'statuses', 'statusSets', 'roles', 'historic'));
+    }
+
+    /**
+     * Manual exception to self-registration (no email, joined on paper,
+     * etc.). The member is created active — the bureau vouches for them —
+     * and gets a "set your password" link rather than the bureau ever
+     * choosing one for them.
+     */
+    public function create(): View
+    {
+        $statuses = MemberStatus::orderBy('name')->get();
+
+        return view('admin.members.create', compact('statuses'));
+    }
+
+    public function store(StoreMemberByBureauRequest $request): RedirectResponse
+    {
+        $v = $request->validated();
+
+        $user = DB::transaction(function () use ($v): User {
+            $roleTable = Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
+            $memberRoleId = DB::table($roleTable)->where('slug', 'member')->value('id')
+                ?? DB::table($roleTable)->where('name', 'member')->value('id')
+                ?? 2;
+
+            $user = User::create([
+                'primary_email' => $v['email'],
+                'password' => Str::random(40),
+                'role_id' => $memberRoleId,
+                'status_id' => $v['status_id'] ?? MemberStatus::where('slug', 'active')->value('id'),
+                'email_verified_at' => now(),
+            ]);
+            $user->assignRole('member');
+
+            UserEmail::create([
+                'user_id' => $user->id,
+                'email' => $v['email'],
+                'is_primary' => true,
+                'is_verified' => true,
+            ]);
+
+            MemberDetail::create([
+                'user_id' => $user->id,
+                'first_name' => $v['first_name'],
+                'last_name' => $v['last_name'],
+                'date_of_birth' => $v['date_of_birth'] ?? null,
+                'phone_mobile' => $v['phone_mobile'] ?? null,
+                'nationality' => $v['nationality'] ?? null,
+                'adhesion_year' => now()->year,
+            ]);
+
+            return $user;
+        });
+
+        Password::sendResetLink(['email' => $user->primary_email]);
+
+        return redirect()->route('admin.profile.show', $user)
+            ->with('success', __('Member created — a link to set their password was sent to :email.', ['email' => $user->primary_email]));
     }
 
     /**
