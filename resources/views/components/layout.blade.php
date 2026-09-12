@@ -50,10 +50,10 @@
                     <span>{{ $theme['club_full_name'] ?? 'DivingClub' }}</span>
                 </a>
                 <div class="text-white d-flex flex-wrap align-items-center justify-content-end gap-2 gap-sm-3 flex-shrink-0">
-                    {{-- Dark mode toggle --}}
-                    <button class="dc-dark-toggle" role="switch" aria-label="{{ __('Toggle dark mode') }}" onclick="toggleDarkMode()" title="{{ __('Toggle dark mode') }}" id="darkToggle">🌙</button>
-                    {{-- Font size --}}
-                    <div class="btn-group btn-group-sm">
+                    {{-- Dark mode toggle (hidden on mobile) --}}
+                    <button class="dc-dark-toggle d-none d-md-inline" role="switch" aria-label="{{ __('Toggle dark mode') }}" onclick="toggleDarkMode()" title="{{ __('Toggle dark mode') }}" id="darkToggle">🌙</button>
+                    {{-- Font size (hidden on tablets/mobile) --}}
+                    <div class="btn-group btn-group-sm d-none d-lg-inline-flex">
                         <button class="btn btn-outline-light py-0 px-1" onclick="setFontSize(-1)" title="{{ __('Smaller text') }}">A-</button>
                         <button class="btn btn-outline-light py-0 px-1" onclick="setFontSize(1)" title="{{ __('Larger text') }}">A+</button>
                     </div>
