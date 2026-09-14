@@ -232,26 +232,30 @@ Route::post('/email/preview', [EmailController::class, 'preview'])->name('email.
 Route::get('/email/group-count', [EmailController::class, 'groupCount'])->name('email.group-count');
 Route::post('/email/send', [EmailController::class, 'send'])->name('email.send');
 
-// Votes
+// Votes — index open to the whole bureau wall, everything else bureau_master
+// only (was previously enforced via a $this->middleware() controller
+// constructor call, which no longer exists on Laravel 11+'s bare Controller).
 Route::get('/votes', [VoteController::class, 'index'])->name('votes.index');
-Route::get('/votes/create', [VoteController::class, 'create'])->name('votes.create');
-Route::post('/votes', [VoteController::class, 'store'])->name('votes.store');
-Route::get('/votes/{vote}', [VoteController::class, 'show'])->name('votes.show');
-Route::post('/votes/{vote}/tokens', [VoteController::class, 'generateTokens'])->name('votes.generate-tokens');
-Route::post('/votes/{vote}/send-tokens', [VoteController::class, 'sendTokens'])->name('votes.send-tokens');
-
-// Vote Groups
 Route::get('/vote-groups', [VoteGroupController::class, 'index'])->name('vote-groups.index');
-Route::get('/vote-groups/create', [VoteGroupController::class, 'create'])->name('vote-groups.create');
-Route::post('/vote-groups', [VoteGroupController::class, 'store'])->name('vote-groups.store');
-Route::get('/vote-groups/{voteGroup}', [VoteGroupController::class, 'show'])->name('vote-groups.show');
-Route::post('/vote-groups/{voteGroup}/tokens', [VoteGroupController::class, 'generateTokens'])->name('vote-groups.generate-tokens');
-Route::post('/vote-groups/{voteGroup}/send-tokens', [VoteGroupController::class, 'sendTokens'])->name('vote-groups.send-tokens');
-Route::post('/vote-groups/{voteGroup}/open', [VoteGroupController::class, 'open'])->name('vote-groups.open');
-Route::post('/vote-groups/{voteGroup}/close', [VoteGroupController::class, 'close'])->name('vote-groups.close');
-Route::post('/votes/{vote}/open', [VoteController::class, 'open'])->name('votes.open');
-Route::post('/votes/{vote}/close', [VoteController::class, 'close'])->name('votes.close');
-Route::post('/votes/{vote}/cancel', [VoteController::class, 'cancel'])->name('votes.cancel');
+
+Route::middleware('role:bureau_master')->group(function () {
+    Route::get('/votes/create', [VoteController::class, 'create'])->name('votes.create');
+    Route::post('/votes', [VoteController::class, 'store'])->name('votes.store');
+    Route::get('/votes/{vote}', [VoteController::class, 'show'])->name('votes.show');
+    Route::post('/votes/{vote}/tokens', [VoteController::class, 'generateTokens'])->name('votes.generate-tokens');
+    Route::post('/votes/{vote}/send-tokens', [VoteController::class, 'sendTokens'])->name('votes.send-tokens');
+    Route::post('/votes/{vote}/open', [VoteController::class, 'open'])->name('votes.open');
+    Route::post('/votes/{vote}/close', [VoteController::class, 'close'])->name('votes.close');
+    Route::post('/votes/{vote}/cancel', [VoteController::class, 'cancel'])->name('votes.cancel');
+
+    Route::get('/vote-groups/create', [VoteGroupController::class, 'create'])->name('vote-groups.create');
+    Route::post('/vote-groups', [VoteGroupController::class, 'store'])->name('vote-groups.store');
+    Route::get('/vote-groups/{voteGroup}', [VoteGroupController::class, 'show'])->name('vote-groups.show');
+    Route::post('/vote-groups/{voteGroup}/tokens', [VoteGroupController::class, 'generateTokens'])->name('vote-groups.generate-tokens');
+    Route::post('/vote-groups/{voteGroup}/send-tokens', [VoteGroupController::class, 'sendTokens'])->name('vote-groups.send-tokens');
+    Route::post('/vote-groups/{voteGroup}/open', [VoteGroupController::class, 'open'])->name('vote-groups.open');
+    Route::post('/vote-groups/{voteGroup}/close', [VoteGroupController::class, 'close'])->name('vote-groups.close');
+});
 
 // Club Partnerships — moved to routes/web.php (permission-gated, see
 // `can:manage partnerships`) so it isn't open to the whole bureau role wall.
