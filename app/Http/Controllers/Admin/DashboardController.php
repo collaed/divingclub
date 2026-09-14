@@ -64,14 +64,15 @@ class DashboardController extends Controller
         ];
 
         // Bureau worklist: pending actions
+        $currentStatus = fn ($q) => $q->whereNull('status_id')->orWhereNotIn('status_id', MemberStatus::inactiveIds()->all());
         $worklist = [
             'unverified_certs' => Document::where('category', 'medical')->where('is_current', true)->whereNull('verified_at')->whereNull('rejected_at')->count(),
             'expiring_certs' => Document::where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)])->count(),
             'pending_payments' => PaymentExpected::where('status', 'pending')->where('season_year', $season)->count(),
             'pending_external_regs' => ExternalRegistration::where('status', 'pending')->count(),
             'unverified_emails' => User::whereNull('email_verified_at')->count(),
-            'missing_medical' => User::whereDoesntHave('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true))->whereHas('status', fn ($q) => $q->where('slug', 'actif'))->count(),
-            'missing_iban' => User::whereHas('detail', fn ($q) => $q->whereNull('iban'))->whereHas('status', fn ($q) => $q->where('slug', 'actif'))->count(),
+            'missing_medical' => User::whereDoesntHave('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true))->where($currentStatus)->count(),
+            'missing_iban' => User::whereHas('detail', fn ($q) => $q->whereNull('iban'))->where($currentStatus)->count(),
             'new_members_unconfirmed' => User::whereNull('status_id')->whereNotNull('email_verified_at')->count(),
             'birthdays_14d' => MemberDetail::whereNotNull('date_of_birth')
                 ->whereBetween(

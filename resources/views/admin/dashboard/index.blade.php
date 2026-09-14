@@ -317,6 +317,11 @@
             'weekly-backup' => ['freq' => __('Sunday 03:00'), 'stale_hours' => 170],
             'audit-cleanup' => ['freq' => __('Monthly 1st'), 'stale_hours' => 750],
             'classifieds-cleanup' => ['freq' => __('Monthly 1st'), 'stale_hours' => 750],
+            // Both legacy-Joomla syncs are suspended (see routes/console.php)
+            // since the old site moved to np.clubcep.eu — no longer scheduled,
+            // so their heartbeat would otherwise look "Overdue" forever.
+            'joomla-sync' => ['freq' => __('Suspended'), 'suspended' => true],
+            'legacy-sync-bidi' => ['freq' => __('Suspended'), 'suspended' => true],
         ];
     @endphp
     <div class="card dc-card mt-4">
@@ -329,14 +334,16 @@
                     @php
                         $meta = $taskMeta[$hb->task] ?? ['freq' => '?', 'stale_hours' => 25];
                         $ago = $hb->last_run_at ? \Carbon\Carbon::parse($hb->last_run_at)->diffForHumans() : '—';
-                        $stale = $hb->last_run_at && \Carbon\Carbon::parse($hb->last_run_at)->lt(now()->subHours($meta['stale_hours']));
+                        $stale = $hb->last_run_at && \Carbon\Carbon::parse($hb->last_run_at)->lt(now()->subHours($meta['stale_hours'] ?? 25));
                     @endphp
-                    <tr class="{{ $stale ? 'table-warning' : '' }}">
+                    <tr class="{{ $stale && ! ($meta['suspended'] ?? false) ? 'table-warning' : '' }}">
                         <td><code>{{ $hb->task }}</code></td>
                         <td class="small text-muted">{{ $meta['freq'] }}</td>
                         <td>{{ $ago }}</td>
                         <td>
-                            @if(!$hb->last_run_at)
+                            @if($meta['suspended'] ?? false)
+                                <span class="badge bg-secondary">{{ __('Suspended') }}</span>
+                            @elseif(!$hb->last_run_at)
                                 <span class="badge bg-secondary">{{ __('Never') }}</span>
                             @elseif($stale)
                                 <span class="badge bg-warning text-dark">{{ __('Overdue') }}</span>
