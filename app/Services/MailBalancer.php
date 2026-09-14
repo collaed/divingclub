@@ -11,8 +11,10 @@ use Illuminate\Support\Facades\Http;
 /**
  * Load-balanced email sending across multiple providers.
  *
- * Tracks daily send counts per provider and rotates to stay within limits.
- * Providers: Resend (primary), Resend (secondary), Mailjet (SMTP via Postfix).
+ * Tracks daily send counts per provider and round-robins across whichever
+ * still have capacity, to stay within limits and spread load evenly.
+ * Providers: Resend (primary), Resend (secondary), Mailjet (SMTP via Postfix),
+ * Brevo.
  */
 class MailBalancer
 {
@@ -24,13 +26,28 @@ class MailBalancer
         'brevo' => 300,  // Brevo's standard free-tier daily cap
     ];
 
-    /** Pick the best provider for the next send. Returns the provider key. */
+    private const CURSOR_KEY = 'mail_balance_cursor';
+
+    /**
+     * Pick the next provider, rotating evenly across every provider with
+     * remaining capacity — a burst of sends spreads across all of them
+     * instead of piling onto whichever comes first in LIMITS until it's
+     * exhausted, which is both a better balance and lets a single provider's
+     * outage or rate limit show up as a fraction of failures rather than all
+     * of them.
+     */
     public static function nextProvider(): string
     {
         $counts = static::todayCounts();
+        $providers = array_keys(self::LIMITS);
+        $cursor = (int) Cache::get(self::CURSOR_KEY, -1);
 
-        foreach (self::LIMITS as $provider => $limit) {
-            if (($counts[$provider] ?? 0) < $limit) {
+        for ($step = 1; $step <= count($providers); $step++) {
+            $index = ($cursor + $step) % count($providers);
+            $provider = $providers[$index];
+            if (($counts[$provider] ?? 0) < self::LIMITS[$provider]) {
+                Cache::forever(self::CURSOR_KEY, $index);
+
                 return $provider;
             }
         }

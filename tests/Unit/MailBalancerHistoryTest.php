@@ -59,4 +59,30 @@ class MailBalancerHistoryTest extends TestCase
         MailBalancer::configureForNext();
         $this->assertSame('brevo', config('mail.default'));
     }
+
+    public function test_next_provider_round_robins_instead_of_filling_the_first_provider(): void
+    {
+        // All four have room, so consecutive calls should cycle through
+        // every provider once rather than returning resend_primary each time.
+        $picks = [
+            MailBalancer::nextProvider(),
+            MailBalancer::nextProvider(),
+            MailBalancer::nextProvider(),
+            MailBalancer::nextProvider(),
+        ];
+
+        $this->assertSame(['resend_primary', 'resend_secondary', 'mailjet', 'brevo'], $picks);
+    }
+
+    public function test_round_robin_skips_a_provider_that_hits_its_daily_limit_mid_rotation(): void
+    {
+        $today = date('Y-m-d');
+        Cache::put("mail_balance_{$today}_resend_secondary", 98);
+
+        $this->assertSame('resend_primary', MailBalancer::nextProvider());
+        // resend_secondary is exhausted, so the rotation skips straight to mailjet.
+        $this->assertSame('mailjet', MailBalancer::nextProvider());
+        $this->assertSame('brevo', MailBalancer::nextProvider());
+        $this->assertSame('resend_primary', MailBalancer::nextProvider());
+    }
 }
