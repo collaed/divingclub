@@ -6,6 +6,7 @@ use App\Jobs\SendTrackedDocumentEmail;
 use App\Models\DocumentDispatch;
 use App\Models\DocumentDispatchRecipient;
 use App\Models\LibraryFile;
+use App\Models\MemberDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
@@ -106,5 +107,23 @@ class TrackedDocumentDispatchTest extends TestCase
     public function test_a_bad_token_is_404(): void
     {
         $this->get('/d/nope')->assertNotFound();
+    }
+
+    public function test_create_page_offers_the_same_groups_as_the_send_email_tool(): void
+    {
+        $active = $this->member('active@x.com');
+        MemberDetail::factory()->create(['user_id' => $active->id, 'cotisation_years' => [(string) now()->year]]);
+
+        $bureau = $this->createBureauUser();
+
+        $response = $this->actingAs($this->createBureauUser())->get(route('admin.document-dispatch.create'))->assertOk();
+
+        foreach (['All Members', 'Active Members', 'Instructors', 'Bureau', 'Expiring Certificates', 'Unpaid Memberships'] as $label) {
+            $response->assertSee($label);
+        }
+
+        $html = $response->getContent();
+        $this->assertMatchesRegularExpression('/value="'.$active->id.'"[^>]*data-groups="[^"]*\bactive\b/', $html);
+        $this->assertMatchesRegularExpression('/value="'.$bureau->id.'"[^>]*data-groups="[^"]*\bbureau\b/', $html);
     }
 }

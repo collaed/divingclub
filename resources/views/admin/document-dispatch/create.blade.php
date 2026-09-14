@@ -13,6 +13,7 @@
     @endif
 
     @php($statuses = $members->pluck('status.name')->filter()->unique()->sort()->values())
+    @php($groupLabels = ['all' => __('All Members'), 'active' => __('Active Members'), 'instructors' => __('Instructors'), 'bureau' => __('Bureau'), 'expiring_certs' => __('Expiring Certificates'), 'unpaid' => __('Unpaid Memberships')])
 
     <form method="POST" action="{{ route('admin.document-dispatch.store') }}">
         @csrf
@@ -52,12 +53,20 @@
                     @endforeach
                 </span>
             </div>
+            <div class="card-header d-flex flex-wrap align-items-center gap-2 border-top-0 pt-0">
+                <span class="small">
+                    {{ __('Groups (same as the Send Email tool):') }}
+                    @foreach($groupLabels as $key => $label)
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0" data-dd-group="{{ $key }}">{{ $label }}</button>
+                    @endforeach
+                </span>
+            </div>
             <div class="card-body" style="max-height: 420px; overflow-y: auto;">
                 <div class="row row-cols-1 row-cols-md-2 g-1">
                     @foreach($members as $m)
                         <div class="col">
                             <label class="d-flex align-items-center gap-2 small">
-                                <input type="checkbox" name="recipients[]" value="{{ $m->id }}" class="form-check-input mt-0" data-dd-row data-status="{{ $m->status?->name }}">
+                                <input type="checkbox" name="recipients[]" value="{{ $m->id }}" class="form-check-input mt-0" data-dd-row data-status="{{ $m->status?->name }}" data-groups="{{ implode(' ', $memberGroups[$m->id]) }}">
                                 <span>{{ $m->name }} <span class="text-muted">· {{ $m->primary_email }}</span>@if($m->status)<span class="badge bg-light text-muted ms-1">{{ $m->status->name }}</span>@endif</span>
                             </label>
                         </div>
@@ -81,6 +90,11 @@
             document.querySelectorAll('[data-dd-status]').forEach(b => b.addEventListener('click', () => {
                 const s = b.dataset.ddStatus;
                 rows.forEach(r => { if (r.dataset.status === s) r.checked = true; });
+                refresh();
+            }));
+            document.querySelectorAll('[data-dd-group]').forEach(b => b.addEventListener('click', () => {
+                const g = b.dataset.ddGroup;
+                rows.forEach(r => { if (r.dataset.groups.split(' ').includes(g)) r.checked = true; });
                 refresh();
             }));
             refresh();

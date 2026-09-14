@@ -29,17 +29,50 @@ class DocumentDispatchController extends Controller
 
     public function create(): View
     {
+        $members = User::query()
+            ->with([
+                'detail', 'status', 'roles',
+                'documents' => fn ($q) => $q->where('category', 'medical')->where('is_current', true),
+                'paymentsExpected' => fn ($q) => $q->where('status', 'pending'),
+            ])
+            ->whereNotNull('primary_email')
+            ->where('primary_email', 'not like', 'erased-%@erased.local')
+            ->orderBy('username')
+            ->get()
+            ->sortBy(fn (User $u) => mb_strtolower($u->name))
+            ->values();
+
         return view('admin.document-dispatch.create', [
             'files' => LibraryFile::where('mime_type', 'application/pdf')->orderBy('original_name')->get(),
-            'members' => User::query()
-                ->with(['detail', 'status'])
-                ->whereNotNull('primary_email')
-                ->where('primary_email', 'not like', 'erased-%@erased.local')
-                ->orderBy('username')
-                ->get()
-                ->sortBy(fn (User $u) => mb_strtolower($u->name))
-                ->values(),
+            'members' => $members,
+            // Same quick-select groups as the "Send Email" tool (EmailController::resolveGroup),
+            // evaluated per already-loaded member instead of a separate query per group.
+            'memberGroups' => $members->mapWithKeys(fn (User $m) => [$m->id => $this->groupsFor($m)]),
         ]);
+    }
+
+    /** @return list<string> */
+    private function groupsFor(User $member): array
+    {
+        $groups = ['all'];
+
+        if ($member->isActive()) {
+            $groups[] = 'active';
+        }
+        if ($member->roles->contains('name', 'instructor')) {
+            $groups[] = 'instructors';
+        }
+        if ($member->roles->pluck('name')->intersect(['bureau_master', 'bureau_finance', 'bureau_technical'])->isNotEmpty()) {
+            $groups[] = 'bureau';
+        }
+        if ($member->documents->contains(fn ($d) => $d->expiry_date?->between(now(), now()->addDays(30)))) {
+            $groups[] = 'expiring_certs';
+        }
+        if ($member->paymentsExpected->isNotEmpty()) {
+            $groups[] = 'unpaid';
+        }
+
+        return $groups;
     }
 
     public function store(StoreDocumentDispatchRequest $request): RedirectResponse
