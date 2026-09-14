@@ -53,15 +53,30 @@ class DiveGroupPlannerAccessTest extends TestCase
         $this->actingAs($member)->get("/events/{$event->id}/dive-groups/validate")->assertForbidden();
     }
 
-    public function test_instructors_and_bureau_can_reach_the_planner(): void
+    public function test_bureau_master_can_reach_the_planner(): void
     {
         $event = $this->event();
 
-        foreach (['instructor', 'instructor_apnea', 'bureau_master'] as $role) {
+        $this->actingAs($this->user('bureau_master'))
+            ->get("/events/{$event->id}/dive-groups")->assertOk();
+        $this->actingAs($this->user('bureau_master'))
+            ->get("/events/{$event->id}/dive-groups/validate")->assertOk();
+    }
+
+    /**
+     * The planner is still being built out (see the "manage dive groups"
+     * permission migration) and is deliberately bureau_master only for now,
+     * even though instructors lead the dives it plans.
+     */
+    public function test_instructors_cannot_yet_reach_the_planner(): void
+    {
+        $event = $this->event();
+
+        foreach (['instructor', 'instructor_apnea'] as $role) {
             $this->actingAs($this->user($role))
-                ->get("/events/{$event->id}/dive-groups")->assertOk();
+                ->get("/events/{$event->id}/dive-groups")->assertForbidden();
             $this->actingAs($this->user($role))
-                ->get("/events/{$event->id}/dive-groups/validate")->assertOk();
+                ->get("/events/{$event->id}/dive-groups/validate")->assertForbidden();
         }
     }
 }
