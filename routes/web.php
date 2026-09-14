@@ -89,6 +89,11 @@ Route::post('/contact', [ContactController::class, 'send'])->middleware('throttl
 // Per-recipient tracked document link (records the open, then serves the PDF)
 Route::get('/d/{token}', [TrackedDocumentController::class, 'open'])->middleware('throttle:30,1')->name('tracked-doc.open');
 
+// Secondary-email verification link (mailed on add — see ProfileEmailController::add()).
+// Public/token-based like the tracked-document link above: whoever holds the
+// link proves ownership of the inbox, no active session required.
+Route::get('/profile/email/verify/{token}', [ProfileEmailController::class, 'verify'])->middleware('throttle:30,1')->name('profile.email.verify');
+
 // Guest auth
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->middleware(CheckLicense::class)->name('register');
@@ -258,6 +263,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     // Email management
     Route::post('/profile/email', [ProfileEmailController::class, 'add'])->name('profile.email.add');
+    Route::post('/profile/email/{email}/resend', [ProfileEmailController::class, 'resend'])->name('profile.email.resend');
     Route::post('/profile/email/{email}/primary', [ProfileEmailController::class, 'setPrimary'])->name('profile.email.primary');
     Route::delete('/profile/email/{email}', [ProfileEmailController::class, 'delete'])->name('profile.email.delete');
     Route::post('/profile/email/{email}/toggle-mail', [ProfileEmailController::class, 'toggleReceiveMail'])->name('profile.email.toggle-mail');

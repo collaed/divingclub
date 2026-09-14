@@ -75,15 +75,20 @@
 {{-- Password change (self only) --}}
 @if($isSelf)
 <hr class="my-4">
-<h6>@icon('🔒') {{ __('Change Password') }}</h6>
+<h6>@icon('🔒') {{ $target->password ? __('Change Password') : __('Set a Password') }}</h6>
+@unless($target->password)
+    <p class="small text-muted">{{ __('Your account currently only signs in via social login. Set a password to also be able to log in with your email address.') }}</p>
+@endunless
 <form method="POST" action="{{ route('profile.update.password') }}">
     @csrf
     <div class="row">
+        @if($target->password)
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Current Password') }}</label>
             <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror" required>
             @error('current_password') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
+        @endif
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('New Password') }}</label>
             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required minlength="8">
@@ -94,6 +99,6 @@
             <input type="password" name="password_confirmation" class="form-control" required>
         </div>
     </div>
-    <button type="submit" class="btn btn-outline-primary">{{ __('Update Password') }}</button>
+    <button type="submit" class="btn btn-outline-primary">{{ $target->password ? __('Update Password') : __('Set Password') }}</button>
 </form>
 @endif

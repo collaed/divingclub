@@ -73,11 +73,14 @@ class GdprController extends Controller
 
     public function confirmErasure(Request $request): RedirectResponse
     {
+        $user = auth()->user();
+
+        // A socialite-only account has no password to confirm with — the
+        // "I understand" checkbox is the only confirmation it can give.
         $request->validate([
             'confirm' => 'required|accepted',
-            'password' => 'required|current_password',
+            'password' => $user->password ? 'required|current_password' : 'nullable',
         ]);
-        $user = auth()->user();
 
         // Delete documents
         foreach ($user->documents as $doc) {

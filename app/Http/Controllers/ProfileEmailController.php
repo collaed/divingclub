@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class ProfileEmailController extends Controller
@@ -26,17 +28,62 @@ class ProfileEmailController extends Controller
             'label' => 'nullable|string|max:50',
         ]);
 
-        UserEmail::create([
+        $email = UserEmail::create([
             'user_id' => $user->id,
             'email' => $validated['email'],
             'is_primary' => false,
             'is_verified' => false,
-            'label' => $validated['label'],
+            'label' => $validated['label'] ?? null,
             'verification_token' => Str::random(64),
             'verification_sent_at' => now(),
         ]);
 
-        return back()->with('success', __('Email added. Please verify it.'))->withInput(['tab' => 'info']);
+        $this->sendVerificationMail($email);
+
+        return back()->with('success', __('Email added. A verification link was sent to it — click it before you can set it as primary.'))->withInput(['tab' => 'info']);
+    }
+
+    /** Re-send the verification link, e.g. if the first one was lost or expired the user's patience. */
+    public function resend(UserEmail $email): RedirectResponse
+    {
+        $user = auth()->user();
+        if ($email->user_id !== $user->id && ! $user->can('manage members')) {
+            abort(403);
+        }
+        if ($email->is_verified) {
+            return back()->with('error', __('This email is already verified.'))->withInput(['tab' => 'info']);
+        }
+
+        $email->update(['verification_token' => Str::random(64), 'verification_sent_at' => now()]);
+        $this->sendVerificationMail($email);
+
+        return back()->with('success', __('Verification link re-sent.'))->withInput(['tab' => 'info']);
+    }
+
+    /** Confirm a secondary email via its mailed link — no login required, the token is the proof. */
+    public function verify(string $token): RedirectResponse
+    {
+        $email = UserEmail::where('verification_token', $token)->first();
+        if (! $email) {
+            return redirect()->route('login')->with('error', __('This verification link is invalid or has already been used.'));
+        }
+
+        $email->update(['is_verified' => true, 'verification_token' => null]);
+
+        return auth()->check()
+            ? redirect()->route('profile.show', ['tab' => 'info'])->with('success', __(':email is now verified — you can set it as primary.', ['email' => $email->email]))
+            : redirect()->route('login')->with('success', __(':email is now verified. Log in to set it as your primary address.', ['email' => $email->email]));
+    }
+
+    private function sendVerificationMail(UserEmail $email): void
+    {
+        $club = ThemeSetting::get('club_full_name', config('app.name'));
+        $link = route('profile.email.verify', $email->verification_token);
+
+        Mail::raw(
+            __("Confirm this email address for your :club account by opening this link:\n:link", ['club' => $club, 'link' => $link]),
+            fn ($mail) => $mail->to($email->email)->subject(__(':club — confirm your email address', ['club' => $club]))
+        );
     }
 
     public function setPrimary(UserEmail $email): RedirectResponse

@@ -26,6 +26,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -183,10 +184,19 @@ class SocialAuthController extends Controller
         }
 
         $user = DB::transaction(function () use ($pending) {
+            $roleTable = Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
+            $memberRoleId = DB::table($roleTable)->where('slug', 'member')->value('id')
+                ?? DB::table($roleTable)->where('name', 'member')->value('id')
+                ?? 2;
+
+            // status_id is deliberately left unset (null) — that, plus
+            // email_verified_at being set, is what DashboardController's
+            // new_members_unconfirmed worklist counts as "pending bureau
+            // approval". There is no 'pending' member_statuses row.
             $user = User::create([
                 'primary_email' => $pending['email'],
                 'email_verified_at' => now(),
-                'status_slug' => 'pending',
+                'role_id' => $memberRoleId,
             ]);
 
             $user->assignRole('member');

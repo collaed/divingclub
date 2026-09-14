@@ -18,7 +18,9 @@ class UpdatePasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'current_password' => 'required|current_password',
+            // A socialite-only account has no password to confirm — let it set
+            // a first one without asking it to prove knowledge of nothing.
+            'current_password' => auth()->user()?->password ? 'required|current_password' : 'nullable',
             'password' => 'required|string|min:8|confirmed',
         ];
     }
