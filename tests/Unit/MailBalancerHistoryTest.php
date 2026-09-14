@@ -49,10 +49,9 @@ class MailBalancerHistoryTest extends TestCase
     {
         $this->assertContains('brevo', collect(MailBalancer::status())->pluck('provider')->all());
 
-        $today = date('Y-m-d');
-        Cache::put("mail_balance_{$today}_resend_primary", 98);
-        Cache::put("mail_balance_{$today}_resend_secondary", 98);
-        Cache::put("mail_balance_{$today}_mailjet", 200);
+        MailSendStat::create(['date' => today(), 'provider' => 'resend_primary', 'count' => 98]);
+        MailSendStat::create(['date' => today(), 'provider' => 'resend_secondary', 'count' => 98]);
+        MailSendStat::create(['date' => today(), 'provider' => 'mailjet', 'count' => 200]);
 
         $this->assertSame('brevo', MailBalancer::nextProvider());
 
@@ -60,29 +59,46 @@ class MailBalancerHistoryTest extends TestCase
         $this->assertSame('brevo', config('mail.default'));
     }
 
+    /**
+     * Real usage always pairs nextProvider() with recordSend() for the same
+     * send (see AppServiceProvider's MessageSending listener) — rotation is
+     * derived from those durable counts, so it must advance them each pick
+     * to prove out cycling rather than looping forever on the same provider.
+     */
     public function test_next_provider_round_robins_instead_of_filling_the_first_provider(): void
     {
-        // All four have room, so consecutive calls should cycle through
-        // every provider once rather than returning resend_primary each time.
-        $picks = [
-            MailBalancer::nextProvider(),
-            MailBalancer::nextProvider(),
-            MailBalancer::nextProvider(),
-            MailBalancer::nextProvider(),
-        ];
+        $picks = [];
+        for ($i = 0; $i < 4; $i++) {
+            $provider = MailBalancer::nextProvider();
+            $picks[] = $provider;
+            MailBalancer::recordSend($provider);
+        }
 
         $this->assertSame(['resend_primary', 'resend_secondary', 'mailjet', 'brevo'], $picks);
     }
 
     public function test_round_robin_skips_a_provider_that_hits_its_daily_limit_mid_rotation(): void
     {
-        $today = date('Y-m-d');
-        Cache::put("mail_balance_{$today}_resend_secondary", 98);
+        MailSendStat::create(['date' => today(), 'provider' => 'resend_secondary', 'count' => 98]);
 
-        $this->assertSame('resend_primary', MailBalancer::nextProvider());
-        // resend_secondary is exhausted, so the rotation skips straight to mailjet.
-        $this->assertSame('mailjet', MailBalancer::nextProvider());
-        $this->assertSame('brevo', MailBalancer::nextProvider());
-        $this->assertSame('resend_primary', MailBalancer::nextProvider());
+        $picks = [];
+        for ($i = 0; $i < 4; $i++) {
+            $provider = MailBalancer::nextProvider();
+            $picks[] = $provider;
+            MailBalancer::recordSend($provider);
+        }
+
+        // resend_secondary is exhausted throughout, so it never appears.
+        $this->assertSame(['resend_primary', 'mailjet', 'brevo', 'resend_primary'], $picks);
+    }
+
+    public function test_rotation_survives_a_cache_flush(): void
+    {
+        // A deploy runs `artisan optimize:clear`, which flushes the cache —
+        // rotation state must live entirely in the database to survive that.
+        MailSendStat::create(['date' => today(), 'provider' => 'resend_primary', 'count' => 5]);
+        Cache::flush();
+
+        $this->assertSame('resend_secondary', MailBalancer::nextProvider());
     }
 }

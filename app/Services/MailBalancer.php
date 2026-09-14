@@ -26,46 +26,33 @@ class MailBalancer
         'brevo' => 300,  // Brevo's standard free-tier daily cap
     ];
 
-    private const CURSOR_KEY = 'mail_balance_cursor';
-
     /**
-     * Pick the next provider, rotating evenly across every provider with
-     * remaining capacity — a burst of sends spreads across all of them
-     * instead of piling onto whichever comes first in LIMITS until it's
-     * exhausted, which is both a better balance and lets a single provider's
-     * outage or rate limit show up as a fraction of failures rather than all
-     * of them.
+     * Pick the next provider: whichever provider under its daily limit has
+     * been used least today, ties broken in LIMITS order. This is derived
+     * entirely from the durable MailSendStat counts (no cache-held cursor or
+     * counter) so a deploy's `artisan optimize:clear` — which runs every
+     * time and flushes the cache — can never reset rotation back to the
+     * first provider or silently blow past a daily cap.
      */
     public static function nextProvider(): string
     {
         $counts = static::todayCounts();
-        $providers = array_keys(self::LIMITS);
-        $cursor = (int) Cache::get(self::CURSOR_KEY, -1);
 
-        for ($step = 1; $step <= count($providers); $step++) {
-            $index = ($cursor + $step) % count($providers);
-            $provider = $providers[$index];
-            if (($counts[$provider] ?? 0) < self::LIMITS[$provider]) {
-                Cache::forever(self::CURSOR_KEY, $index);
+        $available = array_filter(self::LIMITS, fn ($limit, $provider) => ($counts[$provider] ?? 0) < $limit, ARRAY_FILTER_USE_BOTH);
 
-                return $provider;
-            }
+        if ($available === []) {
+            // All exhausted — use mailjet anyway (most generous)
+            return 'mailjet';
         }
 
-        // All exhausted — use mailjet anyway (most generous)
-        return 'mailjet';
+        uksort($available, fn ($a, $b) => $counts[$a] <=> $counts[$b]);
+
+        return array_key_first($available);
     }
 
     /** Record a send for a provider. */
     public static function recordSend(string $provider): void
     {
-        $key = 'mail_balance_'.date('Y-m-d').'_'.$provider;
-        Cache::increment($key);
-        // Auto-expire at midnight
-        Cache::put($key, Cache::get($key, 1), now()->endOfDay());
-
-        // Cache::increment resets at midnight — this is the durable record
-        // the dashboard's history chart reads from.
         $stat = MailSendStat::firstOrCreate(['date' => today(), 'provider' => $provider], ['count' => 0]);
         $stat->increment('count');
     }
@@ -100,9 +87,11 @@ class MailBalancer
     /** Get today's send counts per provider. */
     public static function todayCounts(): array
     {
+        $rows = MailSendStat::where('date', today())->pluck('count', 'provider');
+
         $counts = [];
         foreach (array_keys(self::LIMITS) as $provider) {
-            $counts[$provider] = (int) Cache::get('mail_balance_'.date('Y-m-d').'_'.$provider, 0);
+            $counts[$provider] = (int) ($rows[$provider] ?? 0);
         }
 
         return $counts;

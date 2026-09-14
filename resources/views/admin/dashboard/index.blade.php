@@ -217,46 +217,41 @@
         });
     </script>
 
-    {{-- Mail Balance --}}
-    @if(!empty($mailBalance))
+    {{-- Usage history: email sends + Cloudflare AI neurons, last 60 days —
+         tells us when it's time to scale up or when there's headroom left.
+         The mail-provider quota panel lives here too, alongside the same
+         email-send stats, instead of as its own separate card above. --}}
     @php
         $mailjetMonthly = \App\Services\MailBalancer::mailjetMonthlyUsage();
         $resendQuotas = \App\Services\MailBalancer::resendQuotas();
     @endphp
-    <div class="card dc-card mt-4">
-        <div class="card-header fw-bold d-flex justify-content-between">
-            <span>📧 {{ __('Email Sending Quota') }}</span>
-            <small class="text-muted fw-normal">
-                @if($resendQuotas) Resend: {{ ($resendQuotas['primary']['monthly'] ?? 0) + ($resendQuotas['secondary']['monthly'] ?? 0) }} sent this month @endif
-                @if($mailjetMonthly) · Mailjet: {{ number_format($mailjetMonthly['sent']) }}/6,000 @endif
-            </small>
-        </div>
-        <div class="card-body py-2">
-            <div class="row g-2">
-                @foreach($mailBalance as $mb)
-                    <div class="col-md-4">
-                        <div class="d-flex justify-content-between small">
-                            <span>{{ str_replace('_', ' ', ucfirst($mb['provider'])) }}</span>
-                            <span class="text-muted">{{ $mb['used'] }}/{{ $mb['limit'] }} today</span>
-                        </div>
-                        <div class="progress" style="height:6px">
-                            <div class="progress-bar {{ $mb['pct'] > 90 ? 'bg-danger' : ($mb['pct'] > 70 ? 'bg-warning' : 'bg-success') }}" style="width:{{ $mb['pct'] }}%"></div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-            <small class="text-muted mt-1 d-block">{{ __('Total remaining today') }}: <strong>{{ collect($mailBalance)->sum('remaining') }}</strong></small>
-        </div>
-    </div>
-    @endif
-
-    {{-- Usage history: email sends + Cloudflare AI neurons, last 60 days —
-         tells us when it's time to scale up or when there's headroom left. --}}
     <div class="row g-3 mt-1">
         <div class="col-md-6">
             <div class="card dc-card">
-                <div class="card-header fw-bold">📈 {{ __('Email Sends — last 60 days') }}</div>
+                <div class="card-header fw-bold d-flex justify-content-between">
+                    <span>📈 {{ __('Email Sends — last 60 days') }}</span>
+                    <small class="text-muted fw-normal">
+                        @if($resendQuotas) Resend: {{ ($resendQuotas['primary']['monthly'] ?? 0) + ($resendQuotas['secondary']['monthly'] ?? 0) }} sent this month @endif
+                        @if($mailjetMonthly) · Mailjet: {{ number_format($mailjetMonthly['sent']) }}/6,000 @endif
+                    </small>
+                </div>
                 <div class="card-body">
+                    @if(!empty($mailBalance))
+                        <div class="row g-2 mb-2">
+                            @foreach($mailBalance as $mb)
+                                <div class="col-md-6">
+                                    <div class="d-flex justify-content-between small">
+                                        <span>{{ str_replace('_', ' ', ucfirst($mb['provider'])) }}</span>
+                                        <span class="text-muted">{{ $mb['used'] }}/{{ $mb['limit'] }} today</span>
+                                    </div>
+                                    <div class="progress" style="height:6px">
+                                        <div class="progress-bar {{ $mb['pct'] > 90 ? 'bg-danger' : ($mb['pct'] > 70 ? 'bg-warning' : 'bg-success') }}" style="width:{{ $mb['pct'] }}%"></div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <small class="text-muted d-block mb-2">{{ __('Total remaining today') }}: <strong>{{ collect($mailBalance)->sum('remaining') }}</strong></small>
+                    @endif
                     <canvas id="mailHistoryChart" height="120"></canvas>
                 </div>
             </div>
