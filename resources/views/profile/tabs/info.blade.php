@@ -67,6 +67,12 @@
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Membership Status') }}</label>
             <select name="status_id" id="statusSelect" class="form-select @error('status_id') is-invalid @enderror">
+                @if(is_null(old('status_id', $target->status_id)))
+                    {{-- No status yet (pending bureau approval) — leave unselected
+                         rather than letting the browser default to the first real
+                         option, which would silently approve them on any save. --}}
+                    <option value="" selected>{{ __('— Not yet confirmed —') }}</option>
+                @endif
                 @foreach($statuses as $s)
                     <option value="{{ $s->id }}" {{ old('status_id', $target->status_id) == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                 @endforeach
@@ -74,6 +80,13 @@
             <div class="form-text">{{ __('Your fee will be adjusted accordingly at next renewal.') }}</div>
             @error('status_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
+        @if($isBM && !$isSelf && is_null(old('status_id', $target->status_id)))
+        <div class="col-12">
+            <div class="alert alert-warning py-2 small">
+                @icon('⚠️') {{ __('This account is pending approval. Choosing a Membership Status above and saving will approve it.') }}
+            </div>
+        </div>
+        @endif
     </div>
     @if($isBM)
     @push('scripts')
@@ -191,7 +204,11 @@
         </div>
     @endif
 
-    <button type="submit" class="btn btn-primary mt-3">{{ __('Save') }}</button>
+    @if($isBM && !$isSelf && is_null(old('status_id', $target->status_id)))
+        <button type="submit" class="btn btn-warning mt-3">@icon('⚠️') {{ __('Save (leaves pending unless a status is chosen)') }}</button>
+    @else
+        <button type="submit" class="btn btn-primary mt-3">{{ __('Save') }}</button>
+    @endif
 </form>
 @else
 {{-- Read-only Batch 2 (Deck) view for regular members --}}

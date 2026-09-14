@@ -21,13 +21,16 @@ class MemberExportService
     public function build(): array
     {
         $members = User::query()
-            ->with(['detail', 'roles', 'status', 'statusSet', 'licences.federation', 'certificationLevels'])
+            ->with([
+                'detail', 'roles', 'status', 'statusSet', 'licences.federation', 'certificationLevels',
+                'documents' => fn ($q) => $q->where('category', 'medical')->where('is_current', true),
+            ])
             ->orderBy('id')
             ->get();
 
         $federationAcronyms = $this->federationAcronyms($members);
 
-        $headers = array_merge($this->baseHeaders(), $this->federationHeaders($federationAcronyms));
+        $headers = array_merge($this->baseHeaders(), $this->federationHeaders($federationAcronyms), $this->medicalCertHeaders());
 
         $rows = $members->map(fn (User $member): array => $this->row($member, $federationAcronyms))->all();
 
@@ -43,7 +46,7 @@ class MemberExportService
             'Phone Private', 'Phone Office', 'Phone Mobile',
             'Address Line 1', 'Address Line 2', 'Postal Code', 'City', 'Country', 'IBAN',
             'Emergency Contact Name', 'Emergency Contact Phone', 'Emergency Contact Relationship',
-            'Adhesion Year', 'Cotisation Years', 'Seasons Paid', 'Paid Current Season', 'Bureau Member', 'Active Instructor',
+            'Adhesion Year', 'Cotisation Years', 'Seasons Paid', 'Active', 'Bureau Member', 'Active Instructor',
             'Certification Level', 'Apnea Level', 'Other Certifications', 'All Certifications',
             'Brevet Date', 'Dive Count', 'Total Dives', 'Last Dive Date', 'Air Consumption', 'Ease Level', 'Primary Intent', 'Photographer',
             'BCD Size', 'T-Shirt Size', 'Suit Brand', 'Suit Size',
@@ -68,6 +71,12 @@ class MemberExportService
         }
 
         return $headers;
+    }
+
+    /** Lifecycle dates for the member's current medical certificate document. @return list<string> */
+    protected function medicalCertHeaders(): array
+    {
+        return ['Medical Cert Submitted', 'Medical Cert Established', 'Medical Cert Verified At', 'Medical Cert Rejected At'];
     }
 
     /**
@@ -111,7 +120,7 @@ class MemberExportService
             $d?->adhesion_year,
             $this->list($d?->cotisation_years),
             is_array($d?->cotisation_years) ? count($d->cotisation_years) : 0,
-            $this->paidCurrentSeason($d?->cotisation_years) ? 'Yes' : 'No',
+            $this->bool($member->isActive()),
             $this->bool($d?->bureau_member),
             $this->bool($d?->active_instructor),
             $d?->certification_level,
@@ -139,6 +148,15 @@ class MemberExportService
             $row[] = $licence?->licence_number;
             $row[] = $this->date($licence?->medical_cert_expiry);
         }
+
+        // The current medical Document — set on submission, not on validation
+        // (see MedicalComplianceService::evaluateCertificate), so Verified At /
+        // Rejected At are legitimately blank while a resubmission is pending.
+        $medicalCert = $member->documents->first();
+        $row[] = $this->date($medicalCert?->created_at);
+        $row[] = $this->date($medicalCert?->date_established);
+        $row[] = $this->date($medicalCert?->verified_at);
+        $row[] = $this->date($medicalCert?->rejected_at);
 
         return $row;
     }
@@ -179,21 +197,5 @@ class MemberExportService
     protected function list($value): ?string
     {
         return is_array($value) ? implode(', ', $value) : null;
-    }
-
-    /**
-     * The club season rolls over in September, matching User::isActive().
-     *
-     * @param  mixed  $cotisationYears
-     */
-    protected function paidCurrentSeason($cotisationYears): bool
-    {
-        if (! is_array($cotisationYears)) {
-            return false;
-        }
-
-        $currentSeason = (string) (now()->month >= 9 ? now()->year + 1 : now()->year);
-
-        return in_array($currentSeason, array_map('strval', $cotisationYears), true);
     }
 }

@@ -65,6 +65,65 @@ class ProfileStatusSetTest extends TestCase
         $this->assertSame($actifId, $member->status_id);
     }
 
+    public function test_saving_an_unconfirmed_members_info_without_picking_a_status_does_not_approve_them(): void
+    {
+        $member = $this->member();
+        $member->update(['status_id' => null]);
+
+        $this->actingAs($this->admin)->post(route('admin.profile.update.info', $member), [
+            'first_name' => 'Mnew', 'last_name' => 'N', 'sex' => 'M',
+            // No status_id at all — mirrors the blank placeholder option in
+            // profile/tabs/info.blade.php, not the browser silently defaulting
+            // to whichever status happens to render first.
+        ])->assertRedirect();
+
+        $member->refresh();
+        $this->assertNull($member->status_id);
+        $this->assertSame('Mnew', $member->detail->first_name);
+    }
+
+    public function test_bureau_can_deliberately_approve_a_pending_member_by_choosing_a_status(): void
+    {
+        $actifId = MemberStatus::firstOrCreate(['slug' => 'actif'], ['name' => 'Actif'])->id;
+        $member = $this->member();
+        $member->update(['status_id' => null]);
+
+        $this->actingAs($this->admin)->post(route('admin.profile.update.info', $member), [
+            'first_name' => 'M', 'last_name' => 'N', 'sex' => 'M',
+            'status_id' => $actifId,
+        ])->assertRedirect();
+
+        $this->assertSame($actifId, $member->refresh()->status_id);
+    }
+
+    public function test_the_status_select_has_no_selected_option_for_an_unconfirmed_member(): void
+    {
+        $member = $this->member();
+        $member->update(['status_id' => null]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.profile.show', $member))->assertOk();
+
+        // Without the blank placeholder, the browser would silently default to
+        // the first real <option>, and any unrelated save would submit it —
+        // approving the member. Assert the raw HTML has no non-blank selected option.
+        $response->assertSee(__('— Not yet confirmed —'));
+        $this->assertDoesNotMatchRegularExpression(
+            '/<option value="\d+" selected>/',
+            $response->getContent()
+        );
+    }
+
+    public function test_the_status_select_has_no_blank_placeholder_for_a_confirmed_member(): void
+    {
+        $actifId = MemberStatus::firstOrCreate(['slug' => 'actif'], ['name' => 'Actif'])->id;
+        $member = $this->member();
+        $member->update(['status_id' => $actifId]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.profile.show', $member))->assertOk();
+
+        $response->assertDontSee(__('— Not yet confirmed —'));
+    }
+
     public function test_out_of_set_status_is_rejected(): void
     {
         $set = $this->setWithStatuses('externe', ['actif', 'sympathisant']);

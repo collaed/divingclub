@@ -229,6 +229,7 @@ Route::post('/email/template', [EmailController::class, 'storeTemplate'])->name(
 Route::put('/email/template/{template}', [EmailController::class, 'updateTemplate'])->name('email.template.update');
 Route::delete('/email/template/{template}', [EmailController::class, 'destroyTemplate'])->name('email.template.destroy');
 Route::post('/email/preview', [EmailController::class, 'preview'])->name('email.preview');
+Route::get('/email/group-count', [EmailController::class, 'groupCount'])->name('email.group-count');
 Route::post('/email/send', [EmailController::class, 'send'])->name('email.send');
 
 // Votes

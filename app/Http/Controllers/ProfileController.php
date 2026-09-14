@@ -39,6 +39,12 @@ class ProfileController extends Controller
             abort(403);
         }
 
+        // Pending-approval accounts (status_id null) must not see other
+        // members' details at all — see User::isConfirmed().
+        if (! $isSelf && ! $viewer->isConfirmed()) {
+            abort(403);
+        }
+
         $target->load(['detail', 'emails', 'licences.federation', 'documents']);
         $statuses = MemberStatus::orderBy('name')->get();
         $statusSets = StatusSet::with('statuses:id')->orderBy('name')->get();
@@ -46,10 +52,14 @@ class ProfileController extends Controller
         $medicalStatus = app(MedicalComplianceService::class)->getStatus($target);
 
         $canEdit = $isSelf || $isBureau;
+        // Private Info tab + header email/mobile — self + bureau only.
         $tierVault = $isSelf || $isBureau;
+        // Medical Cert + Equipment on Loan tabs — self + bureau + instructors.
+        $tierSensitive = $tierVault || $isInstructor;
+        // Header-only precision (exact age, exact medical-expiry date).
         $tierManifest = $tierVault || $isInstructor;
 
-        return view('profile.show', compact('target', 'viewer', 'statuses', 'statusSets', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierManifest'));
+        return view('profile.show', compact('target', 'viewer', 'statuses', 'statusSets', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierSensitive', 'tierManifest'));
     }
 
     public function updateInfo(Request $request, ?User $user = null): RedirectResponse

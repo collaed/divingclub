@@ -3,6 +3,7 @@
         $isSelf = $viewer->id === $target->id;
         $canEdit = $canEdit ?? ($isSelf || $viewer->can('manage members'));
         $tierVault = $tierVault ?? ($isSelf || $viewer->can('view private profiles'));
+        $tierSensitive = $tierSensitive ?? ($tierVault || $viewer->hasAnyRole(['instructor', 'assistant']));
 
         // 'view event participants' permission: sees cert, medical, emergency
         // but ONLY for members on events they're responsible for (upcoming or last 2 weeks)
@@ -138,12 +139,12 @@
             if ($canEdit) {
                 $tabs['language'] = __('Language');
             }
-            if ($tierVault) {
+            if ($tierSensitive) {
                 $tabs['medical'] = __('Medical Cert');
-                $tabs['renewal'] = __('Licence Overview');
             }
+            $tabs['renewal'] = __('Licence Overview');
             $tabs['registrations'] = __('Registrations');
-            if ($tierVault) {
+            if ($tierSensitive) {
                 $tabs['equipment'] = __('Equipment on Loan');
             }
             $activeTab = old('tab', $tab);
@@ -192,18 +193,16 @@
         @endif
     </div>
 
-    {{-- Email Management (own profile only) --}}
-    @if($isSelf)
+    {{-- Email Management (self, or bureau managing a member) --}}
+    @if($canEdit)
     <div class="card dc-card mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{ __('Email Addresses') }}</h5>
-            @if($viewer->id === $target->id)
-                <form method="POST" action="{{ route('password.request.send') }}" class="d-inline">
-                    @csrf
-                    <input type="hidden" name="email" value="{{ $target->primary_email }}">
-                    <button class="btn btn-sm btn-outline-info">@icon('🔑') {{ __('Send Password Reset Link') }}</button>
-                </form>
-            @endif
+            <form method="POST" action="{{ route('password.request.send') }}" class="d-inline">
+                @csrf
+                <input type="hidden" name="email" value="{{ $target->primary_email }}">
+                <button class="btn btn-sm btn-outline-info">@icon('🔑') {{ __('Send Password Reset Link') }}</button>
+            </form>
         </div>
         <div class="card-body">
             <p class="small text-muted mb-2">
@@ -218,14 +217,21 @@
                         <td>{{ $em->label }}</td>
                         <td>@if($em->is_verified) <span class="badge bg-success">{{ __('Verified') }}</span> @else <span class="badge bg-warning text-dark">{{ __('Unverified') }}</span> @endif</td>
                         <td class="text-center">
-                            <form method="POST" action="{{ route('profile.email.toggle-mail', $em) }}" class="d-inline">
-                                @csrf
-                                <input type="checkbox" {{ $em->receive_mail ? 'checked' : '' }} onchange="this.form.submit()" title="{{ $em->receive_mail ? __('Receives club emails') : __('Login only — no emails') }}">
-                            </form>
+                            @if($isSelf)
+                                <form method="POST" action="{{ route('profile.email.toggle-mail', $em) }}" class="d-inline">
+                                    @csrf
+                                    <input type="checkbox" {{ $em->receive_mail ? 'checked' : '' }} onchange="this.form.submit()" title="{{ $em->receive_mail ? __('Receives club emails') : __('Login only — no emails') }}">
+                                </form>
+                            @else
+                                {{ $em->receive_mail ? __('Yes') : __('No') }}
+                            @endif
                         </td>
                         <td class="text-end">
                             @if(!$em->is_primary && $em->is_verified)
                                 <form method="POST" action="{{ route('profile.email.primary', $em) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-primary">{{ __('Set Primary') }}</button></form>
+                            @endif
+                            @if(!$em->is_verified)
+                                <form method="POST" action="{{ route('profile.email.resend', $em) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-secondary">{{ __('Resend link') }}</button></form>
                             @endif
                             @if(!$em->is_primary)
                                 <form method="POST" action="{{ route('profile.email.delete', $em) }}" class="d-inline">@csrf @method('DELETE') <button class="btn btn-sm btn-outline-danger">{{ __('Remove') }}</button></form>
@@ -235,7 +241,7 @@
                 @endforeach
                 </tbody>
             </table>
-            @if($target->emails->count() < 5)
+            @if($isSelf && $target->emails->count() < 5)
                 <form method="POST" action="{{ route('profile.email.add') }}" class="row g-2 align-items-end mt-2">
                     @csrf
                     <div class="col-md-5"><input type="email" name="email" class="form-control" placeholder="{{ __('New email address') }}" required></div>

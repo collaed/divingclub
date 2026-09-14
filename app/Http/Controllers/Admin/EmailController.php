@@ -12,6 +12,7 @@ use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Services\ArticleTranslationService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class EmailController extends Controller
     public function index(): JsonResponse|RedirectResponse|View
     {
         $templates = EmailTemplate::orderBy('name')->get();
-        $log = EmailLog::orderByDesc('created_at')->paginate($this->perPage(30));
+        $log = EmailLog::where('created_at', '>=', now()->subDays(30))->orderByDesc('created_at')->paginate($this->perPage(30));
 
         return view('admin.email.index', compact('templates', 'log'));
     }
@@ -71,16 +72,39 @@ class EmailController extends Controller
         return response()->json($rendered);
     }
 
+    /** Number of recipients this group/event will reach when selected, plus a capped preview list. */
+    public function groupCount(Request $request): JsonResponse
+    {
+        $request->validate([
+            'group' => 'required|in:all,active,instructors,bureau,expiring_certs,unpaid,event',
+            'event_id' => 'nullable|required_if:group,event|exists:events,id',
+        ]);
+
+        $query = $this->resolveGroup($request->group, $request->event_id);
+        $count = $query->count();
+        $recipients = $query->orderBy('primary_email')->limit(50)->get()
+            ->map(fn (User $u): array => ['name' => $u->name, 'email' => $u->primary_email]);
+
+        return response()->json(['count' => $count, 'recipients' => $recipients]);
+    }
+
     public function send(Request $request): RedirectResponse
     {
         $request->validate([
             'template_id' => 'required|exists:email_templates,id',
             'group' => 'required|in:all,active,instructors,bureau,expiring_certs,unpaid,event',
             'event_id' => 'nullable|required_if:group,event|exists:events,id',
+            'dry_run' => 'nullable|boolean',
         ]);
 
         $template = EmailTemplate::findOrFail($request->template_id);
-        $users = $this->resolveGroup($request->group, $request->event_id);
+        $groupQuery = $this->resolveGroup($request->group, $request->event_id);
+
+        if ($request->boolean('dry_run')) {
+            return $this->sendDryRun($template, $groupQuery->count());
+        }
+
+        $users = $groupQuery->get();
         $sourceLocale = $template->locale ?? 'fr';
 
         // Pre-translate subject+body per unique target locale
@@ -144,6 +168,43 @@ class EmailController extends Controller
         return back()->with('success', __(':count emails queued.', ['count' => $sent]));
     }
 
+    /**
+     * Send exactly one real email — to the sender, rendered with the sender's
+     * own data — instead of the whole group, so a template can be checked in
+     * an actual inbox before going out for real. No translation pass: this is
+     * a preview of the authored content, not a simulation of every locale.
+     */
+    private function sendDryRun(EmailTemplate $template, int $realCount): RedirectResponse
+    {
+        $admin = auth()->user();
+        $rendered = $this->renderTemplate($template, $admin);
+
+        $log = EmailLog::create([
+            'user_id' => $admin->id,
+            'to_email' => $admin->primary_email,
+            'subject' => '[DRY RUN] '.$rendered['subject'],
+            'body' => $rendered['body']."\n\n---\n".__('DRY RUN — the real send would reach :count member(s).', ['count' => $realCount]),
+            'template_slug' => $template->slug,
+            'status' => 'queued',
+        ]);
+
+        dispatch(function () use ($log): void {
+            if (config('app.staging_mode')) {
+                $log->update(['status' => 'staging_captured']);
+
+                return;
+            }
+            try {
+                Mail::raw($log->body, fn ($m) => $m->to($log->to_email)->subject($log->subject));
+                $log->update(['status' => 'sent', 'attempts' => $log->attempts + 1]);
+            } catch (\Exception $e) {
+                $log->update(['status' => 'failed', 'attempts' => $log->attempts + 1, 'error' => $e->getMessage()]);
+            }
+        })->afterResponse();
+
+        return back()->with('success', __('Dry run: a test email was sent to your address. The real send would reach :count member(s).', ['count' => $realCount]));
+    }
+
     private function renderTemplate(EmailTemplate $template, User $user): array
     {
         return $this->renderVars(['subject' => $template->subject, 'body' => $template->body], $user);
@@ -165,17 +226,21 @@ class EmailController extends Controller
         ];
     }
 
+    /**
+     * @return Builder<User> Unexecuted — callers
+     *                       call ->get() to send or ->count() for a cheap recipient count.
+     */
     private function resolveGroup(string $group, ?int $eventId = null)
     {
         return match ($group) {
-            'all' => User::with('detail')->whereNotNull('email_verified_at')->get(),
-            'active' => User::with('detail')->whereHas('status', fn ($q) => $q->where('slug', 'actif'))->get(),
-            'instructors' => User::with('detail')->role('instructor')->get(),
-            'bureau' => User::with('detail')->role(['bureau_master', 'bureau_finance', 'bureau_technical'])->get(),
-            'expiring_certs' => User::with('detail')->whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)]))->get(),
-            'unpaid' => User::with('detail')->whereHas('paymentsExpected', fn ($q) => $q->where('status', 'pending'))->get(),
-            'event' => $eventId ? User::with('detail')->whereHas('eventRegistrations', fn ($q) => $q->where('event_id', $eventId)->where('status', 'confirmed'))->get() : collect(),
-            default => collect(),
+            'all' => User::with('detail')->whereNotNull('email_verified_at'),
+            'active' => User::with('detail')->active(),
+            'instructors' => User::with('detail')->role('instructor'),
+            'bureau' => User::with('detail')->role(['bureau_master', 'bureau_finance', 'bureau_technical']),
+            'expiring_certs' => User::with('detail')->whereHas('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true)->whereBetween('expiry_date', [now(), now()->addDays(30)])),
+            'unpaid' => User::with('detail')->whereHas('paymentsExpected', fn ($q) => $q->where('status', 'pending')),
+            'event' => $eventId ? User::with('detail')->whereHas('eventRegistrations', fn ($q) => $q->where('event_id', $eventId)->where('status', 'confirmed')) : User::query()->whereIn('id', []),
+            default => User::query()->whereIn('id', []),
         };
     }
 

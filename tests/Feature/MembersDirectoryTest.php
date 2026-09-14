@@ -36,6 +36,19 @@ class MembersDirectoryTest extends TestCase
         $this->assertFalse($response->viewData('members')->contains('id', $former->id));
     }
 
+    public function test_directory_links_to_the_member_facing_profile_not_the_bureau_only_one(): void
+    {
+        $viewer = $this->createMemberUser();
+        $other = $this->createMemberUser();
+
+        $response = $this->actingAs($viewer)->get(route('members.directory'))->assertOk();
+
+        // A non-bureau member must be able to actually follow the link —
+        // admin.profile.show 403s anyone without a bureau role.
+        $response->assertSee(route('members.profile', $other), false);
+        $response->assertDontSee(route('admin.profile.show', $other), false);
+    }
+
     public function test_a_crafted_status_id_cannot_reveal_former_members(): void
     {
         $current = $this->createMemberUser();

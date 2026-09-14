@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Concerns\SeedsRoles;
@@ -81,6 +82,8 @@ class AdminMemberControllerTest extends TestCase
 
     public function test_bureau_can_create_a_member_manually(): void
     {
+        MemberStatus::firstOrCreate(['slug' => 'actif'], ['name' => 'Actif']);
+
         $this->actingAs($this->admin)
             ->post(route('admin.members.store'), [
                 'first_name' => 'Jean',
@@ -95,6 +98,25 @@ class AdminMemberControllerTest extends TestCase
         $this->assertNotNull($user->email_verified_at);
         $this->assertTrue($user->hasRole('member'));
         $this->assertTrue($user->emails()->where('email', 'jean.dupont@example.com')->where('is_primary', true)->exists());
+        // Not left null (which would misread as "pending approval") — see
+        // DashboardController::new_members_unconfirmed.
+        $this->assertNotNull($user->status_id);
+        $this->assertSame('actif', $user->status?->slug);
+    }
+
+    public function test_active_only_filter_uses_isactive_not_the_literal_actif_status(): void
+    {
+        $paidUp = $this->createMemberUser();
+        $paidUp->detail->update(['cotisation_years' => [(string) now()->year]]);
+
+        $unpaid = $this->createMemberUser();
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.members.index', ['active_only' => '1']))
+            ->assertOk();
+
+        $this->assertTrue($response->viewData('members')->contains('id', $paidUp->id));
+        $this->assertFalse($response->viewData('members')->contains('id', $unpaid->id));
     }
 
     public function test_creating_a_member_requires_a_unique_email(): void

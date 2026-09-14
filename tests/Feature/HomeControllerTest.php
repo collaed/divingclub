@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Article;
 use App\Models\MemberDetail;
+use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
@@ -36,6 +38,26 @@ class HomeControllerTest extends TestCase
     public function test_home3_loads_for_guest(): void
     {
         $this->get('/home3')->assertOk();
+    }
+
+    public function test_home3_member_count_uses_the_canonical_active_definition(): void
+    {
+        Cache::forget('member_stats');
+
+        $paidUp = User::factory()->create(['status_id' => 1]);
+        MemberDetail::create(['user_id' => $paidUp->id, 'first_name' => 'P', 'last_name' => 'U', 'cotisation_years' => [(string) now()->year]]);
+
+        $unpaid = User::factory()->create(['status_id' => 1]);
+        MemberDetail::create(['user_id' => $unpaid->id, 'first_name' => 'U', 'last_name' => 'P']);
+
+        $honoraireStatus = MemberStatus::firstOrCreate(['slug' => 'honoraire'], ['name' => 'Honoraire']);
+        $honoraire = User::factory()->create(['status_id' => $honoraireStatus->id]);
+        MemberDetail::create(['user_id' => $honoraire->id, 'first_name' => 'H', 'last_name' => 'M']);
+
+        $response = $this->get(route('home3'))->assertOk();
+
+        // Paid-up + honoraire count, unpaid does not — matches User::active().
+        $response->assertSee('data-target="2"', false);
     }
 
     public function test_home4_loads_for_authenticated_user(): void

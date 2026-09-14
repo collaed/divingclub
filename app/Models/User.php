@@ -8,6 +8,7 @@ use App\Traits\Auditable;
 use Carbon\Carbon;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -237,6 +238,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isBureau();
     }
 
+    /**
+     * False only for an account still pending bureau approval — status_id is
+     * deliberately left null by SocialAuthController::createNew() until a
+     * bureau member assigns a real status. Such a viewer must not see other
+     * members' details (directory, trombinoscope, profiles).
+     */
+    public function isConfirmed(): bool
+    {
+        return $this->status_id !== null;
+    }
+
     /** @return BelongsToMany<User, $this> */
     public function guardians(): BelongsToMany
     {
@@ -251,12 +263,57 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withPivot('relationship')->withTimestamps();
     }
 
-    /** Member is active if cotisation covers the current season year. */
+    /**
+     * A season is labelled by the calendar year it ends in (e.g. "2027" for
+     * Sept 2026–Aug 2027) and spans two calendar years, so during any given
+     * calendar year Y a cotisation labelled Y (last season, still covering
+     * Jan–Aug of Y) or Y+1 (this season, started Sept of Y) is valid proof
+     * of current standing. On 1 Jan, Y itself advances, sliding the window
+     * forward — which is what marks last season's non-payers lapsed. See
+     * isActive().
+     *
+     * @return list<string>
+     */
+    public static function validCotisationYearLabels(): array
+    {
+        $year = (int) now()->year;
+
+        return [(string) $year, (string) ($year + 1)];
+    }
+
+    /**
+     * Member is in good standing: cotisation covers a currently-valid season
+     * label, or they're honoraire (exempt from ever paying again). This is
+     * the single definition of "active member" — see
+     * EmailController::resolveGroup() and MemberExportService for the
+     * query/column equivalents.
+     */
     public function isActive(): bool
     {
-        $currentYear = (int) (now()->month >= 9 ? now()->year + 1 : now()->year);
+        if ($this->status?->slug === 'honoraire') {
+            return true;
+        }
 
-        return in_array($currentYear, $this->detail?->cotisation_years ?? []);
+        return array_intersect(self::validCotisationYearLabels(), $this->detail?->cotisation_years ?? []) !== [];
+    }
+
+    /**
+     * Query equivalent of isActive(): honoraire, or cotisation covers a
+     * currently-valid season label.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeActive(Builder $query): void
+    {
+        $query->where(fn ($q) => $q
+            ->whereHas('status', fn ($s) => $s->where('slug', 'honoraire'))
+            ->orWhereHas('detail', function ($d): void {
+                $d->where(function ($d2): void {
+                    foreach (self::validCotisationYearLabels() as $label) {
+                        $d2->orWhereJsonContains('cotisation_years', $label);
+                    }
+                });
+            }));
     }
 
     public function isMinor(): bool

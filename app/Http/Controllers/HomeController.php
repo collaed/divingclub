@@ -22,6 +22,7 @@ use App\Models\Event;
 use App\Models\EventPhoto;
 use App\Models\ExternalRegistration;
 use App\Models\MemberDetail;
+use App\Models\User;
 use App\Services\ArticleTranslationService;
 use App\Services\ThemeService;
 use Illuminate\Contracts\View\View;
@@ -262,13 +263,9 @@ class HomeController extends Controller
     private function memberStats(): array
     {
         return Cache::remember('member_stats', 3600, function (): array {
-            // Active members: have a status set and have paid for either the
-            // current season year or the current calendar year.
-            $seasonYear = (string) (now()->month >= 9 ? now()->year + 1 : now()->year);
-            $calendarYear = (string) now()->year;
-            $details = MemberDetail::whereHas('user', fn ($q) => $q->whereNotNull('status_id')
-                ->where(fn ($u) => $u->whereJsonContains('cotisation_years', $seasonYear)
-                    ->orWhereJsonContains('cotisation_years', $calendarYear)))->get();
+            // Same "active member" definition used everywhere else — see
+            // User::isActive()/scopeActive().
+            $details = MemberDetail::whereIn('user_id', User::active()->pluck('id'))->get();
 
             return [
                 'total' => $details->count(),

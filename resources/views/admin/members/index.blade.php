@@ -38,6 +38,12 @@
             </div>
         </div>
         <div class="col-md-1 text-end"></div>
+        <div class="col-md-3">
+            <div class="form-check mt-2">
+                <input type="checkbox" name="active_only" value="1" id="activeOnlyToggle" class="form-check-input" data-autosubmit {{ request()->boolean('active_only') ? 'checked' : '' }}>
+                <label class="form-check-label small" for="activeOnlyToggle">{{ __('Active only (paid this season or honoraire — not the "Actif" status)') }}</label>
+            </div>
+        </div>
         <div class="col-md-3 text-end">
             <div class="dropdown d-inline">
                 <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown">@icon('🏥') {{ __('Medical Export') }}</button>

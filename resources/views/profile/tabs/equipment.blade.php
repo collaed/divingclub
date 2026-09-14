@@ -4,7 +4,10 @@
     $d = $target->detail;
 @endphp
 
-{{-- Sizing preferences --}}
+{{-- Sizing preferences — editable by the member themselves or bureau; an
+     instructor can view this tab but the update endpoint would reject their
+     submission, so don't show a form that can't work for them. --}}
+@if($isBureau || $viewer->id === $target->id)
 <div class="card dc-card mb-4">
     <div class="card-header"><h6 class="mb-0">{{ __('Sizing') }}</h6></div>
     <div class="card-body">
@@ -45,6 +48,7 @@
         </form>
     </div>
 </div>
+@endif
 
 <h6>{{ __('Equipment Currently on Loan') }}</h6>
 @if($loans->count())

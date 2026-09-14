@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Document;
 use App\Models\Federation;
 use App\Models\MemberDetail;
 use App\Models\MemberLicence;
@@ -93,6 +94,39 @@ class MemberExportTest extends TestCase
         DB::disableQueryLog();
 
         $this->assertSame(1, $licenceQueries);
+    }
+
+    public function test_medical_cert_lifecycle_dates_come_from_the_current_document(): void
+    {
+        $user = $this->member();
+        Document::create([
+            'user_id' => $user->id, 'category' => 'medical', 'is_current' => false,
+            'file_path' => 'documents/old.pdf', 'original_filename' => 'old.pdf',
+            'mime_type' => 'application/pdf', 'size_bytes' => 1, 'verified_at' => '2025-01-02',
+        ])->forceFill(['created_at' => '2025-01-01'])->save();
+        $current = Document::create([
+            'user_id' => $user->id, 'category' => 'medical', 'is_current' => true,
+            'file_path' => 'documents/current.pdf', 'original_filename' => 'current.pdf',
+            'mime_type' => 'application/pdf', 'size_bytes' => 1, 'date_established' => '2026-02-01',
+        ]);
+        $current->forceFill(['created_at' => '2026-02-05'])->save();
+
+        $data = app(MemberExportService::class)->build();
+
+        $this->assertContains('Medical Cert Submitted', $data['headers']);
+        $this->assertContains('Medical Cert Established', $data['headers']);
+        $this->assertContains('Medical Cert Verified At', $data['headers']);
+        $this->assertContains('Medical Cert Rejected At', $data['headers']);
+
+        $submittedIdx = array_search('Medical Cert Submitted', $data['headers'], true);
+        $establishedIdx = array_search('Medical Cert Established', $data['headers'], true);
+        $verifiedIdx = array_search('Medical Cert Verified At', $data['headers'], true);
+
+        $this->assertSame($current->created_at->format('Y-m-d'), $data['rows'][0][$submittedIdx]);
+        $this->assertSame('2026-02-01', $data['rows'][0][$establishedIdx]);
+        // The current (latest-submitted) document is unverified — the earlier,
+        // superseded one's verified_at must not leak into this row.
+        $this->assertNull($data['rows'][0][$verifiedIdx]);
     }
 
     private function member(string $role = 'member'): User

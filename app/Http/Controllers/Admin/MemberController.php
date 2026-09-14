@@ -61,6 +61,12 @@ class MemberController extends Controller
                 $query->role($roleName);
             }
         }
+        if ($request->boolean('active_only')) {
+            // Same "in good standing" definition as the Send Email tool's
+            // Active Members group — cotisation paid this season, or
+            // honoraire — not the literal (near-empty) "Actif" status row.
+            $query->active();
+        }
 
         $sortable = ['id' => 'users.id', 'email' => 'primary_email', 'name' => 'primary_email'];
         $sort = $sortable[$request->get('sort')] ?? 'users.id';
@@ -101,7 +107,7 @@ class MemberController extends Controller
                 'primary_email' => $v['email'],
                 'password' => Str::random(40),
                 'role_id' => $memberRoleId,
-                'status_id' => $v['status_id'] ?? MemberStatus::where('slug', 'active')->value('id'),
+                'status_id' => $v['status_id'] ?? MemberStatus::where('slug', 'actif')->value('id'),
                 'email_verified_at' => now(),
             ]);
             $user->assignRole('member');

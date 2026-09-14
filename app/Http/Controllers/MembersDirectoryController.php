@@ -17,6 +17,9 @@ class MembersDirectoryController extends Controller
 
     public function directory(Request $request): View|Response
     {
+        // Pending-approval accounts must not see other members' details.
+        abort_unless(auth()->user()->isConfirmed(), 403);
+
         // Member-facing directory: former/inactive members are never shown
         // here (this is not a filter that can be turned off — the admin
         // roster is the place to look up former members). Unconditional, so
@@ -82,6 +85,8 @@ class MembersDirectoryController extends Controller
 
     public function trombinoscope(): View
     {
+        abort_unless(auth()->user()->isConfirmed(), 403);
+
         $inactiveIds = MemberStatus::inactiveIds();
 
         $members = User::with('detail')
