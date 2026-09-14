@@ -31,7 +31,12 @@ class GdprErasureTest extends TestCase
             'confirm' => '1',
         ])->assertRedirect('/')->assertSessionDoesntHaveErrors();
 
-        $this->assertSame('ERASED', $user->fresh()->detail->first_name);
+        // Soft-deleted, not merely anonymized — see MemberController::index()'s
+        // "erased" toggle and the purge action in TrashController::forceDelete().
+        $reloaded = User::withTrashed()->with('detail')->find($user->id);
+        $this->assertNotNull($reloaded->deleted_at);
+        $this->assertSame('ERASED', $reloaded->detail->first_name);
+        $this->assertFalse(User::whereKey($user->id)->exists());
     }
 
     public function test_a_regular_account_still_needs_its_password_to_erase(): void

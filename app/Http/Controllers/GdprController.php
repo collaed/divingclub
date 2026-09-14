@@ -121,6 +121,13 @@ class GdprController extends Controller
             'created_at' => now(),
         ]);
 
+        // Soft-delete so the erased account drops out of the normal member
+        // list entirely — bureau_master can still find and permanently purge
+        // it via the admin Members list's "Show erased" toggle. Not touching
+        // MemberDetail: member_details.user_id already cascades on delete,
+        // and leaving it un-trashed keeps $user->detail readable afterward.
+        $user->delete();
+
         auth()->logout();
 
         return redirect('/')->with('success', __('Your data has been erased.'));

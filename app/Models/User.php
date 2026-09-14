@@ -37,6 +37,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $last_seen_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read MemberDetail|null $detail
  * @property-read MemberStatus|null $status
  * @property-read StatusSet|null $statusSet

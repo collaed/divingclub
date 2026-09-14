@@ -40,8 +40,14 @@
         <div class="col-md-1 text-end"></div>
         <div class="col-md-3">
             <div class="form-check mt-2">
-                <input type="checkbox" name="active_only" value="1" id="activeOnlyToggle" class="form-check-input" data-autosubmit {{ request()->boolean('active_only') ? 'checked' : '' }}>
+                <input type="checkbox" name="active_only" value="1" id="activeOnlyToggle" class="form-check-input" data-autosubmit {{ request()->boolean('active_only') ? 'checked' : '' }} {{ $erased ? 'disabled' : '' }}>
                 <label class="form-check-label small" for="activeOnlyToggle">{{ __('Active only (paid this season or honoraire — not the "Actif" status)') }}</label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check mt-2">
+                <input type="checkbox" name="erased" value="1" id="erasedToggle" class="form-check-input" data-autosubmit {{ $erased ? 'checked' : '' }}>
+                <label class="form-check-label small text-danger" for="erasedToggle">{{ __('Show erased (GDPR-deleted) members only') }}</label>
             </div>
         </div>
         <div class="col-md-3 text-end">
@@ -63,6 +69,40 @@
         </div>
     </form>
 
+    @if($erased)
+    <x-table id="table-members" class="table-hover">
+            <thead>
+                <tr>
+                    <th><x-sortable-th column="id" label="#" /></th>
+                    <th>{{ __('Email (anonymized)') }}</th>
+                    <th>{{ __('Erased on') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($members as $m)
+                    <tr>
+                        <td class="text-muted small">{{ $m->id }}</td>
+                        <td class="text-muted">{{ $m->primary_email }}</td>
+                        <td class="text-muted small">{{ $m->deleted_at?->format('d/m/Y H:i') }}</td>
+                        <td class="text-end">
+                            @if(auth()->user()?->hasRole('bureau_master'))
+                                <form method="POST" action="{{ route('admin.trash.force-delete', ['kind' => 'members', 'id' => $m->id]) }}" class="d-inline"
+                                      data-confirm="{{ __('Permanently purge this erased member? This cannot be undone.') }}" data-confirm-btn="{{ __('Purge') }}" data-confirm-style="danger">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger">@icon('🗑️') {{ __('Purge') }}</button>
+                                </form>
+                            @else
+                                <span class="text-muted small">{{ __('bureau_master only') }}</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="4" class="text-muted text-center py-4">{{ __('No erased members.') }}</td></tr>
+                @endforelse
+            </tbody>
+    </x-table>
+    @else
     <x-table id="table-members" class="table-hover">
             <thead>
                 <tr>
@@ -129,6 +169,7 @@
                 @endforeach
             </tbody>
     </x-table>
+    @endif
 
     <div class="d-flex justify-content-between align-items-center">
         <x-per-page :current="request('per_page', 25)" />
@@ -143,11 +184,11 @@
 (function () {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    // Auto-submit the historic toggle.
-    const historic = document.getElementById('historicToggle');
-    if (historic) {
-        historic.addEventListener('change', function () { historic.form.submit(); });
-    }
+    // Auto-submit any [data-autosubmit] checkbox in this filter form (historic,
+    // active-only, erased) — was previously only wired for #historicToggle.
+    document.querySelectorAll('[data-autosubmit]').forEach(function (el) {
+        el.addEventListener('change', function () { el.form.submit(); });
+    });
 
     const table = document.getElementById('table-members');
     if (!table || !csrf) return;

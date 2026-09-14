@@ -29,6 +29,25 @@ class MemberController extends Controller
 
     public function index(Request $request): RedirectResponse|View
     {
+        // GDPR-erased accounts are soft-deleted (see GdprController::confirmErasure())
+        // and excluded from the normal listing entirely — this is a dedicated view
+        // onto just those, so bureau_master can permanently purge them.
+        if ($request->boolean('erased')) {
+            $members = User::onlyTrashed()
+                ->where('primary_email', 'like', 'erased-%@erased.local')
+                ->orderByDesc('deleted_at')
+                ->paginate($this->perPage(25))->withQueryString();
+
+            return view('admin.members.index', [
+                'members' => $members,
+                'erased' => true,
+                'historic' => false,
+                'statuses' => MemberStatus::orderBy('name')->get(),
+                'statusSets' => StatusSet::with('statuses:id')->orderBy('name')->get(),
+                'roles' => Role::orderBy('name')->get(),
+            ]);
+        }
+
         $query = User::with(['detail', 'roles', 'status', 'statusSet']);
 
         // Default listing hides inactive (former) members. The bureau-only
@@ -77,7 +96,7 @@ class MemberController extends Controller
         $statusSets = StatusSet::with('statuses:id')->orderBy('name')->get();
         $roles = Role::orderBy('name')->get();
 
-        return view('admin.members.index', compact('members', 'statuses', 'statusSets', 'roles', 'historic'));
+        return view('admin.members.index', compact('members', 'statuses', 'statusSets', 'roles', 'historic') + ['erased' => false]);
     }
 
     /**

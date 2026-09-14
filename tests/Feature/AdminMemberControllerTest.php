@@ -132,6 +132,56 @@ class AdminMemberControllerTest extends TestCase
             ->assertSessionHasErrors('email');
     }
 
+    public function test_erased_members_are_hidden_from_the_normal_list_but_shown_in_the_erased_view(): void
+    {
+        $visible = $this->createMemberUser();
+        $erased = $this->erasedMemberUser();
+
+        $normal = $this->actingAs($this->admin)->get(route('admin.members.index'))->assertOk();
+        $this->assertTrue($normal->viewData('members')->contains('id', $visible->id));
+        $this->assertFalse($normal->viewData('members')->contains('id', $erased->id));
+
+        $erasedView = $this->actingAs($this->admin)->get(route('admin.members.index', ['erased' => '1']))->assertOk();
+        $this->assertFalse($erasedView->viewData('members')->contains('id', $visible->id));
+        $this->assertTrue($erasedView->viewData('members')->contains('id', $erased->id));
+    }
+
+    public function test_bureau_master_can_purge_an_erased_member(): void
+    {
+        $erased = $this->erasedMemberUser();
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.trash.force-delete', ['kind' => 'members', 'id' => $erased->id]))
+            ->assertRedirect();
+
+        $this->assertFalse(User::withTrashed()->whereKey($erased->id)->exists());
+    }
+
+    public function test_bureau_finance_cannot_purge_an_erased_member(): void
+    {
+        $finance = $this->createBureauUser();
+        $finance->syncRoles(['bureau_finance']);
+
+        $erased = $this->erasedMemberUser();
+
+        $this->actingAs($finance)
+            ->delete(route('admin.trash.force-delete', ['kind' => 'members', 'id' => $erased->id]))
+            ->assertForbidden();
+
+        $this->assertTrue(User::withTrashed()->whereKey($erased->id)->exists());
+    }
+
+    private function erasedMemberUser(): User
+    {
+        $user = $this->createMemberUser();
+        $user->detail->update(['first_name' => 'ERASED', 'last_name' => 'ERASED']);
+        $user->update(['primary_email' => "erased-{$user->id}@erased.local"]);
+        $user->detail->delete();
+        $user->delete();
+
+        return $user;
+    }
+
     public function test_a_regular_member_cannot_create_a_member(): void
     {
         $this->actingAs($this->createMemberUser())
