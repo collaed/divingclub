@@ -96,14 +96,21 @@ class DocumentDispatchController extends Controller
             'recipient_summary' => trans_choice('{1}:count recipient|[2,*]:count recipients', $recipients->count(), ['count' => $recipients->count()]),
         ]);
 
-        foreach ($recipients as $user) {
+        // Staggered by 150ms/recipient (~6-7/sec) so a large batch never
+        // outruns the mail provider's per-second rate limit — the job itself
+        // swallows send exceptions into send_error with no retry, so a
+        // rate-limit rejection here would otherwise be a silent, permanent
+        // failure for that recipient.
+        foreach ($recipients as $index => $user) {
             $recipient = DocumentDispatchRecipient::create([
                 'dispatch_id' => $dispatch->id,
                 'user_id' => $user->id,
                 'email' => $user->primary_email,
                 'token' => Str::random(40),
             ]);
-            SendTrackedDocumentEmail::dispatch($recipient->id)->afterCommit();
+            SendTrackedDocumentEmail::dispatch($recipient->id)
+                ->afterCommit()
+                ->delay(now()->addMilliseconds($index * 150));
         }
 
         return redirect()->route('admin.document-dispatch.show', $dispatch)
