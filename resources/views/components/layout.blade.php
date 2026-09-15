@@ -551,6 +551,22 @@
     })();
     </script>
     <script>
+    (function(){
+        // Upgrade every local-time span from its server-rendered (app
+        // timezone) fallback to the viewer's own browser locale/timezone —
+        // Intl.DateTimeFormat with no timeZone option defaults to the
+        // browser's local zone.
+        document.querySelectorAll('[data-local-datetime]').forEach(function(el){
+            var d = new Date(el.dataset.localDatetime);
+            if (isNaN(d.getTime())) return;
+            var opts = el.dataset.localDateOnly === '1'
+                ? {year:'numeric',month:'2-digit',day:'2-digit'}
+                : {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'};
+            el.textContent = new Intl.DateTimeFormat(navigator.language, opts).format(d);
+        });
+    })();
+    </script>
+    <script>
     function dcToast(msg, type) {
         var c = document.getElementById('toastContainer');
         if (!c) return;

@@ -84,7 +84,7 @@
                     <tr>
                         <td class="text-muted small">{{ $m->id }}</td>
                         <td class="text-muted">{{ $m->primary_email }}</td>
-                        <td class="text-muted small">{{ $m->deleted_at?->format('d/m/Y H:i') }}</td>
+                        <td class="text-muted small"><x-local-time :at="$m->deleted_at" /></td>
                         <td class="text-end">
                             @if(auth()->user()?->hasRole('bureau_master'))
                                 <form method="POST" action="{{ route('admin.trash.force-delete', ['kind' => 'members', 'id' => $m->id]) }}" class="d-inline"
