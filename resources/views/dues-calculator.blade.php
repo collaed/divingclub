@@ -6,6 +6,8 @@
                 <div class="card-body" data-dues-body>
                     <p class="text-muted">{{ __('Calculate your membership dues and get the payment communication string for your bank transfer.') }}</p>
 
+                    <p><a href="{{ route('article.show', 'inscription-cep') }}">📋 {{ __('New member? Read the full registration & fees details first') }}</a></p>
+
                     @if($isGuest)
                         <div class="alert alert-info py-2">
                             <a href="{{ route('login') }}">{{ __('Log in') }}</a> {{ __('to pre-fill your details and commit to a payment.') }}
