@@ -75,6 +75,7 @@ class DashboardController extends Controller
             'missing_iban' => User::whereHas('detail', fn ($q) => $q->whereNull('iban'))->where($currentStatus)->count(),
             'new_members_unconfirmed' => User::whereNull('status_id')->whereNotNull('email_verified_at')->count(),
             'birthdays_14d' => MemberDetail::whereNotNull('date_of_birth')
+                ->whereIn('user_id', User::active()->pluck('id'))
                 ->whereBetween(
                     \DB::raw(config('database.default') === 'pgsql'
                         ? 'EXTRACT(DOY FROM date_of_birth)'
@@ -158,6 +159,7 @@ class DashboardController extends Controller
                 ->whereDoesntHave('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FLASSA')))
                 ->pluck('id')->toArray(),
             'birthdays' => MemberDetail::whereNotNull('date_of_birth')
+                ->whereIn('user_id', User::active()->pluck('id'))
                 ->get()->filter(fn ($d) => $d->date_of_birth->isBirthday() || ($d->date_of_birth->copy()->year(now()->year)->between(now(), now()->addDays(14))))
                 ->pluck('user_id')->toArray(),
             'no_medical' => User::whereDoesntHave('documents', fn ($q) => $q->where('category', 'medical')->where('is_current', true))
