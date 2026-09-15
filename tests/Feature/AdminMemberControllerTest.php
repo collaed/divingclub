@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -155,6 +156,28 @@ class AdminMemberControllerTest extends TestCase
             ->assertRedirect();
 
         $this->assertFalse(User::withTrashed()->whereKey($erased->id)->exists());
+    }
+
+    public function test_purging_a_member_with_audit_log_entries_does_not_violate_the_foreign_key(): void
+    {
+        // The erasure itself is audit-logged (see GdprController::confirmErasure()),
+        // so a real erased member always has at least one audit_logs row
+        // referencing them — that FK must not block the later hard-delete.
+        $erased = $this->erasedMemberUser();
+        $log = AuditLog::create([
+            'user_id' => $erased->id,
+            'action' => 'gdpr.erasure',
+            'model_type' => User::class,
+            'model_id' => $erased->id,
+            'created_at' => now(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.trash.force-delete', ['kind' => 'members', 'id' => $erased->id]))
+            ->assertRedirect();
+
+        $this->assertFalse(User::withTrashed()->whereKey($erased->id)->exists());
+        $this->assertNull($log->fresh()->user_id);
     }
 
     public function test_bureau_finance_cannot_purge_an_erased_member(): void
