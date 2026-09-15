@@ -19,7 +19,7 @@ class SendTrackedDocumentEmail implements ShouldQueue
 
     public function handle(): void
     {
-        $recipient = DocumentDispatchRecipient::with('dispatch.file')->find($this->recipientId);
+        $recipient = DocumentDispatchRecipient::with('dispatch.file', 'user.emails')->find($this->recipientId);
         if (! $recipient || $recipient->sent_at !== null) {
             return;
         }
@@ -31,12 +31,35 @@ class SendTrackedDocumentEmail implements ShouldQueue
                 'url' => $url,
             ])->render();
 
-            Mail::html($html, fn ($m) => $m->to($recipient->email)->subject($recipient->dispatch->subject));
+            Mail::html($html, fn ($m) => $m->to($this->addressesFor($recipient))->subject($recipient->dispatch->subject));
 
             $recipient->update(['sent_at' => now(), 'send_error' => null]);
         } catch (Throwable $e) {
             $recipient->update(['send_error' => mb_substr($e->getMessage(), 0, 250)]);
             report($e);
         }
+    }
+
+    /**
+     * Every address this member wants club communication at — the stored
+     * primary plus any verified secondary marked "communicate here as well"
+     * (UserEmail::receive_mail) — sent as one message with one tracking
+     * token, so it counts as a single send and an open registers against the
+     * member regardless of which mailbox they opened it from.
+     *
+     * @return list<string>
+     */
+    private function addressesFor(DocumentDispatchRecipient $recipient): array
+    {
+        $extra = $recipient->user?->emails
+            ->where('is_verified', true)
+            ->where('receive_mail', true)
+            ->pluck('email') ?? collect();
+
+        return $extra->push($recipient->email)
+            ->map(fn ($email): string => mb_strtolower($email))
+            ->unique()
+            ->values()
+            ->all();
     }
 }
