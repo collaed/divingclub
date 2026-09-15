@@ -38,16 +38,37 @@ class MailBalancer
     {
         $counts = static::todayCounts();
 
-        $available = array_filter(self::LIMITS, fn ($limit, $provider) => ($counts[$provider] ?? 0) < $limit, ARRAY_FILTER_USE_BOTH);
+        $available = array_filter(
+            self::LIMITS,
+            fn ($limit, $provider) => ($counts[$provider] ?? 0) < $limit && self::isConfigured($provider),
+            ARRAY_FILTER_USE_BOTH
+        );
 
         if ($available === []) {
-            // All exhausted — use mailjet anyway (most generous)
+            // All exhausted (or unconfigured) — use mailjet anyway (local
+            // Postfix relay, needs no API key, so always sendable).
             return 'mailjet';
         }
 
         uksort($available, fn ($a, $b) => $counts[$a] <=> $counts[$b]);
 
         return array_key_first($available);
+    }
+
+    /**
+     * Whether a provider actually has the credentials to send, not just
+     * remaining daily capacity — an API-based provider with no key
+     * configured would otherwise get picked in rotation and fail every send
+     * (including synchronous ones like password reset) with a 401.
+     */
+    private static function isConfigured(string $provider): bool
+    {
+        return match ($provider) {
+            'resend_primary' => (bool) config('services.resend.key'),
+            'resend_secondary' => (bool) config('services.resend.key_secondary'),
+            'brevo' => (bool) config('services.brevo.key'),
+            default => true, // mailjet: local Postfix relay, no API key needed
+        };
     }
 
     /** Record a send for a provider. */

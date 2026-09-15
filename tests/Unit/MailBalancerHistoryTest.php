@@ -16,6 +16,21 @@ class MailBalancerHistoryTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Rotation only considers a provider "available" if it's actually
+        // configured (see isConfigured()) — fake credentials here so these
+        // tests can exercise the full 4-provider rotation regardless of
+        // what's set in the real environment.
+        config([
+            'services.resend.key' => 'test-resend-primary-key',
+            'services.resend.key_secondary' => 'test-resend-secondary-key',
+            'services.brevo.key' => 'test-brevo-key',
+        ]);
+    }
+
     public function test_record_send_persists_a_durable_row_per_provider_per_day(): void
     {
         MailBalancer::recordSend('resend_primary');
@@ -90,6 +105,24 @@ class MailBalancerHistoryTest extends TestCase
 
         // resend_secondary is exhausted throughout, so it never appears.
         $this->assertSame(['resend_primary', 'mailjet', 'brevo', 'resend_primary'], $picks);
+    }
+
+    public function test_next_provider_skips_a_provider_with_no_credentials_configured(): void
+    {
+        // Missing BREVO_API_KEY in production sent a real password-reset
+        // notification to a 401 TransportException (2026-09-15) once
+        // rotation actually reached it — nextProvider() must never pick a
+        // provider it can't authenticate with, even with full capacity left.
+        config(['services.brevo.key' => null]);
+
+        $picks = [];
+        for ($i = 0; $i < 4; $i++) {
+            $provider = MailBalancer::nextProvider();
+            $picks[] = $provider;
+            MailBalancer::recordSend($provider);
+        }
+
+        $this->assertNotContains('brevo', $picks);
     }
 
     public function test_rotation_survives_a_cache_flush(): void
