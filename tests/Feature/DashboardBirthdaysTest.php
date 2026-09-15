@@ -21,7 +21,7 @@ class DashboardBirthdaysTest extends TestCase
         $this->seedRoles();
     }
 
-    public function test_birthdays_next_2_weeks_only_counts_active_members(): void
+    public function test_upcoming_birthdays_only_counts_active_members(): void
     {
         $birthday = now()->addDays(5);
 
@@ -33,9 +33,9 @@ class DashboardBirthdaysTest extends TestCase
 
         $bureau = $this->createBureauUser();
 
-        $worklist = $this->actingAs($bureau)->get('/admin/dashboard')->assertOk()->viewData('worklist');
+        $stats = $this->actingAs($bureau)->get('/admin/dashboard')->assertOk()->viewData('stats');
 
-        $this->assertTrue($worklist['birthdays_14d']->contains('user_id', $active->id));
-        $this->assertFalse($worklist['birthdays_14d']->contains('user_id', $lapsed->id));
+        $this->assertTrue($stats['upcoming_birthdays']->contains('user_id', $active->id));
+        $this->assertFalse($stats['upcoming_birthdays']->contains('user_id', $lapsed->id));
     }
 }

@@ -27,7 +27,7 @@
         <div class="col-md-3"><div class="card dc-card dc-stat-card"><div class="dc-stat-value">{{ $stats['equipment_by_status']->sum() }}</div><div class="dc-stat-label">{{ __('Equipment Items') }}</div></div></div>
     </div>
 
-    @php $worklistCount = collect($worklist)->reject(fn($v) => $v instanceof \Illuminate\Support\Collection || $v instanceof \Illuminate\Database\Eloquent\Collection)->sum() + ($worklist['birthdays_14d']->count()); @endphp
+    @php $worklistCount = collect($worklist)->reject(fn($v) => $v instanceof \Illuminate\Support\Collection || $v instanceof \Illuminate\Database\Eloquent\Collection)->sum(); @endphp
     @if($worklistCount > 0)
     <div class="card dc-card mb-4 border-warning">
         <div class="card-header bg-warning bg-opacity-10">@icon('📋') {{ __('Bureau Worklist') }}</div>
@@ -66,24 +66,16 @@
             @endif
             @if($worklist['pending_flassa'] > 0)
                 <a href="{{ route('admin.worklist-browse', 'flassa') }}" class="list-group-item list-group-item-action d-flex justify-content-between">🏊 {{ __('Members pending FLASSA enrolment') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_flassa'] }}</span></a>
-            @endif            @if($worklist['birthdays_14d']->count() > 0)
+            @endif
             @if($worklist['pending_comms'] > 0)
                 <a href="{{ route('admin.email.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">📧 {{ __('Event communications pending review') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_comms'] }}</span></a>
-            @endif                <div class="list-group-item">
-                    @icon('🎂') {{ __('Birthdays next 2 weeks') }}
-                    <ul class="mb-0 mt-1 small">
-                        @foreach($worklist['birthdays_14d'] as $bd)
-                            <li>{{ $bd->first_name }} {{ $bd->last_name }} — {{ $bd->date_of_birth->format('d/m') }}</li>
-                        @endforeach
-                    </ul>
-                </div>
             @endif
         </div>
     </div>
     @endif
 
     <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card dc-card">
                 <div class="card-header">{{ __('Members by Status') }}</div>
                 <div class="card-body">
@@ -91,7 +83,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card dc-card">
                 <div class="card-header">{{ __('Equipment by Status') }}</div>
                 <div class="card-body">
