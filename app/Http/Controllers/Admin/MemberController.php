@@ -31,8 +31,16 @@ class MemberController extends Controller
     {
         // GDPR-erased accounts are soft-deleted (see GdprController::confirmErasure())
         // and excluded from the normal listing entirely — this is a dedicated view
-        // onto just those, so bureau_master can permanently purge them.
+        // onto just those, so bureau_master can permanently purge them. Backfill any
+        // erasure done before soft-deleting was added here — those just anonymized
+        // the row in place and left deleted_at null — so every erased account ends
+        // up soft-deleted and reachable by TrashController::forceDelete() (which
+        // only looks at already-trashed rows), not just the ones erased since.
         if ($request->boolean('erased')) {
+            User::whereNull('deleted_at')
+                ->where('primary_email', 'like', 'erased-%@erased.local')
+                ->update(['deleted_at' => now()]);
+
             $members = User::onlyTrashed()
                 ->where('primary_email', 'like', 'erased-%@erased.local')
                 ->orderByDesc('deleted_at')

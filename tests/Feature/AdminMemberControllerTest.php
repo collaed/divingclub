@@ -171,6 +171,25 @@ class AdminMemberControllerTest extends TestCase
         $this->assertTrue(User::withTrashed()->whereKey($erased->id)->exists());
     }
 
+    public function test_a_legacy_erasure_with_no_soft_delete_is_backfilled_and_purgeable(): void
+    {
+        // Erasures done before soft-deleting was added to GdprController just
+        // anonymized the row in place — deleted_at stayed null.
+        $legacy = $this->createMemberUser();
+        $legacy->detail->update(['first_name' => 'ERASED', 'last_name' => 'ERASED']);
+        $legacy->update(['primary_email' => "erased-{$legacy->id}@erased.local"]);
+        $this->assertNull($legacy->fresh()->deleted_at);
+
+        $erasedView = $this->actingAs($this->admin)->get(route('admin.members.index', ['erased' => '1']))->assertOk();
+        $this->assertTrue($erasedView->viewData('members')->contains('id', $legacy->id));
+        $this->assertNotNull($legacy->fresh()->deleted_at);
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.trash.force-delete', ['kind' => 'members', 'id' => $legacy->id]))
+            ->assertRedirect();
+        $this->assertFalse(User::withTrashed()->whereKey($legacy->id)->exists());
+    }
+
     private function erasedMemberUser(): User
     {
         $user = $this->createMemberUser();
