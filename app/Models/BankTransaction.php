@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $counterparty
  * @property int|null $matched_payment_id
  * @property string|null $match_score
+ * @property string|null $match_reason
  * @property string|null $status
  * @property string|null $statement_ref
  * @property string|null $confirmed_by
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class BankTransaction extends Model
 {
-    protected $fillable = ['transaction_date', 'amount', 'communication', 'counterparty', 'matched_payment_id', 'match_score', 'status', 'statement_ref', 'confirmed_by'];
+    protected $fillable = ['transaction_date', 'amount', 'communication', 'counterparty', 'matched_payment_id', 'match_score', 'match_reason', 'status', 'statement_ref', 'confirmed_by'];
 
     protected function casts(): array
     {

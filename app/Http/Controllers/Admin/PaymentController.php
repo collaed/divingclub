@@ -10,6 +10,7 @@ use App\Http\Requests\StoreFeeComponentRequest;
 use App\Http\Requests\UpdateFeeComponentRequest;
 use App\Models\BankTransaction;
 use App\Models\MembershipFeeComponent;
+use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
 use App\Models\User;
 use App\Services\BankReconciliationService;
@@ -118,7 +119,10 @@ class PaymentController extends Controller
         $season = $request->get('season', date('Y'));
         $svc = app(FeeCalculationService::class);
 
-        $users = User::whereHas('status', fn ($q) => $q->where('slug', 'actif'))
+        // Billable this season: current status (not lapsed), excluding
+        // honoraire members, who are exempt from cotisation for life.
+        $users = User::where(fn ($q) => $q->whereNull('status_id')->orWhereNotIn('status_id', MemberStatus::inactiveIds()->all()))
+            ->whereDoesntHave('status', fn ($q) => $q->where('slug', 'honoraire'))
             ->whereDoesntHave('paymentsExpected', fn ($q) => $q->where('type', 'membership')->where('season_year', $season))
             ->get();
 
@@ -190,9 +194,18 @@ class PaymentController extends Controller
 
     public function suggestMatches(): RedirectResponse
     {
-        $matches = app(BankReconciliationService::class)->suggestMatches();
+        $svc = app(BankReconciliationService::class);
+        $ruleMatches = $svc->suggestMatches();
+        // Whatever the rule-based pass couldn't resolve (typos, abbreviated
+        // or missing references) goes to Cloudflare Workers AI — still only
+        // ever "suggested", never auto-confirmed.
+        $aiMatches = $svc->aiMatchRemaining();
 
-        return back()->with('success', __(':count matches suggested — please review and confirm.', ['count' => count($matches)]));
+        return back()->with('success', __(':count matches suggested (:rule by rule, :ai by AI) — please review and confirm.', [
+            'count' => count($ruleMatches) + count($aiMatches),
+            'rule' => count($ruleMatches),
+            'ai' => count($aiMatches),
+        ]));
     }
 
     public function confirmMatch(BankTransaction $transaction): RedirectResponse

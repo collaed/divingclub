@@ -52,7 +52,11 @@
                     <td>€{{ number_format($tx->amount, 2) }}</td>
                     <td class="small">{{ Str::limit($tx->communication, 40) }}</td>
                     <td class="small">{{ $tx->matchedPayment?->user?->name }}</td>
-                    <td>{{ $tx->match_score ? $tx->match_score . '%' : '' }}</td>
+                    <td>
+                        @if($tx->match_score)
+                            <span @if($tx->match_reason) title="{{ $tx->match_reason }}" style="cursor:help" @endif>{{ $tx->match_score }}%{{ $tx->match_reason ? ' 🤖' : '' }}</span>
+                        @endif
+                    </td>
                     <td><span class="badge bg-{{ $tx->status === 'confirmed' ? 'success' : ($tx->status === 'suggested' ? 'warning text-dark' : 'secondary') }}">{{ ucfirst($tx->status) }}</span></td>
                     <td>
                         @if($tx->status === 'suggested')

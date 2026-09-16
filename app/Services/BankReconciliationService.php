@@ -7,6 +7,9 @@ namespace App\Services;
 use App\Models\BankTransaction;
 use App\Models\ExternalRegistration;
 use App\Models\PaymentExpected;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class BankReconciliationService
 {
@@ -118,7 +121,10 @@ class BankReconciliationService
     }
 
     /**
-     * Auto-match unmatched transactions against pending payments using fuzzy communication match.
+     * First pass: rule-based match on communication text, amount, name, and
+     * IBAN (see matchScore()) — a communication that contains a payment's
+     * exact reference already scores above the threshold alone, so this
+     * covers the "exact line" cases without needing AI.
      */
     public function suggestMatches(): array
     {
@@ -145,6 +151,122 @@ class BankReconciliationService
         }
 
         return $matches;
+    }
+
+    /**
+     * Second pass, for whatever suggestMatches() couldn't resolve on rules
+     * alone (typos, abbreviated or missing references, generic transfer
+     * text) — sends both remaining lists to Cloudflare Workers AI in one
+     * call and asks it to propose matches. Every result still lands as
+     * status 'suggested', exactly like the rule-based pass: nothing here
+     * ever marks a payment paid on its own, a bureau member always
+     * confirms via the existing review screen.
+     */
+    public function aiMatchRemaining(): array
+    {
+        $unmatched = BankTransaction::where('status', 'unmatched')->get();
+        $pending = PaymentExpected::whereIn('status', ['pending', 'partial'])->with('user.detail')->get();
+
+        if ($unmatched->isEmpty() || $pending->isEmpty()) {
+            return [];
+        }
+
+        $proposals = $this->askCloudflareToMatch($unmatched, $pending);
+        if ($proposals === null) {
+            return [];
+        }
+
+        $matches = [];
+        $usedPaymentIds = [];
+
+        foreach ($proposals as $proposal) {
+            $confidence = (int) ($proposal['confidence'] ?? 0);
+            $tx = $unmatched->firstWhere('id', $proposal['transaction_id'] ?? null);
+            $pe = $pending->firstWhere('id', $proposal['payment_id'] ?? null);
+
+            // Never trust the model's ids blindly, and never let it double-book
+            // one payment to two transactions in the same batch.
+            if (! $tx || ! $pe || $confidence < 40 || in_array($pe->id, $usedPaymentIds, true)) {
+                continue;
+            }
+
+            $reason = is_string($proposal['reason'] ?? null) ? mb_substr($proposal['reason'], 0, 500) : null;
+            $tx->update(['matched_payment_id' => $pe->id, 'match_score' => $confidence, 'match_reason' => $reason, 'status' => 'suggested']);
+            $usedPaymentIds[] = $pe->id;
+            $matches[] = ['transaction' => $tx, 'payment' => $pe, 'score' => $confidence, 'reason' => $reason];
+        }
+
+        return $matches;
+    }
+
+    /**
+     * @param  Collection<int, BankTransaction>  $transactions
+     * @param  Collection<int, PaymentExpected>  $payments
+     * @return list<array{transaction_id?: mixed, payment_id?: mixed, confidence?: mixed, reason?: mixed}>|null
+     */
+    private function askCloudflareToMatch(Collection $transactions, Collection $payments): ?array
+    {
+        $accountId = config('services.cloudflare.account_id');
+        $apiToken = config('services.cloudflare.api_token');
+        if (! $accountId || ! $apiToken) {
+            Log::warning('Cloudflare Workers AI credentials not configured for bank matching');
+
+            return null;
+        }
+
+        $txPayload = $transactions->map(fn (BankTransaction $t): array => [
+            'transaction_id' => $t->id,
+            'amount' => (float) $t->amount,
+            'communication' => $t->communication,
+            'counterparty' => $t->counterparty,
+            'date' => $t->transaction_date?->format('Y-m-d'),
+        ])->values()->all();
+
+        $paymentPayload = $payments->map(fn (PaymentExpected $p): array => [
+            'payment_id' => $p->id,
+            'amount_outstanding' => round((float) $p->amount_due - (float) $p->amount_paid, 2),
+            'communication' => $p->communication,
+            'member_name' => $p->user?->detail ? trim(($p->user->detail->first_name ?? '').' '.($p->user->detail->last_name ?? '')) : null,
+        ])->values()->all();
+
+        $prompt = 'You are matching bank transactions to expected club membership payments for a diving club.'
+            .' Each transaction matches at most one payment, and each payment at most one transaction.'
+            .' Consider the communication/reference text (allow for typos, abbreviations, missing accents or a partially-entered reference),'
+            .' the amount (should be close — allow small differences for bank fees), and the counterparty name versus the member name.'
+            ."\n\nExpected payments:\n".json_encode($paymentPayload)
+            ."\n\nReceived transactions:\n".json_encode($txPayload)
+            ."\n\nRespond with ONLY a JSON array, no other text, in exactly this shape:\n"
+            .'[{"transaction_id": <int>, "payment_id": <int>, "confidence": <integer 0-100>, "reason": "<short reason, one sentence>"}]'
+            .' Omit any transaction you cannot plausibly match to a payment. Never invent an id that is not in the input above.';
+
+        try {
+            $response = Http::withToken($apiToken)->timeout(30)->post(
+                "https://api.cloudflare.com/client/v4/accounts/{$accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct",
+                ['messages' => [['role' => 'user', 'content' => $prompt]]]
+            );
+
+            if (! $response->ok()) {
+                Log::warning('Cloudflare AI bank-match request failed', ['status' => $response->status(), 'body' => $response->body()]);
+
+                return null;
+            }
+
+            $content = $response->json('result.choices.0.message.content');
+            if (! is_string($content) || $content === '') {
+                return null;
+            }
+
+            // The model occasionally wraps its JSON in a code fence despite
+            // being told not to — strip that before decoding.
+            $content = trim((string) preg_replace('/^```(?:json)?|```$/m', '', trim($content)));
+            $decoded = json_decode($content, true);
+
+            return is_array($decoded) ? $decoded : null;
+        } catch (\Throwable $e) {
+            Log::warning('Cloudflare AI bank-match failed', ['error' => $e->getMessage()]);
+
+            return null;
+        }
     }
 
     /**
