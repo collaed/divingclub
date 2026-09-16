@@ -50,10 +50,7 @@
                         <form method="POST" action="{{ route('admin.equipment.loan', $equipment) }}" class="row g-2">
                             @csrf
                             <div class="col-md-8">
-                                <select name="user_id" class="form-select form-select-sm" required>
-                                    <option value="">{{ __('Select member...') }}</option>
-                                    @foreach($members as $m) <option value="{{ $m->id }}">{{ $m->name }}</option> @endforeach
-                                </select>
+                                <x-member-select name="user_id" :members="$members" class="form-control-sm" required />
                             </div>
                             <div class="col-md-4"><button class="btn btn-sm btn-primary w-100">{{ __('Loan') }}</button></div>
                         </form>

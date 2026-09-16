@@ -70,4 +70,21 @@ class AdminEquipmentTest extends TestCase
 
         $response->assertRedirect();
     }
+
+    public function test_loan_form_renders_the_member_select_with_a_hidden_id_field(): void
+    {
+        $eq = Equipment::create([
+            'name' => 'Renders BCD',
+            'type' => 'bcd',
+            'serial_number' => 'BCD-'.uniqid(),
+            'status' => 'available',
+            'is_loanable' => true,
+        ]);
+        $member = $this->createMemberUser();
+
+        $response = $this->actingAs($this->admin)->get(route('admin.equipment.show', $eq))->assertOk();
+
+        $response->assertSee('name="user_id" id="user_id"', false);
+        $response->assertSee('<option value="'.$member->name.'" data-id="'.$member->id.'">', false);
+    }
 }

@@ -567,6 +567,22 @@
     })();
     </script>
     <script>
+    (function(){
+        // The member-select component's type-to-search input has no known
+        // id until the browser fills it in from the datalist — sync the
+        // paired hidden input (the actual form value) whenever that happens.
+        document.addEventListener('input', function(e){
+            var input = e.target.closest('[data-member-select-input]');
+            if (!input) return;
+            var hidden = document.getElementById(input.dataset.memberSelectInput);
+            var list = document.getElementById(input.getAttribute('list'));
+            if (!hidden || !list) return;
+            var opt = Array.prototype.find.call(list.options, function(o){ return o.value === input.value; });
+            hidden.value = opt ? opt.dataset.id : '';
+        });
+    })();
+    </script>
+    <script>
     function dcToast(msg, type) {
         var c = document.getElementById('toastContainer');
         if (!c) return;

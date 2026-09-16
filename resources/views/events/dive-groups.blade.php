@@ -250,13 +250,18 @@
                     <div class="p-2 border-top">
                         <form method="POST" action="{{ route('dive-groups.add-member', $group) }}" class="d-flex gap-1">
                             @csrf
-                            <select name="user_id" class="form-select form-select-sm" required>
-                                <option value="">+</option>
-                                @foreach($unassigned as $reg)
-                                    @php $uc2 = $reg->user->certificationLevels->where('category', '!=', 'specialty')->sortByDesc('rank')->first(); @endphp
-                                    <option value="{{ $reg->user_id }}">{{ $reg->user->detail?->first_name }} {{ $reg->user->detail?->last_name }}{{ $uc2 ? ' — ' . $uc2->code : '' }}</option>
-                                @endforeach
-                            </select>
+                            @php
+                                $unassignedOptions = $unassigned->map(function ($reg) {
+                                    $uc2 = $reg->user->certificationLevels->where('category', '!=', 'specialty')->sortByDesc('rank')->first();
+
+                                    return (object) [
+                                        'id' => $reg->user_id,
+                                        'name' => trim(($reg->user->detail?->first_name).' '.($reg->user->detail?->last_name)).($uc2 ? ' — '.$uc2->code : ''),
+                                        'primary_email' => $reg->user->primary_email,
+                                    ];
+                                });
+                            @endphp
+                            <x-member-select name="user_id" :members="$unassignedOptions" class="form-control-sm" placeholder="+" required />
                             <select name="role" class="form-select form-select-sm" style="width:80px">
                                 <option value="diver">🤿</option>
                                 <option value="leader">👑</option>
