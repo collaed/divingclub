@@ -23,9 +23,12 @@ class ProcessTranslations implements ShouldQueue
      * text segment (no batching) — a long, richly-formatted article can
      * legitimately take a few minutes, well past Horizon's default 60s
      * worker timeout, which was killing and endlessly retrying the same
-     * article every hour rather than letting it finish.
+     * article every hour rather than letting it finish. Translation is low
+     * priority and not user-facing-synchronous, so a generous budget costs
+     * nothing but time — a tight one that times out mid-run just burns
+     * Cloudflare AI quota re-translating segments that already succeeded.
      */
-    public int $timeout = 300;
+    public int $timeout = 600;
 
     public function handle(): void
     {
