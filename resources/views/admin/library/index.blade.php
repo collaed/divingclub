@@ -47,7 +47,10 @@
                            data-depth="{{ $depth }}"
                            data-parent="{{ $parentPath }}"
                            data-path="{{ $f }}"
-                           style="padding-left:{{ 8 + $depth * 16 }}px;font-size:13px;{{ $depth > 0 && !$isAncestor && !$isActive ? 'display:none' : '' }}">
+                           {{-- !important: this row's own d-flex class is display:flex !important
+                                (Bootstrap's utility classes are all !important), which would
+                                otherwise beat a plain inline display:none outright. --}}
+                           style="padding-left:{{ 8 + $depth * 16 }}px;font-size:13px;{{ $depth > 0 && !$isAncestor && !$isActive ? 'display:none!important' : '' }}">
                             @if($hasChildren)
                                 <span class="tree-arrow" style="display:inline-block;width:20px;font-size:16px;line-height:1;cursor:pointer">{{ $isOpen ? '▼' : '▶' }}</span>
                             @else
@@ -62,6 +65,14 @@
                     @endforeach
                 </div>
                 <script>
+                // A tree-item's own d-flex class is display:flex !important
+                // (every Bootstrap display utility is !important), so a plain
+                // style.display = 'none' from JS loses to it exactly like the
+                // server-rendered inline style would — must set with priority.
+                function setTreeItemHidden(el, hidden) {
+                    if (hidden) { el.style.setProperty('display', 'none', 'important'); }
+                    else { el.style.removeProperty('display'); }
+                }
                 document.querySelectorAll('.tree-arrow').forEach(function(arrow) {
                     arrow.addEventListener('click', function(e) {
                         e.preventDefault(); e.stopPropagation();
@@ -71,12 +82,12 @@
                         this.textContent = open ? '▶' : '▼';
                         document.querySelectorAll('.tree-item').forEach(function(child) {
                             if (child.dataset.parent === path) {
-                                child.style.display = open ? 'none' : '';
+                                setTreeItemHidden(child, open);
                                 if (open) {
                                     // Also collapse children
                                     var childArrow = child.querySelector('.tree-arrow');
                                     if (childArrow) childArrow.textContent = '▶';
-                                    document.querySelectorAll('.tree-item[data-parent="'+child.dataset.path+'"]').forEach(function(gc) { gc.style.display = 'none'; });
+                                    document.querySelectorAll('.tree-item[data-parent="'+child.dataset.path+'"]').forEach(function(gc) { setTreeItemHidden(gc, true); });
                                 }
                             }
                         });
