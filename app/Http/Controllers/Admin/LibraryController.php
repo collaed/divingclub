@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use ZipArchive;
@@ -201,7 +202,6 @@ class LibraryController extends Controller
     public function rename(Request $request, LibraryFile $file): RedirectResponse
     {
         $request->validate(['name' => 'required|string|max:255']);
-        $oldPath = storage_path('app/public/library/'.$file->folder.'/'.$file->original_name);
         $newName = $request->name;
 
         // Keep extension if not provided
@@ -211,10 +211,10 @@ class LibraryController extends Controller
             $newName .= '.'.$oldExt;
         }
 
-        $newPath = storage_path('app/public/library/'.$file->folder.'/'.$newName);
-        if (file_exists($oldPath)) {
-            rename($oldPath, $newPath);
-        }
+        // Only original_name (the display name) changes — the stored file
+        // itself lives at $file->path under a random name unrelated to it
+        // (see upload()'s $file->store('library', 'local')), so there is no
+        // physical file to rename.
         $file->update(['original_name' => $newName]);
 
         return back()->with('success', __('File renamed.'));
@@ -223,21 +223,84 @@ class LibraryController extends Controller
     public function move(Request $request, LibraryFile $file): RedirectResponse
     {
         $request->validate(['destination' => 'required|string']);
-        $dest = $request->destination;
 
-        $oldPath = storage_path('app/public/library/'.$file->folder.'/'.$file->original_name);
-        $newDir = storage_path('app/public/library/'.$dest);
+        // folder is a virtual grouping column, not a real directory the
+        // file lives in (see rename() above) — moving it is a DB-only op.
+        $file->update(['folder' => $request->destination]);
 
-        if (! is_dir($newDir)) {
-            mkdir($newDir, 0775, true);
+        return back()->with('success', __('File moved to :folder.', ['folder' => $request->destination]));
+    }
+
+    public function copy(LibraryFile $file): RedirectResponse
+    {
+        if (! Storage::disk('local')->exists($file->path)) {
+            return back()->with('error', __('Original file is missing on disk.'));
         }
 
-        $newPath = $newDir.'/'.$file->original_name;
-        if (file_exists($oldPath)) {
-            rename($oldPath, $newPath);
-        }
-        $file->update(['folder' => $dest]);
+        $ext = pathinfo($file->path, PATHINFO_EXTENSION);
+        $newPath = 'library/'.Str::random(40).($ext ? '.'.$ext : '');
+        Storage::disk('local')->copy($file->path, $newPath);
 
-        return back()->with('success', __('File moved to :folder.', ['folder' => $dest]));
+        LibraryFile::create([
+            'filename' => basename($newPath),
+            'original_name' => $file->original_name,
+            'path' => $newPath,
+            'mime_type' => $file->mime_type,
+            'size' => $file->size,
+            'folder' => $file->folder,
+            'visibility' => $file->visibility,
+            'description' => $file->description,
+            'uploaded_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', __('File copied.'));
+    }
+
+    public function renameFolder(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'path' => 'required|string',
+            'name' => 'required|string|max:100|regex:/^[a-zA-Z0-9_\- ]+$/',
+        ]);
+
+        $path = rtrim($request->input('path'), '/');
+        // rtrim, not a dirname === '.' check: dirname('/One') is '/', and
+        // naively appending '/'.$name to that doubles the slash ('//Two').
+        $newPath = rtrim(dirname($path), '/').'/'.$request->input('name');
+
+        if ($path === '/' || $newPath === $path) {
+            return back()->with('error', __('Cannot rename this folder.'));
+        }
+        if (LibraryFile::where('folder', $newPath)->orWhere('folder', 'like', $newPath.'/%')->exists()) {
+            return back()->with('error', __('A folder with that name already exists here.'));
+        }
+
+        // folder is a plain DB column, not a real directory — renaming a
+        // folder means rewriting that column's prefix on every file under it.
+        LibraryFile::where('folder', $path)->orWhere('folder', 'like', $path.'/%')
+            ->get()
+            ->each(fn (LibraryFile $f) => $f->update(['folder' => $newPath.mb_substr($f->folder, mb_strlen($path))]));
+
+        return redirect()->route('admin.library.index', ['folder' => $newPath])
+            ->with('success', __('Folder renamed.'));
+    }
+
+    public function deleteFolder(Request $request): RedirectResponse
+    {
+        $request->validate(['path' => 'required|string']);
+        $path = rtrim($request->input('path'), '/');
+
+        abort_if($path === '/' || $path === '', 400, __('Cannot delete the root folder.'));
+
+        $files = LibraryFile::where('folder', $path)->orWhere('folder', 'like', $path.'/%')->get();
+        foreach ($files as $file) {
+            if ($file->path !== '') {
+                Storage::disk('local')->delete($file->path);
+            }
+            $file->delete();
+        }
+
+        return redirect()->route('admin.library.index', ['folder' => dirname($path) === '.' ? '/' : dirname($path)])
+            ->with('success', __(':count file(s) deleted with the folder.', ['count' => $files->count()]));
     }
 }

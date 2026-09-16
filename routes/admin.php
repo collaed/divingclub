@@ -81,8 +81,14 @@ Route::get('newsletters/{newsletter}/test-send', [NewsletterController::class, '
 Route::get('email-stats', [EmailStatsController::class, 'index'])->name('email-stats');
 
 // Document Library
+// The two /library/folder/... routes below must stay ABOVE the generic
+// /library/{file}/... ones — Laravel matches in declaration order, and
+// "folder" would otherwise implicitly bind as {file}'s ID, 404ing before
+// ever reaching the intended folder-level action.
 Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
 Route::post('/library/upload', [LibraryController::class, 'upload'])->name('library.upload');
+Route::post('/library/folder/rename', [LibraryController::class, 'renameFolder'])->name('library.folder.rename');
+Route::delete('/library/folder', [LibraryController::class, 'deleteFolder'])->name('library.folder.delete');
 Route::put('/library/{file}', [LibraryController::class, 'update'])->name('library.update');
 Route::delete('/library/{file}', [LibraryController::class, 'destroy'])->name('library.destroy');
 Route::post('/library/bulk-delete', [LibraryController::class, 'bulkDelete'])->name('library.bulk-delete');
@@ -282,3 +288,4 @@ Route::delete('/email/{emailLog}', [EmailController::class, 'destroyLog'])->name
 Route::get('/worklist-browse/{type}', [DashboardController::class, 'worklistBrowse'])->name('worklist-browse');
 Route::post('/library/{file}/rename', [LibraryController::class, 'rename'])->name('library.rename');
 Route::post('/library/{file}/move', [LibraryController::class, 'move'])->name('library.move');
+Route::post('/library/{file}/copy', [LibraryController::class, 'copy'])->name('library.copy');

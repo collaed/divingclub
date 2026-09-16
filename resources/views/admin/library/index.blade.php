@@ -41,26 +41,47 @@
                             // Open (▼) only along the path to the active folder — everything
                             // else starts collapsed, matching what's actually shown below it.
                             $isOpen = $isActive || $isAncestor;
+                            // Visible if top-level, or if the PARENT is open — not if $f
+                            // itself is active/ancestor. Using the latter here missed a
+                            // folder's own direct children when that folder was the active
+                            // one being viewed (only ancestors *above* it counted as open).
+                            $parentIsOpen = $parentPath === $folder || str_starts_with($folder . '/', $parentPath . '/');
                         @endphp
-                        <a href="{{ route('admin.library.index', ['folder' => $f]) }}"
-                           class="list-group-item list-group-item-action py-1 border-0 d-flex align-items-center tree-item {{ $isActive ? 'active' : '' }}"
+                        <div class="list-group-item border-0 d-flex align-items-center tree-item {{ $isActive ? 'active' : '' }}"
                            data-depth="{{ $depth }}"
                            data-parent="{{ $parentPath }}"
                            data-path="{{ $f }}"
                            {{-- !important: this row's own d-flex class is display:flex !important
                                 (Bootstrap's utility classes are all !important), which would
                                 otherwise beat a plain inline display:none outright. --}}
-                           style="padding-left:{{ 8 + $depth * 16 }}px;font-size:13px;{{ $depth > 0 && !$isAncestor && !$isActive ? 'display:none!important' : '' }}">
-                            @if($hasChildren)
-                                <span class="tree-arrow" style="display:inline-block;width:20px;font-size:16px;line-height:1;cursor:pointer">{{ $isOpen ? '▼' : '▶' }}</span>
-                            @else
-                                <span class="tree-arrow-spacer" style="display:inline-block;width:20px"></span>
-                            @endif
-                            {{ $isActive ? '📂' : '📁' }} {{ basename($f) }}
-                            @if(($subfolderCounts[$f] ?? 0) || ($fileCounts[$f] ?? 0))
-                                <span class="text-muted ms-1" style="font-size:11px" title="{{ __(':files file(s), :folders subfolder(s)', ['files' => $fileCounts[$f] ?? 0, 'folders' => $subfolderCounts[$f] ?? 0]) }}">({{ $fileCounts[$f] ?? 0 }}, {{ $subfolderCounts[$f] ?? 0 }})</span>
-                            @endif
-                        </a>
+                           style="padding-left:{{ 8 + $depth * 16 }}px;font-size:13px;{{ $depth > 0 && !$parentIsOpen ? 'display:none!important' : '' }}">
+                            {{-- Navigation is its own link, separate from the actions menu below,
+                                 so opening the "⋯" dropdown never also navigates the row. --}}
+                            <a href="{{ route('admin.library.index', ['folder' => $f]) }}" class="list-group-item-action flex-grow-1 d-flex align-items-center text-decoration-none text-reset" style="min-width:0">
+                                @if($hasChildren)
+                                    <span class="tree-arrow" style="display:inline-block;width:20px;font-size:16px;line-height:1;cursor:pointer">{{ $isOpen ? '▼' : '▶' }}</span>
+                                @else
+                                    <span class="tree-arrow-spacer" style="display:inline-block;width:20px"></span>
+                                @endif
+                                {{ $isActive ? '📂' : '📁' }} {{ basename($f) }}
+                                @if(($subfolderCounts[$f] ?? 0) || ($fileCounts[$f] ?? 0))
+                                    <span class="text-muted ms-1" style="font-size:11px" title="{{ __(':files file(s), :folders subfolder(s)', ['files' => $fileCounts[$f] ?? 0, 'folders' => $subfolderCounts[$f] ?? 0]) }}">({{ $fileCounts[$f] ?? 0 }}, {{ $subfolderCounts[$f] ?? 0 }})</span>
+                                @endif
+                            </a>
+                            <div class="dropdown">
+                                <button type="button" class="btn btn-sm btn-link text-muted p-0 px-1" data-bs-toggle="dropdown" title="{{ __('Folder actions') }}" aria-label="{{ __('Folder actions') }}" onclick="event.stopPropagation()">⋯</button>
+                                <ul class="dropdown-menu dropdown-menu-end" style="font-size:.8rem">
+                                    <li><a class="dropdown-item" href="#" onclick="renameFolder('{{ $f }}', '{{ addslashes(basename($f)) }}'); return false;">✏️ {{ __('Rename') }}</a></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('admin.library.folder.delete') }}" data-confirm="{{ __('Delete folder ":name" and everything in it? This cannot be undone.', ['name' => basename($f)]) }}" data-confirm-btn="{{ __('Delete') }}" data-confirm-style="danger">
+                                            @csrf @method('DELETE')
+                                            <input type="hidden" name="path" value="{{ $f }}">
+                                            <button type="submit" class="dropdown-item text-danger">🗑 {{ __('Delete') }}</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                         @endif
                     @endforeach
                 </div>
@@ -183,6 +204,12 @@
                                                 <li><a class="dropdown-item" href="{{ route('admin.library.download', $f) }}">⬇ {{ __('Download') }}</a></li>
                                                 <li><a class="dropdown-item" href="#" onclick="renameFile({{ $f->id }}, '{{ addslashes($f->original_name) }}')">✏️ {{ __('Rename') }}</a></li>
                                                 <li><a class="dropdown-item" href="#" onclick="moveFile({{ $f->id }})">📁 {{ __('Move') }}</a></li>
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.library.copy', $f) }}">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item">📋 {{ __('Copy') }}</button>
+                                                    </form>
+                                                </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
                                                     <form method="POST" action="{{ route('admin.library.destroy', $f) }}" data-confirm="{{ __('Delete?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">
@@ -311,6 +338,20 @@ function renameFile(id, currentName) {
     form.method = 'POST';
     form.action = '/admin/library/' + id + '/rename';
     form.innerHTML = '<input type="hidden" name="_token" value="' + document.querySelector('meta[name=csrf-token]').content + '">'
+        + '<input type="hidden" name="name" value="' + newName.replace(/"/g, '&quot;') + '">';
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Rename folder
+function renameFolder(path, currentName) {
+    const newName = prompt('{{ __("New folder name:") }}', currentName);
+    if (!newName || newName === currentName) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("admin.library.folder.rename") }}';
+    form.innerHTML = '<input type="hidden" name="_token" value="' + document.querySelector('meta[name=csrf-token]').content + '">'
+        + '<input type="hidden" name="path" value="' + path.replace(/"/g, '&quot;') + '">'
         + '<input type="hidden" name="name" value="' + newName.replace(/"/g, '&quot;') + '">';
     document.body.appendChild(form);
     form.submit();
