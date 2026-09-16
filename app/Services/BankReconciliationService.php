@@ -14,11 +14,25 @@ use Illuminate\Support\Facades\Log;
 class BankReconciliationService
 {
     /**
-     * Parse pasted bank statement text into transactions.
-     * Expected format: one line per transaction, tab or semicolon separated:
-     * date;amount;communication;counterparty
+     * Parse bank statement text into transactions.
+     *
+     * The fast path handles text pasted in the simple format the admin UI
+     * asks for: one line per transaction, tab or semicolon separated
+     * (date;amount;communication;counterparty). Real PDF exports almost
+     * never look like that — multi-line entries, address lines, labelled
+     * sub-fields, comma-decimal amounts, a trailing +/- sign — and the
+     * shape varies from bank to bank, so rather than chase every export
+     * format with regex, fall back to asking Cloudflare Workers AI to read
+     * the whole text and hand back the same structured shape.
      */
     public function parseStatement(string $text): array
+    {
+        $transactions = $this->parseDelimitedLines($text);
+
+        return $transactions !== [] ? $transactions : $this->aiParseStatement($text);
+    }
+
+    private function parseDelimitedLines(string $text): array
     {
         $lines = array_filter(array_map('trim', explode("\n", $text)));
         $transactions = [];
@@ -38,6 +52,88 @@ class BankReconciliationService
         }
 
         return $transactions;
+    }
+
+    /**
+     * Only ever creates rows for incoming transfers — reconciliation only
+     * ever matches against money the club is expecting, so an outgoing
+     * standing order or fee has no business becoming a BankTransaction
+     * that could later get matched to a due.
+     */
+    private function aiParseStatement(string $text): array
+    {
+        $rows = $this->askCloudflareToExtract($text);
+        if ($rows === null) {
+            return [];
+        }
+
+        $transactions = [];
+        foreach ($rows as $row) {
+            $date = is_string($row['date'] ?? null) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $row['date']) ? $row['date'] : null;
+            $amount = is_numeric($row['amount'] ?? null) ? (float) $row['amount'] : null;
+            if (! $date || $amount === null || $amount <= 0) {
+                continue;
+            }
+
+            $transactions[] = BankTransaction::create([
+                'transaction_date' => $date,
+                'amount' => $amount,
+                'communication' => is_string($row['communication'] ?? null) ? mb_substr($row['communication'], 0, 500) : '',
+                'counterparty' => is_string($row['counterparty'] ?? null) ? mb_substr($row['counterparty'], 0, 255) : '',
+            ]);
+        }
+
+        return $transactions;
+    }
+
+    /** @return list<array{date?: mixed, amount?: mixed, communication?: mixed, counterparty?: mixed}>|null */
+    private function askCloudflareToExtract(string $text): ?array
+    {
+        $accountId = config('services.cloudflare.account_id');
+        $apiToken = config('services.cloudflare.api_token');
+        if (! $accountId || ! $apiToken) {
+            Log::warning('Cloudflare Workers AI credentials not configured for statement extraction');
+
+            return null;
+        }
+
+        $prompt = 'This is raw text extracted from a bank account statement. The export format varies by bank:'
+            .' entries may span several lines, mix in address lines, use labelled sub-fields ("Communication :", "Banque du donneur d\'ordre :"),'
+            .' use a comma as the decimal separator, and mark the amount with a trailing + (credit) or - (debit) sign.'
+            ."\n\nExtract ONLY the incoming transfers (credits — money received by the account holder). Ignore outgoing transfers, standing orders (\"ordre permanent\"), direct debits, and fees — anything marked as a debit or with a trailing minus sign."
+            ."\n\nStatement text:\n".mb_substr($text, 0, 6000)
+            ."\n\nRespond with ONLY a JSON array, no other text, in exactly this shape:\n"
+            .'[{"date": "<YYYY-MM-DD>", "amount": <number, dot as decimal separator>, "communication": "<the reference/communication text for this transfer>", "counterparty": "<name of the person or organisation who sent the money>"}]'
+            .' Omit any line that is not a clear incoming transfer.';
+
+        try {
+            $response = Http::withToken($apiToken)->timeout(30)->post(
+                "https://api.cloudflare.com/client/v4/accounts/{$accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct",
+                ['messages' => [['role' => 'user', 'content' => $prompt]]]
+            );
+
+            if (! $response->ok()) {
+                Log::warning('Cloudflare AI statement extraction failed', ['status' => $response->status(), 'body' => $response->body()]);
+
+                return null;
+            }
+
+            $content = $response->json('result.choices.0.message.content');
+            if (! is_string($content) || $content === '') {
+                return null;
+            }
+
+            // The model occasionally wraps its JSON in a code fence despite
+            // being told not to — strip that before decoding.
+            $content = trim((string) preg_replace('/^```(?:json)?|```$/m', '', trim($content)));
+            $decoded = json_decode($content, true);
+
+            return is_array($decoded) ? $decoded : null;
+        } catch (\Throwable $e) {
+            Log::warning('Cloudflare AI statement extraction failed', ['error' => $e->getMessage()]);
+
+            return null;
+        }
     }
 
     /**

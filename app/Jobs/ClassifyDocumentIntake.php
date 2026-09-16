@@ -105,6 +105,12 @@ class ClassifyDocumentIntake implements ShouldQueue
             $tx->update(['statement_ref' => $intake->original_filename]);
         }
 
+        if ($transactions === []) {
+            $intake->update(['status' => 'needs_review', 'error' => 'No transactions could be extracted from this statement.', 'transactions_created' => 0]);
+
+            return;
+        }
+
         $intake->update(['status' => 'routed', 'transactions_created' => count($transactions)]);
     }
 
