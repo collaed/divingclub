@@ -18,6 +18,15 @@ class ProcessTranslations implements ShouldQueue
 {
     use Dispatchable, Queueable;
 
+    /**
+     * Cloudflare's HTML translation path sends one sequential HTTP call per
+     * text segment (no batching) — a long, richly-formatted article can
+     * legitimately take a few minutes, well past Horizon's default 60s
+     * worker timeout, which was killing and endlessly retrying the same
+     * article every hour rather than letting it finish.
+     */
+    public int $timeout = 300;
+
     public function handle(): void
     {
         $locales = LocaleHelper::enabledLocales();

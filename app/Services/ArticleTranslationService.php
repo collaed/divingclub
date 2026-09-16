@@ -211,7 +211,7 @@ class ArticleTranslationService
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'DeepL-Auth-Key '.$apiKey,
-            ])->asForm()->post($baseUrl, [
+            ])->timeout(30)->asForm()->post($baseUrl, [
                 'text' => $text,
                 'source_lang' => $sourceLang,
                 'target_lang' => $targetLang,
@@ -298,7 +298,7 @@ class ArticleTranslationService
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer '.$apiToken,
-            ])->post($url, [
+            ])->timeout(30)->post($url, [
                 'text' => $text,
                 'source_lang' => $sourceLang,
                 'target_lang' => $targetLang,
@@ -360,7 +360,7 @@ class ArticleTranslationService
             try {
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer '.$apiToken,
-                ])->post($url, [
+                ])->timeout(30)->post($url, [
                     'text' => $part,
                     'source_lang' => $sourceLang,
                     'target_lang' => $targetLang,
