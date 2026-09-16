@@ -66,18 +66,21 @@ class BankStatementParsingTest extends TestCase
 
     public function test_multiline_real_world_export_finds_nothing_on_the_fast_path_and_falls_back_to_ai(): void
     {
+        // Cloudflare's actual live response for this sample: despite being
+        // asked for YYYY-MM-DD, it echoes the source statement's own
+        // DD.MM.YY format back — the extraction must tolerate that.
         $this->cloudflareRespondingWith([
-            ['date' => '2026-07-07', 'amount' => 999.00, 'communication' => 'Rechnung 19274/0-3 Reise 19274', 'counterparty' => 'EDDY COLLART'],
-            ['date' => '2026-07-08', 'amount' => 1000.00, 'communication' => 'Rechnung 19274/0-3 kHWreq7rcvUn4R5aoQM0iUY0AWgytYnuMW2', 'counterparty' => 'EDDY COLLART'],
-            ['date' => '2026-07-08', 'amount' => 1001.00, 'communication' => 'uSfenoKGqfflkpecpbBjFr33rjNpsewWueY', 'counterparty' => 'EDDY COLLART'],
-            ['date' => '2026-07-10', 'amount' => 8433.43, 'communication' => 'SALARY JULY 2026 26708410762026', 'counterparty' => 'COMMISSION EUROPEENNE'],
+            ['date' => '07.07.26', 'amount' => 999.00, 'communication' => 'Rechnung 19274/0-3 Reise 19274', 'counterparty' => 'EDDY COLLART'],
+            ['date' => '08.07.26', 'amount' => 1000.00, 'communication' => 'Rechnung 19274/0-3 kHWreq7rcvUn4R5aoQM0iUY0AWgytYnuMW2', 'counterparty' => 'EDDY COLLART'],
+            ['date' => '08.07.26', 'amount' => 1001.00, 'communication' => 'uSfenoKGqfflkpecpbBjFr33rjNpsewWueY', 'counterparty' => 'EDDY COLLART'],
+            ['date' => '10.07.26', 'amount' => 8433.43, 'communication' => 'SALARY JULY 2026 26708410762026', 'counterparty' => 'COMMISSION EUROPEENNE'],
         ]);
 
         $txs = app(BankReconciliationService::class)->parseStatement(self::REAL_WORLD_SAMPLE);
 
         $this->assertCount(4, $txs);
-        $this->assertDatabaseHas('bank_transactions', ['amount' => 999.00, 'counterparty' => 'EDDY COLLART']);
-        $this->assertDatabaseHas('bank_transactions', ['amount' => 8433.43, 'counterparty' => 'COMMISSION EUROPEENNE']);
+        $this->assertDatabaseHas('bank_transactions', ['amount' => 999.00, 'counterparty' => 'EDDY COLLART', 'transaction_date' => '2026-07-07']);
+        $this->assertDatabaseHas('bank_transactions', ['amount' => 8433.43, 'counterparty' => 'COMMISSION EUROPEENNE', 'transaction_date' => '2026-07-10']);
         // The outgoing standing order (-101,00) must never surface as a transaction.
         $this->assertDatabaseMissing('bank_transactions', ['amount' => 101.00]);
     }

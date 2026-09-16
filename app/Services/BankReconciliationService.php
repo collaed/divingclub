@@ -69,7 +69,12 @@ class BankReconciliationService
 
         $transactions = [];
         foreach ($rows as $row) {
-            $date = is_string($row['date'] ?? null) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $row['date']) ? $row['date'] : null;
+            // The model is asked for YYYY-MM-DD but tends to echo the
+            // source statement's own date format instead — normalize
+            // through the same parser the simple pasted format uses, and
+            // only trust the result once it is unambiguously Y-m-d.
+            $normalizedDate = is_string($row['date'] ?? null) ? $this->parseDate($row['date']) : '';
+            $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $normalizedDate) ? $normalizedDate : null;
             $amount = is_numeric($row['amount'] ?? null) ? (float) $row['amount'] : null;
             if (! $date || $amount === null || $amount <= 0) {
                 continue;
@@ -391,9 +396,18 @@ class BankReconciliationService
 
     private function parseDate(string $d): string
     {
-        // Try dd/mm/yyyy, dd-mm-yyyy, yyyy-mm-dd
-        if (preg_match('#(\d{2})[/\-](\d{2})[/\-](\d{4})#', $d, $m)) {
+        // Try dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy, yyyy-mm-dd
+        if (preg_match('#(\d{2})[./\-](\d{2})[./\-](\d{4})#', $d, $m)) {
             return "{$m[3]}-{$m[2]}-{$m[1]}";
+        }
+
+        // dd.mm.yy / dd/mm/yy / dd-mm-yy — some bank exports use a two-digit
+        // year, and the AI extraction fallback tends to echo the source
+        // format back despite being asked for YYYY-MM-DD.
+        if (preg_match('#(\d{2})[./\-](\d{2})[./\-](\d{2})(?!\d)#', $d, $m)) {
+            $year = (int) $m[3] < 70 ? 2000 + (int) $m[3] : 1900 + (int) $m[3];
+
+            return "{$year}-{$m[2]}-{$m[1]}";
         }
 
         return $d ?: now()->format('Y-m-d');
