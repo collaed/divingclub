@@ -94,6 +94,7 @@ class LicenceScanController extends Controller
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),
         ]);
+        $licenceScan->archiveOriginalFile();
 
         return back()->with('success', __('Licence assigned.'));
     }

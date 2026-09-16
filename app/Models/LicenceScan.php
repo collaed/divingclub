@@ -7,6 +7,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * One uploaded federation-licence scan going through the extract-and-assign
@@ -47,6 +48,23 @@ class LicenceScan extends Model
     public function isPendingReview(): bool
     {
         return $this->status === 'needs_review';
+    }
+
+    /**
+     * Once a scan is successfully applied, its original upload no longer
+     * needs to sit in the intake folder — move it out to keep that folder
+     * showing only scans still awaiting processing/review, and update
+     * file_path to match so the row still points at a real file.
+     */
+    public function archiveOriginalFile(): void
+    {
+        if (! $this->file_path || ! Storage::disk('local')->exists($this->file_path)) {
+            return;
+        }
+
+        $archivedPath = 'archived/licences/'.$this->id.'-'.basename($this->file_path);
+        Storage::disk('local')->move($this->file_path, $archivedPath);
+        $this->update(['file_path' => $archivedPath]);
     }
 
     /** @return BelongsTo<Federation, $this> */

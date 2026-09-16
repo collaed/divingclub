@@ -11,6 +11,7 @@ use App\Models\MemberLicence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
@@ -95,6 +96,25 @@ class LicenceScanTest extends TestCase
         // The scan's file_path ('x') doesn't exist on disk — issuance-date
         // extraction must degrade to null, not throw.
         $this->assertNull($licence->card_issued_at);
+    }
+
+    public function test_assign_archives_the_original_upload_once_applied(): void
+    {
+        Storage::fake('local');
+        $fed = $this->federation();
+        $member = $this->createMemberUser();
+        $bureau = $this->createBureauUser();
+        Storage::disk('local')->put('licence-scans/uploads/a.pdf', 'content');
+        $scan = LicenceScan::create(['federation_id' => $fed->id, 'original_filename' => 'a.pdf', 'file_path' => 'licence-scans/uploads/a.pdf', 'status' => 'needs_review', 'uploaded_by' => $bureau->id]);
+
+        $this->actingAs($bureau)
+            ->post(route('admin.licence-scans.assign', $scan), ['user_id' => $member->id])
+            ->assertRedirect();
+
+        $scan->refresh();
+        Storage::disk('local')->assertMissing('licence-scans/uploads/a.pdf');
+        $this->assertSame('archived/licences/'.$scan->id.'-a.pdf', $scan->file_path);
+        Storage::disk('local')->assertExists($scan->file_path);
     }
 
     public function test_destroy_marks_the_scan_discarded_without_assigning_anyone(): void

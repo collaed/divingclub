@@ -94,6 +94,7 @@ class ProcessLicenceScan implements ShouldQueue
         );
 
         $scan->update(['status' => 'applied', 'matched_user_id' => $match->id]);
+        $scan->archiveOriginalFile();
 
         Log::info("Licence scan #{$scan->id} auto-applied to user #{$match->id}");
     }
