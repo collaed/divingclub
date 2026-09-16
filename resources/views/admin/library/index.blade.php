@@ -1,7 +1,7 @@
 <x-admin-layout :title="__('Document Library')">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">@icon('📁') {{ __('Document Library') }}</h4>
-        <span class="text-muted small">{{ \App\Models\LibraryFile::count() }} {{ __('files') }}</span>
+        <span class="text-muted small">{{ \App\Models\LibraryFile::where('original_name', '!=', '.folder')->count() }} {{ __('files') }}</span>
     </div>
 
     {{-- Search bar --}}
@@ -23,7 +23,13 @@
             <div class="card dc-card mb-3">
                 <div class="card-header py-2">{{ __('Folders') }}</div>
                 <div style="max-height:500px;overflow-y:auto">
-                    <a href="{{ route('admin.library.index', ['folder' => '/']) }}" class="list-group-item list-group-item-action py-1 border-0 {{ $folder === '/' ? 'active' : '' }}" style="font-size:13px">📁 {{ __('Root') }}</a>
+                    <a href="{{ route('admin.library.index', ['folder' => '/']) }}" class="list-group-item list-group-item-action py-1 border-0 d-flex align-items-center {{ $folder === '/' ? 'active' : '' }}" style="font-size:13px">
+                        <span class="tree-arrow-spacer" style="display:inline-block;width:20px"></span>
+                        📁 {{ __('Root') }}
+                        @if(($subfolderCounts['/'] ?? 0) || ($fileCounts['/'] ?? 0))
+                            <span class="text-muted ms-1" style="font-size:11px" title="{{ __(':files file(s), :folders subfolder(s)', ['files' => $fileCounts['/'] ?? 0, 'folders' => $subfolderCounts['/'] ?? 0]) }}">({{ $fileCounts['/'] ?? 0 }}, {{ $subfolderCounts['/'] ?? 0 }})</span>
+                        @endif
+                    </a>
                     @foreach($folders as $f)
                         @if($f !== '/')
                         @php
@@ -31,15 +37,26 @@
                             $isActive = $folder === $f;
                             $isAncestor = str_starts_with($folder . '/', $f . '/');
                             $parentPath = dirname($f);
+                            $hasChildren = ($subfolderCounts[$f] ?? 0) > 0;
+                            // Open (▼) only along the path to the active folder — everything
+                            // else starts collapsed, matching what's actually shown below it.
+                            $isOpen = $isActive || $isAncestor;
                         @endphp
                         <a href="{{ route('admin.library.index', ['folder' => $f]) }}"
-                           class="list-group-item list-group-item-action py-1 border-0 tree-item {{ $isActive ? 'active' : '' }}"
+                           class="list-group-item list-group-item-action py-1 border-0 d-flex align-items-center tree-item {{ $isActive ? 'active' : '' }}"
                            data-depth="{{ $depth }}"
                            data-parent="{{ $parentPath }}"
                            data-path="{{ $f }}"
                            style="padding-left:{{ 8 + $depth * 16 }}px;font-size:13px;{{ $depth > 0 && !$isAncestor && !$isActive ? 'display:none' : '' }}">
-                            <span class="tree-arrow" style="display:inline-block;width:14px;font-size:10px;cursor:pointer">{{ $depth === 0 ? '▼' : '▶' }}</span>
+                            @if($hasChildren)
+                                <span class="tree-arrow" style="display:inline-block;width:20px;font-size:16px;line-height:1;cursor:pointer">{{ $isOpen ? '▼' : '▶' }}</span>
+                            @else
+                                <span class="tree-arrow-spacer" style="display:inline-block;width:20px"></span>
+                            @endif
                             {{ $isActive ? '📂' : '📁' }} {{ basename($f) }}
+                            @if(($subfolderCounts[$f] ?? 0) || ($fileCounts[$f] ?? 0))
+                                <span class="text-muted ms-1" style="font-size:11px" title="{{ __(':files file(s), :folders subfolder(s)', ['files' => $fileCounts[$f] ?? 0, 'folders' => $subfolderCounts[$f] ?? 0]) }}">({{ $fileCounts[$f] ?? 0 }}, {{ $subfolderCounts[$f] ?? 0 }})</span>
+                            @endif
                         </a>
                         @endif
                     @endforeach
@@ -67,61 +84,21 @@
                 });
                 </script>
             </div>
+            @if($folder)
             <form method="POST" action="{{ route('admin.library.create-folder') }}" class="card dc-card p-2">
                 @csrf
+                <input type="hidden" name="parent" value="{{ $folder }}">
+                <label class="form-label small text-muted mb-1">{{ __('New subfolder of :folder', ['folder' => $folder]) }}</label>
                 <div class="input-group input-group-sm">
-                    <input type="text" name="folder" class="form-control" placeholder="{{ __('New folder path') }}" value="{{ $folder === '/' ? '/' : $folder . '/' }}">
-                    <button class="btn btn-outline-primary">{{ __('Go') }}</button>
+                    <input type="text" name="name" class="form-control" placeholder="{{ __('Folder name') }}" pattern="[a-zA-Z0-9_\- ]+" required>
+                    <button class="btn btn-outline-primary">{{ __('Create') }}</button>
                 </div>
             </form>
+            @endif
         </div>
 
         {{-- File list + upload --}}
         <div class="col-md-9">
-            {{-- Dropzone upload --}}
-            @if($folder)
-            <div class="card dc-card mb-3">
-                <div class="card-body py-2">
-                    <form method="POST" action="{{ route('admin.library.upload') }}" enctype="multipart/form-data" id="uploadForm">
-                        @csrf
-                        <input type="hidden" name="folder" value="{{ $folder }}">
-                        <div class="row g-2 align-items-end">
-                            <div class="col-md-5">
-                                <div id="dropArea" style="border:2px dashed #ccc;border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s" onclick="document.getElementById('fileInput').click()">
-                                    <span style="font-size:24px">📎</span><br>
-                                    <small class="text-muted">{{ __('Drop files here or click to browse') }}</small>
-                                    <input type="file" name="files[]" id="fileInput" multiple required style="display:none" onchange="updateDropLabel(this)">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description (optional)') }}">
-                            </div>
-                            <div class="col-md-2">
-                                <select name="visibility" class="form-select form-select-sm">
-                                    <option value="public">🌍 {{ __('Public') }}</option>
-                                    <option value="members" selected>👥 {{ __('Members') }}</option>
-                                    <option value="instructors">🎓 {{ __('Instructors') }}</option>
-                                    <option value="bureau">🔒 {{ __('Bureau') }}</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <button class="btn btn-primary btn-sm w-100">{{ __('Upload') }}</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            @endif
-
-            {{-- Bulk actions --}}
-            <div class="d-flex justify-content-between align-items-center mb-2" id="bulkBar" style="display:none!important">
-                <small class="text-muted"><span id="selectedCount">0</span> {{ __('selected') }}</small>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary" onclick="downloadSelected()">📥 {{ __('Download ZIP') }}</button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false)">{{ __('Deselect all') }}</button>
-                </div>
-            </div>
-
             {{-- File table --}}
             <div class="card dc-card">
                 <div class="card-header py-2 d-flex justify-content-between">
@@ -134,7 +111,8 @@
                     {{-- Bulk action bar --}}
                     <div id="bulkBar" class="alert alert-primary py-2 mb-2 d-flex align-items-center gap-2" style="display:none!important">
                         <strong id="bulkCount">0</strong> {{ __('selected') }}
-                        <button type="button" class="btn btn-sm btn-danger ms-auto" onclick="bulkDelete()">@icon('🗑') {{ __('Delete selected') }}</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary ms-auto" onclick="downloadSelected()">📥 {{ __('Download ZIP') }}</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="bulkDelete()">@icon('🗑') {{ __('Delete selected') }}</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false);document.querySelector('thead input[type=checkbox]').checked=false">{{ __('Clear') }}</button>
                     </div>
                     <div class="table-responsive">
@@ -211,6 +189,41 @@
                     </div>
                 @endif
             </div>
+
+            {{-- Dropzone upload — deliberately last on the page: it's a
+                 secondary action compared to browsing/managing files above. --}}
+            @if($folder)
+            <div class="card dc-card mt-3">
+                <div class="card-header py-2">@icon('📎') {{ __('Upload to :folder', ['folder' => $folder]) }}</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('admin.library.upload') }}" enctype="multipart/form-data" id="uploadForm">
+                        @csrf
+                        <input type="hidden" name="folder" value="{{ $folder }}">
+                        <div id="dropArea" style="border:3px dashed #ccc;border-radius:10px;padding:40px 16px;text-align:center;cursor:pointer;transition:border-color 0.2s" onclick="document.getElementById('fileInput').click()">
+                            <span style="font-size:40px">📎</span><br>
+                            <span class="text-muted drop-label">{{ __('Drop files here or click to browse') }}</span>
+                            <input type="file" name="files[]" id="fileInput" multiple required style="display:none" onchange="updateDropLabel(this)">
+                        </div>
+                        <div class="row g-2 align-items-end mt-2">
+                            <div class="col-md-6">
+                                <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description (optional)') }}">
+                            </div>
+                            <div class="col-md-3">
+                                <select name="visibility" class="form-select form-select-sm">
+                                    <option value="public">🌍 {{ __('Public') }}</option>
+                                    <option value="members" selected>👥 {{ __('Members') }}</option>
+                                    <option value="instructors">🎓 {{ __('Instructors') }}</option>
+                                    <option value="bureau">🔒 {{ __('Bureau') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-primary btn-sm w-100">{{ __('Upload') }}</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
@@ -254,22 +267,8 @@ if (dropArea) {
 
 function updateDropLabel(input) {
     const n = input.files.length;
-    dropArea.querySelector('small').textContent = n + ' {{ __("file(s) selected") }}';
+    dropArea.querySelector('.drop-label').textContent = n + ' {{ __("file(s) selected") }}';
     dropArea.style.borderColor = '#28a745';
-}
-
-// Bulk select
-function toggleAll(checked) {
-    document.querySelectorAll('.file-check').forEach(cb => cb.checked = checked);
-    updateBulkBar();
-}
-
-function updateBulkBar() {
-    const checked = document.querySelectorAll('.file-check:checked').length;
-    const bar = document.getElementById('bulkBar');
-    bar.style.display = checked > 0 ? 'flex' : 'none';
-    bar.style.setProperty('display', checked > 0 ? 'flex' : 'none', 'important');
-    document.getElementById('selectedCount').textContent = checked;
 }
 
 function downloadSelected() {

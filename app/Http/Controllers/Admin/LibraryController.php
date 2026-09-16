@@ -30,7 +30,7 @@ class LibraryController extends Controller
             });
             $folder = null; // search across all folders
         } else {
-            $query->inFolder($folder);
+            $query->inFolder($folder)->where('original_name', '!=', '.folder');
         }
 
         $files = $query->orderBy('original_name')->get();
@@ -46,7 +46,13 @@ class LibraryController extends Controller
             ->sort()
             ->values();
 
-        return view('admin.library.index', compact('files', 'folder', 'folders', 'search'));
+        // Per-folder counts for the sidebar badges: how many files live
+        // directly in it, and how many direct subfolders it has.
+        $fileCounts = LibraryFile::where('original_name', '!=', '.folder')
+            ->selectRaw('folder, count(*) as cnt')->groupBy('folder')->pluck('cnt', 'folder');
+        $subfolderCounts = $folders->reject(fn (string $f): bool => $f === '/')->countBy(fn (string $f): string => dirname($f));
+
+        return view('admin.library.index', compact('files', 'folder', 'folders', 'search', 'fileCounts', 'subfolderCounts'));
     }
 
     public function upload(Request $request): BinaryFileResponse|RedirectResponse
@@ -78,6 +84,9 @@ class LibraryController extends Controller
             ]);
             $stored[$origName] = $path;
         }
+
+        // Remove the folder placeholder now that a real file exists here.
+        LibraryFile::where('folder', $folder)->where('original_name', '.folder')->delete();
 
         // Auto-copy to incoming/ for member matching
         if (stripos($folder, 'incoming') !== false) {
@@ -148,9 +157,32 @@ class LibraryController extends Controller
 
     public function createFolder(Request $request): JsonResponse|RedirectResponse
     {
-        $request->validate(['folder' => 'required|string|max:255']);
+        $request->validate(['name' => 'required|string|max:100|regex:/^[a-zA-Z0-9_\- ]+$/']);
 
-        return redirect()->route('admin.library.index', ['folder' => $request->input('folder')]);
+        $parent = $request->input('parent', '/');
+        $newFolder = rtrim($parent, '/').'/'.$request->input('name');
+
+        if (LibraryFile::where('folder', $newFolder)->exists()) {
+            return redirect()->route('admin.library.index', ['folder' => $newFolder]);
+        }
+
+        // A folder only exists as a byproduct of files having that folder
+        // value — this hidden placeholder is what makes an otherwise-empty
+        // folder show up in the tree at all. upload() deletes it once a
+        // real file lands in the same folder.
+        LibraryFile::create([
+            'filename' => '.folder',
+            'original_name' => '.folder',
+            'path' => '',
+            'mime_type' => 'inode/directory',
+            'size' => 0,
+            'folder' => $newFolder,
+            'visibility' => 'members',
+            'uploaded_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('admin.library.index', ['folder' => $newFolder])
+            ->with('success', __('Folder created.'));
     }
 
     public function bulkDelete(Request $request): JsonResponse
