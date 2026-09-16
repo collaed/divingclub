@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiveGroupRuleController;
 use App\Http\Controllers\Admin\DiveSiteController;
 use App\Http\Controllers\Admin\DocumentDispatchController;
+use App\Http\Controllers\Admin\DocumentIntakeController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EmailStatsController;
 use App\Http\Controllers\Admin\EventAutomationRuleController;
@@ -217,6 +218,13 @@ Route::post('/payments/import-statement', [PaymentController::class, 'importStat
 Route::post('/payments/suggest-matches', [PaymentController::class, 'suggestMatches'])->name('payments.suggest-matches');
 Route::post('/payments/confirm/{transaction}', [PaymentController::class, 'confirmMatch'])->name('payments.confirm-match');
 Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignoreTransaction'])->name('payments.ignore');
+
+// Document Intake — shared upload point for licence scans and bank
+// statements; classifies and routes to whichever existing pipeline/review
+// screen handles that type (licence-scans, payments.reconciliation).
+Route::get('/document-intake', [DocumentIntakeController::class, 'index'])->name('document-intake.index');
+Route::post('/document-intake', [DocumentIntakeController::class, 'store'])->name('document-intake.store');
+Route::post('/document-intake/{intake}/reclassify', [DocumentIntakeController::class, 'reclassify'])->name('document-intake.reclassify');
 
 // Equipment lives in routes/web.php, gated by `can:manage equipment`
 // (delegated to technical_dir) rather than a bureau role.

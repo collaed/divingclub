@@ -2,7 +2,8 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <h4 class="mb-0">@icon('🪪') {{ __('Licence Scans') }}</h4>
     </div>
-    <p class="text-muted small">{{ __('Dump a batch of licence card scans; each one is read automatically and applied straight to the member when the name matches exactly one person. Anything else lands below for you to assign by hand.') }}</p>
+    <p class="text-muted small">{{ __('Scans land here once read automatically and applied straight to the member when the name matches exactly one person. Anything else appears below for you to assign by hand.') }}</p>
+    <p class="small"><a href="{{ route('admin.document-intake.index') }}">@icon('📥') {{ __('Upload new scans via Document Intake →') }}</a></p>
 
     @if(session('success'))
         <div class="alert alert-success py-2 small">{{ session('success') }}</div>
@@ -10,33 +11,6 @@
     @error('files.*')
         <div class="alert alert-danger py-2 small">{{ $message }}</div>
     @enderror
-
-    <div class="card dc-card mb-4">
-        <div class="card-body">
-            <form method="POST" action="{{ route('admin.licence-scans.store') }}" enctype="multipart/form-data" class="row g-2 align-items-end">
-                @csrf
-                <div class="col-auto">
-                    <label class="form-label small mb-1">{{ __('Federation') }}</label>
-                    <select name="federation_id" class="form-select form-select-sm" required>
-                        @foreach($federations as $federation)
-                            <option value="{{ $federation->id }}">{{ $federation->acronym }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col">
-                    <label class="form-label small mb-1">{{ __('Scans (PDF or image, one per member)') }}</label>
-                    <div class="dc-dropzone rounded d-flex align-items-center justify-content-center gap-2 text-muted small" style="border: 2px dashed #ccc;" tabindex="0" role="button">
-                        <span>@icon('📥')</span>
-                        <span class="dc-dropzone-label">{{ __('Drop files here, or click to browse') }}</span>
-                        <input type="file" name="files[]" class="dc-dropzone-input visually-hidden" accept="application/pdf,image/jpeg,image/png" multiple required>
-                    </div>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-sm btn-primary">@icon('⬆️') {{ __('Upload & process') }}</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <div id="needsReviewSection">
         @if($needsReview->isEmpty())

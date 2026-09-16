@@ -65,59 +65,13 @@ class BankReconciliationService
     }
 
     /**
-     * Run OCR on a PDF file. Tries Tesseract (local) first, falls back to pdftotext.
+     * Run OCR on a PDF file. Tries pdftotext first, falls back to Tesseract.
+     * Delegates to PdfTextExtractionService, shared with the document-intake
+     * classifier so a statement's text is only ever extracted once.
      */
     private function ocrPdf(string $pdfPath): string
     {
-        // Strategy 1: pdftotext (works for digital/text-based PDFs)
-        $textPath = tempnam(sys_get_temp_dir(), 'bank_').'.txt';
-        $escaped = escapeshellarg($pdfPath);
-        $escapedOut = escapeshellarg($textPath);
-        exec("pdftotext -layout {$escaped} {$escapedOut} 2>/dev/null", $output, $code);
-
-        if ($code === 0 && file_exists($textPath)) {
-            $text = file_get_contents($textPath);
-            @unlink($textPath);
-
-            // If pdftotext returned meaningful content, use it
-            if (strlen(trim($text)) > 50) {
-                return $text;
-            }
-        }
-        @unlink($textPath);
-
-        // Strategy 2: Tesseract OCR (for scanned PDFs)
-        $imgDir = tempnam(sys_get_temp_dir(), 'bank_img_');
-        @unlink($imgDir);
-        @mkdir($imgDir);
-
-        try {
-            // Convert PDF pages to images
-            exec("pdftoppm -png -r 300 {$escaped} {$imgDir}/page 2>/dev/null", $output, $code);
-
-            if ($code !== 0) {
-                return '';
-            }
-
-            $pages = glob("{$imgDir}/page-*.png");
-            sort($pages);
-            $fullText = '';
-
-            foreach ($pages as $page) {
-                $escapedPage = escapeshellarg($page);
-                $ocrResult = '';
-                exec("tesseract {$escapedPage} stdout -l fra+deu+eng 2>/dev/null", $ocrLines, $ocrCode);
-                if ($ocrCode === 0) {
-                    $fullText .= implode("\n", $ocrLines)."\f";
-                }
-                $ocrLines = [];
-            }
-
-            return $fullText;
-        } finally {
-            @array_map('unlink', glob("{$imgDir}/*"));
-            @rmdir($imgDir);
-        }
+        return app(PdfTextExtractionService::class)->extract($pdfPath);
     }
 
     /**

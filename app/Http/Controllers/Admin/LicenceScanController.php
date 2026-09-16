@@ -8,7 +8,6 @@ use App\Helpers\PdfMetadata;
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessLicenceScan;
-use App\Models\Federation;
 use App\Models\LicenceScan;
 use App\Models\MemberLicence;
 use App\Models\User;
@@ -35,12 +34,11 @@ class LicenceScanController extends Controller
             ->latest()
             ->paginate($this->perPage(20));
 
-        $federations = Federation::active()->orderBy('acronym')->get();
         $members = User::whereHas('detail')->with('detail')->get()
             ->map(fn (User $u): array => ['id' => $u->id, 'name' => $u->name])
             ->sortBy('name')->values();
 
-        return view('admin.licence-scans.index', compact('needsReview', 'federations', 'members'));
+        return view('admin.licence-scans.index', compact('needsReview', 'members'));
     }
 
     public function store(Request $request): RedirectResponse
