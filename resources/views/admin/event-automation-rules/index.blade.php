@@ -4,10 +4,14 @@
         \App\Models\EventAutomationRule::TYPE_MIN_REGISTRATIONS => __('Minimum registrations'),
         \App\Models\EventAutomationRule::TYPE_REQUIRES_LIFEGUARD => __('Requires a lifeguard'),
     ];
+    $triggerLabels = [
+        \App\Models\EventAutomationRule::TRIGGER_REGISTRATION_CLOSE => __('When registrations close'),
+        \App\Models\EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT => __('A fixed number of hours before the event'),
+    ];
 @endphp
 <x-admin-layout :title="__('Event Automation Rules')">
     <h4 class="mb-3">@icon('🤖') {{ __('Event Automation Rules') }}</h4>
-    <p class="text-muted small">{{ __('Evaluated automatically once registrations close (checked every 15 minutes). A rule on a pattern is the default for every event it generates; a rule on one specific event overrides the pattern\'s rule of the same type for that event only.') }}</p>
+    <p class="text-muted small">{{ __('Checked every 15 minutes and fired once due — either when registrations close, or a fixed number of hours before the event, depending on the rule. A rule on a pattern is the default for every event it generates; a rule on one specific event overrides the pattern\'s rule of the same type for that event only.') }}</p>
 
     @if(session('success'))
         <div class="alert alert-success py-2 small">{{ session('success') }}</div>
@@ -53,6 +57,18 @@
                     <label class="form-label small mb-1">{{ __('Threshold') }}</label>
                     <input type="number" name="threshold" min="0" class="form-control form-control-sm" placeholder="{{ __('e.g. 4') }}">
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">{{ __('When to check') }}</label>
+                    <select name="trigger" class="form-select form-select-sm dc-trigger-select">
+                        @foreach($triggerLabels as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 dc-hours-before-field" hidden>
+                    <label class="form-label small mb-1">{{ __('Hours before') }}</label>
+                    <input type="number" name="hours_before_event" min="1" class="form-control form-control-sm" placeholder="{{ __('e.g. 6') }}">
+                </div>
                 <div class="col-md-3 d-flex align-items-end">
                     <div class="form-check">
                         <input type="hidden" name="cancels_event" value="0">
@@ -85,6 +101,7 @@
                 <tr>
                     <th>{{ __('Applies to') }}</th>
                     <th>{{ __('Rule') }}</th>
+                    <th>{{ __('When') }}</th>
                     <th>{{ __('Cancels?') }}</th>
                     <th>{{ __('Recipients') }}</th>
                     <th></th>
@@ -106,6 +123,13 @@
                             {{ $ruleTypeLabels[$rule->rule_type] ?? $rule->rule_type }}
                             @if($rule->rule_type === \App\Models\EventAutomationRule::TYPE_MIN_REGISTRATIONS) (&lt; {{ $rule->threshold }}) @endif
                         </td>
+                        <td class="small">
+                            @if($rule->trigger === \App\Models\EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT)
+                                {{ __(':hours h before the event', ['hours' => $rule->hours_before_event]) }}
+                            @else
+                                {{ __('Registration close') }}
+                            @endif
+                        </td>
                         <td class="small">{{ $rule->cancels_event ? __('Yes') : __('No') }}</td>
                         <td class="small text-muted">{{ $rule->extra_recipients ?: '—' }}</td>
                         <td>
@@ -116,7 +140,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-muted text-center py-4">{{ __('No automation rules configured yet.') }}</td></tr>
+                    <tr><td colspan="6" class="text-muted text-center py-4">{{ __('No automation rules configured yet.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -129,6 +153,8 @@
         var eventField = document.querySelector('.dc-target-event');
         var ruleTypeSelect = document.querySelector('.dc-rule-type');
         var thresholdField = document.querySelector('.dc-threshold-field');
+        var triggerSelect = document.querySelector('.dc-trigger-select');
+        var hoursBeforeField = document.querySelector('.dc-hours-before-field');
 
         function syncTarget() {
             var isEvent = targetSelect.value === 'event';
@@ -138,9 +164,14 @@
         function syncThreshold() {
             thresholdField.hidden = ruleTypeSelect.value !== '{{ \App\Models\EventAutomationRule::TYPE_MIN_REGISTRATIONS }}';
         }
+        function syncTrigger() {
+            hoursBeforeField.hidden = triggerSelect.value !== '{{ \App\Models\EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT }}';
+        }
         targetSelect.addEventListener('change', syncTarget);
         ruleTypeSelect.addEventListener('change', syncThreshold);
+        triggerSelect.addEventListener('change', syncTrigger);
         syncTarget();
         syncThreshold();
+        syncTrigger();
     </script>
 </x-admin-layout>

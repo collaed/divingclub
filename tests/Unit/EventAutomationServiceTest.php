@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use App\Jobs\SendEventAutomationEmail;
 use App\Models\Event;
 use App\Models\EventAutomationRule;
+use App\Models\EventAutomationRuleFire;
 use App\Models\EventRegistration;
 use App\Models\MemberDetail;
 use App\Models\Season;
@@ -135,5 +136,131 @@ class EventAutomationServiceTest extends TestCase
         $event->refresh();
         $this->assertSame('scheduled', $event->status);
         Bus::assertNotDispatched(SendEventAutomationEmail::class);
+    }
+
+    public function test_hours_before_event_rule_does_not_fire_before_its_checkpoint(): void
+    {
+        Bus::fake();
+        $event = Event::factory()->create([
+            'status' => 'scheduled',
+            'event_date' => now()->addHours(5)->toDateString(),
+            'event_time' => now()->addHours(5)->format('H:i'),
+        ]);
+        $rule = EventAutomationRule::create([
+            'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+            'threshold' => 3, 'cancels_event' => true,
+        ]);
+
+        app(EventAutomationService::class)->evaluate($event);
+
+        $event->refresh();
+        $this->assertSame('scheduled', $event->status);
+        $this->assertDatabaseMissing('event_automation_rule_fires', ['event_id' => $event->id, 'event_automation_rule_id' => $rule->id]);
+        Bus::assertNotDispatched(SendEventAutomationEmail::class);
+    }
+
+    public function test_hours_before_event_rule_fires_once_its_checkpoint_is_reached(): void
+    {
+        Bus::fake();
+        $event = Event::factory()->create([
+            'status' => 'scheduled',
+            'event_date' => now()->addHours(2)->toDateString(),
+            'event_time' => now()->addHours(2)->format('H:i'),
+        ]);
+        $rule = EventAutomationRule::create([
+            'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+            'threshold' => 3, 'cancels_event' => true, 'extra_recipients' => 'chief@clubcep.eu',
+        ]);
+
+        app(EventAutomationService::class)->evaluate($event);
+
+        $event->refresh();
+        $this->assertSame('cancelled', $event->status);
+        $this->assertDatabaseHas('event_automation_rule_fires', ['event_id' => $event->id, 'event_automation_rule_id' => $rule->id]);
+        Bus::assertDispatched(SendEventAutomationEmail::class, fn ($job) => $job->ruleId === $rule->id);
+    }
+
+    public function test_hours_before_event_evaluation_is_idempotent(): void
+    {
+        Bus::fake();
+        $event = Event::factory()->create([
+            'status' => 'scheduled',
+            'event_date' => now()->addHour()->toDateString(),
+            'event_time' => now()->addHour()->format('H:i'),
+        ]);
+        $rule = EventAutomationRule::create([
+            'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+            'threshold' => 99, 'cancels_event' => true,
+        ]);
+        EventAutomationRuleFire::create(['event_id' => $event->id, 'event_automation_rule_id' => $rule->id, 'fired_at' => now()->subMinute()]);
+
+        app(EventAutomationService::class)->evaluate($event);
+
+        $event->refresh();
+        $this->assertSame('scheduled', $event->status);
+        Bus::assertNotDispatched(SendEventAutomationEmail::class);
+    }
+
+    public function test_hours_before_event_is_left_untouched_when_the_event_has_no_such_rule(): void
+    {
+        Bus::fake();
+        $event = Event::factory()->create(['status' => 'scheduled']);
+
+        app(EventAutomationService::class)->evaluate($event);
+
+        $this->assertSame(0, EventAutomationRuleFire::where('event_id', $event->id)->count());
+    }
+
+    public function test_a_past_event_is_marked_fired_without_running_or_notifying(): void
+    {
+        Bus::fake();
+        $event = Event::factory()->create([
+            'status' => 'scheduled',
+            'event_date' => now()->subDays(10)->toDateString(),
+            'event_time' => now()->subDays(10)->format('H:i'),
+        ]);
+        $rule = EventAutomationRule::create([
+            'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+            'threshold' => 99, 'cancels_event' => true, 'extra_recipients' => 'chief@clubcep.eu',
+        ]);
+
+        app(EventAutomationService::class)->evaluate($event);
+
+        $event->refresh();
+        $this->assertSame('scheduled', $event->status);
+        $this->assertDatabaseHas('event_automation_rule_fires', ['event_id' => $event->id, 'event_automation_rule_id' => $rule->id]);
+        Bus::assertNotDispatched(SendEventAutomationEmail::class);
+    }
+
+    public function test_rules_with_different_hour_offsets_fire_independently(): void
+    {
+        Bus::fake();
+        $pattern = $this->pattern();
+        $event = Event::factory()->create([
+            'status' => 'scheduled', 'season_pattern_id' => $pattern->id,
+            'event_date' => now()->addHours(2)->toDateString(),
+            'event_time' => now()->addHours(2)->format('H:i'),
+        ]);
+        // Due now (checkpoint 3h before, event is 2h away).
+        $dueRule = EventAutomationRule::create([
+            'season_pattern_id' => $pattern->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+            'threshold' => 99, 'extra_recipients' => 'chief@clubcep.eu',
+        ]);
+        // Not due yet (checkpoint 1h before, event is 2h away).
+        $notYetDueRule = EventAutomationRule::create([
+            'season_pattern_id' => $pattern->id, 'rule_type' => EventAutomationRule::TYPE_REQUIRES_LIFEGUARD,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 1,
+        ]);
+
+        app(EventAutomationService::class)->evaluate($event);
+
+        $this->assertDatabaseHas('event_automation_rule_fires', ['event_id' => $event->id, 'event_automation_rule_id' => $dueRule->id]);
+        $this->assertDatabaseMissing('event_automation_rule_fires', ['event_id' => $event->id, 'event_automation_rule_id' => $notYetDueRule->id]);
+        Bus::assertDispatched(SendEventAutomationEmail::class, fn ($job) => $job->ruleId === $dueRule->id);
     }
 }

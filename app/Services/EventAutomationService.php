@@ -7,13 +7,16 @@ namespace App\Services;
 use App\Jobs\SendEventAutomationEmail;
 use App\Models\Event;
 use App\Models\EventAutomationRule;
+use App\Models\EventAutomationRuleFire;
 use Illuminate\Support\Collection;
 
 /**
- * Evaluated once per event, when registrations close (EvaluateEventAutomation
- * console command). Each rule either comes from the event itself (an
- * override) or, failing that, from its season_pattern (the default applied
- * to every event the pattern generates) — see resolveRules().
+ * Evaluated per event by the EvaluateEventAutomation console command, once
+ * its rules become due — either when registrations close, or a fixed number
+ * of hours before the event starts, depending on each rule's trigger. Each
+ * rule either comes from the event itself (an override) or, failing that,
+ * from its season_pattern (the default applied to every event the pattern
+ * generates) — see resolveRules().
  */
 class EventAutomationService
 {
@@ -32,22 +35,84 @@ class EventAutomationService
         return $eventRules->concat($patternRules);
     }
 
-    /** Idempotent — a second call on an already-evaluated event is a no-op. */
+    /**
+     * Runs both trigger passes, each independently idempotent. The
+     * hours-before-event pass also checks its own due time, so it's safe to
+     * call on any event. The registration-close pass does not re-check
+     * inscription_close_at — the caller (EvaluateEventAutomation) is
+     * responsible for only invoking this once registrations have closed.
+     */
     public function evaluate(Event $event): void
+    {
+        $this->evaluateRegistrationClose($event);
+        $this->evaluateHoursBeforeEvent($event);
+    }
+
+    /**
+     * Rules with the default trigger. The caller (EvaluateEventAutomation)
+     * is responsible for only calling this once registrations have actually
+     * closed — this pass itself doesn't re-check inscription_close_at.
+     */
+    private function evaluateRegistrationClose(Event $event): void
     {
         if ($event->automation_evaluated_at !== null) {
             return;
         }
 
-        foreach ($this->resolveRules($event) as $rule) {
-            match ($rule->rule_type) {
-                EventAutomationRule::TYPE_MIN_REGISTRATIONS => $this->evaluateMinRegistrations($event, $rule),
-                EventAutomationRule::TYPE_REQUIRES_LIFEGUARD => $this->evaluateRequiresLifeguard($event, $rule),
-                default => null,
-            };
+        $rules = $this->resolveRules($event)->where('trigger', EventAutomationRule::TRIGGER_REGISTRATION_CLOSE);
+        foreach ($rules as $rule) {
+            $this->runRule($event, $rule);
         }
 
         $event->update(['automation_evaluated_at' => now()]);
+    }
+
+    /**
+     * Rules due a fixed number of hours before the event starts, independent
+     * of the registration window. Each rule is gated and fired on its own —
+     * necessary because one event can have several such rules (one per
+     * rule_type) with different hours_before_event offsets. A rule for an
+     * event whose start has already passed is marked fired without running,
+     * since there's nothing left to check or warn about beforehand.
+     */
+    private function evaluateHoursBeforeEvent(Event $event): void
+    {
+        $rules = $this->resolveRules($event)->where('trigger', EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT);
+        if ($rules->isEmpty()) {
+            return;
+        }
+
+        $startsAt = $event->startsAt();
+        if (! $startsAt) {
+            return;
+        }
+
+        $firedRuleIds = EventAutomationRuleFire::where('event_id', $event->id)->pluck('event_automation_rule_id');
+
+        foreach ($rules as $rule) {
+            if ($firedRuleIds->contains($rule->id)) {
+                continue;
+            }
+
+            if ($startsAt->isFuture() && $startsAt->copy()->subHours((int) $rule->hours_before_event)->isFuture()) {
+                continue;
+            }
+
+            if ($startsAt->isFuture()) {
+                $this->runRule($event, $rule);
+            }
+
+            EventAutomationRuleFire::create(['event_id' => $event->id, 'event_automation_rule_id' => $rule->id, 'fired_at' => now()]);
+        }
+    }
+
+    private function runRule(Event $event, EventAutomationRule $rule): void
+    {
+        match ($rule->rule_type) {
+            EventAutomationRule::TYPE_MIN_REGISTRATIONS => $this->evaluateMinRegistrations($event, $rule),
+            EventAutomationRule::TYPE_REQUIRES_LIFEGUARD => $this->evaluateRequiresLifeguard($event, $rule),
+            default => null,
+        };
     }
 
     private function evaluateMinRegistrations(Event $event, EventAutomationRule $rule): void

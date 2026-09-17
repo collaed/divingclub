@@ -7,6 +7,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -46,5 +47,11 @@ class SeasonPattern extends Model
     public function dayName(): string
     {
         return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][$this->day_of_week] ?? '?';
+    }
+
+    /** @return HasMany<EventAutomationRule, $this> */
+    public function automationRules(): HasMany
+    {
+        return $this->hasMany(EventAutomationRule::class);
     }
 }

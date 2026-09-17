@@ -64,6 +64,56 @@ class EventAutomationRuleTest extends TestCase
         $this->assertSame('safety@clubcep.eu', $rule->extra_recipients);
     }
 
+    public function test_bureau_can_create_an_hours_before_event_rule(): void
+    {
+        $event = Event::factory()->create();
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.event-automation-rules.store'), [
+                'target' => 'event',
+                'event_id' => $event->id,
+                'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+                'threshold' => 4,
+                'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT,
+                'hours_before_event' => 6,
+                'cancels_event' => '1',
+            ])
+            ->assertRedirect();
+
+        $rule = EventAutomationRule::firstOrFail();
+        $this->assertSame(EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, $rule->trigger);
+        $this->assertSame(6, $rule->hours_before_event);
+    }
+
+    public function test_omitting_trigger_defaults_to_registration_close(): void
+    {
+        $event = Event::factory()->create();
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.event-automation-rules.store'), [
+                'target' => 'event',
+                'event_id' => $event->id,
+                'rule_type' => EventAutomationRule::TYPE_REQUIRES_LIFEGUARD,
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(EventAutomationRule::TRIGGER_REGISTRATION_CLOSE, EventAutomationRule::firstOrFail()->trigger);
+    }
+
+    public function test_hours_before_event_trigger_requires_an_hours_value(): void
+    {
+        $event = Event::factory()->create();
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.event-automation-rules.store'), [
+                'target' => 'event',
+                'event_id' => $event->id,
+                'rule_type' => EventAutomationRule::TYPE_REQUIRES_LIFEGUARD,
+                'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT,
+            ])
+            ->assertSessionHasErrors('hours_before_event');
+    }
+
     public function test_min_registrations_requires_a_threshold(): void
     {
         $event = Event::factory()->create();

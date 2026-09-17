@@ -283,4 +283,20 @@ class Event extends Model
     {
         return (bool) $this->trip_settlement_enabled;
     }
+
+    /** @return HasMany<EventAutomationRule, $this> */
+    public function automationRules(): HasMany
+    {
+        return $this->hasMany(EventAutomationRule::class);
+    }
+
+    /** Event start as a single instant (event_date + event_time), or null if either is missing. */
+    public function startsAt(): ?Carbon
+    {
+        if (! $this->event_date || ! $this->event_time) {
+            return null;
+        }
+
+        return Carbon::parse($this->event_date->format('Y-m-d').' '.$this->event_time);
+    }
 }

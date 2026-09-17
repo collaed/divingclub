@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $season_pattern_id
  * @property int|null $event_id
  * @property string $rule_type
+ * @property string $trigger
+ * @property int|null $hours_before_event
  * @property int|null $threshold
  * @property bool $cancels_event
  * @property string|null $email_subject
@@ -32,9 +34,15 @@ class EventAutomationRule extends Model
 
     public const TYPE_REQUIRES_LIFEGUARD = 'requires_lifeguard';
 
+    /** Evaluated when the event's registration window closes (default). */
+    public const TRIGGER_REGISTRATION_CLOSE = 'registration_close';
+
+    /** Evaluated a fixed number of hours before the event starts, regardless of the registration window. */
+    public const TRIGGER_HOURS_BEFORE_EVENT = 'hours_before_event';
+
     protected $fillable = [
-        'season_pattern_id', 'event_id', 'rule_type', 'threshold',
-        'cancels_event', 'email_subject', 'email_body', 'extra_recipients',
+        'season_pattern_id', 'event_id', 'rule_type', 'trigger', 'hours_before_event',
+        'threshold', 'cancels_event', 'email_subject', 'email_body', 'extra_recipients',
     ];
 
     protected function casts(): array
