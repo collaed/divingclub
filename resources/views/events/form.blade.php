@@ -148,11 +148,11 @@
             </div>
             <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('Registration opens') }}</label>
-                <input type="datetime-local" name="inscription_open_at" class="form-control" value="{{ old('inscription_open_at', $event->inscription_open_at?->format('Y-m-d\TH:i')) }}">
+                <input type="datetime-local" name="inscription_open_at" class="form-control" value="{{ old('inscription_open_at', $event->inscription_open_at?->clone()->setTimezone(config('club.timezone'))->format('Y-m-d\TH:i')) }}">
             </div>
             <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('Registration closes') }}</label>
-                <input type="datetime-local" name="inscription_close_at" class="form-control" value="{{ old('inscription_close_at', $event->inscription_close_at?->format('Y-m-d\TH:i')) }}">
+                <input type="datetime-local" name="inscription_close_at" class="form-control" value="{{ old('inscription_close_at', $event->inscription_close_at?->clone()->setTimezone(config('club.timezone'))->format('Y-m-d\TH:i')) }}">
             </div>
         </div>
 

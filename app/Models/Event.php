@@ -290,13 +290,32 @@ class Event extends Model
         return $this->hasMany(EventAutomationRule::class);
     }
 
-    /** Event start as a single instant (event_date + event_time), or null if either is missing. */
+    /**
+     * Event start as a single instant (event_date + event_time), or null if
+     * either is missing. event_date/event_time are stored as plain
+     * date/time-of-day with no timezone of their own — always entered and
+     * displayed as club-local wall-clock, so parsed as config('club.timezone')
+     * to get a correct absolute instant to compare against now().
+     */
     public function startsAt(): ?Carbon
     {
         if (! $this->event_date || ! $this->event_time) {
             return null;
         }
 
-        return Carbon::parse($this->event_date->format('Y-m-d').' '.$this->event_time);
+        return Carbon::parse($this->event_date->format('Y-m-d').' '.$this->event_time, config('club.timezone'));
+    }
+
+    /**
+     * Parse a wall-clock string (e.g. a `datetime-local` input value) as
+     * club-local time and convert to UTC for storage. Eloquent's own
+     * `datetime` cast does not do this conversion itself — it persists
+     * whatever timezone the Carbon instance already carries — so any
+     * inscription_open_at/inscription_close_at coming from a human-facing
+     * form must go through this before being assigned.
+     */
+    public static function parseClubLocalToUtc(?string $value): ?Carbon
+    {
+        return $value ? Carbon::parse($value, config('club.timezone'))->utc() : null;
     }
 }

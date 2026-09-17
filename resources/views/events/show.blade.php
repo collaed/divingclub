@@ -245,7 +245,7 @@
                                 <p class="text-muted">{{ __('Registration has been closed by the organiser.') }}</p>
                             @elseif($event->inscription_open_at && $event->inscription_open_at->isFuture())
                                 <p class="text-muted">{{ __('Registration is not open yet.') }}</p>
-                                <p class="small">{{ __('Opens') }}: {{ $event->inscription_open_at->format('d/m/Y H:i') }}</p>
+                                <p class="small">{{ __('Opens') }}: {{ $event->inscription_open_at->clone()->setTimezone(config('club.timezone'))->format('d/m/Y H:i') }}</p>
                             @else
                                 <p class="text-muted">{{ __('Registration is closed.') }}</p>
                             @endif

@@ -364,11 +364,15 @@ class SeasonController extends Controller
                 Event::create(array_merge($details, [
                     'event_date' => $entry['date'],
                     'waiting_list_enabled' => true,
+                    // Day boundaries are meant in club-local time (the registration
+                    // window closes at the end of the club's own day), so the
+                    // date is parsed in config('club.timezone') before converting
+                    // to UTC for storage — see Event::parseClubLocalToUtc().
                     'inscription_open_at' => $pattern->registration_opens_days_before
-                        ? $entry['date']->copy()->subDays($pattern->registration_opens_days_before)->startOfDay()
+                        ? Carbon::parse($entry['date']->copy()->subDays($pattern->registration_opens_days_before)->format('Y-m-d'), config('club.timezone'))->startOfDay()->utc()
                         : null,
                     'inscription_close_at' => $pattern->registration_closes_days_before !== null
-                        ? $entry['date']->copy()->subDays((int) $pattern->registration_closes_days_before)->endOfDay()
+                        ? Carbon::parse($entry['date']->copy()->subDays((int) $pattern->registration_closes_days_before)->format('Y-m-d'), config('club.timezone'))->endOfDay()->utc()
                         : null,
                     'inscriptions_closed' => false,
                     'status' => 'scheduled',

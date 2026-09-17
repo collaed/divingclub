@@ -133,4 +133,38 @@ class EventModelTest extends TestCase
         $this->assertStringContainsString('maps/embed/v1/search', $url);
         $this->assertStringContainsString('key=test-key', $url);
     }
+
+    /**
+     * event_date/event_time are plain, timezone-less columns always entered
+     * and displayed as club-local wall-clock — startsAt() must anchor them
+     * to config('club.timezone'), not the app's UTC default, or every
+     * now()-based comparison (event automation) is off by the club's UTC
+     * offset (2h in September, CEST).
+     */
+    public function test_starts_at_anchors_to_club_timezone_not_app_timezone(): void
+    {
+        config(['club.timezone' => 'Europe/Luxembourg']);
+        $event = new Event(['event_date' => Carbon::parse('2026-09-17'), 'event_time' => '17:30:00']);
+
+        $startsAt = $event->startsAt();
+
+        $this->assertNotNull($startsAt);
+        $this->assertTrue($startsAt->eq(Carbon::parse('2026-09-17 15:30:00', 'UTC')));
+    }
+
+    public function test_parse_club_local_to_utc_converts_a_datetime_local_string(): void
+    {
+        config(['club.timezone' => 'Europe/Luxembourg']);
+
+        $utc = Event::parseClubLocalToUtc('2026-09-17T16:30');
+
+        $this->assertNotNull($utc);
+        $this->assertTrue($utc->eq(Carbon::parse('2026-09-17 14:30:00', 'UTC')));
+    }
+
+    public function test_parse_club_local_to_utc_returns_null_for_an_empty_value(): void
+    {
+        $this->assertNull(Event::parseClubLocalToUtc(null));
+        $this->assertNull(Event::parseClubLocalToUtc(''));
+    }
 }

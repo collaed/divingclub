@@ -30,6 +30,10 @@ class EventAutomationServiceTest extends TestCase
     {
         parent::setUp();
         $this->seedRoles();
+        // These tests construct event_time from now(), in server (UTC)
+        // terms — pin the club timezone to UTC so startsAt() doesn't shift
+        // it. Timezone conversion itself is covered by EventModelTest.
+        config(['club.timezone' => 'UTC']);
     }
 
     private function pattern(): SeasonPattern

@@ -122,6 +122,8 @@ class EventController extends Controller
         $data['created_by'] = auth()->id();
         $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
         $data['participant_email'] = null; // will be set after creation
+        $data['inscription_open_at'] = Event::parseClubLocalToUtc($data['inscription_open_at'] ?? null);
+        $data['inscription_close_at'] = Event::parseClubLocalToUtc($data['inscription_close_at'] ?? null);
 
         $event = Event::create($data);
         $event->update(['participant_email' => 'event-'.$event->id.'@'.config('club.domain')]);
@@ -155,6 +157,8 @@ class EventController extends Controller
         $data = $request->validated();
         $data['description'] = HtmlSanitizer::clean($data['description'] ?? '');
         $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
+        $data['inscription_open_at'] = Event::parseClubLocalToUtc($data['inscription_open_at'] ?? null);
+        $data['inscription_close_at'] = Event::parseClubLocalToUtc($data['inscription_close_at'] ?? null);
         $event->update($data);
 
         return redirect()->route('events.show', $event)->with('success', __('Event updated.'));

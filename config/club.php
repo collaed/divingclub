@@ -2,6 +2,12 @@
 
 return [
     'id' => env('CLUB_ID', 'CLUB'),
+    // app.timezone deliberately stays UTC for multi-club portability — this
+    // is the timezone human-entered wall-clock times (event start, deposit
+    // dates, registration open/close) are actually meant in, and the one
+    // they're converted back to for display. See Event::startsAt() and
+    // EventController for the conversion points.
+    'timezone' => env('CLUB_TIMEZONE', 'Europe/Luxembourg'),
     'iban' => env('CLUB_IBAN', ''),
     'domain' => env('CLUB_DOMAIN', 'example.com'),
     'federation_salt' => env('FEDERATION_SALT', 'default_salt'),

@@ -19,6 +19,15 @@ class EvaluateEventAutomationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests construct event_time from now(), in server (UTC)
+        // terms — pin the club timezone to UTC so startsAt() doesn't shift
+        // it. Timezone conversion itself is covered by EventModelTest.
+        config(['club.timezone' => 'UTC']);
+    }
+
     public function test_only_events_with_a_past_unevaluated_close_time_are_picked_up(): void
     {
         Bus::fake();
