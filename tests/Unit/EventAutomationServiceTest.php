@@ -65,7 +65,7 @@ class EventAutomationServiceTest extends TestCase
     public function test_below_threshold_emails_participants_and_extra_recipients_and_cancels(): void
     {
         Bus::fake();
-        $event = Event::factory()->create(['status' => 'scheduled']);
+        $event = Event::factory()->create(['status' => 'scheduled', 'inscription_close_at' => now()->subHour()]);
         $rule = EventAutomationRule::create([
             'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
             'threshold' => 3, 'cancels_event' => true, 'extra_recipients' => 'chief@clubcep.eu',
@@ -86,7 +86,7 @@ class EventAutomationServiceTest extends TestCase
     public function test_at_or_above_threshold_does_not_email_or_cancel(): void
     {
         Bus::fake();
-        $event = Event::factory()->create(['status' => 'scheduled']);
+        $event = Event::factory()->create(['status' => 'scheduled', 'inscription_close_at' => now()->subHour()]);
         EventAutomationRule::create(['event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS, 'threshold' => 1, 'cancels_event' => true]);
         $this->confirmedParticipant($event);
 
@@ -101,7 +101,7 @@ class EventAutomationServiceTest extends TestCase
     {
         Bus::fake();
         $responsible = User::factory()->create();
-        $event = Event::factory()->create(['responsible_id' => $responsible->id]);
+        $event = Event::factory()->create(['responsible_id' => $responsible->id, 'inscription_close_at' => now()->subHour()]);
         EventAutomationRule::create(['event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_REQUIRES_LIFEGUARD]);
         $participant = $this->confirmedParticipant($event, lifeguard: false);
 

@@ -36,11 +36,12 @@ class EventAutomationService
     }
 
     /**
-     * Runs both trigger passes, each independently idempotent. The
-     * hours-before-event pass also checks its own due time, so it's safe to
-     * call on any event. The registration-close pass does not re-check
-     * inscription_close_at — the caller (EvaluateEventAutomation) is
-     * responsible for only invoking this once registrations have closed.
+     * Runs both trigger passes, each independently idempotent and each
+     * checking its own due time — safe to call on any event regardless of
+     * why the caller (EvaluateEventAutomation) selected it as a candidate.
+     * That query's candidate set is intentionally broad (a single OR across
+     * both triggers), so evaluate() must never assume a candidate is due
+     * for one trigger just because it matched the query for the other.
      */
     public function evaluate(Event $event): void
     {
@@ -48,14 +49,13 @@ class EventAutomationService
         $this->evaluateHoursBeforeEvent($event);
     }
 
-    /**
-     * Rules with the default trigger. The caller (EvaluateEventAutomation)
-     * is responsible for only calling this once registrations have actually
-     * closed — this pass itself doesn't re-check inscription_close_at.
-     */
+    /** Rules with the default trigger — due once registrations have actually closed. */
     private function evaluateRegistrationClose(Event $event): void
     {
         if ($event->automation_evaluated_at !== null) {
+            return;
+        }
+        if (! $event->inscription_close_at || $event->inscription_close_at->isFuture()) {
             return;
         }
 

@@ -82,4 +82,38 @@ class EvaluateEventAutomationTest extends TestCase
         $this->assertSame(0, EventAutomationRuleFire::where('event_id', $old->id)->count());
         Bus::assertNotDispatched(SendEventAutomationEmail::class);
     }
+
+    /**
+     * Regression: an event with a due hours_before_event rule matches the
+     * candidate query's OR branch for that trigger — evaluate() must not
+     * then also assume its registration_close rule is due, since the query
+     * never checked inscription_close_at for this event at all. Caught live
+     * on staging: it cancelled a test event ~2.5h before its real close time.
+     */
+    public function test_an_event_due_for_an_hours_before_rule_does_not_also_fire_its_not_yet_due_registration_close_rule(): void
+    {
+        Bus::fake();
+
+        $event = Event::factory()->create([
+            'status' => 'scheduled',
+            'event_date' => now()->addHour()->toDateString(),
+            'event_time' => now()->addHour()->format('H:i'),
+            'inscription_close_at' => now()->addHours(2),
+        ]);
+        EventAutomationRule::create([
+            'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_REQUIRES_LIFEGUARD,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+        ]);
+        $closeRule = EventAutomationRule::create([
+            'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+            'threshold' => 5, 'cancels_event' => true, 'extra_recipients' => 'bureau@clubcep.eu',
+        ]);
+
+        Artisan::call('events:evaluate-automation');
+
+        $event->refresh();
+        $this->assertNull($event->automation_evaluated_at);
+        $this->assertSame('scheduled', $event->status);
+        Bus::assertNotDispatched(SendEventAutomationEmail::class, fn (SendEventAutomationEmail $job): bool => $job->ruleId === $closeRule->id);
+    }
 }
