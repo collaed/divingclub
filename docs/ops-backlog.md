@@ -32,6 +32,73 @@ everything to zero every deploy) — this closed the "resets on every deploy"
 bug but not the "staging and prod don't see each other's usage" gap described
 above.
 
+## Auto-propose insurance choice from a payment's amount (deferred)
+
+**Idea:** When a membership payment comes in (or a bureau member is entering
+one), the base cotisation + FFESSM licence + FLASSA are already fully
+determined by the member's status (de droit/externe) and age — nothing to
+guess there (`FeeCalculationService`). The only real unknown left is which
+insurance tier they picked, and `config('cotisation.insurance')` is just a
+flat table of amounts. So: `received_amount − known_base` should match
+exactly one insurance tier's amount; when it does, pre-check that option in
+the membership order UI (and use it as a match-reason hint in bank
+reconciliation). When the delta matches zero or more than one tier, leave it
+to manual selection — propose, never auto-confirm, same rule as the AI bank
+matching.
+
+**Status:** Deferred, not started. Proposed shape: a
+`FeeCalculationService::identifyInsuranceFromAmount(User $user, string $seasonYear, float $amount): ?string`
+returning the matching insurance slug or null.
+
+## Event registrations requiring compliance from more than one federation (deferred)
+
+**Idea:** An event should be able to require a valid licence + medical cert
+for two or more federations at once on a single registration (not just one).
+`MedicalComplianceService::evaluateCertificate()` already computes expiry
+per-federation internally (`$perFed`) but only persists the aggregated
+"latest across all active federations" date plus a human-readable
+`compliance_notes` string — there's no way today to check "is this member
+compliant for FFESSM specifically, as of this event's date" rather than
+"today, across whichever federation is most generous."
+
+- Persist the per-federation breakdown structurally (e.g. a
+  `medical_cert_federation_expiries` table: `document_id`, `federation_id`,
+  `expiry_date`) instead of only the notes string, so a specific
+  federation + date can be queried directly
+  (`isCompliantForFederation(User, Federation, Carbon $atDate)`).
+- Model an event's federation requirements as **rows, not a column** — a
+  pivot table `event_federation_requirements` (`event_id`, `federation_id`),
+  zero-to-many rows per event — mirroring how `MedicalComplianceRule`
+  already models federation rules. An event needing a third or fourth
+  federation later is then just new rows, never a migration. An event with
+  zero rows behaves exactly as today (no federation-specific check at all).
+- Registration UI renders one compliance line (licence + medical cert) per
+  required federation, each checked independently.
+
+**Status:** Deferred, not started. Depends on the FeeCalculationService item
+above only in that both touch registration/payment UI — otherwise independent;
+either can be built first.
+
+## Equipment-priority focus marker on training events (deferred)
+
+**Idea:** A "training" event on the events calendar (`resources/views/events/index.blade.php`,
+coloured via the `.activity-training` class in `resources/scss/partials/_planning.scss`
+and `config/activity_types.php`) needs a second, independent marker: a focus
+group — `kids`, `pn1`, or `pn2` — that gets priority access to equipment for
+that session. This is orthogonal to activity type (any training can carry
+one, or none) so it shouldn't become a new activity-type colour of its own.
+
+- Don't change the base training colour. Render the focus as a **diagonal
+  hatching pattern** (CSS `repeating-linear-gradient`, or an SVG `<pattern>`
+  fill) overlaid on the event block, mixing in a second colour per focus —
+  e.g. reuse the existing `pool_kids` green / `pool_pn1` navy / `pool_pn23`
+  red accents from `config/activity_types.php` so the same focus always
+  reads the same way whether it's a pool slot or a training session.
+- Needs a new nullable column on the event (e.g. `focus_group`) and a small
+  legend addition; the hatching itself is pure CSS, no new library.
+
+**Status:** Deferred, not started.
+
 ## Offsite backup via Google Drive (deferred)
 
 **Idea:** Automate offsite backup to Google Drive instead of manual SFTP.
