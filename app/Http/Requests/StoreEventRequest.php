@@ -23,6 +23,7 @@ class StoreEventRequest extends FormRequest
             // No color_hex: an event's colour is derived from its type
             // (config/activity_types.php via Event::color()).
             'event_type' => 'required|in:pool,dive,training,theory,social',
+            'focus_group' => 'nullable|in:'.implode(',', array_keys(config('event_focus_groups'))),
             'event_date' => 'required|date',
             'event_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i',

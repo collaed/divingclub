@@ -20,6 +20,16 @@
                 </select>
                 <div class="form-text">{{ __('The event colour follows its type (config/activity_types.php).') }}</div>
             </div>
+            <div class="col-md-1 mb-3">
+                <label class="form-label">{{ __('Focus') }}</label>
+                <select name="focus_group" class="form-select">
+                    <option value="">—</option>
+                    @foreach(config('event_focus_groups') as $slug => $fg)
+                        <option value="{{ $slug }}" {{ old('focus_group', $event->focus_group) === $slug ? 'selected' : '' }}>{{ $fg['icon'] }} {{ $fg['label'] }}</option>
+                    @endforeach
+                </select>
+                <div class="form-text">{{ __('Priority equipment access.') }}</div>
+            </div>
         </div>
 
         <div class="row">

@@ -19,6 +19,7 @@
     .ic-toggle { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; font-size: .75rem; line-height: 1; }
     .ic-toggle-add { background: #28a745; color: #fff; }
     .ic-toggle-remove { background: #dc3545; color: #fff; }
+    .ic-badge { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 3px; background: rgba(255,255,255,.25); font-size: .6rem; line-height: 1; }
 
     /* Stamp mode (bureau bulk registration) */
     .ic-stamp-toolbar { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; padding: .5rem .75rem; background: #f1f8f7; border: 1px solid #b2dfdb; border-radius: 6px; margin: .5rem 0; }
@@ -136,14 +137,19 @@
                                                 $actColor = $actColors[$actType]['color'] ?? ($ev->color_hex ?? '#6c757d');
                                                 $actText = $actColors[$actType]['text'] ?? '#fff';
                                             @endphp
-                                            <div class="flex-fill rounded px-1 text-start activity-{{ $actType }} ic-slot" data-event-id="{{ $ev->id }}" style="font-size:.6rem;min-width:0">
-                                                <div class="d-flex align-items-center gap-1">
-                                                    <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:50px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 8) }}</a>
+                                            @php $focusGroup = $ev->focus_group ? config("event_focus_groups.{$ev->focus_group}") : null; @endphp
+                                            <div class="flex-fill rounded px-2 py-1 text-start activity-{{ $actType }} {{ $focusGroup ? 'focus-'.$ev->focus_group : '' }} ic-slot" data-event-id="{{ $ev->id }}" style="font-size:.6rem;min-width:0">
+                                                <div class="d-flex align-items-center gap-1 mb-1">
+                                                    <span class="ic-badge" title="{{ $actColors[$actType]['label'] ?? ucfirst($actType) }}">{{ $actColors[$actType]['icon'] ?? '' }}</span>
+                                                    @if($focusGroup)
+                                                        <span class="ic-badge" title="{{ $focusGroup['label'] }}">{{ $focusGroup['icon'] }}</span>
+                                                    @endif
                                                     @if($isInstructor && !$isPast)
                                                         <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" data-toggle-event="{{ $ev->id }}" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
                                                     @endif
                                                 </div>
-                                                <span class="d-block ic-avatars" data-event-id="{{ $ev->id }}" style="font-size:.55rem;letter-spacing:1px">@foreach($evAvails as $av)@php
+                                                <a href="{{ route('events.show', $ev) }}" class="d-block text-truncate text-decoration-none" style="color:{{ $actText }}" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 10) }}</a>
+                                                <span class="d-block ic-avatars mt-1" data-event-id="{{ $ev->id }}" style="font-size:.55rem;letter-spacing:1px">@foreach($evAvails as $av)@php
                                                         $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
                                                         $ic = $av->user->detail?->instructor_color ?? '#00695c';
                                                     @endphp<span class="ic-avatar" data-user-id="{{ $av->user_id }}" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
@@ -160,14 +166,19 @@
                                                 $actColor = $actColors[$actType]['color'] ?? ($ev->color_hex ?? '#6c757d');
                                                 $actText = $actColors[$actType]['text'] ?? '#fff';
                                             @endphp
-                                            <div class="d-block mb-1 rounded px-1 text-start activity-{{ $actType }} ic-slot" data-event-id="{{ $ev->id }}" style="font-size:.65rem">
-                                                <div class="d-flex align-items-center gap-1">
-                                                    <a href="{{ route('events.show', $ev) }}" class="text-truncate text-decoration-none flex-grow-1" style="color:{{ $actText }};max-width:70px" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 12) }}</a>
+                                            @php $focusGroup = $ev->focus_group ? config("event_focus_groups.{$ev->focus_group}") : null; @endphp
+                                            <div class="d-block mb-1 rounded px-2 py-1 text-start activity-{{ $actType }} {{ $focusGroup ? 'focus-'.$ev->focus_group : '' }} ic-slot" data-event-id="{{ $ev->id }}" style="font-size:.65rem">
+                                                <div class="d-flex align-items-center gap-1 mb-1">
+                                                    <span class="ic-badge" title="{{ $actColors[$actType]['label'] ?? ucfirst($actType) }}">{{ $actColors[$actType]['icon'] ?? '' }}</span>
+                                                    @if($focusGroup)
+                                                        <span class="ic-badge" title="{{ $focusGroup['label'] }}">{{ $focusGroup['icon'] }}</span>
+                                                    @endif
                                                     @if($isInstructor && !$isPast)
                                                         <span class="ms-auto ic-toggle {{ $myAvail ? 'ic-toggle-remove' : 'ic-toggle-add' }}" data-toggle-event="{{ $ev->id }}" title="{{ $myAvail ? __('Remove availability') : __('Mark available') }}">{{ $myAvail ? '✗' : '✓' }}</span>
                                                     @endif
                                                 </div>
-                                                <span class="d-block ic-avatars" data-event-id="{{ $ev->id }}" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
+                                                <a href="{{ route('events.show', $ev) }}" class="d-block text-truncate text-decoration-none" style="color:{{ $actText }}" title="{{ $ev->title }}{{ $ev->event_time ? ' · '.Str::substr($ev->event_time, 0, 5) : '' }}">{{ Str::limit($ev->title, 14) }}</a>
+                                                <span class="d-block ic-avatars mt-1" data-event-id="{{ $ev->id }}" style="font-size:.6rem;letter-spacing:1px">@foreach($evAvails as $av)@php
                                                         $ini = $av->user->detail?->instructor_initial ?: mb_strtoupper(mb_substr($av->user->detail?->first_name ?? '?', 0, 1));
                                                         $ic = $av->user->detail?->instructor_color ?? '#00695c';
                                                     @endphp<span class="ic-avatar" data-user-id="{{ $av->user_id }}" style="background:{{ $ic }}" title="{{ $av->user->detail?->first_name }} {{ $av->user->detail?->last_name }}">{{ $ini }}</span> @endforeach</span>
