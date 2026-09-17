@@ -403,8 +403,10 @@ class BankReconciliationService
 
         // dd.mm.yy / dd/mm/yy / dd-mm-yy — some bank exports use a two-digit
         // year, and the AI extraction fallback tends to echo the source
-        // format back despite being asked for YYYY-MM-DD.
-        if (preg_match('#(\d{2})[./\-](\d{2})[./\-](\d{2})(?!\d)#', $d, $m)) {
+        // format back despite being asked for YYYY-MM-DD. Guarded on both
+        // sides so this can't match a substring of an already-valid
+        // 4-digit-year date (e.g. the "26-07-08" tail of "2026-07-08").
+        if (preg_match('#(?<!\d)(\d{2})[./\-](\d{2})[./\-](\d{2})(?!\d)#', $d, $m)) {
             $year = (int) $m[3] < 70 ? 2000 + (int) $m[3] : 1900 + (int) $m[3];
 
             return "{$year}-{$m[2]}-{$m[1]}";
