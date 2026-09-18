@@ -5,13 +5,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="{{ $theme['primary_color'] ?? '#003366' }}">
+    <meta name="theme-color" id="themeColorMeta" content="{{ $theme['primary_color'] ?? '#003366' }}" data-light-color="{{ $theme['primary_color'] ?? '#003366' }}" data-dark-color="#1a1a2e">
     <title>{{ $title ?? ($theme['club_full_name'] ?? 'DivingClub') }}</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/favicon.ico" sizes="32x32">
     <link rel="icon" href="/images/club-logo.png" type="image/png">
     <meta name="generator" content="DivingClub-Manager/1.0">
     <meta name="description" content="{{ $metaDescription ?? __('Diving club management — events, certifications, equipment, and more.') }}">
+    {{-- Apply the saved theme before first paint, to avoid a flash of the wrong theme --}}
+    <script>
+    (function(){
+        var t = localStorage.getItem('dc_theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', t);
+        var m = document.getElementById('themeColorMeta');
+        if (m) m.setAttribute('content', m.getAttribute('data-' + t + '-color'));
+    })();
+    </script>
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
     <style>{!! $themeCSS ?? '' !!}
     .dc-header{background:linear-gradient(135deg,var(--dc-header-start) 0%,var(--dc-primary) 40%,var(--dc-header-end) 100%) !important}
@@ -328,8 +337,8 @@
     </div>
 
     {{-- Content --}}
-    <main class="{{ $width ?? ($theme['layout_width'] ?? 'container-lg') }} my-4 flex-grow-1">
-        <main id="main-content">{{ $slot }}</main>
+    <main id="main-content" class="{{ $width ?? ($theme['layout_width'] ?? 'container-lg') }} my-4 flex-grow-1">
+        {{ $slot }}
     </main>
 
     {{-- Cookie consent banner --}}
@@ -350,11 +359,11 @@
             <span class="mx-1">·</span> <a href="{{ route('terms') }}" class="text-white-50">{{ __('Terms') }}</a></p>
         </div>
     </footer>
-    {{-- Dark mode persistence --}}
+    {{-- Dark mode persistence — the theme itself is already applied in <head>, before
+    first paint; this just syncs the toggle button's icon once it exists in the DOM. --}}
     <script>
     (function(){
-        var t = localStorage.getItem('dc_theme') || 'light';
-        document.documentElement.setAttribute('data-bs-theme', t);
+        var t = document.documentElement.getAttribute('data-bs-theme') || 'light';
         var b = document.getElementById('darkToggle');
         if(b) b.textContent = t === 'dark' ? '☀️' : '🌙';
     })();
@@ -365,6 +374,8 @@
         localStorage.setItem('dc_theme', t);
         var b = document.getElementById('darkToggle');
         if(b) b.textContent = t === 'dark' ? '☀️' : '🌙';
+        var m = document.getElementById('themeColorMeta');
+        if(m) m.setAttribute('content', m.getAttribute('data-' + t + '-color'));
     }
     function setFontSize(d){
         var s = parseInt(localStorage.getItem('dc_fontsize') || '100');

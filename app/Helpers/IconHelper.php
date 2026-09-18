@@ -12,7 +12,7 @@ class IconHelper
 
     public static function render(string $emoji): string
     {
-        return static::enabled() ? $emoji.' ' : '';
+        return static::enabled() ? '<span aria-hidden="true">'.$emoji.'</span> ' : '';
     }
 
     public static function enabled(): bool

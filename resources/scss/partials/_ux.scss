@@ -11,7 +11,9 @@
 
 // Micro-interactions: transitions on interactive elements
 .btn, .card, .list-group-item, .nav-link, .badge, .form-control, .form-select {
-  transition: all 0.15s ease-in-out;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
 }
 .card:hover { transform: translateY(-1px); }
 .btn:active { transform: scale(0.97); }
@@ -38,6 +40,14 @@ body {
 
 // Accessibility: focus-visible for keyboard users
 :focus-visible {
+  outline: 2px solid var(--dc-primary, #003366);
+  outline-offset: 2px;
+}
+// Bootstrap's own .btn:focus-visible sets outline:0 and wins on specificity over
+// the generic rule above — re-declare just the outline at matching specificity so
+// keyboard focus is visible on every button too, without touching Bootstrap's own
+// hover-color/box-shadow/border-color changes on focus.
+.btn:focus-visible {
   outline: 2px solid var(--dc-primary, #003366);
   outline-offset: 2px;
 }
@@ -105,3 +115,21 @@ html { scroll-behavior: smooth; }
   &.show { display: block; }
 }
 @keyframes dropIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+// Respect user preference for reduced motion
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto !important; }
+
+  // The loading spinner communicates real async state, not decorative motion —
+  // keep it visibly spinning (slower) rather than freezing it (WCAG 2.3.3 allows
+  // motion that conveys essential information).
+  .is-loading::after {
+    animation-duration: 1.2s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
