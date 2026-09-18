@@ -20,15 +20,17 @@ class ProcessTranslations implements ShouldQueue
 
     /**
      * Cloudflare's HTML translation path sends one sequential HTTP call per
-     * text segment (no batching) — a long, richly-formatted article can
-     * legitimately take a few minutes, well past Horizon's default 60s
-     * worker timeout, which was killing and endlessly retrying the same
-     * article every hour rather than letting it finish. Translation is low
-     * priority and not user-facing-synchronous, so a generous budget costs
-     * nothing but time — a tight one that times out mid-run just burns
-     * Cloudflare AI quota re-translating segments that already succeeded.
+     * text segment (no batching, and a segment is created at every HTML tag
+     * boundary) — a real article of a few KB can produce 100+ segments.
+     * Confirmed live: a 9KB article stuck at retries=0 for days, because a
+     * 600s budget wasn't enough to finish translating it into one locale,
+     * so the job's own timeout alarm killed the process mid-translate() —
+     * before ArticleTranslationService::translate() ever reached the code
+     * that increments `retries`, so it was retried, and killed the same
+     * way, every hour, forever. Translation is low priority and not
+     * user-facing-synchronous, so a generous budget costs nothing but time.
      */
-    public int $timeout = 600;
+    public int $timeout = 1800;
 
     public function handle(): void
     {
