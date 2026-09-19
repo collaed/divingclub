@@ -31,9 +31,17 @@
     </div>
 
     {{-- Event type legend --}}
-    <div class="mb-3 d-flex gap-3 flex-wrap small">
+    <div class="mb-2 d-flex gap-3 flex-wrap small">
         @foreach(['pool' => '#0077be', 'dive' => '#003366', 'training' => '#28a745', 'theory' => '#6f42c1', 'social' => '#ffc107'] as $type => $color)
             <span><span class="badge" style="background:{{ $color }}">⠀</span> {{ ucfirst($type) }}</span>
+        @endforeach
+    </div>
+
+    {{-- Equipment-priority focus legend --}}
+    <div class="mb-3 d-flex gap-3 flex-wrap small">
+        <span class="text-muted">{{ __('Priority equipment access:') }}</span>
+        @foreach(config('event_focus_groups') as $slug => $fg)
+            <span><span class="badge focus-{{ $slug }}" style="background-color:#5c6bc0">⠀</span> {{ $fg['icon'] }} {{ $fg['label'] }}</span>
         @endforeach
     </div>
 
@@ -66,10 +74,16 @@
                     @for($i = 0; $i < 7; $i++)
                         @php $isCurrentMonth = $day->month === $date->month; $dayEvents = $eventsByDate[$day->format('Y-m-d')] ?? collect(); @endphp
                         <td class="p-1 {{ $isCurrentMonth ? '' : 'bg-light' }}" style="vertical-align:top; min-height:80px;">
-                            <div class="small {{ $day->isToday() ? 'fw-bold text-primary' : 'text-muted' }}">{{ $day->day }}</div>
+                            @if($isCurrentMonth)
+                                <div class="small {{ $day->isToday() ? 'fw-bold text-primary' : 'text-muted' }}">{{ $day->day }}</div>
+                            @else
+                                <a href="{{ route('events.index', ['view' => 'month', 'date' => $day->format('Y-m-d')]) }}" class="small text-muted text-decoration-none d-block" title="{{ __('Go to :month', ['month' => $day->format('F Y')]) }}">{{ $day->day }}</a>
+                            @endif
                             @foreach($dayEvents->take(3) as $ev)
+                                @php $focusGroup = $ev->focus_group ? config("event_focus_groups.{$ev->focus_group}") : null; @endphp
                                 <div class="d-flex align-items-center gap-1 mb-1">
-                                    <a href="{{ route('events.show', $ev) }}" class="flex-grow-1 text-decoration-none small text-truncate rounded px-1 text-white {{ $ev->status === 'cancelled' ? 'text-decoration-line-through' : '' }}" style="min-width:0; background:{{ $ev->typeColor() }}; font-size:0.7rem; {{ $ev->status === 'cancelled' ? 'opacity:0.5;' : '' }}">
+                                    <a href="{{ route('events.show', $ev) }}" class="flex-grow-1 text-decoration-none small text-truncate rounded px-1 text-white {{ $focusGroup ? 'focus-'.$ev->focus_group : '' }} {{ $ev->status === 'cancelled' ? 'text-decoration-line-through' : '' }}" style="min-width:0; background-color:{{ $ev->typeColor() }}; font-size:0.7rem; {{ $ev->status === 'cancelled' ? 'opacity:0.5;' : '' }}" title="{{ $focusGroup['label'] ?? '' }}">
+                                        @if($focusGroup) <span aria-hidden="true">{{ $focusGroup['icon'] }}</span> @endif
                                         {{ $ev->event_time ? substr($ev->event_time, 0, 5) : '' }} {{ Str::limit($ev->title, 15) }}
                                     </a>
                                     @if($ev->status === 'cancelled')

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Event;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\Feature\Concerns\SeedsRoles;
@@ -76,5 +77,26 @@ class EventFocusGroupTest extends TestCase
 
         $response->assertRedirect();
         $this->assertSame('pn1', $event->refresh()->focus_group);
+    }
+
+    public function test_the_month_calendar_shows_the_focus_hatch_and_legend(): void
+    {
+        Event::create(['title' => 'Entraînement Kids', 'event_type' => 'training', 'focus_group' => 'kids', 'event_date' => now()]);
+
+        $this->actingAs($this->createMemberUser())->get(route('events.index'))
+            ->assertOk()
+            ->assertSee('focus-kids', false)
+            ->assertSee(__('Priority equipment access:'));
+    }
+
+    public function test_clicking_an_adjacent_month_day_recenters_the_calendar(): void
+    {
+        $thisMonth = now()->startOfMonth();
+        $nextMonthOverflowDay = $thisMonth->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY)->format('Y-m-d');
+
+        $this->actingAs($this->createMemberUser())
+            ->get(route('events.index', ['view' => 'month', 'date' => $thisMonth->format('Y-m-d')]))
+            ->assertOk()
+            ->assertSee(route('events.index', ['view' => 'month', 'date' => $nextMonthOverflowDay]));
     }
 }
