@@ -79,25 +79,17 @@ compliant for FFESSM specifically, as of this event's date" rather than
 above only in that both touch registration/payment UI — otherwise independent;
 either can be built first.
 
-## Equipment-priority focus marker on training events (deferred)
+## Equipment-priority focus marker on training events (done)
 
-**Idea:** A "training" event on the events calendar (`resources/views/events/index.blade.php`,
-coloured via the `.activity-training` class in `resources/scss/partials/_planning.scss`
-and `config/activity_types.php`) needs a second, independent marker: a focus
-group — `kids`, `pn1`, or `pn2` — that gets priority access to equipment for
-that session. This is orthogonal to activity type (any training can carry
-one, or none) so it shouldn't become a new activity-type colour of its own.
+Shipped 2026-09-17/18: a nullable `focus_group` column on `events`
+(`kids`/`pn1`/`pn2`), rendered on the instructor-availability calendar
+(`resources/views/availability/index.blade.php`) as a diagonal hatch
+(`.focus-*` in `resources/scss/partials/_planning.scss`) mixed into the
+event's own activity-type colour, reusing the matching `pool_kids`/`pool_pn1`/
+`pool_pn23` accents from `config/event_focus_groups.php` so the same focus
+reads the same way everywhere. Live on staging and production.
 
-- Don't change the base training colour. Render the focus as a **diagonal
-  hatching pattern** (CSS `repeating-linear-gradient`, or an SVG `<pattern>`
-  fill) overlaid on the event block, mixing in a second colour per focus —
-  e.g. reuse the existing `pool_kids` green / `pool_pn1` navy / `pool_pn23`
-  red accents from `config/activity_types.php` so the same focus always
-  reads the same way whether it's a pool slot or a training session.
-- Needs a new nullable column on the event (e.g. `focus_group`) and a small
-  legend addition; the hatching itself is pure CSS, no new library.
-
-**Status:** Deferred, not started.
+**Status:** Done.
 
 ## Offsite backup via Google Drive (deferred)
 
