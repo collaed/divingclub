@@ -7,11 +7,16 @@ What reached production, newest first. Conventions are in
 
 On `main` and staging, not yet on production.
 
+### Fixed
+- The weekly backup's health signal no longer reports success when the backup itself
+  failed; a failure now shows on the dashboard and the external monitor.
+
+## 2026-09-20 — prod at `7476988` (second release, from main)
+
 ### New
 - Events calendar: the equipment-priority hatch (kids / PN1 / PN2) now shows on the
   Events month view too, with a legend, and clicking a greyed-out day from the
   previous or next month jumps the calendar to that month.
-
 - Automation emails can use placeholders in the subject and body: `{event}`, `{date}`,
   `{time}`, `{datetime}` and `{location}`.
 
@@ -38,7 +43,7 @@ On `main` and staging, not yet on production.
 ## 2026-09-20 — prod at `3fca41c` (release/dues-2026-09-20)
 
 A partial release: only the membership-dues work was promoted; the events and
-automation changes above stayed on staging.
+automation changes stayed on staging until the release above.
 
 ### Changed
 - **Members under 18 pay 50% of the club cotisation.** It was missing: a 12-year-old
