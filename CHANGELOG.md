@@ -13,6 +13,9 @@ On `main` and staging, not yet on production.
   previous or next month jumps the calendar to that month.
 
 ### Changed
+- **"Actif" is no longer offered on the dues calculator** (and can't be committed): it's
+  a system status given to new and imported members, not something a member chooses. It
+  stays as a status; the Externe set's default is now Externe.
 - **Junior and Enfant are removed as statuses**, along with the "Jeune" set. A child is
   a Membre de droit (Fonctionnaire, Associé, Assimilé, Famille) or an Externe member and
   pays the under-18 share of that cotisation; age only drives that share and the FFESSM

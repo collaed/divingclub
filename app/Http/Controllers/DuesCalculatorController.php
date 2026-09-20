@@ -104,8 +104,9 @@ class DuesCalculatorController extends Controller
 
         $status = MemberStatus::find($v['status_id']);
 
-        // "Ancien membre" (former) can never be self-claimed via the calculator.
-        if ($status !== null && in_array($status->slug, MemberStatus::inactiveSlugs(), true)) {
+        // "Ancien membre" (former) and the system "Actif" status can never be
+        // self-claimed via the calculator.
+        if ($status !== null && in_array($status->slug, MemberStatus::unselectableSlugs(), true)) {
             return back()->withErrors(['status_id' => __('This status cannot be selected.')]);
         }
 
@@ -140,9 +141,10 @@ class DuesCalculatorController extends Controller
         }
 
         // "Ancien membre" (former) is a lifecycle status assigned by the bureau
-        // when someone leaves; it can never be self-selected on the calculator.
+        // when someone leaves, and "Actif" is a system default — neither can be
+        // self-selected on the calculator.
         $statuses = $statuses->reject(
-            fn (MemberStatus $s): bool => in_array($s->slug, MemberStatus::inactiveSlugs(), true)
+            fn (MemberStatus $s): bool => in_array($s->slug, MemberStatus::unselectableSlugs(), true)
         )->values();
 
         $unclassified = $user !== null && ! $set instanceof StatusSet;

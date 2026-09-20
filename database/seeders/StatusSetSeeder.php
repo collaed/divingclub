@@ -41,8 +41,8 @@ class StatusSetSeeder extends Seeder
         'externe' => [
             'name' => 'Externe',
             'statuses' => [
-                'actif' => true,
-                'externe' => false,
+                'actif' => false,
+                'externe' => true,
                 'sympathisant' => false,
                 'former' => false,
             ],

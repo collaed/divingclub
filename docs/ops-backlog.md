@@ -46,6 +46,11 @@ reconciliation). When the delta matches zero or more than one tier, leave it
 to manual selection — propose, never auto-confirm, same rule as the AI bank
 matching.
 
+The base table for this now exists as a test: `DuesCalculatorControllerTest::realWorldCases()`
+lists the expected total for every (status family, age band) — Membre de droit family
+120 / Externe 130, halved under 18, plus the FFESSM licence band and FLASSA from 18. A
+payment minus that base is what the insurance choice has to explain.
+
 **Status:** Deferred, not started. Proposed shape: a
 `FeeCalculationService::identifyInsuranceFromAmount(User $user, string $seasonYear, float $amount): ?string`
 returning the matching insurance slug or null.

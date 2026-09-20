@@ -87,7 +87,7 @@ class StatusSetSeederTest extends TestCase
         $this->seed(StatusSetSeeder::class);
 
         $this->assertSame('fonctionnaire', StatusSet::where('slug', 'fonctionnaire')->first()->defaultStatus()?->slug);
-        $this->assertSame('actif', StatusSet::where('slug', 'externe')->first()->defaultStatus()?->slug);
+        $this->assertSame('externe', StatusSet::where('slug', 'externe')->first()->defaultStatus()?->slug);
     }
 
     public function test_seeder_is_idempotent(): void
