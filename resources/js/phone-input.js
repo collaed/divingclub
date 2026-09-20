@@ -151,6 +151,10 @@
 
         function format() {
             const [code, national] = parse(field.value);
+            const typingPrefix = /^\s*(\+|00)/.test(field.value) && !code;
+            if (typingPrefix) {
+                return;
+            }
             if (code) {
                 select.value = code;
             }
