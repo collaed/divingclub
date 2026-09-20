@@ -78,6 +78,11 @@ class MemberStatus extends Model
      */
     public const META_SLUGS = ['actif'];
 
+    /** Bureau roster filter value meaning "every member in good standing this season". */
+    public const HONORAIRE_SLUG = 'honoraire';
+
+    public const ACTIVE_FILTER = 'actif';
+
     /**
      * Slugs a member can never pick for themselves: lifecycle (former) and
      * system (actif) statuses.
@@ -87,6 +92,19 @@ class MemberStatus extends Model
     public static function unselectableSlugs(): array
     {
         return [...self::INACTIVE_SLUGS, ...self::META_SLUGS];
+    }
+
+    /**
+     * Statuses to list in a picker. The system "Actif" status is left out
+     * unless it is the one currently held, so it still displays as selected.
+     *
+     * @return Collection<int, MemberStatus>
+     */
+    public static function offered(?int $currentId = null): Collection
+    {
+        return self::orderBy('name')->get()
+            ->reject(fn (self $s): bool => in_array($s->slug, self::META_SLUGS, true) && $s->id !== $currentId)
+            ->values();
     }
 
     /** @return array<int, string> */

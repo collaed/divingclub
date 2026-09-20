@@ -98,4 +98,33 @@ class AdminMemberRosterTest extends TestCase
             ->patchJson(route('admin.members.status.update', $member), ['status_id' => 1])
             ->assertForbidden();
     }
+
+    public function test_actif_is_a_roster_filter_for_members_in_good_standing_not_a_status_to_pick(): void
+    {
+        $honoraire = $this->memberWithStatus('honoraire');
+        $paid = $this->memberWithStatus('externe');
+        $paid->detail->update(['cotisation_years' => [(string) now()->year]]);
+        $lapsed = $this->memberWithStatus('externe');
+        $actifHolder = $this->memberWithStatus('actif');
+
+        $response = $this->actingAs($this->admin)->get(route('admin.members.index', ['status_id' => MemberStatus::ACTIVE_FILTER]))
+            ->assertOk()
+            ->assertSee($honoraire->primary_email)
+            ->assertSee($paid->primary_email)
+            ->assertDontSee($lapsed->primary_email)
+            ->assertDontSee($actifHolder->primary_email);
+
+        $response->assertSee('Actif (all members paid this season, or honoraire)');
+    }
+
+    public function test_actif_is_not_offered_when_creating_or_editing_a_member(): void
+    {
+        $actif = MemberStatus::firstOrCreate(['slug' => 'actif'], ['name' => 'Actif']);
+        $externe = MemberStatus::firstOrCreate(['slug' => 'externe'], ['name' => 'Externe']);
+
+        $this->actingAs($this->admin)->get(route('admin.members.create'))
+            ->assertOk()
+            ->assertDontSee('value="'.$actif->id.'"', false)
+            ->assertSee('value="'.$externe->id.'"', false);
+    }
 }

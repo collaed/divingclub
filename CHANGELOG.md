@@ -7,6 +7,23 @@ What reached production, newest first. Conventions are in
 
 On `main` and staging, not yet on production.
 
+### New
+- **Honoraire: "No licence" option** on the dues calculator, only shown to Honoraire
+  members. Ticked, they pay nothing (no FFESSM licence, FLASSA or insurance); unticked
+  they are charged the licence they need.
+- Members roster: **"Actif" is now a filter** listing every member in good standing this
+  season (paid the current season, or honoraire), regardless of status.
+
+### Changed
+- **Ages are now measured on 1 November** (the start of licence ordering) instead of
+  1 September: FFESSM licence band, FLASSA and the under-18 share of the cotisation.
+  Someone turning 12 in September or October is now priced as 12.
+- "Actif" is no longer offered when creating a member or editing a profile (a member who
+  already has it keeps it displayed).
+
+### Data changes
+- The FLASSA licence age date moved from 1 September to 1 November (one row).
+
 ### Fixed
 - Background jobs that run longer than a minute (article translation) were killed
   whenever the queue scaled its workers down, then reported as failed an hour later.

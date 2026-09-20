@@ -46,7 +46,7 @@ class ProfileController extends Controller
         }
 
         $target->load(['detail', 'emails', 'licences.federation', 'documents']);
-        $statuses = MemberStatus::orderBy('name')->get();
+        $statuses = MemberStatus::offered($target->status_id);
         $statusSets = StatusSet::with('statuses:id')->orderBy('name')->get();
         $tab = $request->get('tab', 'info');
         $medicalStatus = app(MedicalComplianceService::class)->getStatus($target);

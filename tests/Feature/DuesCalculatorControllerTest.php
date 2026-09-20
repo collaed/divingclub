@@ -92,6 +92,48 @@ class DuesCalculatorControllerTest extends TestCase
             ->assertSee('Under 18');
     }
 
+    public function test_ages_are_measured_on_the_november_licence_date_not_the_season_start(): void
+    {
+        $status = MemberStatus::where('slug', 'externe')->firstOrFail();
+        $user = User::factory()->create(['status_id' => $status->id, 'email_verified_at' => now()]);
+        MemberDetail::create([
+            'user_id' => $user->id, 'first_name' => 'Test', 'last_name' => 'Member',
+            'date_of_birth' => '2014-10-15', // 11 on 1 Sept 2026, 12 on 1 Nov 2026
+        ]);
+
+        $this->actingAs($user->fresh(['detail', 'status']))->post(route('dues.calculate'), [
+            'season_year' => '2027', 'status_id' => $status->id,
+        ])->assertOk()->assertSee('96.50'); // 65 + 31.50 jeune licence, not the 14.50 enfant one
+    }
+
+    public function test_an_honoraire_pays_a_licence_only_if_they_want_one(): void
+    {
+        $user = $this->memberWithAge('honoraire', 40);
+        $payload = ['season_year' => '2027', 'status_id' => $user->status_id];
+
+        $this->actingAs($user)->post(route('dues.calculate'), $payload)
+            ->assertOk()
+            ->assertSee('60.00') // 50 licence + 10 FLASSA, no cotisation
+            ->assertSee('opt_no_licence', false);
+
+        $this->actingAs($user)->post(route('dues.calculate'), $payload + ['optionals' => ['no_licence']])
+            ->assertOk()
+            ->assertDontSee('60.00');
+    }
+
+    public function test_the_no_licence_option_is_only_offered_to_honoraire(): void
+    {
+        $user = $this->memberWithAge('externe', 40);
+
+        $this->actingAs($user)->post(route('dues.calculate'), ['season_year' => '2027', 'status_id' => $user->status_id])
+            ->assertOk()
+            ->assertDontSee('opt_no_licence', false);
+
+        $this->actingAs($user)->post(route('dues.calculate'), ['season_year' => '2027', 'status_id' => $user->status_id, 'optionals' => ['no_licence']])
+            ->assertOk()
+            ->assertSee('190.00'); // ignored: an Externe always pays the licence
+    }
+
     public function test_the_calculator_page_explains_the_under_18_rule(): void
     {
         $this->actingAs($this->memberWithAge('externe', 30))->get(route('dues.show'))

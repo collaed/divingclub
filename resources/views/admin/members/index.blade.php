@@ -14,7 +14,8 @@
         <div class="col-md-2">
             <select name="status_id" class="form-select">
                 <option value="">{{ __('All Statuses') }}</option>
-                @foreach($statuses as $s)
+                <option value="{{ \App\Models\MemberStatus::ACTIVE_FILTER }}" {{ request('status_id') === \App\Models\MemberStatus::ACTIVE_FILTER ? 'selected' : '' }}>{{ __('Actif (all members paid this season, or honoraire)') }}</option>
+                @foreach($statuses->reject(fn ($s) => in_array($s->slug, \App\Models\MemberStatus::META_SLUGS, true)) as $s)
                     <option value="{{ $s->id }}" {{ request('status_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                 @endforeach
             </select>
@@ -41,7 +42,7 @@
         <div class="col-md-3">
             <div class="form-check mt-2">
                 <input type="checkbox" name="active_only" value="1" id="activeOnlyToggle" class="form-check-input" data-autosubmit {{ request()->boolean('active_only') ? 'checked' : '' }} {{ $erased ? 'disabled' : '' }}>
-                <label class="form-check-label small" for="activeOnlyToggle">{{ __('Active only (paid this season or honoraire — not the "Actif" status)') }}</label>
+                <label class="form-check-label small" for="activeOnlyToggle">{{ __('Active only (paid this season or honoraire)') }}</label>
             </div>
         </div>
         <div class="col-md-3">
@@ -146,6 +147,7 @@
                             <select class="form-select form-select-sm js-member-status" data-member="{{ $m->id }}" style="min-width:9rem">
                                 <option value="">{{ __('—') }}</option>
                                 @foreach($statuses as $s)
+                                    @continue(in_array($s->slug, \App\Models\MemberStatus::META_SLUGS, true) && $m->status_id !== $s->id)
                                     <option value="{{ $s->id }}" {{ $m->status_id == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                                 @endforeach
                             </select>

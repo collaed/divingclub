@@ -62,7 +62,8 @@ class Fee2027Seeder extends Seeder
     public function run(): void
     {
         $season = $this->resolveSeason();
-        $anchor = $season->start_date ?? Carbon::createFromDate((int) self::SEASON_YEAR - 1, 9, 1);
+        // Licences are ordered from November: ages are measured on 1 November.
+        $anchor = Carbon::createFromDate((int) self::SEASON_YEAR - 1, 11, 1);
 
         $this->seedCotisations($season);
         $this->seedFfessmLicences($season);

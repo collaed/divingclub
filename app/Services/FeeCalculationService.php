@@ -15,6 +15,9 @@ use Carbon\Carbon;
 
 class FeeCalculationService
 {
+    /** Pseudo-option letting an Honoraire member decline the federation licence. */
+    public const NO_LICENCE = 'no_licence';
+
     public function __construct(private LicenceResolver $licences = new LicenceResolver) {}
 
     /**
@@ -67,7 +70,7 @@ class FeeCalculationService
         }
 
         // Derive federation licences (FFESSM + FLASSA) from status and age.
-        $derivation = $this->deriveLicences($user, $status, $season);
+        $derivation = $this->deriveLicences($user, $status, $season, $this->declinesLicence($status, $selectedOptionalSlugs));
         $derivedTotal = $this->applyDerivedLicences($components, $derivation, $user, $season);
 
         // Optional assurance cover — honoured only when a licence allows it.
@@ -89,6 +92,18 @@ class FeeCalculationService
             'components' => $components,
             'communication' => $this->buildCommunication($user, $seasonYear, $selectedOptionalSlugs),
         ];
+    }
+
+    /**
+     * An Honoraire member pays no cotisation and only pays a licence if they
+     * want one; ticking "no licence" (pseudo-option NO_LICENCE) drops the
+     * FFESSM licence, FLASSA and insurance. Ignored for every other status.
+     *
+     * @param  string[]  $selectedOptionalSlugs
+     */
+    private function declinesLicence(?MemberStatus $status, array $selectedOptionalSlugs): bool
+    {
+        return $status?->slug === MemberStatus::HONORAIRE_SLUG && in_array(self::NO_LICENCE, $selectedOptionalSlugs, true);
     }
 
     /**
@@ -116,8 +131,12 @@ class FeeCalculationService
      * Resolve the derived FFESSM/FLASSA outcome for a user's order from their
      * cotisation status and age at the shared prise-de-licence anchor.
      */
-    public function deriveLicences(User $user, ?MemberStatus $status, ?Season $season): LicenceDerivation
+    public function deriveLicences(User $user, ?MemberStatus $status, ?Season $season, bool $declined = false): LicenceDerivation
     {
+        if ($declined) {
+            return new LicenceDerivation(LicenceResolver::FFESSM_NONE, FlassaState::NotApplicable, false);
+        }
+
         $anchor = $this->licenceAnchor($season);
         $dob = $user->detail?->date_of_birth;
         $dob = $dob instanceof Carbon ? $dob : null;

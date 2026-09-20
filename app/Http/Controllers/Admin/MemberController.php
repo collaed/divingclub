@@ -79,7 +79,9 @@ class MemberController extends Controller
                     ->orWhereHas('detail', fn ($q2) => $q2->where('first_name', 'ILIKE', "%$s%")->orWhere('last_name', 'ILIKE', "%$s%"));
             });
         }
-        if ($request->filled('status_id')) {
+        if ($request->input('status_id') === MemberStatus::ACTIVE_FILTER) {
+            $query->active();
+        } elseif ($request->filled('status_id')) {
             $query->where('status_id', $request->status_id);
         }
         if ($request->filled('role_id')) {
@@ -115,7 +117,7 @@ class MemberController extends Controller
      */
     public function create(): View
     {
-        $statuses = MemberStatus::orderBy('name')->get();
+        $statuses = MemberStatus::offered();
 
         return view('admin.members.create', compact('statuses'));
     }

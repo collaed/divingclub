@@ -98,6 +98,16 @@
                                     <p class="text-muted mb-0">{{ __('The federation licence(s) is/are determined automatically from your status and age.') }}</p>
                                 @endisset
                             </div>
+                            @if(($statuses->firstWhere('id', (int) ($statusId ?? 0))?->slug) === \App\Models\MemberStatus::HONORAIRE_SLUG)
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" name="optionals[]" value="{{ \App\Services\FeeCalculationService::NO_LICENCE }}" class="form-check-input"
+                                           id="opt_no_licence" data-dues-input
+                                           {{ in_array(\App\Services\FeeCalculationService::NO_LICENCE, $selectedOptionals ?? []) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="opt_no_licence">
+                                        {{ __('No licence — I only want the honorary membership (nothing to pay)') }}
+                                    </label>
+                                </div>
+                            @endif
                         </fieldset>
 
                         {{-- Group 3 — ASSURANCE Individuelle (optional, gated by licence) --}}
