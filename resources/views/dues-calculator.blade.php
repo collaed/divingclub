@@ -24,6 +24,12 @@
                         </div>
                     @endif
 
+                    @if($minorRule)
+                        <div class="alert alert-info py-2">
+                            {{ __('Members under :age on the licence date pay :percent% of the club cotisation. Enter the date of birth to see it applied; the FFESSM licence follows its own age bands.', ['age' => $minorRule['age'], 'percent' => $minorRule['percent']]) }}
+                        </div>
+                    @endif
+
                     <form method="POST" action="{{ route('dues.calculate') }}" id="dues-form" data-dues-form>
                         @csrf
                         <div class="row g-3 mb-3">

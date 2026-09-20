@@ -155,8 +155,13 @@ class DuesCalculatorController extends Controller
         $ffessmLicences = MembershipFeeComponent::where('kind', MembershipFeeComponent::KIND_FFESSM_LICENCE)
             ->orderBy('sort_order')->get()->keyBy('slug');
         $taperPct = $this->fees->taperPercentage($year);
+        $season = $this->fees->resolveSeason($year);
+        $minorPercent = $season?->minor_fee_percent ?? Season::MINOR_FEE_DEFAULT_PERCENT;
 
         return [
+            'minorRule' => $minorPercent < 100
+                ? ['age' => $season?->minor_fee_below_age ?? Season::MINOR_FEE_DEFAULT_AGE, 'percent' => $minorPercent]
+                : null,
             'year' => $year,
             'statuses' => $statuses,
             'fees' => $fees,

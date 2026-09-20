@@ -90,4 +90,24 @@ class DuesCalculatorControllerTest extends TestCase
             'date_of_birth' => Carbon::createFromDate(2026, 9, 1)->subYears(40)->toDateString(),
         ])->assertSessionHasErrors('status_id');
     }
+
+    public function test_a_child_can_be_calculated_as_externe_and_gets_the_under_18_share(): void
+    {
+        $user = $this->memberWithAge('externe', 10);
+
+        $this->actingAs($user)->post(route('dues.calculate'), [
+            'season_year' => '2027',
+            'status_id' => $user->status_id,
+        ])->assertOk()
+            ->assertSessionHasNoErrors()
+            ->assertSee('79.50') // 65 (half of 130) + 14.50 enfant licence + FLASSA included
+            ->assertSee('Under 18');
+    }
+
+    public function test_the_calculator_page_explains_the_under_18_rule(): void
+    {
+        $this->actingAs($this->memberWithAge('externe', 30))->get(route('dues.show'))
+            ->assertOk()
+            ->assertSee('50% of the club cotisation');
+    }
 }

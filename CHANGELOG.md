@@ -13,6 +13,10 @@ On `main` and staging, not yet on production.
   previous or next month jumps the calendar to that month.
 
 ### Fixed
+- The dues calculator no longer refuses Externe, Actif or Fonctionnaire for a member
+  under 18 ("The selected membership does not match the member age..."); a child of an
+  external member is an Externe member who pays the under-18 share. The calculator page
+  now states the rule up front. (Enfant and Junior keep their age checks.)
 - **Members under 18 now pay 50% of the club cotisation** (Associé, Externe, Membre de
   droit, ...). It was missing: a 12-year-old Associé was calculated at 120 + licence
   instead of 60 + licence. The FFESSM licence is unchanged (under 12: 14.50, 12 to

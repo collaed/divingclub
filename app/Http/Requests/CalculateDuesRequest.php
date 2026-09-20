@@ -96,7 +96,9 @@ class CalculateDuesRequest extends FormRequest
         return match ($slug) {
             'enfant' => 'enfant',
             'junior' => 'young', // enfant or jeune or adulte (<18 handled by FLASSA)
-            'fonctionnaire', 'externe', 'actif' => 'adulte',
+            // Fonctionnaire / Externe / Actif carry no age gate: a child of an
+            // external member is an externe member who pays the under-18
+            // share of that cotisation (see FeeCalculationService::minorPercentage()).
             default => null, // sympathisant, honoraire, etc. — no age gate
         };
     }
@@ -105,7 +107,6 @@ class CalculateDuesRequest extends FormRequest
     {
         return match ($expected) {
             'enfant' => $age < 12,
-            'adulte' => $age >= 18,
             'young' => $age < 18,
             default => true,
         };
