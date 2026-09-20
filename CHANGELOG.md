@@ -12,53 +12,57 @@ On `main` and staging, not yet on production.
   Events month view too, with a legend, and clicking a greyed-out day from the
   previous or next month jumps the calendar to that month.
 
-### Changed
-- **"Actif" is no longer offered on the dues calculator** (and can't be committed): it's
-  a system status given to new and imported members, not something a member chooses. It
-  stays as a status; the Externe set's default is now Externe.
-- **Junior and Enfant are removed as statuses**, along with the "Jeune" set. A child is
-  a Membre de droit (Fonctionnaire, Associé, Assimilé, Famille) or an Externe member and
-  pays the under-18 share of that cotisation; age only drives that share and the FFESSM
-  licence band. No member held either status.
-
 ### Fixed
-- The dues calculator no longer refuses Externe, Actif or Fonctionnaire for a member
-  under 18 ("The selected membership does not match the member age..."); a child of an
-  external member is an Externe member who pays the under-18 share. The calculator page
-  now states the rule up front. (Enfant and Junior keep their age checks.)
-- **Members under 18 now pay 50% of the club cotisation** (Associé, Externe, Membre de
-  droit, ...). It was missing: a 12-year-old Associé was calculated at 120 + licence
-  instead of 60 + licence. The FFESSM licence is unchanged (under 12: 14.50, 12 to
-  under 16: 31.50, 16 and over: adult). Odd amounts round up to the euro; Junior and
-  Enfant statuses are not halved again. The age and percentage are set per season on
-  the season page ("Under-Age Club Fee"). Applies to dues calculated from now on;
-  existing dues are not recalculated.
 - Rescheduling an event now makes its automation rules due again at the new time.
   Before, a rule that had already fired (or a registration-close rule after the
   event was moved) silently never fired again.
 
 ### Changed
-- Fonctionnaire is now a sub-case of Membre de droit for the cotisation, like Associé,
-  Famille and Assimilé: it pays the Membre de droit rate unless a fee is set on it
-  directly. Externe keeps its own rate.
 - Automation rules: a registration-close rule on an event that has already started
   is now recorded without running (nothing left to act on).
 
 ### Data changes
-- Junior and Enfant statuses, their 2027 fee rows and the Jeune status set are deleted
-  (only if no member holds them). One production member was parked in the Jeune set
-  (a former member); they become unclassified.
 - The old `automation_evaluated_at` flag on events is replaced by per-rule fire
   records; existing records were converted automatically.
-
-### Data changes (already applied to production)
-- Added the 2027 cotisation for Membre de droit (120, "Bureau du 03/09/26") on
-  production. It was missing, so Membre de droit, Associé, Famille and Assimilé all
-  calculated 0 for 2027. Staging already had it.
 
 ### Needs attention
 - A rule that already fired for an event's current schedule stays fired; to re-test
   one, change the event's close or start time.
+
+## 2026-09-20 — prod at `3fca41c` (release/dues-2026-09-20)
+
+A partial release: only the membership-dues work was promoted; the events and
+automation changes above stayed on staging.
+
+### Changed
+- **Members under 18 pay 50% of the club cotisation.** It was missing: a 12-year-old
+  Associé was calculated at 120 + licence instead of 60 + licence. Applies to every
+  status (Membre de droit and its sub-cases, Externe); odd amounts round up to the euro.
+  The FFESSM licence keeps its own age bands (under 12: 14.50, 12 to under 16: 31.50,
+  16 and over: adult) and FLASSA is charged from 18. The age and percentage are set per
+  season on the season page ("Under-Age Club Fee"; defaults 18 / 50%). Applies to dues
+  calculated from now on; existing dues are not recalculated.
+- **Junior and Enfant are removed as statuses**, with the "Jeune" set. A child is a
+  Membre de droit (Fonctionnaire, Associé, Assimilé, Famille) or an Externe member; age
+  only drives the under-18 share and the licence band. No member held either status.
+- Fonctionnaire is now a sub-case of Membre de droit for the cotisation, like Associé,
+  Famille and Assimilé (a fee set directly on it still wins). Externe keeps its own rate.
+- **"Actif" is no longer offered on the dues calculator** (and can't be committed): it is
+  a system status given to new and imported members. The Externe set's default is now
+  Externe.
+
+### Fixed
+- The dues calculator no longer refuses Externe or Fonctionnaire for a member under 18
+  ("The selected membership does not match the member age...") and now states the
+  under-18 rule up front; the result shows an "Under 18" line.
+- Membre de droit, Associé, Famille and Assimilé calculated 0 for 2027 (no 2027 fee row
+  for Membre de droit); added at 120 ("Bureau du 03/09/26").
+
+### Data changes
+- Deleted the Junior and Enfant statuses, their 2027 fee rows and the Jeune set (2
+  statuses, 2 fee rows). One member parked in the Jeune set (a former member) is now
+  unclassified. No member lost a status: counts per status are identical before and after.
+- Added the 2027 Membre de droit fee (120) and two season columns for the under-age rule.
 
 ## 2026-09-18 — prod at `cbc75b5`
 

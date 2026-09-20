@@ -37,3 +37,22 @@ script; deploy a narrower set or ask. The range *is* the release-notes source.
 - Add **Needs attention** for anything an admin must do or re-check after the deploy
   (a setting to set, a rule that needs re-saving, a queue to watch).
 - Skip pure refactors, test-only, docs and CI commits unless they change behavior.
+
+## Releasing only part of `main`
+
+If only some of what is on `main` is approved for production, don't run
+`auto-deploy.sh`. Build the release from prod's current commit and cherry-pick just
+those commits (skip `CHANGELOG.md`, it lives on `main`):
+
+```bash
+git worktree add /tmp/rel -b release/<name> <prod sha>
+# in /tmp/rel: for each sha  ->  git cherry-pick -n <sha>; git commit -C <sha>
+```
+
+Give the worktree its **own** `vendor/` (copy it, then `composer dump-autoload`) — a
+symlinked `vendor/` autoloads classes from the main checkout and the tests silently run
+the wrong code. Run the full suite there, push the branch, then on prod
+`git fetch origin release/<name> && git reset --hard FETCH_HEAD`, `composer install`,
+`migrate --force`, `optimize:clear`, `supervisorctl restart horizon-prod`. Name the
+branch and its tip in the changelog heading. A later `auto-deploy.sh` from `main`
+converges cleanly (same content, migrations already recorded).
