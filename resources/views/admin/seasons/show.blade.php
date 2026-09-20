@@ -150,6 +150,29 @@
                     </template>
                 </div>
             </div>
+            <div class="card dc-card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>👶 {{ __('Under-Age Club Fee') }}</span>
+                    <small class="text-muted">{{ __('Applies to the club cotisation only, not the FFESSM licence') }}</small>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">
+                        {{ __('Members younger than this age on the licence date pay this percentage of the nominal cotisation (odd amounts round up to the next euro). Junior and Enfant statuses already carry their own reduced fee and are not reduced again.') }}
+                    </p>
+                    <form method="POST" action="{{ route('admin.seasons.minor-fee.update', $season) }}" class="row g-2 align-items-end">
+                        @csrf
+                        <div class="col-auto">
+                            <label class="form-label small mb-1" for="minorFeeAge">{{ __('Younger than') }}</label>
+                            <div class="input-group input-group-sm" style="width:130px"><input type="number" id="minorFeeAge" name="minor_fee_below_age" class="form-control" min="1" max="30" value="{{ $season->minor_fee_below_age }}" required><span class="input-group-text">{{ __('years') }}</span></div>
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label small mb-1" for="minorFeePercent">{{ __('Pays') }}</label>
+                            <div class="input-group input-group-sm" style="width:110px"><input type="number" id="minorFeePercent" name="minor_fee_percent" class="form-control" min="0" max="100" value="{{ $season->minor_fee_percent }}" required><span class="input-group-text">%</span></div>
+                        </div>
+                        <div class="col-auto"><button type="submit" class="btn btn-sm btn-primary">{{ __('Save') }}</button></div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 

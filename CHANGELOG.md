@@ -13,6 +13,13 @@ On `main` and staging, not yet on production.
   previous or next month jumps the calendar to that month.
 
 ### Fixed
+- **Members under 18 now pay 50% of the club cotisation** (Associé, Externe, Membre de
+  droit, ...). It was missing: a 12-year-old Associé was calculated at 120 + licence
+  instead of 60 + licence. The FFESSM licence is unchanged (under 12: 14.50, 12 to
+  under 16: 31.50, 16 and over: adult). Odd amounts round up to the euro; Junior and
+  Enfant statuses are not halved again. The age and percentage are set per season on
+  the season page ("Under-Age Club Fee"). Applies to dues calculated from now on;
+  existing dues are not recalculated.
 - Rescheduling an event now makes its automation rules due again at the new time.
   Before, a rule that had already fired (or a registration-close rule after the
   event was moved) silently never fired again.

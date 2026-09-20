@@ -162,6 +162,7 @@ Route::get('/seasons/{season}', [SeasonController::class, 'show'])->name('season
 Route::delete('/seasons/{season}', [SeasonController::class, 'destroy'])->name('seasons.destroy');
 Route::post('/seasons/{season}/activate', [SeasonController::class, 'activate'])->name('seasons.activate');
 Route::post('/seasons/{season}/taper', [SeasonController::class, 'updateTaper'])->name('seasons.taper.update');
+Route::post('/seasons/{season}/minor-fee', [SeasonController::class, 'updateMinorFee'])->name('seasons.minor-fee.update');
 Route::post('/seasons/{season}/holidays', [SeasonController::class, 'storeHoliday'])->name('seasons.holiday.store');
 Route::delete('/seasons/holidays/{holiday}', [SeasonController::class, 'destroyHoliday'])->name('seasons.holiday.destroy');
 Route::post('/seasons/{season}/patterns', [SeasonController::class, 'storePattern'])->name('seasons.pattern.store');

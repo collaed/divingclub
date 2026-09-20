@@ -49,6 +49,14 @@ class MemberStatus extends Model
         'fonctionnaire' => 'membre_de_droit',
     ];
 
+    /**
+     * Statuses whose own fee row already is the reduced youth rate — the
+     * under-18 reduction must not halve it a second time.
+     *
+     * @var array<int, string>
+     */
+    public const YOUTH_RATE_SLUGS = ['junior', 'enfant'];
+
     /** The status slug whose membership fee this status inherits, if any. */
     public function feeAliasSlug(): ?string
     {
