@@ -25,6 +25,7 @@ use App\Http\Requests\UploadEventPhotoRequest;
 use App\Models\DiveSite;
 use App\Models\EmailLog;
 use App\Models\Event;
+use App\Models\EventAutomationRuleFire;
 use App\Models\EventPhoto;
 use App\Models\GdprConsent;
 use App\Models\Season;
@@ -159,7 +160,22 @@ class EventController extends Controller
         $data['assistant_ids'] = array_map('intval', array_filter((array) $request->assistant_ids));
         $data['inscription_open_at'] = Event::parseClubLocalToUtc($data['inscription_open_at'] ?? null);
         $data['inscription_close_at'] = Event::parseClubLocalToUtc($data['inscription_close_at'] ?? null);
-        $event->update($data);
+
+        $oldStart = $event->startsAt();
+        $event->fill($data);
+        $startChanged = ! ($oldStart?->eq($event->startsAt()) ?? $event->startsAt() === null);
+
+        // Automation rules are one-shot per event (automation_evaluated_at for
+        // registration-close rules, event_automation_rule_fires for
+        // hours-before rules) — rescheduling makes those records stale, so
+        // re-arm them or the rules silently never fire again.
+        if ($event->isDirty('inscription_close_at')) {
+            $event->automation_evaluated_at = null;
+        }
+        $event->save();
+        if ($startChanged) {
+            EventAutomationRuleFire::where('event_id', $event->id)->delete();
+        }
 
         return redirect()->route('events.show', $event)->with('success', __('Event updated.'));
     }
