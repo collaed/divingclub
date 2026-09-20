@@ -16,15 +16,19 @@ class WeeklyBackup implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(BackupService $backup): void
+    public function handle(BackupService $backup): bool
     {
         try {
             $result = $backup->create(includeFiles: true);
             $pruned = $backup->prune((int) config('backup.retention', 4));
 
             Log::info("Weekly backup: {$result['filename']} ({$result['manifest']['storage_size_human']} files + DB), pruned {$pruned} old");
+
+            return true;
         } catch (\Throwable $e) {
             Log::error("Weekly backup failed: {$e->getMessage()}");
+
+            return false;
         }
     }
 }

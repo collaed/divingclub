@@ -13,7 +13,13 @@ use App\Services\ScheduleHeartbeat;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::job(new SendMedicalReminders)->dailyAt('08:00')->after(fn () => ScheduleHeartbeat::beat('medical-reminders'));
-Schedule::call(fn () => (new WeeklyBackup)->handle(app(BackupService::class)))->weeklyOn(0, '03:00')->after(fn () => ScheduleHeartbeat::beat('weekly-backup'));
+Schedule::call(function (): void {
+    if ((new WeeklyBackup)->handle(app(BackupService::class))) {
+        ScheduleHeartbeat::beat('weekly-backup');
+    } else {
+        ScheduleHeartbeat::fail('weekly-backup', 'Weekly backup failed — check the Laravel log for details.');
+    }
+})->weeklyOn(0, '03:00');
 Schedule::job(new ProcessTranslations)->hourly()->after(fn () => ScheduleHeartbeat::beat('translations'));
 Schedule::job(new AutoOpenCloseVotes)->everyMinute()->after(fn () => ScheduleHeartbeat::beat('vote-auto'));
 Schedule::job(new PollInboundMail)->everyMinute()->after(fn () => ScheduleHeartbeat::beat('inbound-mail'));
