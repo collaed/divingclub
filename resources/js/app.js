@@ -52,3 +52,4 @@ import './table-utils';
 import './datepicker';
 import './dues-live';
 import './phone-input';
+import './renewals';

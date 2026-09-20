@@ -8,6 +8,17 @@ What reached production, newest first. Conventions are in
 On `main` and staging, not yet on production.
 
 ### New
+- **Membership renewals screen** (Payments → Membership renewals): every current member who
+  has not paid the season, with the amount to expect — their commitment if they made one,
+  otherwise their status and last season's insurance at this season's prices. A green
+  "Received" button confirms that amount; typing another amount tells you which insurance
+  option it corresponds to (or refuses it and lists what the member could owe). A paid
+  membership marks the season as paid on the member, including when it is confirmed from
+  bank reconciliation.
+- Honoraire members are marked as paid for the season automatically from 1 October.
+- **Phone numbers** (profile, emergency contact, registration, new member): a country-code
+  selector ordered by club usage (Luxembourg, France, Belgium, Germany, Finland…) and a
+  formatted number field. Typing "00" or "+" picks the country from the code.
 - **Honoraire: "No licence" option** on the dues calculator, only shown to Honoraire
   members. Ticked, they pay nothing (no FFESSM licence, FLASSA or insurance); unticked
   they are charged the licence they need.
@@ -15,6 +26,7 @@ On `main` and staging, not yet on production.
   season (paid the current season, or honoraire), regardless of status.
 
 ### Changed
+- Sympathisant pays the nominal amount whatever the age (no under-18 reduction).
 - **Ages are now measured on 1 November** (the start of licence ordering) instead of
   1 September: FFESSM licence band, FLASSA and the under-18 share of the cotisation.
   Someone turning 12 in September or October is now priced as 12.

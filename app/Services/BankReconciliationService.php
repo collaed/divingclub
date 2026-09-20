@@ -344,6 +344,8 @@ class BankReconciliationService
             'bank_statement_date' => $tx->transaction_date,
         ]);
 
+        app(MembershipRenewalService::class)->recordSeasonPaid($payment->fresh());
+
         $tx->update(['status' => 'confirmed', 'confirmed_by' => auth()->id()]);
     }
 

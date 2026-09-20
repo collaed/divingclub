@@ -49,7 +49,7 @@ class FeeCalculationService
 
         // Under-18 reduction of the club-retained cotisation (the FFESSM
         // licence has its own age bands and is unaffected).
-        $minorPct = $this->minorPercentage($user, $season);
+        $minorPct = $status?->slug === 'sympathisant' ? 100 : $this->minorPercentage($user, $season);
         $nominal = $baseFee;
         if ($minorPct < 100) {
             $baseFee = (float) ceil($baseFee * $minorPct / 100);

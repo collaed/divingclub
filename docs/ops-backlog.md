@@ -51,9 +51,9 @@ lists the expected total for every (status family, age band) — Membre de droit
 120 / Externe 130, halved under 18, plus the FFESSM licence band and FLASSA from 18. A
 payment minus that base is what the insurance choice has to explain.
 
-**Status:** Deferred, not started. Proposed shape: a
-`FeeCalculationService::identifyInsuranceFromAmount(User $user, string $seasonYear, float $amount): ?string`
-returning the matching insurance slug or null.
+**Status:** Partly done (2026-09-20): `MembershipRenewalService::matches()` powers the
+Membership renewals screen (typed amount → the insurance option it matches). Still to do:
+use it as a match-reason hint in bank reconciliation and in the membership order UI.
 
 ## Event registrations requiring compliance from more than one federation (deferred)
 

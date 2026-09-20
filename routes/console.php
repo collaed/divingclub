@@ -20,6 +20,7 @@ Schedule::call(function (): void {
         ScheduleHeartbeat::fail('weekly-backup', 'Weekly backup failed — check the Laravel log for details.');
     }
 })->weeklyOn(0, '03:00');
+Schedule::command('members:mark-honoraires-paid')->dailyAt('06:00')->after(fn () => ScheduleHeartbeat::beat('honoraires-paid'));
 Schedule::job(new ProcessTranslations)->hourly()->after(fn () => ScheduleHeartbeat::beat('translations'));
 Schedule::job(new AutoOpenCloseVotes)->everyMinute()->after(fn () => ScheduleHeartbeat::beat('vote-auto'));
 Schedule::job(new PollInboundMail)->everyMinute()->after(fn () => ScheduleHeartbeat::beat('inbound-mail'));
