@@ -54,20 +54,20 @@ class DuesCalculatorTest extends TestCase
     public function test_classified_member_only_sees_in_set_statuses(): void
     {
         $externe = StatusSet::create(['name' => 'Externe', 'slug' => 'externe']);
-        $actif = $this->makeStatus('actif');
-        $externe->statuses()->attach($actif->id);
+        $ext = $this->makeStatus('externe');
+        $externe->statuses()->attach($ext->id);
 
-        $member = $this->member($externe, $actif);
+        $member = $this->member($externe, $ext);
 
         $res = $this->actingAs($member)->get(route('dues.show'))->assertOk();
-        $res->assertSee('Actif');
+        $res->assertSee('Externe');
         $res->assertDontSee('Fonctionnaire');
     }
 
     public function test_unclassified_member_sees_all_and_can_commit_provisionally(): void
     {
-        $actif = $this->makeStatus('actif');
-        MembershipFee::create(['season_year' => '2027', 'status_id' => $actif->id, 'amount' => 110]);
+        $ext = $this->makeStatus('externe');
+        MembershipFee::create(['season_year' => '2027', 'status_id' => $ext->id, 'amount' => 110]);
         $member = $this->member(null, null); // no set, no status
 
         $this->actingAs($member)->get(route('dues.show', ['season_year' => 2027]))
@@ -76,7 +76,7 @@ class DuesCalculatorTest extends TestCase
 
         $this->actingAs($member)->post(route('dues.commit'), [
             'season_year' => '2027',
-            'status_id' => $actif->id,
+            'status_id' => $ext->id,
         ])->assertRedirect();
 
         $pe = PaymentExpected::where('user_id', $member->id)->where('type', 'membership')->first();
@@ -93,14 +93,14 @@ class DuesCalculatorTest extends TestCase
     public function test_classified_member_commit_is_not_provisional(): void
     {
         $set = StatusSet::create(['name' => 'Externe', 'slug' => 'externe']);
-        $actif = $this->makeStatus('actif');
-        $set->statuses()->attach($actif->id);
-        MembershipFee::create(['season_year' => '2027', 'status_id' => $actif->id, 'amount' => 110]);
-        $member = $this->member($set, $actif);
+        $ext = $this->makeStatus('externe');
+        $set->statuses()->attach($ext->id);
+        MembershipFee::create(['season_year' => '2027', 'status_id' => $ext->id, 'amount' => 110]);
+        $member = $this->member($set, $ext);
 
         $this->actingAs($member)->post(route('dues.commit'), [
             'season_year' => '2027',
-            'status_id' => $actif->id,
+            'status_id' => $ext->id,
         ])->assertRedirect();
 
         $pe = PaymentExpected::where('user_id', $member->id)->first();
@@ -109,19 +109,19 @@ class DuesCalculatorTest extends TestCase
 
     public function test_calculate_applies_component_age_taper(): void
     {
-        $actif = $this->makeStatus('actif');
-        MembershipFee::create(['season_year' => '2027', 'status_id' => $actif->id, 'amount' => 110]);
+        $ext = $this->makeStatus('externe');
+        MembershipFee::create(['season_year' => '2027', 'status_id' => $ext->id, 'amount' => 110]);
         MembershipFeeComponent::create([
             'name' => 'Licence FLASSA', 'slug' => 'flassa', 'amount' => 40, 'is_optional' => true,
             'taper_below_age' => 18, 'taper_ratio' => 0, 'age_anchor_date' => '2027-01-01',
         ]);
 
-        $member = $this->member(null, $actif);
+        $member = $this->member(null, $ext);
         $member->detail->update(['date_of_birth' => '2012-05-05']);
 
         $res = $this->actingAs($member)->post(route('dues.calculate'), [
             'season_year' => '2027',
-            'status_id' => $actif->id,
+            'status_id' => $ext->id,
             'last_name' => 'Dupont', 'first_name' => 'Jean',
             'optionals' => ['flassa'],
         ])->assertOk();
@@ -138,11 +138,11 @@ class DuesCalculatorTest extends TestCase
 
     public function test_former_status_is_not_offered_on_the_calculator(): void
     {
-        $this->makeStatus('actif');
+        $this->makeStatus('externe');
         $this->makeStatus('former');
 
         $res = $this->get(route('dues.show'))->assertOk();
-        $res->assertSee('Actif');
+        $res->assertSee('Externe');
         $res->assertDontSee('Ancien membre');
         $res->assertDontSee('>Former<', false);
     }
@@ -162,9 +162,9 @@ class DuesCalculatorTest extends TestCase
 
     public function test_fees_fall_back_to_last_good_year(): void
     {
-        $actif = $this->makeStatus('actif');
+        $ext = $this->makeStatus('externe');
         // Only a 2026 fee exists; requesting 2027 should reuse it.
-        MembershipFee::create(['season_year' => '2026', 'status_id' => $actif->id, 'amount' => 105]);
+        MembershipFee::create(['season_year' => '2026', 'status_id' => $ext->id, 'amount' => 105]);
 
         $res = $this->get(route('dues.show', ['season_year' => 2027]))->assertOk();
         $res->assertSee('105.00');

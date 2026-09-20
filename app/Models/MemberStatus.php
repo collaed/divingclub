@@ -69,6 +69,26 @@ class MemberStatus extends Model
             ->all();
     }
 
+    /**
+     * System statuses nobody can choose for themselves. "Actif" is the
+     * default given to new and imported members (external base); it is not a
+     * category a member picks, so it is never offered on the dues calculator.
+     *
+     * @var array<int, string>
+     */
+    public const META_SLUGS = ['actif'];
+
+    /**
+     * Slugs a member can never pick for themselves: lifecycle (former) and
+     * system (actif) statuses.
+     *
+     * @return array<int, string>
+     */
+    public static function unselectableSlugs(): array
+    {
+        return [...self::INACTIVE_SLUGS, ...self::META_SLUGS];
+    }
+
     /** @return array<int, string> */
     public static function inactiveSlugs(): array
     {

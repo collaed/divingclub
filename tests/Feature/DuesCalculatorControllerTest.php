@@ -125,7 +125,6 @@ class DuesCalculatorControllerTest extends TestCase
             'externe 17' => ['externe', 17, 115.00],                     // 65 + 50
             'externe 15' => ['externe', 15, 96.50],                      // 65 + 31.50
             'externe 10' => ['externe', 10, 79.50],                      // 65 + 14.50
-            'actif child 10' => ['actif', 10, 79.50],
         ];
     }
 
@@ -140,5 +139,19 @@ class DuesCalculatorControllerTest extends TestCase
         ])->assertOk()->assertSessionHasNoErrors();
 
         $res->assertSee(number_format($expected, 2));
+    }
+
+    public function test_the_system_actif_status_is_not_offered_and_cannot_be_committed(): void
+    {
+        $actif = MemberStatus::where('slug', 'actif')->firstOrFail();
+        $user = $this->memberWithAge('externe', 30);
+
+        $this->actingAs($user)->get(route('dues.show'))
+            ->assertOk()
+            ->assertSee('Externe')
+            ->assertDontSee('Actif');
+
+        $this->actingAs($user)->post(route('dues.commit'), ['season_year' => '2027', 'status_id' => $actif->id])
+            ->assertSessionHasErrors('status_id');
     }
 }
