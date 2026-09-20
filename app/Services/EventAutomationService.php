@@ -21,6 +21,13 @@ use Illuminate\Support\Collection;
  */
 class EventAutomationService
 {
+    /**
+     * An "N hours before" warning found more than this late (event moved later
+     * past the checkpoint, scheduler down) is recorded without being sent —
+     * "3h left" is wrong when only 1h is left.
+     */
+    private const CHECKPOINT_GRACE_MINUTES = 30;
+
     /** @return Collection<int, EventAutomationRule> */
     public function resolveRules(Event $event): Collection
     {
@@ -106,7 +113,7 @@ class EventAutomationService
                 continue;
             }
 
-            if ($startsAt->isFuture()) {
+            if ($startsAt->isFuture() && $checkpoint->gte(now()->subMinutes(self::CHECKPOINT_GRACE_MINUTES))) {
                 $this->runRule($event, $rule);
             }
             $this->recordFire($event, $rule, $checkpoint);
@@ -138,6 +145,10 @@ class EventAutomationService
 
     private function runRule(Event $event, EventAutomationRule $rule): void
     {
+        if ($event->status === 'cancelled') {
+            return;
+        }
+
         match ($rule->rule_type) {
             EventAutomationRule::TYPE_MIN_REGISTRATIONS => $this->evaluateMinRegistrations($event, $rule),
             EventAutomationRule::TYPE_REQUIRES_LIFEGUARD => $this->evaluateRequiresLifeguard($event, $rule),

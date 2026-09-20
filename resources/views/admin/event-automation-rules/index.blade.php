@@ -86,7 +86,7 @@
                 </div>
                 <div class="col-12">
                     <label class="form-label small mb-1">{{ __('Email text') }}</label>
-                    <textarea name="email_body" rows="3" class="form-control form-control-sm" placeholder="{{ __('What the recipients will read') }}"></textarea>
+                    <textarea name="email_body" rows="3" class="form-control form-control-sm" placeholder="{{ __('What the recipients will read — you can use {event}, {date}, {time}, {datetime}, {location}') }}"></textarea>
                 </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-sm btn-primary">@icon('➕') {{ __('Add rule') }}</button>

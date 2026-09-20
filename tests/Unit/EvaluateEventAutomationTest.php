@@ -58,7 +58,7 @@ class EvaluateEventAutomationTest extends TestCase
         ]);
         $rule = EventAutomationRule::create([
             'event_id' => $due->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
-            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 1,
             'threshold' => 5, 'extra_recipients' => 'bureau@clubcep.eu',
         ]);
 

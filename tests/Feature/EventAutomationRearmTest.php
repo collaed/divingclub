@@ -12,6 +12,7 @@ use App\Services\EventAutomationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
@@ -107,7 +108,7 @@ class EventAutomationRearmTest extends TestCase
             'threshold' => 5, 'cancels_event' => true, 'extra_recipients' => 'chief@clubcep.eu',
         ]);
         $this->evaluate($event);
-        $event->update(['status' => 'scheduled']);
+        $event->fresh()->update(['status' => 'scheduled']);
 
         $event->update(['inscription_close_at' => '2026-09-19 14:00:00']);
         Carbon::setTestNow('2026-09-19 14:30:00');
@@ -133,5 +134,59 @@ class EventAutomationRearmTest extends TestCase
         Bus::assertNotDispatched(SendEventAutomationEmail::class);
         $this->assertSame('scheduled', $event->fresh()->status);
         $this->assertDatabaseHas('event_automation_rule_fires', ['event_id' => $event->id, 'event_automation_rule_id' => $rule->id]);
+    }
+
+    public function test_a_stale_hours_before_checkpoint_found_late_is_recorded_without_sending(): void
+    {
+        Carbon::setTestNow('2026-09-19 15:00:00');
+        $event = Event::factory()->create(['status' => 'scheduled', 'event_date' => '2026-09-19', 'event_time' => '21:00:00']);
+        $rule = $this->hoursBeforeRule($event, 3);
+        $this->evaluate($event);
+
+        $event->update(['event_date' => '2026-09-20']);
+        Carbon::setTestNow('2026-09-20 20:00:00');
+        $this->evaluate($event);
+
+        Bus::assertNotDispatched(SendEventAutomationEmail::class);
+        $this->assertSame(1, EventAutomationRuleFire::where('event_automation_rule_id', $rule->id)->count());
+    }
+
+    public function test_a_cancelling_close_rule_stops_the_other_rules_from_emailing(): void
+    {
+        Carbon::setTestNow('2026-09-20 14:00:30');
+        $event = Event::factory()->create([
+            'status' => 'scheduled', 'event_date' => '2026-09-20', 'event_time' => '15:00:00',
+            'inscription_close_at' => '2026-09-20 14:00:00',
+        ]);
+        EventAutomationRule::create([
+            'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+            'threshold' => 3, 'cancels_event' => true, 'extra_recipients' => 'chief@clubcep.eu',
+        ]);
+        $this->hoursBeforeRule($event, 1);
+
+        $this->evaluate($event);
+
+        $this->assertSame('cancelled', $event->fresh()->status);
+        Bus::assertDispatchedTimes(SendEventAutomationEmail::class, 1);
+    }
+
+    public function test_placeholders_are_filled_in_the_subject_and_body(): void
+    {
+        $event = Event::factory()->create(['title' => 'Essai', 'event_date' => '2026-09-20', 'event_time' => '17:00:00']);
+        $rule = EventAutomationRule::create([
+            'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
+            'threshold' => 3, 'email_subject' => 'About {event}', 'email_body' => '{event} on {date} at {time} ({datetime})',
+        ]);
+
+        config(['mail.default' => 'array']);
+        app('mail.manager')->purge();
+
+        (new SendEventAutomationEmail($rule->id, $event->id, ['a@b.eu']))->handle();
+
+        $sent = Mail::mailer('array')->getSymfonyTransport()->messages();
+        $this->assertCount(1, $sent);
+        $message = $sent->first()->getOriginalMessage();
+        $this->assertSame('About Essai', $message->getSubject());
+        $this->assertStringContainsString('Essai on 20/09/2026 at 17:00 (20/09/2026 17:00)', $message->getHtmlBody());
     }
 }

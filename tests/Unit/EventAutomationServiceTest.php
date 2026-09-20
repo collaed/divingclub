@@ -174,7 +174,7 @@ class EventAutomationServiceTest extends TestCase
         ]);
         $rule = EventAutomationRule::create([
             'event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
-            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 2,
             'threshold' => 3, 'cancels_event' => true, 'extra_recipients' => 'chief@clubcep.eu',
         ]);
 
@@ -249,10 +249,10 @@ class EventAutomationServiceTest extends TestCase
             'event_date' => now()->addHours(2)->toDateString(),
             'event_time' => now()->addHours(2)->format('H:i'),
         ]);
-        // Due now (checkpoint 3h before, event is 2h away).
+        // Due now (checkpoint 2h before, event is 2h away).
         $dueRule = EventAutomationRule::create([
             'season_pattern_id' => $pattern->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS,
-            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 3,
+            'trigger' => EventAutomationRule::TRIGGER_HOURS_BEFORE_EVENT, 'hours_before_event' => 2,
             'threshold' => 99, 'extra_recipients' => 'chief@clubcep.eu',
         ]);
         // Not due yet (checkpoint 1h before, event is 2h away).

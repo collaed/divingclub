@@ -12,7 +12,13 @@ On `main` and staging, not yet on production.
   Events month view too, with a legend, and clicking a greyed-out day from the
   previous or next month jumps the calendar to that month.
 
+- Automation emails can use placeholders in the subject and body: `{event}`, `{date}`,
+  `{time}`, `{datetime}` and `{location}`.
+
 ### Fixed
+- Once a rule cancels an event, the event's other automation rules no longer send emails.
+- An "N hours before" rule found more than 30 minutes late (event moved later, scheduler
+  down) is recorded without sending, instead of a stale "2h left" mail.
 - Rescheduling an event now makes its automation rules due again at the new time.
   Before, a rule that had already fired (or a registration-close rule after the
   event was moved) silently never fired again.

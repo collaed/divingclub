@@ -28,12 +28,26 @@ class SendEventAutomationEmail implements ShouldQueue
         }
 
         try {
-            $html = view('emails.event-automation', ['event' => $event, 'body' => $rule->email_body])->render();
-            $subject = $rule->email_subject ?: __(':event — automated notice', ['event' => $event->title]);
+            $html = view('emails.event-automation', ['event' => $event, 'body' => $this->fill((string) $rule->email_body, $event)])->render();
+            $subject = $rule->email_subject
+                ? $this->fill($rule->email_subject, $event)
+                : __(':event — automated notice', ['event' => $event->title]);
 
             Mail::html($html, fn ($m) => $m->to($this->recipients)->subject($subject));
         } catch (Throwable $e) {
             report($e);
         }
+    }
+
+    /** Replaces {event}, {date}, {time}, {datetime} and {location} in a rule's subject or body. */
+    private function fill(string $text, Event $event): string
+    {
+        return strtr($text, [
+            '{event}' => (string) $event->title,
+            '{date}' => (string) $event->event_date?->format('d/m/Y'),
+            '{time}' => substr((string) $event->event_time, 0, 5),
+            '{datetime}' => trim($event->event_date?->format('d/m/Y').' '.substr((string) $event->event_time, 0, 5)),
+            '{location}' => (string) $event->location,
+        ]);
     }
 }
