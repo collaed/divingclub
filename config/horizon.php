@@ -207,7 +207,11 @@ return [
             'maxJobs' => 0,
             'memory' => 128,
             'tries' => 1,
-            'timeout' => 60,
+            // Also the grace a worker gets to finish its job once Horizon's
+            // autoscaler tells it to terminate, after which it is SIGKILLed.
+            // Must cover the longest job (ProcessTranslations: 1800s) and stay
+            // below the redis connection's retry_after (1860s).
+            'timeout' => 1800,
             'nice' => 0,
         ],
     ],

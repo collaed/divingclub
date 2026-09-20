@@ -8,6 +8,10 @@ What reached production, newest first. Conventions are in
 On `main` and staging, not yet on production.
 
 ### Fixed
+- Background jobs that run longer than a minute (article translation) were killed
+  whenever the queue scaled its workers down, then reported as failed an hour later.
+  Workers now get up to 30 minutes to finish; this cleared the "50 failed jobs"
+  health warning on staging.
 - The weekly backup's health signal no longer reports success when the backup itself
   failed; a failure now shows on the dashboard and the external monitor.
 
