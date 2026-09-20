@@ -47,14 +47,6 @@ class StatusSetSeeder extends Seeder
                 'former' => false,
             ],
         ],
-        'jeune' => [
-            'name' => 'Jeune',
-            'statuses' => [
-                'junior' => true,
-                'enfant' => false,
-                'former' => false,
-            ],
-        ],
     ];
 
     /**
@@ -72,8 +64,6 @@ class StatusSetSeeder extends Seeder
         'famille' => 'fonctionnaire',
         'actif' => 'externe',
         'externe' => 'externe',
-        'junior' => 'jeune',
-        'enfant' => 'jeune',
     ];
 
     public function run(): void

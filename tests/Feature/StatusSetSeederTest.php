@@ -25,13 +25,12 @@ class StatusSetSeederTest extends TestCase
         $this->seed(MemberStatusSeeder::class);
     }
 
-    public function test_seeder_creates_three_sets(): void
+    public function test_seeder_creates_the_two_sets(): void
     {
         $this->seed(StatusSetSeeder::class);
 
         $this->assertNotNull(StatusSet::where('slug', 'fonctionnaire')->first());
         $this->assertNotNull(StatusSet::where('slug', 'externe')->first());
-        $this->assertNotNull(StatusSet::where('slug', 'jeune')->first());
     }
 
     public function test_famille_associe_assimile_are_in_the_fonctionnaire_set(): void
@@ -45,13 +44,13 @@ class StatusSetSeederTest extends TestCase
         $this->assertContains('sympathisant', $slugs);
     }
 
-    public function test_junior_and_enfant_are_in_the_jeune_set(): void
+    public function test_there_is_no_jeune_set_and_no_junior_or_enfant_status(): void
     {
+        $this->seed(MemberStatusSeeder::class);
         $this->seed(StatusSetSeeder::class);
 
-        $slugs = StatusSet::where('slug', 'jeune')->first()->statuses->pluck('slug')->all();
-        $this->assertContains('junior', $slugs);
-        $this->assertContains('enfant', $slugs);
+        $this->assertNull(StatusSet::where('slug', 'jeune')->first());
+        $this->assertSame(0, MemberStatus::whereIn('slug', ['junior', 'enfant'])->count());
     }
 
     public function test_two_sympathisants_can_belong_to_different_sets_by_base_category(): void
@@ -89,7 +88,6 @@ class StatusSetSeederTest extends TestCase
 
         $this->assertSame('fonctionnaire', StatusSet::where('slug', 'fonctionnaire')->first()->defaultStatus()?->slug);
         $this->assertSame('actif', StatusSet::where('slug', 'externe')->first()->defaultStatus()?->slug);
-        $this->assertSame('junior', StatusSet::where('slug', 'jeune')->first()->defaultStatus()?->slug);
     }
 
     public function test_seeder_is_idempotent(): void

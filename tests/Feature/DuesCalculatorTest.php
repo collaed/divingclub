@@ -109,24 +109,24 @@ class DuesCalculatorTest extends TestCase
 
     public function test_calculate_applies_component_age_taper(): void
     {
-        $junior = $this->makeStatus('junior');
-        MembershipFee::create(['season_year' => '2027', 'status_id' => $junior->id, 'amount' => 55]);
+        $actif = $this->makeStatus('actif');
+        MembershipFee::create(['season_year' => '2027', 'status_id' => $actif->id, 'amount' => 110]);
         MembershipFeeComponent::create([
             'name' => 'Licence FLASSA', 'slug' => 'flassa', 'amount' => 40, 'is_optional' => true,
             'taper_below_age' => 18, 'taper_ratio' => 0, 'age_anchor_date' => '2027-01-01',
         ]);
 
-        $member = $this->member(null, $junior);
+        $member = $this->member(null, $actif);
         $member->detail->update(['date_of_birth' => '2012-05-05']);
 
         $res = $this->actingAs($member)->post(route('dues.calculate'), [
             'season_year' => '2027',
-            'status_id' => $junior->id,
+            'status_id' => $actif->id,
             'last_name' => 'Dupont', 'first_name' => 'Jean',
             'optionals' => ['flassa'],
         ])->assertOk();
 
-        // Base 55 + FLASSA tapered to 0 = 55.
+        // Base 55 (under 18: half of 110) + FLASSA tapered to 0 = 55.
         $res->assertSee('€55.00');
     }
 

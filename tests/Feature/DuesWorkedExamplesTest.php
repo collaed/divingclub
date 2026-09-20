@@ -63,22 +63,22 @@ class DuesWorkedExamplesTest extends TestCase
         $this->assertSame(228.00, $calc['amount_due']);
     }
 
-    public function test_jeune_12_15_with_loisir1_is_111_50(): void
+    public function test_externe_child_12_15_with_loisir1_is_121_50(): void
     {
-        $user = $this->member('junior', 13);
+        $user = $this->member('externe', 13);
         $calc = $this->fees->calculate($user, '2027', ['ass_loisir1']);
-        // 55 + 31.50 + 0 (FLASSA included) + 25 = 111.50
-        $this->assertSame(111.50, $calc['amount_due']);
+        // 65 (half of 130) + 31.50 + 0 (FLASSA included) + 25 = 121.50
+        $this->assertSame(121.50, $calc['amount_due']);
         $this->assertSame('included_free', $calc['components']['flassa_state']);
         $this->assertSame('lic_jeune', $calc['components']['ffessm_licence']);
     }
 
-    public function test_jeune_16_17_no_assurance_is_105(): void
+    public function test_fonctionnaire_teen_16_17_no_assurance_is_110(): void
     {
-        $user = $this->member('junior', 16);
+        $user = $this->member('fonctionnaire', 16);
         $calc = $this->fees->calculate($user, '2027', []);
-        // 55 + 50 (adult licence) + 0 (FLASSA included, still <18) = 105.00
-        $this->assertSame(105.00, $calc['amount_due']);
+        // 60 (half of 120) + 50 (adult licence) + 0 (FLASSA included, still <18) = 110.00
+        $this->assertSame(110.00, $calc['amount_due']);
         $this->assertSame('lic_adulte', $calc['components']['ffessm_licence']);
         $this->assertSame('included_free', $calc['components']['flassa_state']);
     }
@@ -94,12 +94,12 @@ class DuesWorkedExamplesTest extends TestCase
         $this->assertArrayNotHasKey('ass_loisir3top', $calc['components']);
     }
 
-    public function test_child_under_12_gets_enfant_licence_flassa_included(): void
+    public function test_fonctionnaire_child_under_12_gets_enfant_licence_flassa_included(): void
     {
-        $user = $this->member('enfant', 9);
+        $user = $this->member('fonctionnaire', 9);
         $calc = $this->fees->calculate($user, '2027', []);
-        // 55 + 14.50 + 0 = 69.50
-        $this->assertSame(69.50, $calc['amount_due']);
+        // 60 (half of 120) + 14.50 + 0 = 74.50
+        $this->assertSame(74.50, $calc['amount_due']);
         $this->assertSame('lic_enfant', $calc['components']['ffessm_licence']);
         $this->assertSame('included_free', $calc['components']['flassa_state']);
     }

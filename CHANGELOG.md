@@ -12,6 +12,12 @@ On `main` and staging, not yet on production.
   Events month view too, with a legend, and clicking a greyed-out day from the
   previous or next month jumps the calendar to that month.
 
+### Changed
+- **Junior and Enfant are removed as statuses**, along with the "Jeune" set. A child is
+  a Membre de droit (Fonctionnaire, Associé, Assimilé, Famille) or an Externe member and
+  pays the under-18 share of that cotisation; age only drives that share and the FFESSM
+  licence band. No member held either status.
+
 ### Fixed
 - The dues calculator no longer refuses Externe, Actif or Fonctionnaire for a member
   under 18 ("The selected membership does not match the member age..."); a child of an
@@ -36,6 +42,9 @@ On `main` and staging, not yet on production.
   is now recorded without running (nothing left to act on).
 
 ### Data changes
+- Junior and Enfant statuses, their 2027 fee rows and the Jeune status set are deleted
+  (only if no member holds them). One production member was parked in the Jeune set
+  (a former member); they become unclassified.
 - The old `automation_evaluated_at` flag on events is replaced by per-rule fire
   records; existing records were converted automatically.
 

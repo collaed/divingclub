@@ -33,11 +33,10 @@ class Fee2027Seeder extends Seeder
 
     /** CEP cotisation list prices, keyed by member-status slug. */
     private const COTISATIONS = [
+        'membre_de_droit' => ['label' => 'Membre de droit', 'amount' => 120.00],
         'fonctionnaire' => ['label' => 'Cotisation au CEP fonctionnaire (18 ans et plus)', 'amount' => 120.00],
         'externe' => ['label' => 'Cotisation au CEP externe (18 ans et plus)', 'amount' => 130.00],
         'actif' => ['label' => 'Cotisation au CEP externe (18 ans et plus)', 'amount' => 130.00],
-        'junior' => ['label' => 'Cotisation jeune (moins de 18 ans à la prise de licence)', 'amount' => 55.00],
-        'enfant' => ['label' => 'Cotisation enfant (moins de 12 ans à la prise de licence)', 'amount' => 55.00],
         'sympathisant' => ['label' => 'Cotisation sympathisant', 'amount' => 30.00],
     ];
 
