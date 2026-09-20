@@ -152,7 +152,7 @@
         function format() {
             const [code, national] = parse(field.value);
             const typingPrefix = /^\s*(\+|00)/.test(field.value) && !code;
-            if (typingPrefix) {
+            if (typingPrefix || field.value.trim() === '0') {
                 return;
             }
             if (code) {
