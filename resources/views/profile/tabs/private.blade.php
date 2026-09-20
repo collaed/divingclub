@@ -60,7 +60,7 @@
         </div>
         <div class="col-md-4 mb-3">
             <label class="form-label">{{ __('Phone') }}</label>
-            <input type="tel" name="emergency_contact_phone" class="form-control @error('emergency_contact_phone') is-invalid @enderror" value="{{ old('emergency_contact_phone', $d?->emergency_contact_phone) }}" placeholder="+352 621 123 456">
+            <input type="tel" data-phone name="emergency_contact_phone" class="form-control @error('emergency_contact_phone') is-invalid @enderror" value="{{ old('emergency_contact_phone', $d?->emergency_contact_phone) }}" placeholder="+352 621 123 456">
             @error('emergency_contact_phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-4 mb-3">

@@ -38,7 +38,7 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             <label class="form-label">{{ __('Phone (Mobile)') }}</label>
-            <input type="tel" name="phone_mobile" class="form-control @error('phone_mobile') is-invalid @enderror" value="{{ old('phone_mobile', $d?->phone_mobile) }}" placeholder="+352 621 123 456">
+            <input type="tel" data-phone name="phone_mobile" class="form-control @error('phone_mobile') is-invalid @enderror" value="{{ old('phone_mobile', $d?->phone_mobile) }}" placeholder="+352 621 123 456">
             @error('phone_mobile') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-6 mb-3">

@@ -51,3 +51,4 @@ function urlBase64ToUint8Array(base64String) {
 import './table-utils';
 import './datepicker';
 import './dues-live';
+import './phone-input';
