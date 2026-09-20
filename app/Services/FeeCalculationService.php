@@ -46,7 +46,7 @@ class FeeCalculationService
 
         // Under-18 reduction of the club-retained cotisation (the FFESSM
         // licence has its own age bands and is unaffected).
-        $minorPct = $this->minorPercentage($user, $status, $season);
+        $minorPct = $this->minorPercentage($user, $season);
         $nominal = $baseFee;
         if ($minorPct < 100) {
             $baseFee = (float) ceil($baseFee * $minorPct / 100);
@@ -95,15 +95,12 @@ class FeeCalculationService
      * Percentage of the nominal cotisation this member pays for being under
      * the season's minor age (default: under 18 pays 50%), measured at the
      * same anchor date as the licence age bands. 100 = no reduction. Unknown
-     * date of birth is treated as adult, and statuses whose own fee row is
-     * already the youth rate (Junior/Enfant) are not reduced twice.
+     * date of birth is treated as adult. Applies to every status: a child is
+     * a Membre de droit (or one of its sub-cases) or an Externe member, never
+     * a category of their own.
      */
-    public function minorPercentage(User $user, ?MemberStatus $status, ?Season $season): int
+    public function minorPercentage(User $user, ?Season $season): int
     {
-        if ($status && in_array($status->slug, MemberStatus::YOUTH_RATE_SLUGS, true)) {
-            return 100;
-        }
-
         $dob = $user->detail?->date_of_birth;
         if (! $dob instanceof Carbon) {
             return 100;

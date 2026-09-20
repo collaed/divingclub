@@ -44,10 +44,11 @@ class DuesPipelineE2ETest extends TestCase
 
     public function test_full_dues_pipeline(): void
     {
-        // 1. Bureau configures the 2027 season + a fee for the "jeune" (junior) status.
+        // 1. Bureau configures the 2027 season + the Externe fee (a child is an Externe
+        //    member who pays the under-18 share of it).
         Season::factory()->create(['year' => '2027', 'start_date' => '2026-09-01']);
-        $junior = MemberStatus::where('slug', 'junior')->firstOrFail();
-        MembershipFee::create(['season_year' => '2027', 'status_id' => $junior->id, 'amount' => 55]);
+        $externe = MemberStatus::where('slug', 'externe')->firstOrFail();
+        MembershipFee::create(['season_year' => '2027', 'status_id' => $externe->id, 'amount' => 110]);
 
         // 2. Bureau adds a FLASSA licence component, free under 18 at the 2027 anchor.
         $this->actingAs($this->admin)->post(route('admin.payments.component.store'), [
@@ -60,34 +61,34 @@ class DuesPipelineE2ETest extends TestCase
         MemberDetail::create(['user_id' => $member->id, 'first_name' => 'Petit', 'last_name' => 'Plongeur', 'date_of_birth' => '2012-05-05']);
         $member->assignRole('member');
 
-        // 4. Bureau classifies them into the Jeune set with junior status via the roster (AJAX).
-        $jeuneSet = StatusSet::where('slug', 'jeune')->firstOrFail();
+        // 4. Bureau classifies them into the Externe set with the Externe status via the roster (AJAX).
+        $externeSet = StatusSet::where('slug', 'externe')->firstOrFail();
         $this->actingAs($this->admin)
             ->patchJson(route('admin.members.status.update', $member), [
-                'status_set_id' => $jeuneSet->id,
-                'status_id' => $junior->id,
+                'status_set_id' => $externeSet->id,
+                'status_id' => $externe->id,
             ])->assertOk()->assertJson(['ok' => true]);
 
         $member->refresh();
-        $this->assertSame($jeuneSet->id, $member->status_set_id);
-        $this->assertSame($junior->id, $member->status_id);
+        $this->assertSame($externeSet->id, $member->status_set_id);
+        $this->assertSame($externe->id, $member->status_id);
 
-        // 5. Member loads /dues — sees only in-set statuses (Junior, Enfant, ...) not Fonctionnaire.
+        // 5. Member loads /dues — sees only in-set statuses (Externe, Actif, ...) not Fonctionnaire.
         $this->actingAs($member)->get(route('dues.show', ['season_year' => 2027]))
             ->assertOk()
-            ->assertSee('Junior')
+            ->assertSee('Externe')
             ->assertDontSee('Fonctionnaire');
 
-        // 6. Member calculates: base 55 + FLASSA tapered to 0 = 55.
+        // 6. Member calculates: base 55 (under 18: half of 110) + FLASSA tapered to 0 = 55.
         $this->actingAs($member)->post(route('dues.calculate'), [
-            'season_year' => '2027', 'status_id' => $junior->id,
+            'season_year' => '2027', 'status_id' => $externe->id,
             'last_name' => 'Plongeur', 'first_name' => 'Petit',
             'optionals' => ['flassa'],
         ])->assertOk()->assertSee('€55.00');
 
         // 7. Member commits — classified now, so NOT provisional.
         $this->actingAs($member)->post(route('dues.commit'), [
-            'season_year' => '2027', 'status_id' => $junior->id, 'optionals' => ['flassa'],
+            'season_year' => '2027', 'status_id' => $externe->id, 'optionals' => ['flassa'],
         ])->assertRedirect();
 
         $pe = PaymentExpected::where('user_id', $member->id)->where('type', 'membership')->firstOrFail();
@@ -95,7 +96,7 @@ class DuesPipelineE2ETest extends TestCase
         $this->assertSame('55.00', number_format((float) $pe->amount_due, 2));
         $this->assertSame('pending', $pe->status);
 
-        // 8. A former member is excluded from the "all members" mail; the junior is included.
+        // 8. A former member is excluded from the "all members" mail; the child is included.
         $former = MemberStatus::where('slug', 'former')->firstOrFail();
         $lapsed = User::factory()->create(['status_id' => $former->id, 'primary_email' => 'lapsed@club.eu', 'email_verified_at' => now()]);
         MemberDetail::create(['user_id' => $lapsed->id, 'first_name' => 'Old', 'last_name' => 'Timer']);

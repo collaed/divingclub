@@ -106,13 +106,6 @@ class MinorClubFeeTest extends TestCase
         $this->assertSame(53.0, $odd['components']['membership']);
     }
 
-    public function test_junior_and_enfant_statuses_are_not_reduced_a_second_time(): void
-    {
-        $r = $this->calc($this->member('junior', 55, '2012-01-01'));
-
-        $this->assertSame(55.0, $r['components']['membership']);
-    }
-
     public function test_an_associe_child_gets_half_of_the_membre_de_droit_fee(): void
     {
         MembershipFee::create(['season_year' => '2027', 'status_id' => MemberStatus::firstOrCreate(['slug' => 'membre_de_droit'], ['name' => 'droit'])->id, 'amount' => 120, 'label' => 'droit']);

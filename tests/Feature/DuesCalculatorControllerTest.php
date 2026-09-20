@@ -12,6 +12,7 @@ use Database\Seeders\Fee2027Seeder;
 use Database\Seeders\MemberStatusSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
 
@@ -58,7 +59,7 @@ class DuesCalculatorControllerTest extends TestCase
 
     public function test_minor_calculation_shows_flassa_included(): void
     {
-        $user = $this->memberWithAge('junior', 13);
+        $user = $this->memberWithAge('externe', 13);
 
         $this->actingAs($user)->post(route('dues.calculate'), [
             'season_year' => '2027',
@@ -76,19 +77,6 @@ class DuesCalculatorControllerTest extends TestCase
             'status_id' => $user->status_id,
         ])->assertOk()
             ->assertSee('30.00');
-    }
-
-    public function test_age_status_mismatch_is_rejected(): void
-    {
-        // A member born 40 years ago cannot claim the "enfant" (<12) cotisation.
-        $user = $this->memberWithAge('externe', 40);
-        $enfant = MemberStatus::where('slug', 'enfant')->firstOrFail();
-
-        $this->actingAs($user)->post(route('dues.calculate'), [
-            'season_year' => '2027',
-            'status_id' => $enfant->id,
-            'date_of_birth' => Carbon::createFromDate(2026, 9, 1)->subYears(40)->toDateString(),
-        ])->assertSessionHasErrors('status_id');
     }
 
     public function test_a_child_can_be_calculated_as_externe_and_gets_the_under_18_share(): void
@@ -109,5 +97,48 @@ class DuesCalculatorControllerTest extends TestCase
         $this->actingAs($this->memberWithAge('externe', 30))->get(route('dues.show'))
             ->assertOk()
             ->assertSee('50% of the club cotisation');
+    }
+
+    /**
+     * The real-world cases for 2027: a Membre de droit (Fonctionnaire, Associé,
+     * Famille, ...) pays 120, an Externe 130; under 18 at 1 Sept they pay half
+     * (60 / 65). FFESSM licence by age: under 12 = 14.50, 12 to 15 = 31.50,
+     * 16 and over = 50. FLASSA (10) is only charged from 18.
+     *
+     * @return array<string, array{string, int, float}>
+     */
+    public static function realWorldCases(): array
+    {
+        return [
+            'fonctionnaire adult' => ['fonctionnaire', 30, 180.00],      // 120 + 50 + 10
+            'fonctionnaire 17' => ['fonctionnaire', 17, 110.00],         // 60 + 50
+            'fonctionnaire 16' => ['fonctionnaire', 16, 110.00],         // 60 + 50
+            'fonctionnaire 15' => ['fonctionnaire', 15, 91.50],          // 60 + 31.50
+            'fonctionnaire 12' => ['fonctionnaire', 12, 91.50],          // 60 + 31.50
+            'fonctionnaire 11' => ['fonctionnaire', 11, 74.50],          // 60 + 14.50
+            'fonctionnaire 5' => ['fonctionnaire', 5, 74.50],
+            'associe child 9' => ['associe', 9, 74.50],
+            'associe teen 17' => ['associe', 17, 110.00],
+            'famille adult' => ['famille', 40, 180.00],
+            'externe adult' => ['externe', 30, 190.00],                  // 130 + 50 + 10
+            'externe 18' => ['externe', 18, 190.00],
+            'externe 17' => ['externe', 17, 115.00],                     // 65 + 50
+            'externe 15' => ['externe', 15, 96.50],                      // 65 + 31.50
+            'externe 10' => ['externe', 10, 79.50],                      // 65 + 14.50
+            'actif child 10' => ['actif', 10, 79.50],
+        ];
+    }
+
+    #[DataProvider('realWorldCases')]
+    public function test_real_world_dues_by_status_and_age(string $status, int $age, float $expected): void
+    {
+        $user = $this->memberWithAge($status, $age);
+
+        $res = $this->actingAs($user)->post(route('dues.calculate'), [
+            'season_year' => '2027',
+            'status_id' => $user->status_id,
+        ])->assertOk()->assertSessionHasNoErrors();
+
+        $res->assertSee(number_format($expected, 2));
     }
 }
