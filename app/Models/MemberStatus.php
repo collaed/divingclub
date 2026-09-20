@@ -46,6 +46,7 @@ class MemberStatus extends Model
         'famille' => 'membre_de_droit',
         'associe' => 'membre_de_droit',
         'assimile' => 'membre_de_droit',
+        'fonctionnaire' => 'membre_de_droit',
     ];
 
     /** The status slug whose membership fee this status inherits, if any. */

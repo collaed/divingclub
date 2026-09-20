@@ -38,7 +38,7 @@ class MembershipFee extends Model
     /**
      * The fee row that applies to a status for a season: its own row when one
      * is defined, otherwise the row for the status it's a fee-alias of (see
-     * `MemberStatus::FEE_ALIASES`) — e.g. "Famille"/"Associé"/"Assimilé" pay
+     * `MemberStatus::FEE_ALIASES`) — e.g. "Famille"/"Associé"/"Assimilé"/"Fonctionnaire" pay
      * the same cotisation as "Membre de droit" unless the bureau sets a fee
      * of their own.
      */
