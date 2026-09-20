@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $end_date
  * @property bool $is_active
  * @property array<int, array<string, mixed>>|null $fee_taper_tiers
+ * @property int $minor_fee_below_age
+ * @property int $minor_fee_percent
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -27,7 +29,12 @@ class Season extends Model
     use HasFactory;
     use SoftDeletes;
 
-    protected $fillable = ['year', 'name', 'start_date', 'end_date', 'is_active', 'fee_taper_tiers'];
+    protected $fillable = ['year', 'name', 'start_date', 'end_date', 'is_active', 'fee_taper_tiers', 'minor_fee_below_age', 'minor_fee_percent'];
+
+    /** Club rule used when a fee year has no Season row: under 18 pays 50% of the nominal cotisation. */
+    public const MINOR_FEE_DEFAULT_AGE = 18;
+
+    public const MINOR_FEE_DEFAULT_PERCENT = 50;
 
     protected function casts(): array
     {

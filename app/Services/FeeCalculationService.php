@@ -42,13 +42,25 @@ class FeeCalculationService
 
         $baseFee = (float) ($fee?->amount ?? 0);
 
+        $season = $this->resolveSeason($seasonYear);
+
+        // Under-18 reduction of the club-retained cotisation (the FFESSM
+        // licence has its own age bands and is unaffected).
+        $minorPct = $this->minorPercentage($user, $status, $season);
+        $nominal = $baseFee;
+        if ($minorPct < 100) {
+            $baseFee = (float) ceil($baseFee * $minorPct / 100);
+        }
+
         // Apply season-relative tapering to the club-retained membership base.
         $pct = $this->taperPercentage($seasonYear);
         $baseAfterTaper = $pct >= 100 ? $baseFee : (float) ceil($baseFee * $pct / 100);
 
-        $season = $this->resolveSeason($seasonYear);
-
         $components = ['membership' => $baseAfterTaper, 'status' => $status?->name ?? '—', 'label' => $fee?->label ?? ''];
+        if ($minorPct < 100) {
+            $components['minor_pct'] = $minorPct;
+            $components['minor_nominal'] = $nominal;
+        }
         if ($pct < 100) {
             $components['membership_full'] = $baseFee;
             $components['taper_pct'] = $pct;
@@ -77,6 +89,30 @@ class FeeCalculationService
             'components' => $components,
             'communication' => $this->buildCommunication($user, $seasonYear, $selectedOptionalSlugs),
         ];
+    }
+
+    /**
+     * Percentage of the nominal cotisation this member pays for being under
+     * the season's minor age (default: under 18 pays 50%), measured at the
+     * same anchor date as the licence age bands. 100 = no reduction. Unknown
+     * date of birth is treated as adult, and statuses whose own fee row is
+     * already the youth rate (Junior/Enfant) are not reduced twice.
+     */
+    public function minorPercentage(User $user, ?MemberStatus $status, ?Season $season): int
+    {
+        if ($status && in_array($status->slug, MemberStatus::YOUTH_RATE_SLUGS, true)) {
+            return 100;
+        }
+
+        $dob = $user->detail?->date_of_birth;
+        if (! $dob instanceof Carbon) {
+            return 100;
+        }
+
+        $belowAge = $season?->minor_fee_below_age ?? Season::MINOR_FEE_DEFAULT_AGE;
+        $percent = $season?->minor_fee_percent ?? Season::MINOR_FEE_DEFAULT_PERCENT;
+
+        return (int) $dob->diffInYears($this->licenceAnchor($season)) < $belowAge ? $percent : 100;
     }
 
     /**
@@ -274,6 +310,16 @@ class FeeCalculationService
         $components = $calc['components'];
         $lines = [];
         $lines[] = ['label' => __('Membership').' ('.($components['status'] ?? '').')', 'amount' => (float) $components['membership']];
+        if (isset($components['minor_pct'])) {
+            $lines[] = [
+                'label' => __('Under 18 (:pct% of the :nominal€ nominal)', [
+                    'pct' => $components['minor_pct'],
+                    'nominal' => number_format((float) $components['minor_nominal'], 0),
+                ]),
+                'amount' => 0.0,
+                'muted' => true,
+            ];
+        }
         if (isset($components['taper_pct'])) {
             $lines[] = [
                 'label' => __('Reduced rate (:pct%) — full :full€', [

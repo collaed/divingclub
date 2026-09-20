@@ -129,6 +129,21 @@ class SeasonController extends Controller
         return back()->with('success', __('Fee taper schedule updated.'));
     }
 
+    /**
+     * Update the season's under-age club-fee rule (e.g. under 18 pays 50%).
+     */
+    public function updateMinorFee(Request $request, Season $season): RedirectResponse
+    {
+        abort_unless(auth()->user()?->can('manage seasons'), 403);
+
+        $season->update($request->validate([
+            'minor_fee_below_age' => 'required|integer|min:1|max:30',
+            'minor_fee_percent' => 'required|integer|min:0|max:100',
+        ]));
+
+        return back()->with('success', __('Under-age fee rule updated.'));
+    }
+
     // Holiday management
     public function storeHoliday(StoreSeasonHolidayRequest $request, Season $season): JsonResponse|RedirectResponse|View
     {
