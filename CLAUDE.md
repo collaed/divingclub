@@ -315,3 +315,4 @@ The three CI gates (`.github/workflows/ci.yml`) that must pass: **lint** (`pint 
 - One Hetzner host runs **both** apps as user `clubcep`: staging `/opt/deploy/apps/divingclub` (`test.clubcep.eu`) and production `/opt/deploy/apps/divingclub-prod` (`prod.clubcep.eu`). SSH via the `test.clubcep.eu` / `prod.clubcep.eu` host aliases. Full ops detail in `.kiro/steering/deployment.md`.
 - Run server artisan as `sudo -u clubcep /usr/bin/php8.3 …` (default `php` is 8.5 and lacks `mbstring`). Queues are Redis + Horizon (`supervisorctl restart horizon horizon-prod`).
 - Commit message prefixes: `feat:`, `fix:`, `chore:`, `ci:`.
+- `auto-deploy.sh` ships **everything on `main` since prod's current commit**, migrations included. Check `git log <prod sha>..origin/main` first, and record the release in `CHANGELOG.md` — see `.kiro/steering/release-notes.md`.

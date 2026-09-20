@@ -1,0 +1,66 @@
+# Changelog
+
+What reached production, newest first. Conventions are in
+`.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
+
+## Unreleased
+
+On `main` and staging, not yet on production.
+
+### New
+- Events calendar: the equipment-priority hatch (kids / PN1 / PN2) now shows on the
+  Events month view too, with a legend, and clicking a greyed-out day from the
+  previous or next month jumps the calendar to that month.
+
+### Fixed
+- Rescheduling an event now makes its automation rules due again at the new time.
+  Before, a rule that had already fired (or a registration-close rule after the
+  event was moved) silently never fired again.
+
+### Changed
+- Automation rules: a registration-close rule on an event that has already started
+  is now recorded without running (nothing left to act on).
+
+### Data changes
+- The old `automation_evaluated_at` flag on events is replaced by per-rule fire
+  records; existing records were converted automatically.
+
+### Needs attention
+- A rule that already fired for an event's current schedule stays fired; to re-test
+  one, change the event's close or start time.
+
+## 2026-09-18 — prod at `cbc75b5`
+
+### New
+- **Document Intake** (admin): drop licence scans and bank statements on one screen;
+  the type is detected automatically and can be corrected per document.
+- **Bank reconciliation**: an AI second pass proposes matches the rule-based pass
+  missed. It only ever proposes; a bureau member still confirms each one.
+- **Event automation**: rules can fire a set number of hours before an event, not
+  only when registration closes.
+- **Training focus marker**: an event can carry a kids / PN1 / PN2 priority-equipment
+  focus, shown as a hatch on the instructor calendar.
+- **Library**: create, rename, delete and copy folders and files.
+- Licence scans are archived to `archived/licences/` once applied.
+
+### Fixed
+- Bank statements from real bank PDFs (multi-line entries, DD.MM.YY dates, +/- amount
+  sign) are now read correctly; outgoing transfers are ignored.
+- Event dates and times were treated as UTC instead of club time (Luxembourg), so
+  registration open/close and automation fired up to 2 hours off.
+- A registration-close rule could fire hours early on an event that also had an
+  hours-before rule.
+- Keyboard focus is now visible on every button; icons are hidden from screen
+  readers; only one main landmark per page; reduced-motion is respected; dark mode
+  no longer flashes light on load.
+- Translation job timing out on long articles.
+- Mail provider rotation now survives deploys; a missing Brevo key no longer breaks
+  password reset.
+- GDPR erasure: legacy erased members are visible for purge, and purging no longer
+  fails on audit-log references.
+
+### Data changes
+- **Registration open/close times of all existing events were converted from
+  "entered as club time, stored as UTC" to true UTC.** Times displayed in the app are
+  unchanged; only the instant used for automation and open/closed status was
+  corrected (+1h in winter, +2h in summer). 182 events on production.
