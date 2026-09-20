@@ -18,12 +18,20 @@ On `main` and staging, not yet on production.
   event was moved) silently never fired again.
 
 ### Changed
+- Fonctionnaire is now a sub-case of Membre de droit for the cotisation, like Associé,
+  Famille and Assimilé: it pays the Membre de droit rate unless a fee is set on it
+  directly. Externe keeps its own rate.
 - Automation rules: a registration-close rule on an event that has already started
   is now recorded without running (nothing left to act on).
 
 ### Data changes
 - The old `automation_evaluated_at` flag on events is replaced by per-rule fire
   records; existing records were converted automatically.
+
+### Data changes (already applied to production)
+- Added the 2027 cotisation for Membre de droit (120, "Bureau du 03/09/26") on
+  production. It was missing, so Membre de droit, Associé, Famille and Assimilé all
+  calculated 0 for 2027. Staging already had it.
 
 ### Needs attention
 - A rule that already fired for an event's current schedule stays fired; to re-test
