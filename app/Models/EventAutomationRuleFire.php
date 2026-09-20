@@ -9,26 +9,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Records that one EventAutomationRule has already fired (or been decided
- * as no longer applicable) for one Event — the per-rule idempotency gate
- * for hours_before_event rules, since a single event can have several such
- * rules with different offsets that must each fire independently. See
- * EventAutomationService::evaluateHoursBeforeEvent().
+ * Records that one EventAutomationRule has fired (or been decided as no
+ * longer applicable) for one Event at one due instant — the idempotency
+ * gate for every automation trigger. Keyed by scheduled_for (the instant
+ * the rule was due: the close time, or start minus hours_before_event), so
+ * a rescheduled event no longer matches its old record and the rule can
+ * fire again, while the history of what already went out is kept. See
+ * EventAutomationService::alreadyFired().
  *
  * @property int $id
  * @property int $event_id
  * @property int $event_automation_rule_id
+ * @property Carbon $scheduled_for
  * @property Carbon $fired_at
  */
 class EventAutomationRuleFire extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['event_id', 'event_automation_rule_id', 'fired_at'];
+    protected $fillable = ['event_id', 'event_automation_rule_id', 'scheduled_for', 'fired_at'];
 
     protected function casts(): array
     {
-        return ['fired_at' => 'datetime'];
+        return ['scheduled_for' => 'datetime', 'fired_at' => 'datetime'];
     }
 
     /** @return BelongsTo<Event, $this> */

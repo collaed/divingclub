@@ -29,14 +29,24 @@ class EvaluateEventAutomation extends Command
         $events = Event::where('status', '!=', 'cancelled')
             ->where(function ($query) {
                 $query->where(function ($registrationClose) {
+                    // Idempotency is per (event, rule, due instant) in
+                    // EventAutomationRuleFire, so this only narrows candidates:
+                    // recently-closed registrations for an event that has
+                    // registration-close rules, not every event ever closed.
                     $registrationClose->whereNotNull('inscription_close_at')
-                        ->where('inscription_close_at', '<=', now())
-                        ->whereNull('automation_evaluated_at');
+                        ->whereBetween('inscription_close_at', [now()->subWeek(), now()])
+                        ->where(function ($hasCloseRule) {
+                            $hasCloseRule->whereHas(
+                                'automationRules',
+                                fn ($r) => $r->where('trigger', EventAutomationRule::TRIGGER_REGISTRATION_CLOSE)
+                            )->orWhereHas(
+                                'seasonPattern.automationRules',
+                                fn ($r) => $r->where('trigger', EventAutomationRule::TRIGGER_REGISTRATION_CLOSE)
+                            );
+                        });
                 })->orWhere(function ($hoursBefore) {
-                    // Idempotency for this branch is per-rule (EventAutomationRuleFire),
-                    // not a single event-level flag, so it can't be checked here — the
-                    // date floor just keeps this from re-scanning years of old events
-                    // whose rules (if any) have long since fired or been skipped.
+                    // The date floor just keeps this from re-scanning years of old
+                    // events whose rules (if any) have long since fired or been skipped.
                     $hoursBefore->where('event_date', '>=', now()->subWeek())
                         ->where(function ($hasHoursRule) {
                             $hasHoursRule->whereHas(

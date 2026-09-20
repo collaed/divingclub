@@ -28,21 +28,22 @@ class EvaluateEventAutomationTest extends TestCase
         config(['club.timezone' => 'UTC']);
     }
 
-    public function test_only_events_with_a_past_unevaluated_close_time_are_picked_up(): void
+    public function test_only_events_with_a_recently_past_close_time_and_a_close_rule_are_picked_up(): void
     {
         Bus::fake();
 
-        $due = Event::factory()->create(['inscription_close_at' => now()->subHour(), 'automation_evaluated_at' => null, 'status' => 'scheduled']);
-        EventAutomationRule::create(['event_id' => $due->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS, 'threshold' => 5, 'extra_recipients' => 'bureau@clubcep.eu']);
+        $due = Event::factory()->create(['inscription_close_at' => now()->subHour(), 'status' => 'scheduled']);
+        $rule = EventAutomationRule::create(['event_id' => $due->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS, 'threshold' => 5, 'extra_recipients' => 'bureau@clubcep.eu']);
 
-        $notYetClosed = Event::factory()->create(['inscription_close_at' => now()->addHour(), 'automation_evaluated_at' => null]);
-        $alreadyEvaluated = Event::factory()->create(['inscription_close_at' => now()->subHour(), 'automation_evaluated_at' => now()]);
-        $noCloseDate = Event::factory()->create(['inscription_close_at' => null]);
+        $notYetClosed = Event::factory()->create(['inscription_close_at' => now()->addHour()]);
+        EventAutomationRule::create(['event_id' => $notYetClosed->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS, 'threshold' => 5, 'extra_recipients' => 'bureau@clubcep.eu']);
+        $noRules = Event::factory()->create(['inscription_close_at' => now()->subHour()]);
 
         Artisan::call('events:evaluate-automation');
 
-        $this->assertNotNull($due->fresh()->automation_evaluated_at);
-        $this->assertNull($notYetClosed->fresh()->automation_evaluated_at);
+        $this->assertDatabaseHas('event_automation_rule_fires', ['event_id' => $due->id, 'event_automation_rule_id' => $rule->id]);
+        $this->assertSame(0, EventAutomationRuleFire::where('event_id', $notYetClosed->id)->count());
+        $this->assertSame(0, EventAutomationRuleFire::where('event_id', $noRules->id)->count());
         Bus::assertDispatched(SendEventAutomationEmail::class);
     }
 
@@ -121,7 +122,7 @@ class EvaluateEventAutomationTest extends TestCase
         Artisan::call('events:evaluate-automation');
 
         $event->refresh();
-        $this->assertNull($event->automation_evaluated_at);
+        $this->assertSame(0, EventAutomationRuleFire::where('event_id', $event->id)->where('event_automation_rule_id', $closeRule->id)->count());
         $this->assertSame('scheduled', $event->status);
         Bus::assertNotDispatched(SendEventAutomationEmail::class, fn (SendEventAutomationEmail $job): bool => $job->ruleId === $closeRule->id);
     }

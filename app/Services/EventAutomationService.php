@@ -8,6 +8,7 @@ use App\Jobs\SendEventAutomationEmail;
 use App\Models\Event;
 use App\Models\EventAutomationRule;
 use App\Models\EventAutomationRuleFire;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -49,22 +50,30 @@ class EventAutomationService
         $this->evaluateHoursBeforeEvent($event);
     }
 
-    /** Rules with the default trigger — due once registrations have actually closed. */
+    /**
+     * Rules with the default trigger — due once registrations have actually
+     * closed. A rule for an event that has already started is recorded as
+     * fired without running: there's nothing left to check or act on.
+     */
     private function evaluateRegistrationClose(Event $event): void
     {
-        if ($event->automation_evaluated_at !== null) {
-            return;
-        }
         if (! $event->inscription_close_at || $event->inscription_close_at->isFuture()) {
             return;
         }
 
-        $rules = $this->resolveRules($event)->where('trigger', EventAutomationRule::TRIGGER_REGISTRATION_CLOSE);
-        foreach ($rules as $rule) {
-            $this->runRule($event, $rule);
-        }
+        $closeAt = $event->inscription_close_at->copy()->utc();
+        $started = $event->startsAt()?->isPast() ?? false;
 
-        $event->update(['automation_evaluated_at' => now()]);
+        foreach ($this->resolveRules($event)->where('trigger', EventAutomationRule::TRIGGER_REGISTRATION_CLOSE) as $rule) {
+            if ($this->alreadyFired($event, $rule, $closeAt)) {
+                continue;
+            }
+
+            if (! $started) {
+                $this->runRule($event, $rule);
+            }
+            $this->recordFire($event, $rule, $closeAt);
+        }
     }
 
     /**
@@ -87,23 +96,44 @@ class EventAutomationService
             return;
         }
 
-        $firedRuleIds = EventAutomationRuleFire::where('event_id', $event->id)->pluck('event_automation_rule_id');
-
         foreach ($rules as $rule) {
-            if ($firedRuleIds->contains($rule->id)) {
+            $checkpoint = $startsAt->copy()->subHours((int) $rule->hours_before_event)->utc();
+
+            if ($startsAt->isFuture() && $checkpoint->isFuture()) {
                 continue;
             }
-
-            if ($startsAt->isFuture() && $startsAt->copy()->subHours((int) $rule->hours_before_event)->isFuture()) {
+            if ($this->alreadyFired($event, $rule, $checkpoint)) {
                 continue;
             }
 
             if ($startsAt->isFuture()) {
                 $this->runRule($event, $rule);
             }
-
-            EventAutomationRuleFire::create(['event_id' => $event->id, 'event_automation_rule_id' => $rule->id, 'fired_at' => now()]);
+            $this->recordFire($event, $rule, $checkpoint);
         }
+    }
+
+    /**
+     * A rule counts as already handled for a due instant if it fired for
+     * exactly that instant, or fired at/after it. Rescheduling the event
+     * moves the instant: moved later than the last fire, the rule is due
+     * again (no explicit re-arming needed); moved earlier, into the past
+     * relative to what already fired, it stays handled.
+     */
+    private function alreadyFired(Event $event, EventAutomationRule $rule, Carbon $dueAt): bool
+    {
+        return EventAutomationRuleFire::where('event_id', $event->id)
+            ->where('event_automation_rule_id', $rule->id)
+            ->where(fn ($q) => $q->where('scheduled_for', $dueAt)->orWhere('fired_at', '>=', $dueAt))
+            ->exists();
+    }
+
+    private function recordFire(Event $event, EventAutomationRule $rule, Carbon $dueAt): void
+    {
+        EventAutomationRuleFire::create([
+            'event_id' => $event->id, 'event_automation_rule_id' => $rule->id,
+            'scheduled_for' => $dueAt, 'fired_at' => now(),
+        ]);
     }
 
     private function runRule(Event $event, EventAutomationRule $rule): void

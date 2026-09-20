@@ -81,7 +81,7 @@ class EventAutomationServiceTest extends TestCase
         $event->refresh();
         $this->assertSame('cancelled', $event->status);
         $this->assertTrue($event->inscriptions_closed);
-        $this->assertNotNull($event->automation_evaluated_at);
+        $this->assertDatabaseHas('event_automation_rule_fires', ['event_id' => $event->id, 'event_automation_rule_id' => $rule->id]);
         Bus::assertDispatched(SendEventAutomationEmail::class, fn ($job) => $job->ruleId === $rule->id
             && in_array($participant->primary_email, $job->recipients, true)
             && in_array('chief@clubcep.eu', $job->recipients, true));
@@ -132,14 +132,14 @@ class EventAutomationServiceTest extends TestCase
     public function test_evaluate_is_idempotent(): void
     {
         Bus::fake();
-        $event = Event::factory()->create(['automation_evaluated_at' => now()->subHour(), 'status' => 'scheduled']);
-        EventAutomationRule::create(['event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS, 'threshold' => 99, 'cancels_event' => true]);
+        $event = Event::factory()->create(['status' => 'scheduled', 'inscription_close_at' => now()->subHour()]);
+        EventAutomationRule::create(['event_id' => $event->id, 'rule_type' => EventAutomationRule::TYPE_MIN_REGISTRATIONS, 'threshold' => 99, 'cancels_event' => true, 'extra_recipients' => 'chief@clubcep.eu']);
 
         app(EventAutomationService::class)->evaluate($event);
+        app(EventAutomationService::class)->evaluate($event->fresh());
 
-        $event->refresh();
-        $this->assertSame('scheduled', $event->status);
-        Bus::assertNotDispatched(SendEventAutomationEmail::class);
+        Bus::assertDispatchedTimes(SendEventAutomationEmail::class, 1);
+        $this->assertSame(1, EventAutomationRuleFire::where('event_id', $event->id)->count());
     }
 
     public function test_hours_before_event_rule_does_not_fire_before_its_checkpoint(): void
