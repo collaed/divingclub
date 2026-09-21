@@ -226,7 +226,7 @@ class MembershipRenewalTest extends TestCase
         $first = $this->member('externe', last: 'First');
         $second = $this->member('externe', last: 'Second');
         $none = $this->member('externe', last: 'NoInsurance');
-        $this->received($second, ['amount' => 205])->assertOk(); // Loisir 1
+        $this->received($second, ['amount' => 215])->assertOk(); // Loisir 1
         $this->received($first, ['amount' => 238])->assertOk();  // Loisir 1 Top
         $this->received($none)->assertOk();                      // no insurance
         PaymentExpected::where('user_id', $second->id)->update(['paid_at' => '2026-09-01']);
