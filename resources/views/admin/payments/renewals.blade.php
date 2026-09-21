@@ -30,7 +30,7 @@
                 <tbody>
                 @forelse($rows as $row)
                     @php $u = $row['user']; $p = $row['proposal']; @endphp
-                    <tr data-renewal-row data-url="{{ route('admin.payments.renewals.received', $u) }}" data-year="{{ $year }}">
+                    <tr data-renewal-row data-url="{{ route('admin.payments.renewals.received', $u) }}" data-override-url="{{ route('admin.payments.renewals.override', $u) }}" data-year="{{ $year }}">
                         <td>
                             <a href="{{ route('admin.profile.show', $u) }}">{{ $u->detail?->last_name }} {{ $u->detail?->first_name }}</a>
                         </td>
@@ -53,6 +53,19 @@
                                     <button type="button" class="btn btn-outline-primary" data-renewal-check>{{ __('Check') }}</button>
                                 </div>
                             </div>
+                            <details class="mt-1" data-renewal-override-box>
+                                <summary class="small text-muted">{{ __('Paid another way (cash, other)…') }}</summary>
+                                <div class="d-flex gap-2 flex-wrap mt-1 align-items-center">
+                                    <select class="form-select form-select-sm" style="width:auto" data-renewal-method aria-label="{{ __('How it was paid') }}">
+                                        <option value="cash">{{ __('Cash') }}</option>
+                                        <option value="transfer">{{ __('Transfer (not reconciled)') }}</option>
+                                        <option value="other">{{ __('Other') }}</option>
+                                    </select>
+                                    <input type="number" step="0.01" min="0" class="form-control form-control-sm" style="width:7rem" data-renewal-override-amount placeholder="{{ number_format($p['amount'], 2, '.', '') }}" aria-label="{{ __('Amount received') }}">
+                                    <input type="text" maxlength="255" class="form-control form-control-sm" style="width:12rem" data-renewal-note placeholder="{{ __('Note (optional)') }}" aria-label="{{ __('Note') }}">
+                                    <button type="button" class="btn btn-sm btn-outline-success" data-renewal-override>{{ __('Mark as paid') }}</button>
+                                </div>
+                            </details>
                             <div class="small mt-1" data-renewal-message role="status" aria-live="polite"></div>
                         </td>
                     </tr>

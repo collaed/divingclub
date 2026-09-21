@@ -133,6 +133,37 @@ class MembershipRenewalService
         return $payment;
     }
 
+    /**
+     * The bureau vouches that the member paid, whatever the amount or channel
+     * (hand-to-hand cash, a transfer not yet reconciled, ...). The expected
+     * amount is kept, the amount actually received and how it came are recorded.
+     *
+     * @param  array<string, mixed>  $components
+     */
+    public function markPaidManually(User $user, string $year, float $received, float $expected, array $components, string $method, ?string $note): PaymentExpected
+    {
+        $insurance = $this->insuranceIn($components);
+        $payment = PaymentExpected::updateOrCreate(
+            ['user_id' => $user->id, 'type' => 'membership', 'season_year' => $year],
+            [
+                'amount_due' => $expected,
+                'amount_paid' => $received,
+                'communication' => $this->fees->buildCommunication($user, $year, $insurance ? [$insurance] : []),
+                'components' => $components,
+                'provisional' => false,
+                'status' => 'paid',
+                'paid_at' => now(),
+                'reconciled_by' => auth()->user()?->name,
+                'reconciled_at' => now(),
+                'payment_method' => $method,
+                'note' => $note,
+            ]
+        );
+        $this->recordSeasonPaid($payment);
+
+        return $payment;
+    }
+
     /** Add the season's label to the member when a membership payment is fully paid. */
     public function recordSeasonPaid(PaymentExpected $payment): void
     {

@@ -209,6 +209,7 @@ Route::get('/guide/{section}', [GuideController::class, 'show'])->name('guide.sh
 Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 Route::get('/payments/renewals', [RenewalController::class, 'index'])->name('payments.renewals');
 Route::post('/payments/renewals/{user}/received', [RenewalController::class, 'received'])->name('payments.renewals.received');
+Route::post('/payments/renewals/{user}/override', [RenewalController::class, 'override'])->name('payments.renewals.override');
 Route::get('/payments/components', [PaymentController::class, 'components'])->name('payments.components');
 Route::post('/payments/components', [PaymentController::class, 'storeComponent'])->name('payments.component.store');
 Route::match(['put', 'patch'], '/payments/components/{component}', [PaymentController::class, 'updateComponent'])->name('payments.component.update');

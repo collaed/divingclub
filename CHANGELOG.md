@@ -14,7 +14,8 @@ On `main` and staging, not yet on production.
   "Received" button confirms that amount; typing another amount tells you which insurance
   option it corresponds to (or refuses it and lists what the member could owe). A paid
   membership marks the season as paid on the member, including when it is confirmed from
-  bank reconciliation.
+  bank reconciliation. "Paid another way" on each row records that a member paid whatever
+  the amount or channel (cash, an unreconciled transfer, other), with an optional note.
 - Honoraire members are marked as paid for the season automatically from 1 October.
 - **Phone numbers** (profile, emergency contact, registration, new member): a country-code
   selector ordered by club usage (Luxembourg, France, Belgium, Germany, Finland…) and a
@@ -34,6 +35,7 @@ On `main` and staging, not yet on production.
   already has it keeps it displayed).
 
 ### Data changes
+- Payments gain a payment method and a note (new columns, empty for existing rows).
 - The FLASSA licence age date moved from 1 September to 1 November (one row).
 
 ### Fixed

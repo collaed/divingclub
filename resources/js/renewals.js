@@ -18,7 +18,7 @@
         return box;
     }
 
-    async function send(row, extra) {
+    async function send(row, extra, action) {
         const body = new FormData();
         body.append('season_year', row.dataset.year);
         Object.entries(extra).forEach(([k, v]) => body.append(k, v));
@@ -27,7 +27,7 @@
         let res;
         let data = {};
         try {
-            res = await fetch(row.dataset.url, {
+            res = await fetch(action === 'override' ? row.dataset.overrideUrl : row.dataset.url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 body,
@@ -52,6 +52,14 @@
 
         row.querySelectorAll('button').forEach((b) => (b.disabled = false));
         const box = message(row, data.message || 'Could not save.', false);
+        if (!data.ambiguous && res.status === 422) {
+            const open = document.createElement('button');
+            open.type = 'button';
+            open.className = 'btn btn-sm btn-outline-secondary ms-2';
+            open.dataset.renewalOpenOverride = '1';
+            open.textContent = 'Record it anyway…';
+            box.appendChild(open);
+        }
         if (data.ambiguous) {
             (data.matches || []).forEach((m) => {
                 const btn = document.createElement('button');
@@ -80,6 +88,17 @@
             if (amount !== '') {
                 send(row, { amount });
             }
+        } else if (e.target.closest('[data-renewal-override]')) {
+            const amount = row.querySelector('[data-renewal-override-amount]').value;
+            send(row, {
+                method: row.querySelector('[data-renewal-method]').value,
+                note: row.querySelector('[data-renewal-note]').value,
+                ...(amount !== '' ? { amount } : {}),
+            }, 'override');
+        } else if (e.target.closest('[data-renewal-open-override]')) {
+            row.querySelector('[data-renewal-override-box]').open = true;
+            row.querySelector('[data-renewal-override-amount]').value = typedAmount(row);
+            row.querySelector('[data-renewal-note]').focus();
         } else if (e.target.closest('[data-renewal-pick]')) {
             send(row, { amount: typedAmount(row), insurance: e.target.closest('[data-renewal-pick]').dataset.renewalPick });
         }

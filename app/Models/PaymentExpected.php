@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon|null $reconciled_at
  * @property string|null $bank_statement_ref
  * @property Carbon|null $bank_statement_date
+ * @property string|null $payment_method
+ * @property string|null $note
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -36,7 +38,7 @@ class PaymentExpected extends Model
 
     protected $table = 'payment_expected';
 
-    protected $fillable = ['user_id', 'type', 'event_id', 'season_year', 'amount_due', 'communication', 'components', 'status', 'provisional', 'refund_review_needed', 'amount_paid', 'paid_at', 'reconciled_by', 'reconciled_at', 'bank_statement_ref', 'bank_statement_date'];
+    protected $fillable = ['user_id', 'type', 'event_id', 'season_year', 'amount_due', 'communication', 'components', 'status', 'provisional', 'refund_review_needed', 'amount_paid', 'paid_at', 'reconciled_by', 'reconciled_at', 'bank_statement_ref', 'bank_statement_date', 'payment_method', 'note'];
 
     protected function casts(): array
     {

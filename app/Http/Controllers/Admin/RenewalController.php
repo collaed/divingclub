@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\OverrideRenewalRequest;
 use App\Http\Requests\ReceiveRenewalRequest;
 use App\Models\Season;
 use App\Models\User;
@@ -77,6 +78,21 @@ class RenewalController extends Controller
                     'options' => collect($priceList)->map(fn (array $p): string => $p['label'].' €'.number_format($p['amount'], 2))->implode(' · '),
                 ]),
         ], 422);
+    }
+
+    /** "Member X paid for this season" — accepted as is, with how and how much. */
+    public function override(OverrideRenewalRequest $request, User $user): JsonResponse
+    {
+        $year = (string) $request->input('season_year');
+        $proposal = $this->renewals->proposal($user, $year);
+        $received = $request->filled('amount') ? round((float) $request->input('amount'), 2) : $proposal['amount'];
+
+        $this->renewals->markPaidManually(
+            $user, $year, $received, $proposal['amount'], $proposal['components'],
+            (string) $request->input('method'), $request->input('note'),
+        );
+
+        return $this->paid($received);
     }
 
     private function paid(float $amount): JsonResponse

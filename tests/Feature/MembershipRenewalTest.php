@@ -188,4 +188,36 @@ class MembershipRenewalTest extends TestCase
 
         $this->assertEqualsWithDelta(30.0, app(MembershipRenewalService::class)->proposal($child, '2027')['amount'], 0.001);
     }
+
+    public function test_the_bureau_can_mark_a_member_paid_by_cash_for_any_amount(): void
+    {
+        $user = $this->member('externe');
+
+        $this->actingAs($this->admin)->postJson(route('admin.payments.renewals.override', $user), [
+            'season_year' => '2027', 'method' => 'cash', 'amount' => 150, 'note' => 'Paid at the pool, agreed a reduction',
+        ])->assertOk()->assertJson(['ok' => true]);
+
+        $this->assertContains('2027', $user->detail->fresh()->cotisation_years);
+        $this->assertDatabaseHas('payment_expected', [
+            'user_id' => $user->id, 'season_year' => '2027', 'status' => 'paid',
+            'amount_due' => 190, 'amount_paid' => 150, 'payment_method' => 'cash', 'note' => 'Paid at the pool, agreed a reduction',
+        ]);
+    }
+
+    public function test_an_override_without_an_amount_records_the_expected_amount(): void
+    {
+        $user = $this->member('externe');
+
+        $this->actingAs($this->admin)->postJson(route('admin.payments.renewals.override', $user), ['season_year' => '2027', 'method' => 'other'])->assertOk();
+
+        $this->assertDatabaseHas('payment_expected', ['user_id' => $user->id, 'amount_paid' => 190, 'payment_method' => 'other']);
+    }
+
+    public function test_an_override_needs_a_known_payment_method(): void
+    {
+        $user = $this->member('externe');
+
+        $this->actingAs($this->admin)->postJson(route('admin.payments.renewals.override', $user), ['season_year' => '2027', 'method' => 'bitcoin'])->assertStatus(422);
+        $this->assertNotContains('2027', $user->detail->fresh()->cotisation_years);
+    }
 }
