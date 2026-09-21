@@ -34,16 +34,16 @@
     /* Tags, suggested group and how-to-improve hint per inbox row (same order as $inbox) */
     $extras = [
         0 => ['tags' => ['refund'], 'group' => null, 'improve' => null],
-        1 => ['tags' => ['advance for the club', 'reimbursement'], 'group' => null, 'improve' => 'A member paid at a cashier in the club’s name (the club has no card). Attach the agency receipt.'],
+        1 => ['tags' => ['advance for the club', 'reimbursement'], 'vars' => [['paid by', 'E. C.']], 'group' => null, 'improve' => 'A member paid at a cashier in the club’s name (the club has no card). Attach the agency receipt.'],
         3 => ['tags' => ['cotisation', 'top-up'], 'group' => null, 'improve' => 'Tag “top-up” to attach it to the earlier €153.50 payment.'],
         6 => ['tags' => ['cotisation'], 'group' => null, 'improve' => 'Add “discount” or “correction” — the note mentions a cancelled €30 sympathisant fee.'],
         10 => ['tags' => ['deposit to supplier', 'trip'], 'group' => 'Juan-les-Pins', 'improve' => 'Attach quote 947 and the bon à payer.'],
         11 => ['tags' => ['transport / flights', 'trip'], 'group' => 'Cap Vert', 'improve' => 'Attach the airline invoice and the bon à payer.'],
-        12 => ['tags' => ['deposit', 'several participants'], 'group' => 'Cap Vert', 'improve' => 'Say who is covered (3 or 4 people?) so the deposit can be split per participant.'],
+        12 => ['tags' => ['deposit', 'several participants'], 'vars' => [['covers', null]], 'group' => 'Cap Vert', 'improve' => 'Say who is covered (3 or 4 people?) so the deposit can be split per participant.'],
         15 => ['tags' => ['insurance'], 'group' => null, 'improve' => 'Attach the bordereau and the bon à payer.'],
         19 => ['tags' => ['session fee'], 'group' => 'Nemo33 · February', 'improve' => null],
-        20 => ['tags' => [], 'group' => null, 'improve' => 'No tag fits. What was it for, and who authorised it? Add a tag, a group or a bon à payer.'],
-        21 => ['tags' => ['refund of deposit'], 'group' => 'Cap Vert', 'improve' => 'The text says Cabo Verde Diving: link it to the Cap Vert group or create the trip.'],
+        20 => ['tags' => [], 'vars' => [['purpose', null]], 'group' => null, 'improve' => 'No tag fits. What was it for, and who authorised it? Add a tag, a group or a bon à payer.'],
+        21 => ['tags' => ['refund of deposit'], 'vars' => [['for', 'M. T.']], 'group' => 'Cap Vert', 'improve' => 'The text says Cabo Verde Diving: link it to the Cap Vert group or create the trip.'],
     ];
     $stateCounts = ['expected' => 61, 'recognised' => 74, 'confirm' => 23, 'unknown' => 15, 'loop' => 30];
     $cas = [
@@ -96,6 +96,9 @@
     .lg-why { font-size:.8rem; color:var(--bs-secondary-color); }
     .lg-tag { display:inline-block; padding:0 .4rem; border-radius:.3rem; font-size:.72rem; background:var(--bs-info-bg-subtle); color:var(--bs-info-text-emphasis); border:1px solid var(--bs-info-border-subtle); }
     .lg-tag-add { background:transparent; border-style:dashed; cursor:pointer; }
+    .lg-var-empty { background:transparent; border:1px dashed var(--bs-warning-border-subtle); color:var(--bs-warning-text-emphasis); cursor:pointer; }
+    .lg-var-filled { background:var(--bs-warning-bg-subtle); color:var(--bs-warning-text-emphasis); border:1px solid var(--bs-warning-border-subtle); }
+    #lg-bulk { position:sticky; bottom:0; z-index:5; display:none; }
 </style>
 
 <div class="alert alert-warning d-flex align-items-center gap-2 py-2">
@@ -149,10 +152,11 @@
     <div class="card dc-card">
         <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
-                <thead><tr><th>Date</th><th>Counterparty · communication</th><th class="text-end">Amount</th><th>What the system thinks</th><th>Cat.</th><th>Linked to</th><th>Bon à payer</th><th></th></tr></thead>
+                <thead><tr><th style="width:2rem"></th><th>Date</th><th>Counterparty · communication</th><th class="text-end">Amount</th><th>What the system thinks</th><th>Cat.</th><th>Linked to</th><th>Bon à payer</th><th></th></tr></thead>
                 <tbody>
                 @foreach($inbox as $loopKey => [$date, $who, $comm, $amt, $st, $why, $catCode, $link, $bap])
                     <tr class="lg-row lg-{{ $st }}">
+                        <td><input type="checkbox" class="form-check-input lg-pick" aria-label="Select this line"></td>
                         <td class="small">{{ $date }}</td>
                         <td style="min-width:14rem"><strong>{{ $who }}</strong><div class="lg-why">{{ $comm }}</div></td>
                         <td class="lg-num {{ $amt >= 0 ? 'lg-in' : 'lg-out' }}">{{ $amt >= 0 ? '+' : '−' }}{{ $eur(abs($amt)) }}</td>
@@ -161,6 +165,10 @@
                             @if($x)
                                 <div class="mt-1 d-flex flex-wrap gap-1 align-items-center">
                                     @foreach($x['tags'] as $tg)<span class="lg-tag">#{{ $tg }}</span>@endforeach
+                                    @foreach($x['vars'] ?? [] as [$vn, $vv])
+                                        @if($vv !== null)<span class="lg-tag lg-var-filled">#{{ $vn }}: {{ $vv }}</span>
+                                        @else<button type="button" class="lg-tag lg-var-empty" title="Fill once, apply to several lines">#{{ $vn }}: ＿＿＿</button>@endif
+                                    @endforeach
                                     @if($st !== 'expected' && $st !== 'loop')<button type="button" class="lg-tag lg-tag-add">+ tag</button>@endif
                                 </div>
                                 @if($x['group'])
@@ -183,6 +191,16 @@
                 @endforeach
                 </tbody>
             </table>
+        </div>
+        <div id="lg-bulk" class="card-footer bg-body-secondary border-top">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <strong><span id="lg-picked">0</span> lines selected</strong>
+                <span class="lg-tag">#for: ＿＿＿</span>
+                <input type="text" class="form-control form-control-sm" style="width:12rem" placeholder="fill once, e.g. Luca G.">
+                <select class="form-select form-select-sm" style="width:auto"><option>+ fixed tag…</option><option>#advance for the club</option><option>#gear / equipment</option><option>#deposit</option></select>
+                <select class="form-select form-select-sm" style="width:auto"><option>+ group…</option><option>Juan-les-Pins</option><option>Cap Vert</option><option>Todi</option><option>Nemo33</option></select>
+                <button class="btn btn-sm btn-primary" type="button">Apply to the selected lines</button>
+            </div>
         </div>
         <div class="card-footer small text-muted d-flex justify-content-between flex-wrap gap-2">
             <span>Showing 22 of 203 lines. Confirming a line offers “remember this for next time” (creates a counterparty rule).</span>
@@ -247,7 +265,44 @@
 <div class="tab-pane fade" id="tab-tags">
     <p class="lg-why">Tags say <em>what</em> a line is, independently of its category and its group. They are proposed from the text and amount, kept when you accept them, and learned from your corrections. Counts below are what plain keywords found on the 203 January–September lines.</p>
     <div class="row g-3">
-        <div class="col-xl-7"><div class="card dc-card"><div class="card-header d-flex justify-content-between"><span>First set of tags</span><span class="small text-muted">179 of 203 lines (88%) get at least one</span></div>
+        <div class="col-12"><div class="card dc-card"><div class="card-header">Two kinds of tag</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="fw-semibold mb-1">Fixed tags <span class="text-muted small">— approved list</span></div>
+                        <div class="lg-why mb-2">Obvious, stable meanings the treasurer approves once (the table below). Solid chips. Bureau members pick from the list; only the treasurer changes it.</div>
+                        <span class="lg-tag">#gear / equipment</span> <span class="lg-tag">#bank fee</span> <span class="lg-tag">#deposit (acompte)</span> <span class="lg-tag">#advance for the club</span>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="fw-semibold mb-1">Variable tags <span class="text-muted small">— empty bubbles</span></div>
+                        <div class="lg-why mb-2">A tag with a blank to fill: fill it once, apply it to as many lines, groups or documents as you like. Dashed while empty, solid once filled.</div>
+                        <span class="lg-tag lg-var-empty">#for: ＿＿＿</span> <span class="lg-tag lg-var-empty">#covers: ＿＿＿</span> <span class="lg-tag lg-var-empty">#paid by: ＿＿＿</span> <span class="lg-tag lg-var-empty">#invoice no.: ＿＿＿</span> <span class="lg-tag lg-var-empty">#purpose: ＿＿＿</span>
+                        <span class="d-block mt-2 lg-why">Filled: <span class="lg-tag lg-var-filled">#for: Luca G.</span> <span class="lg-tag lg-var-filled">#covers: 3 people</span></span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row g-3">
+                    <div class="col-lg-7">
+                        <div class="fw-semibold mb-1">Fill once, apply to many</div>
+                        <div class="lg-why mb-2">Real case from your file: one member paid two deposits for another participant. Select the lines, fill the bubble once:</div>
+                        <table class="table table-sm mb-0"><tbody>
+                            <tr><td class="small">29/05</td><td class="small">1er acompte cap vert — for L. G.</td><td class="lg-num lg-in">+784,00</td><td><span class="lg-tag lg-var-filled">#for: L. G.</span></td></tr>
+                            <tr><td class="small">30/07</td><td class="small">2ème acompte Cap-Vert — for L. G.</td><td class="lg-num lg-in">+561,50</td><td><span class="lg-tag lg-var-filled">#for: L. G.</span></td></tr>
+                            <tr><td class="small">13/08</td><td class="small">3ème acompte Cap Vert — for L. G.</td><td class="lg-num lg-in">+2 871,50</td><td><span class="lg-tag lg-var-empty">#for: ＿＿＿</span></td></tr>
+                        </tbody></table>
+                        <div class="lg-why mt-1">8 lines in this file were paid on behalf of someone else. The trip settlement then credits the right participant.</div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="fw-semibold mb-1">Free tags: proposed, then approved</div>
+                        <div class="lg-why mb-2">Any bureau member can create a variable or a one-off tag while working. Tags used more than once are proposed to the treasurer.</div>
+                        <div class="d-flex justify-content-between align-items-center border rounded px-2 py-1 mb-1 small"><span><span class="lg-tag">#réception d’ouverture</span> used 3×</span><button class="btn btn-sm btn-outline-success py-0" type="button">Approve as fixed</button></div>
+                        <div class="d-flex justify-content-between align-items-center border rounded px-2 py-1 small"><span><span class="lg-tag">#carnets FFESSM</span> used 4×</span><button class="btn btn-sm btn-outline-success py-0" type="button">Approve as fixed</button></div>
+                    </div>
+                </div>
+            </div>
+        </div></div>
+
+        <div class="col-xl-7"><div class="card dc-card"><div class="card-header d-flex justify-content-between"><span>First set of fixed tags</span><span class="small text-muted">179 of 203 lines (88%) get at least one</span></div>
             <div class="table-responsive"><table class="table table-sm mb-0">
                 <thead><tr><th>Tag</th><th>What it tells the system</th><th class="lg-num">Lines</th></tr></thead>
                 <tbody>
@@ -417,4 +472,12 @@
 </div>
 
 </div>
+<script>
+    document.addEventListener('change', function (e) {
+        if (!e.target.classList.contains('lg-pick')) { return; }
+        var n = document.querySelectorAll('.lg-pick:checked').length;
+        document.getElementById('lg-picked').textContent = n;
+        document.getElementById('lg-bulk').style.display = n > 0 ? 'block' : 'none';
+    });
+</script>
 </x-admin-layout>
