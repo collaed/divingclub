@@ -207,6 +207,7 @@ Route::get('/guide/{section}', [GuideController::class, 'show'])->name('guide.sh
 
 // Payments
 Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+Route::view('/ledger-mock', 'admin.ledger-mock')->name('ledger.mock');
 Route::get('/payments/renewals', [RenewalController::class, 'index'])->name('payments.renewals');
 Route::get('/payments/insurance', [RenewalController::class, 'insurance'])->name('payments.insurance');
 Route::post('/payments/insurance/{payment}/registered', [RenewalController::class, 'insuranceRegistered'])->name('payments.insurance.registered');
