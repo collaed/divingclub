@@ -31,6 +31,20 @@
         ['15/01', 'Commission Européenne OIL Rest. Admi.', '5988 — CARES-CONF-2025-12', -1600.00, 'unknown', 'Counterparty not in the directory and no similar past payment. Who is this, and what for?', '?', '—', 'BaP missing'],
         ['15/09', 'M. T. (member)', 'Remboursement acompte Cabo Verde Diving 27–31/10/2026', -2080.00, 'unknown', 'Refund to a member for a trip that is not created yet.', '?', '—', 'BaP missing'],
     ];
+    /* Tags, suggested group and how-to-improve hint per inbox row (same order as $inbox) */
+    $extras = [
+        0 => ['tags' => ['refund'], 'group' => null, 'improve' => null],
+        1 => ['tags' => ['advance for the club', 'reimbursement'], 'group' => null, 'improve' => 'A member paid at a cashier in the club’s name (the club has no card). Attach the agency receipt.'],
+        3 => ['tags' => ['cotisation', 'top-up'], 'group' => null, 'improve' => 'Tag “top-up” to attach it to the earlier €153.50 payment.'],
+        6 => ['tags' => ['cotisation'], 'group' => null, 'improve' => 'Add “discount” or “correction” — the note mentions a cancelled €30 sympathisant fee.'],
+        10 => ['tags' => ['deposit to supplier', 'trip'], 'group' => 'Juan-les-Pins', 'improve' => 'Attach quote 947 and the bon à payer.'],
+        11 => ['tags' => ['transport / flights', 'trip'], 'group' => 'Cap Vert', 'improve' => 'Attach the airline invoice and the bon à payer.'],
+        12 => ['tags' => ['deposit', 'several participants'], 'group' => 'Cap Vert', 'improve' => 'Say who is covered (3 or 4 people?) so the deposit can be split per participant.'],
+        15 => ['tags' => ['insurance'], 'group' => null, 'improve' => 'Attach the bordereau and the bon à payer.'],
+        19 => ['tags' => ['session fee'], 'group' => 'Nemo33 · February', 'improve' => null],
+        20 => ['tags' => [], 'group' => null, 'improve' => 'No tag fits. What was it for, and who authorised it? Add a tag, a group or a bon à payer.'],
+        21 => ['tags' => ['refund of deposit'], 'group' => 'Cap Vert', 'improve' => 'The text says Cabo Verde Diving: link it to the Cap Vert group or create the trip.'],
+    ];
     $stateCounts = ['expected' => 61, 'recognised' => 74, 'confirm' => 23, 'unknown' => 15, 'loop' => 30];
     $cas = [
         ['Recettes', '21', 'Cotisations', 3650, 5750, 6232, 2143],
@@ -80,6 +94,8 @@
     .lg-bar { height:.5rem; border-radius:.25rem; background:var(--bs-tertiary-bg); overflow:hidden; }
     .lg-bar > span { display:block; height:100%; background:#0d6efd; }
     .lg-why { font-size:.8rem; color:var(--bs-secondary-color); }
+    .lg-tag { display:inline-block; padding:0 .4rem; border-radius:.3rem; font-size:.72rem; background:var(--bs-info-bg-subtle); color:var(--bs-info-text-emphasis); border:1px solid var(--bs-info-border-subtle); }
+    .lg-tag-add { background:transparent; border-style:dashed; cursor:pointer; }
 </style>
 
 <div class="alert alert-warning d-flex align-items-center gap-2 py-2">
@@ -109,6 +125,7 @@
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-inbox" type="button">Inbox <span class="badge bg-danger">15</span></button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ops" type="button">Operations <span class="badge bg-secondary">6</span></button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tags" type="button">Tags &amp; groups</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cas" type="button">Categories</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-budget" type="button">Budget vs actual</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-audit" type="button">Audit</button></li>
@@ -134,12 +151,23 @@
             <table class="table table-sm align-middle mb-0">
                 <thead><tr><th>Date</th><th>Counterparty · communication</th><th class="text-end">Amount</th><th>What the system thinks</th><th>Cat.</th><th>Linked to</th><th>Bon à payer</th><th></th></tr></thead>
                 <tbody>
-                @foreach($inbox as [$date, $who, $comm, $amt, $st, $why, $catCode, $link, $bap])
+                @foreach($inbox as $loopKey => [$date, $who, $comm, $amt, $st, $why, $catCode, $link, $bap])
                     <tr class="lg-row lg-{{ $st }}">
                         <td class="small">{{ $date }}</td>
                         <td style="min-width:14rem"><strong>{{ $who }}</strong><div class="lg-why">{{ $comm }}</div></td>
                         <td class="lg-num {{ $amt >= 0 ? 'lg-in' : 'lg-out' }}">{{ $amt >= 0 ? '+' : '−' }}{{ $eur(abs($amt)) }}</td>
-                        <td style="min-width:18rem"><span class="lg-pill lg-{{ $st }}">{{ $states[$st]['icon'] }} {{ $states[$st]['label'] }}</span><div class="lg-why mt-1">{{ $why }}</div></td>
+                        <td style="min-width:22rem"><span class="lg-pill lg-{{ $st }}">{{ $states[$st]['icon'] }} {{ $states[$st]['label'] }}</span><div class="lg-why mt-1">{{ $why }}</div>
+                            @php $x = $extras[$loop->index] ?? null; @endphp
+                            @if($x)
+                                <div class="mt-1 d-flex flex-wrap gap-1 align-items-center">
+                                    @foreach($x['tags'] as $tg)<span class="lg-tag">#{{ $tg }}</span>@endforeach
+                                    @if($st !== 'expected' && $st !== 'loop')<button type="button" class="lg-tag lg-tag-add">+ tag</button>@endif
+                                </div>
+                                @if($x['group'])
+                                    <div class="mt-1 small">Group? <span class="lg-chip">{{ $x['group'] }}</span> <button type="button" class="btn btn-sm btn-outline-success py-0 px-1">Yes</button> <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1">Not this</button></div>
+                                @endif
+                                @if($x['improve'])<div class="small mt-1 text-warning-emphasis">↳ {{ $x['improve'] }}</div>@endif
+                            @endif</td>
                         <td>@if($catCode === '?')<span class="lg-chip">—</span>@else<span class="lg-chip">{{ $catCode }}</span>@endif</td>
                         <td><span class="lg-chip">{{ $link }}</span></td>
                         <td class="small">
@@ -212,6 +240,71 @@
             <div class="d-flex justify-content-between"><span>YTD (compressor air, O₂ sensor, parts, inflation)</span><strong class="lg-out">−1 151,00</strong></div>
             <div class="lg-bar my-1"><span style="width:58%"></span></div><div class="lg-why">58% of the yearly budget used</div>
         </div></div></div>
+    </div>
+</div>
+
+{{-- ===================== TAGS & GROUPS ===================== --}}
+<div class="tab-pane fade" id="tab-tags">
+    <p class="lg-why">Tags say <em>what</em> a line is, independently of its category and its group. They are proposed from the text and amount, kept when you accept them, and learned from your corrections. Counts below are what plain keywords found on the 203 January–September lines.</p>
+    <div class="row g-3">
+        <div class="col-xl-7"><div class="card dc-card"><div class="card-header d-flex justify-content-between"><span>First set of tags</span><span class="small text-muted">179 of 203 lines (88%) get at least one</span></div>
+            <div class="table-responsive"><table class="table table-sm mb-0">
+                <thead><tr><th>Tag</th><th>What it tells the system</th><th class="lg-num">Lines</th></tr></thead>
+                <tbody>
+                @foreach([
+                    ['deposit (acompte)', 'Money in for a trip or session, part of a payment schedule', 56],
+                    ['extras: drinks / meals', 'Small on-site amounts; never part of the deposit schedule', 39],
+                    ['trip balance paid back (solde)', 'Settlement of a trip: computed by the trip settlement, expected', 22],
+                    ['cotisation', 'Membership — checked against tariffs and insurance combinations', 17],
+                    ['advance for the club (reimbursed)', 'A member paid on the club’s behalf (the club has no bank card): a receipt and a bon à payer are required', 10],
+                    ['federation', 'FFESSM / FLASSA invoices: licences and dues', 8],
+                    ['bank fee', 'Monthly account fee, no document needed', 8],
+                    ['course / certificate', 'Nitrox, dive booklet, wetsuit: small member purchases', 7],
+                    ['insurance', 'Broker bordereaux, matched to the insurance list', 4],
+                    ['gear / equipment', 'Purchases for the equipment room: cost centre “Equipment & maintenance”', 4],
+                    ['pool rental', 'Steinfort invoices: cost centre with a yearly budget', 3],
+                    ['tank inflation (gonflage)', 'Periodic invoice from the volunteers who inflate tanks', 2],
+                    ['transport / flights', 'Coach or airline: tied to a trip', 2],
+                    ['subsidy', 'Expected against the budget', 1],
+                    ['fine', 'Pass-through: should pair with the payment that clears it', 1],
+                ] as [$t, $m, $n])
+                    <tr><td><span class="lg-tag">#{{ $t }}</span></td><td class="small">{{ $m }}</td><td class="lg-num">{{ $n }}</td></tr>
+                @endforeach
+                </tbody>
+            </table></div>
+            <div class="card-footer small text-muted">More to add as they come up: <span class="lg-tag">#social event / reception</span> <span class="lg-tag">#AG</span> <span class="lg-tag">#training / instructor</span> <span class="lg-tag">#refund of deposit</span> <span class="lg-tag">#top-up</span> <span class="lg-tag">#discount</span></div>
+        </div></div>
+
+        <div class="col-xl-5">
+            <div class="card dc-card mb-3"><div class="card-header">Groups and how lines find them</div>
+                <div class="table-responsive"><table class="table table-sm mb-0">
+                    <thead><tr><th>Group</th><th>Words that point to it</th><th class="lg-num">Lines</th></tr></thead>
+                    <tbody>
+                    @foreach([
+                        ['Juan-les-Pins', 'juan, jlp, juans, caravelle, séjour, easy dive, CLAJ', 78],
+                        ['Cap Vert', 'cap vert, cabo verde, Luxair', 26],
+                        ['Todi', 'todi, amende', 14],
+                        ['Nemo33', 'nemo', 14],
+                        ['Rochefontaine', 'rochefontaine', 5],
+                        ['Oman', 'oman', 1],
+                    ] as [$g, $w, $n])
+                        <tr><td><span class="lg-chip">{{ $g }}</span></td><td class="small">{{ $w }}</td><td class="lg-num">{{ $n }}</td></tr>
+                    @endforeach
+                    </tbody>
+                </table></div>
+                <div class="card-footer small text-muted">136 of 203 lines (67%) get a group suggestion from the text alone. Each group’s word list is editable.</div>
+            </div>
+
+            <div class="card dc-card"><div class="card-header">Getting better with use</div>
+                <ul class="list-group list-group-flush small">
+                    <li class="list-group-item"><strong>Add a word to a group in one click</strong> — accepting “Group? Cap Vert” on a line that said “Cabo Verde” offers to remember “cabo verde”.</li>
+                    <li class="list-group-item"><strong>Registered participants count</strong> — a payer who is on the trip’s registration list is suggested for that group even with a vague message.</li>
+                    <li class="list-group-item"><strong>Dates count</strong> — a line inside a trip’s dates and payment schedule ranks above one outside.</li>
+                    <li class="list-group-item"><strong>Improvement hints, not errors</strong> — each non-deep-green line says what would move it up: attach a document, add a tag, say who is covered.</li>
+                    <li class="list-group-item"><strong>One payment, several purposes</strong> — 7 lines mix two purposes (e.g. “62 + 34”, “1 100 + 477,19”) and can be split, each part with its own tag and group.</li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 
