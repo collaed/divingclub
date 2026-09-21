@@ -7,6 +7,8 @@ What reached production, newest first. Conventions are in
 
 On `main` and staging, not yet on production.
 
+_Data-only change already applied on production (2026-09-21): 21 members' IBAN filled from the 2026 bank export (payees of the club's own reimbursements); 2 already held the same value. Nothing was overwritten._
+
 ### New
 - **Membership renewals screen** (Payments → Membership renewals): every current member who
   has not paid the season, with the amount to expect — their commitment if they made one,
