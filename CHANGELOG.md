@@ -16,6 +16,10 @@ On `main` and staging, not yet on production.
   membership marks the season as paid on the member, including when it is confirmed from
   bank reconciliation. "Paid another way" on each row records that a member paid whatever
   the amount or channel (cash, an unreconciled transfer, other), with an optional note.
+- **Insurance to register** (Payments → Membership renewals → Insurance to register): every
+  paid membership that carries an insurance option, in the order it was paid, with per-option
+  totals and a tick to record that it has been registered with the insurer. Next season's
+  proposal starts from the insurance paid the season before.
 - Honoraire members are marked as paid for the season automatically from 1 October.
 - **Phone numbers** (profile, emergency contact, registration, new member): a country-code
   selector ordered by club usage (Luxembourg, France, Belgium, Germany, Finland…) and a
@@ -35,7 +39,7 @@ On `main` and staging, not yet on production.
   already has it keeps it displayed).
 
 ### Data changes
-- Payments gain a payment method and a note (new columns, empty for existing rows).
+- Payments gain a payment method, a note and an "insurance registered" date (new columns, empty for existing rows).
 - The FLASSA licence age date moved from 1 September to 1 November (one row).
 
 ### Fixed

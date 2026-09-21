@@ -4,6 +4,7 @@
             <h4 class="mb-0">{{ __('Membership renewals') }} {{ ((int) $year - 1).'-'.$year }}</h4>
             <small class="text-muted">{{ __('Members who have not paid this season yet. Honoraire members are marked as paid automatically on 1 October.') }}</small>
         </div>
+        <a href="{{ route('admin.payments.insurance', ['season_year' => $year]) }}" class="btn btn-sm btn-outline-primary">{{ __('Insurance to register') }}</a>
         <form method="GET" class="d-flex gap-2 align-items-center">
             <label for="season_year" class="form-label mb-0 small">{{ __('Season') }}</label>
             <input type="number" id="season_year" name="season_year" value="{{ $year }}" class="form-control form-control-sm" style="width:6rem" data-autosubmit>

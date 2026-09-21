@@ -220,4 +220,41 @@ class MembershipRenewalTest extends TestCase
         $this->actingAs($this->admin)->postJson(route('admin.payments.renewals.override', $user), ['season_year' => '2027', 'method' => 'bitcoin'])->assertStatus(422);
         $this->assertNotContains('2027', $user->detail->fresh()->cotisation_years);
     }
+
+    public function test_the_insurance_queue_lists_paid_insurance_in_payment_order_and_hides_registered_ones(): void
+    {
+        $first = $this->member('externe', last: 'First');
+        $second = $this->member('externe', last: 'Second');
+        $none = $this->member('externe', last: 'NoInsurance');
+        $this->received($second, ['amount' => 205])->assertOk(); // Loisir 1
+        $this->received($first, ['amount' => 238])->assertOk();  // Loisir 1 Top
+        $this->received($none)->assertOk();                      // no insurance
+        PaymentExpected::where('user_id', $second->id)->update(['paid_at' => '2026-09-01']);
+        PaymentExpected::where('user_id', $first->id)->update(['paid_at' => '2026-09-05']);
+
+        $queue = app(MembershipRenewalService::class)->insuranceQueue('2027');
+
+        $this->assertSame([$second->id, $first->id], $queue->pluck('payment.user_id')->all());
+
+        $this->actingAs($this->admin)->postJson(route('admin.payments.insurance.registered', $queue->first()['payment']), ['registered' => true])
+            ->assertOk()->assertJson(['registered' => true]);
+
+        $this->assertSame([$first->id], app(MembershipRenewalService::class)->insuranceQueue('2027')->pluck('payment.user_id')->all());
+        $this->assertCount(2, app(MembershipRenewalService::class)->insuranceQueue('2027', includeRegistered: true));
+        $this->actingAs($this->admin)->get(route('admin.payments.insurance'))->assertOk()->assertSee('Assurance Loisir 1 Top');
+    }
+
+    public function test_next_seasons_proposal_starts_from_the_insurance_paid_last_season(): void
+    {
+        $user = $this->member('externe');
+        PaymentExpected::create([
+            'user_id' => $user->id, 'type' => 'membership', 'season_year' => '2026',
+            'amount_due' => 200, 'amount_paid' => 200, 'components' => ['membership' => 130, 'ass_loisir2' => 30], 'status' => 'paid',
+        ]);
+
+        $proposal = app(MembershipRenewalService::class)->proposal($user, '2027');
+
+        $this->assertSame('ass_loisir2', $proposal['insurance']);
+        $this->assertEqualsWithDelta(220.0, $proposal['amount'], 0.001); // 190 + 30
+    }
 }

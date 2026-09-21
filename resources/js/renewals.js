@@ -111,3 +111,40 @@
         }
     });
 })();
+
+/**
+ * Insurance backlog: tick a payment once its insurance is registered.
+ */
+(function () {
+    'use strict';
+
+    document.addEventListener('change', async (e) => {
+        const box = e.target.closest('[data-insurance-toggle]');
+        const row = box?.closest('[data-insurance-row]');
+        if (!row) {
+            return;
+        }
+        const body = new FormData();
+        body.append('registered', box.checked ? '1' : '0');
+        try {
+            const res = await fetch(row.dataset.url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body,
+            });
+            if (!res.ok) {
+                throw new Error('failed');
+            }
+            row.querySelector('[data-insurance-label]').textContent = box.checked
+                ? new Date().toLocaleDateString('fr-FR')
+                : 'Registered';
+            row.classList.toggle('table-success', box.checked);
+        } catch (err) {
+            box.checked = !box.checked;
+        }
+    });
+})();

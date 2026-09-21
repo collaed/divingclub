@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon|null $bank_statement_date
  * @property string|null $payment_method
  * @property string|null $note
+ * @property Carbon|null $insurance_registered_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -38,11 +39,11 @@ class PaymentExpected extends Model
 
     protected $table = 'payment_expected';
 
-    protected $fillable = ['user_id', 'type', 'event_id', 'season_year', 'amount_due', 'communication', 'components', 'status', 'provisional', 'refund_review_needed', 'amount_paid', 'paid_at', 'reconciled_by', 'reconciled_at', 'bank_statement_ref', 'bank_statement_date', 'payment_method', 'note'];
+    protected $fillable = ['user_id', 'type', 'event_id', 'season_year', 'amount_due', 'communication', 'components', 'status', 'provisional', 'refund_review_needed', 'amount_paid', 'paid_at', 'reconciled_by', 'reconciled_at', 'bank_statement_ref', 'bank_statement_date', 'payment_method', 'note', 'insurance_registered_at'];
 
     protected function casts(): array
     {
-        return ['components' => 'array', 'provisional' => 'boolean', 'paid_at' => 'date', 'reconciled_at' => 'datetime'];
+        return ['components' => 'array', 'provisional' => 'boolean', 'paid_at' => 'date', 'reconciled_at' => 'datetime', 'insurance_registered_at' => 'datetime'];
     }
 
     /** @return BelongsTo<User, $this> */

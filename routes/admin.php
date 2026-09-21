@@ -208,6 +208,8 @@ Route::get('/guide/{section}', [GuideController::class, 'show'])->name('guide.sh
 // Payments
 Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 Route::get('/payments/renewals', [RenewalController::class, 'index'])->name('payments.renewals');
+Route::get('/payments/insurance', [RenewalController::class, 'insurance'])->name('payments.insurance');
+Route::post('/payments/insurance/{payment}/registered', [RenewalController::class, 'insuranceRegistered'])->name('payments.insurance.registered');
 Route::post('/payments/renewals/{user}/received', [RenewalController::class, 'received'])->name('payments.renewals.received');
 Route::post('/payments/renewals/{user}/override', [RenewalController::class, 'override'])->name('payments.renewals.override');
 Route::get('/payments/components', [PaymentController::class, 'components'])->name('payments.components');

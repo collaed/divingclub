@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OverrideRenewalRequest;
 use App\Http\Requests\ReceiveRenewalRequest;
+use App\Models\PaymentExpected;
 use App\Models\Season;
 use App\Models\User;
 use App\Services\MembershipRenewalService;
@@ -78,6 +79,27 @@ class RenewalController extends Controller
                     'options' => collect($priceList)->map(fn (array $p): string => $p['label'].' €'.number_format($p['amount'], 2))->implode(' · '),
                 ]),
         ], 422);
+    }
+
+    public function insurance(Request $request): View
+    {
+        $year = (string) $request->input('season_year', Season::currentDuesYear());
+        $includeRegistered = $request->boolean('all');
+        $queue = $this->renewals->insuranceQueue($year, $includeRegistered);
+
+        return view('admin.payments.insurance', [
+            'year' => $year,
+            'queue' => $queue,
+            'includeRegistered' => $includeRegistered,
+            'perTier' => $queue->groupBy(fn (array $r): string => $r['tier']->name)->map->count()->sortKeys(),
+        ]);
+    }
+
+    public function insuranceRegistered(Request $request, PaymentExpected $payment): JsonResponse
+    {
+        $payment->update(['insurance_registered_at' => $request->boolean('registered', true) ? now() : null]);
+
+        return response()->json(['ok' => true, 'registered' => $payment->insurance_registered_at !== null]);
     }
 
     /** "Member X paid for this season" — accepted as is, with how and how much. */

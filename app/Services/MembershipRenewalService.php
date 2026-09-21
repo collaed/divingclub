@@ -69,7 +69,7 @@ class MembershipRenewalService
             ];
         }
 
-        $insurance = $this->lastInsuranceSlug($user);
+        $insurance = $this->lastInsuranceSlug($user, $year);
         $calc = $this->fees->calculate($user, $year, $insurance ? [$insurance] : []);
 
         return ['amount' => (float) $calc['amount_due'], 'components' => $calc['components'], 'source' => 'renewal', 'insurance' => $insurance];
@@ -108,6 +108,25 @@ class MembershipRenewalService
         }
 
         return $list;
+    }
+
+    /**
+     * Paid memberships of the season that carry an insurance tier, in the
+     * order they were paid: the bureau's list of insurance to register.
+     *
+     * @return Collection<int, array{payment: PaymentExpected, tier: MembershipFeeComponent}>
+     */
+    public function insuranceQueue(string $year, bool $includeRegistered = false): Collection
+    {
+        $tiers = $this->insuranceTiers()->keyBy('slug');
+
+        return PaymentExpected::with('user.detail')
+            ->where('type', 'membership')->where('season_year', $year)->where('status', 'paid')
+            ->when(! $includeRegistered, fn ($q) => $q->whereNull('insurance_registered_at'))
+            ->orderBy('paid_at')->orderBy('id')->get()
+            ->map(fn (PaymentExpected $p): array => ['payment' => $p, 'tier' => $tiers->get($this->insuranceIn($p->components ?? []))])
+            ->filter(fn (array $row): bool => $row['tier'] instanceof MembershipFeeComponent)
+            ->values();
     }
 
     /** @param  array<string, mixed>  $components */
@@ -222,9 +241,20 @@ class MembershipRenewalService
         return $this->insuranceTiers()->pluck('slug')->first(fn (string $slug): bool => array_key_exists($slug, $components));
     }
 
-    /** The insurance tier on the member's latest licence, e.g. "Loisir 1 Top" → ass_loisir1top. */
-    private function lastInsuranceSlug(User $user): ?string
+    /**
+     * The insurance a member had last time: the tier on their latest paid
+     * membership before this season, else the one on their latest licence
+     * ("Loisir 1 Top" → ass_loisir1top).
+     */
+    private function lastInsuranceSlug(User $user, string $year): ?string
     {
+        $previous = PaymentExpected::where('user_id', $user->id)->where('type', 'membership')
+            ->where('status', 'paid')->where('season_year', '<', $year)->orderByDesc('season_year')->first();
+        $fromPayment = $previous ? $this->insuranceIn($previous->components ?? []) : null;
+        if ($fromPayment) {
+            return $fromPayment;
+        }
+
         $type = $user->licences->sortByDesc('season')->pluck('insurance_type')->first(fn ($t): bool => is_string($t) && $t !== '');
         if (! $type) {
             return null;
