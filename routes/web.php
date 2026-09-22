@@ -291,6 +291,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/kanban', [KanbanController::class, 'store'])->name('kanban.store');
         Route::post('/kanban/{card}/status', [KanbanController::class, 'updateStatus'])->name('kanban.status');
         Route::post('/kanban/{card}/discard', [KanbanController::class, 'discard'])->name('kanban.discard');
+        Route::post('/kanban/{card}/comments', [KanbanController::class, 'storeComment'])->name('kanban.comments.store');
     });
 
     // Instructor Availability (read-only for all members, editable for instructors/bureau)

@@ -87,6 +87,22 @@
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ __('Obsolete — hide this card') }}">{{ __('Discard') }}</button>
                                     </form>
                                 </div>
+                                @if($card->comments->isNotEmpty())
+                                    <div class="border-top mt-2 pt-2">
+                                        @foreach($card->comments as $comment)
+                                            <div class="small mb-1">
+                                                <span class="dc-user-initials" style="width:20px;height:20px;font-size:0.65rem">{{ $comment->user?->initials() ?? '?' }}</span>
+                                                <span class="text-muted">{{ $comment->created_at->format('d/m/Y H:i') }}</span>
+                                                {{ $comment->body }}
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <form method="POST" action="{{ route('kanban.comments.store', $card) }}" class="d-flex gap-1 mt-2">
+                                    @csrf
+                                    <input type="text" name="body" class="form-control form-control-sm" placeholder="{{ __('Add a progress note…') }}" maxlength="2000" required>
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('Add') }}</button>
+                                </form>
                             </div>
                         @empty
                             <p class="text-muted small mb-0">{{ __('Nothing here yet.') }}</p>

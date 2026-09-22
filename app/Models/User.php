@@ -233,6 +233,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasAnyRole(['bureau_master', 'bureau_finance', 'bureau_technical']);
     }
 
+    /** First + last initial, e.g. "JD" — same derivation used for the nav avatar. */
+    public function initials(): string
+    {
+        return strtoupper(substr($this->detail?->first_name ?? '?', 0, 1).substr($this->detail?->last_name ?? '', 0, 1));
+    }
+
     /** @deprecated Use isBureau() or $user->can('permission') for granular checks. */
     public function isBureauMaster(): bool
     {

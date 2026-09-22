@@ -105,7 +105,7 @@
                         @if(auth()->user()->detail?->avatar_path)
                             <img src="{{ asset('storage/' . auth()->user()->detail->avatar_path) }}" alt="" class="dc-user-avatar" style="width:28px;height:28px;border-radius:50%">
                         @else
-                            <span class="dc-user-initials" style="width:28px;height:28px;font-size:0.75rem">{{ strtoupper(substr(auth()->user()->detail?->first_name ?? '?', 0, 1) . substr(auth()->user()->detail?->last_name ?? '', 0, 1)) }}</span>
+                            <span class="dc-user-initials" style="width:28px;height:28px;font-size:0.75rem">{{ auth()->user()->initials() }}</span>
                         @endif
                         <span class="d-none d-sm-inline" style="color:#fff">{{ auth()->user()->detail?->first_name ?? auth()->user()->username }}</span>
                     </a>

@@ -134,6 +134,54 @@ class KanbanBoardTest extends TestCase
         $this->assertNull($unassigned->responsibleColor());
     }
 
+    public function test_a_bureau_member_can_add_a_progress_comment(): void
+    {
+        $bureau = $this->createBureauUser(); // first_name Admin, last_name Test -> "AT"
+        $card = KanbanCard::create(['title' => 'Buy tanks', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+
+        $this->actingAs($bureau)->post(route('kanban.comments.store', $card), ['body' => 'Quote requested from Nautica.'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('kanban_card_comments', [
+            'kanban_card_id' => $card->id, 'user_id' => $bureau->id, 'body' => 'Quote requested from Nautica.',
+        ]);
+
+        $response = $this->actingAs($bureau)->get(route('kanban.index'));
+        $response->assertOk()->assertSee('Quote requested from Nautica.')->assertSee('AT');
+    }
+
+    public function test_comments_show_oldest_first_to_read_as_a_progress_log(): void
+    {
+        $bureau = $this->createBureauUser();
+        $card = KanbanCard::create(['title' => 'Buy tanks', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+        $card->comments()->create(['user_id' => $bureau->id, 'body' => 'First step done.']);
+        $card->comments()->create(['user_id' => $bureau->id, 'body' => 'Second step done.']);
+
+        $bodies = $card->fresh()->comments->pluck('body')->all();
+
+        $this->assertSame(['First step done.', 'Second step done.'], $bodies);
+    }
+
+    public function test_adding_a_comment_requires_a_body(): void
+    {
+        $card = KanbanCard::create(['title' => 'Buy tanks', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+
+        $this->actingAs($this->createBureauUser())->post(route('kanban.comments.store', $card), ['body' => ''])
+            ->assertSessionHasErrors('body');
+
+        $this->assertDatabaseCount('kanban_card_comments', 0);
+    }
+
+    public function test_an_instructor_cannot_comment_on_a_card(): void
+    {
+        $card = KanbanCard::create(['title' => 'Buy tanks', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+
+        $this->actingAs($this->withRole('instructor'))->post(route('kanban.comments.store', $card), ['body' => 'x'])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('kanban_card_comments', 0);
+    }
+
     public function test_discarding_a_card_hides_it_without_deleting_it(): void
     {
         $card = KanbanCard::create(['title' => 'Stale action', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);

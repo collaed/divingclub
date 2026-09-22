@@ -7,6 +7,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * An action item extracted from a compte-rendu, shown on the kanban board.
@@ -44,6 +45,12 @@ class KanbanCard extends Model
     public function scopeActive(Builder $query): void
     {
         $query->whereNull('discarded_at');
+    }
+
+    /** Chronological, oldest first — a progress log, not a discussion to reply to. */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(KanbanCardComment::class)->orderBy('created_at');
     }
 
     /** Added by hand from the board, rather than extracted from a compte-rendu. */

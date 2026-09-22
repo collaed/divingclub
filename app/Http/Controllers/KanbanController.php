@@ -20,7 +20,7 @@ class KanbanController extends Controller
 {
     public function index(): View
     {
-        $cards = KanbanCard::active()->orderByDesc('source_document_date')->get()->groupBy('status');
+        $cards = KanbanCard::active()->with('comments.user.detail')->orderByDesc('source_document_date')->get()->groupBy('status');
 
         return view('kanban.index', [
             'columns' => [
@@ -67,5 +67,15 @@ class KanbanController extends Controller
         }
 
         return back()->with('success', __('Card discarded.'));
+    }
+
+    /** One line in the card's progress log — who and when read from the author, not typed. */
+    public function storeComment(Request $request, KanbanCard $card): RedirectResponse
+    {
+        $v = $request->validate(['body' => 'required|string|max:2000']);
+
+        $card->comments()->create(['user_id' => $request->user()->id, 'body' => $v['body']]);
+
+        return back()->with('success', __('Comment added.'));
     }
 }
