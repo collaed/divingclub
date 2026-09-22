@@ -46,8 +46,12 @@
     @endforeach
 </div>
 
-<form id="lg-bulk-form" method="POST" action="{{ route('admin.ledger.bulk-confirm') }}">
-@csrf
+{{-- Not wrapped around the table: each row below has its own <form> for
+     confirm/tag/assign, and HTML forms cannot nest — a browser silently drops a
+     nested <form>'s boundary and submits its controls through the outer one
+     instead. The checkboxes below associate with this one by id (form="lg-bulk-form")
+     instead, which works from anywhere in the document. --}}
+<form id="lg-bulk-form" method="POST" action="{{ route('admin.ledger.bulk-confirm') }}">@csrf</form>
 <div class="card dc-card">
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
@@ -128,7 +132,6 @@
         {{ $transactions->links() }}
     </div>
 </div>
-</form>
 
 @if($statements->isNotEmpty())
 <div class="card dc-card mt-3">

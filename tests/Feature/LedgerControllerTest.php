@@ -71,6 +71,28 @@ class LedgerControllerTest extends TestCase
             ->assertOk()->assertSee('Marie Dupont')->assertSee('Unknown Payer');
     }
 
+    /**
+     * HTML forms cannot nest — a browser silently drops a nested <form>'s own
+     * boundary and submits its controls through the enclosing one instead. Caught
+     * live on staging: the whole table was wrapped in the bulk-confirm form, so
+     * every per-row tag/confirm/assign click actually submitted bulk-confirm and
+     * failed with "The ids field is required." — nothing was ever tagged.
+     */
+    public function test_no_form_on_the_inbox_page_is_nested_inside_another(): void
+    {
+        $tx = $this->tx(['counterparty_name' => 'Marie Dupont']);
+
+        $html = $this->actingAs($this->createBureauUser())->get(route('admin.ledger.index'))->getContent();
+
+        $dom = new \DOMDocument;
+        @$dom->loadHTML((string) $html);
+        foreach ($dom->getElementsByTagName('form') as $form) {
+            for ($parent = $form->parentNode; $parent; $parent = $parent->parentNode) {
+                $this->assertNotSame('form', $parent->nodeName, 'A <form> is nested inside another <form>.');
+            }
+        }
+    }
+
     public function test_a_confirmed_transaction_drops_out_of_the_inbox(): void
     {
         $this->tx(['counterparty_name' => 'Already Done', 'confirmed_at' => now()]);
