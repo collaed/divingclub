@@ -88,12 +88,20 @@ class ComptesRendusActionExtractionService
 
             $content = $response->json('result.choices.0.message.content');
             if (! is_string($content) || $content === '') {
+                Log::warning('Cloudflare AI compte-rendu extraction returned no content', ['document' => $documentLabel]);
+
                 return null;
             }
 
             $content = trim((string) preg_replace('/^```(?:json)?|```$/m', '', trim($content)));
             $decoded = json_decode($content, true);
             if (! is_array($decoded)) {
+                // Caught live on production: a small model doesn't always follow "respond
+                // with ONLY a JSON array" — a reply prefixed with explanatory prose (e.g.
+                // "Here are the action items:\n[...]") fails json_decode and was silently
+                // discarded as a generic "AI call failed" with nothing to diagnose from.
+                Log::warning('Cloudflare AI compte-rendu extraction returned non-JSON content', ['document' => $documentLabel, 'content' => mb_substr($content, 0, 500)]);
+
                 return null;
             }
 

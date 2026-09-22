@@ -12,6 +12,7 @@ use App\Services\WordTextExtractionService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\Feature\Concerns\SeedsRoles;
@@ -128,6 +129,38 @@ class ComptesRendusActionExtractionServiceTest extends TestCase
         Http::fake(['api.cloudflare.com/*' => Http::response([], 500)]);
 
         $this->assertNull(app(ComptesRendusActionExtractionService::class)->extractActions('text', 'CR 1.pdf'));
+    }
+
+    /**
+     * Caught live on production: every one of these silent-null paths used to log
+     * nothing, so a stuck document (retried every 3 hours forever, since the newest
+     * unprocessed compte-rendu is always re-picked) left no trace of *why* it kept
+     * failing beyond the generic "AI call failed, will retry" from the command.
+     */
+    public function test_extract_actions_logs_a_warning_when_the_reply_has_no_content(): void
+    {
+        config(['services.cloudflare.account_id' => 'acc', 'services.cloudflare.api_token' => 'tok']);
+        Http::fake(['api.cloudflare.com/*' => Http::response(['result' => ['choices' => [['message' => ['content' => '']]]]])]);
+        Log::spy();
+
+        $actions = app(ComptesRendusActionExtractionService::class)->extractActions('text', 'CR 1.pdf');
+
+        $this->assertNull($actions);
+        Log::shouldHaveReceived('warning')->once()->withArgs(fn ($message, $context) => str_contains($message, 'no content') && $context['document'] === 'CR 1.pdf');
+    }
+
+    public function test_extract_actions_logs_a_warning_with_the_reply_when_it_is_not_valid_json(): void
+    {
+        config(['services.cloudflare.account_id' => 'acc', 'services.cloudflare.api_token' => 'tok']);
+        Http::fake(['api.cloudflare.com/*' => Http::response([
+            'result' => ['choices' => [['message' => ['content' => "Here are the action items:\n[{\"title\": \"x\"}]"]]]],
+        ])]);
+        Log::spy();
+
+        $actions = app(ComptesRendusActionExtractionService::class)->extractActions('text', 'CR 1.pdf');
+
+        $this->assertNull($actions);
+        Log::shouldHaveReceived('warning')->once()->withArgs(fn ($message, $context) => str_contains($message, 'non-JSON') && str_contains($context['content'], 'Here are the action items'));
     }
 
     public function test_save_with_no_push_url_creates_local_cards(): void

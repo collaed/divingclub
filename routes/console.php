@@ -21,7 +21,11 @@ Schedule::call(function (): void {
     }
 })->weeklyOn(0, '03:00');
 Schedule::command('members:mark-honoraires-paid')->dailyAt('06:00')->after(fn () => ScheduleHeartbeat::beat('honoraires-paid'));
-Schedule::command('compte-rendus:extract-actions')->everyThreeHours()->after(fn () => ScheduleHeartbeat::beat('compte-rendus-extraction'));
+// No ->after(beat) here: the command already calls ScheduleHeartbeat::beat()/fail()
+// itself based on its real outcome (see ExtractComptesRendusActions::handle()) — a
+// bare ->after() would unconditionally overwrite that with a success, masking a
+// real failure (e.g. the AI call failing) from the dashboard. Same fix as WeeklyBackup.
+Schedule::command('compte-rendus:extract-actions')->everyThreeHours();
 Schedule::job(new ProcessTranslations)->hourly()->after(fn () => ScheduleHeartbeat::beat('translations'));
 Schedule::job(new AutoOpenCloseVotes)->everyMinute()->after(fn () => ScheduleHeartbeat::beat('vote-auto'));
 Schedule::job(new PollInboundMail)->everyMinute()->after(fn () => ScheduleHeartbeat::beat('inbound-mail'));
