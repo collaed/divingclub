@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateProfileDivingRequest;
 use App\Http\Requests\UpdateProfileInfoRequest;
 use App\Http\Requests\UpdateProfileLanguageRequest;
 use App\Models\Document;
+use App\Models\LedgerCounterparty;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
@@ -168,7 +169,41 @@ class ProfileController extends Controller
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
 
+        // Feeds LedgerClassificationService::matchCounterparty() the same way an
+        // import-time match would: as soon as a member's paying account is known,
+        // the ledger recognises it from the very first statement line, instead of
+        // waiting for the fuzzy name heuristic to succeed once.
+        $this->syncLedgerCounterparty($target, $validated['iban'] ?? null, $validated['account_holder_name'] ?? null);
+
         return back()->with('success', __('Private info updated.'))->withInput(['tab' => 'private']);
+    }
+
+    /**
+     * Keeps a member's self-declared paying account (IBAN, or the account
+     * holder's name when the bank statement doesn't show an IBAN — e.g. a
+     * spouse's or parent's account) mirrored into ledger_counterparties, the
+     * table the ledger's matcher actually reads.
+     */
+    private function syncLedgerCounterparty(User $target, ?string $iban, ?string $accountHolderName): void
+    {
+        if (! $iban && ! $accountHolderName) {
+            return;
+        }
+
+        $normalizedIban = $iban ? strtoupper(preg_replace('/\s+/', '', $iban)) : null;
+        $name = $accountHolderName ?: trim(($target->detail?->first_name ?? '').' '.($target->detail?->last_name ?? ''));
+
+        $counterparty = $normalizedIban
+            ? LedgerCounterparty::whereRaw('UPPER(REPLACE(iban, \' \', \'\')) = ?', [$normalizedIban])->first()
+            : null;
+        $counterparty ??= LedgerCounterparty::firstOrNew(['member_id' => $target->id, 'kind' => LedgerCounterparty::KIND_MEMBER]);
+
+        $counterparty->fill([
+            'name' => $name ?: ($counterparty->name ?? __('Unknown')),
+            'iban' => $normalizedIban ?: $counterparty->iban,
+            'kind' => LedgerCounterparty::KIND_MEMBER,
+            'member_id' => $target->id,
+        ])->save();
     }
 
     public function storeLicence(StoreLicenceRequest $request, User $user): RedirectResponse
