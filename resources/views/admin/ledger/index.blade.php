@@ -135,10 +135,10 @@
     <div class="card-header">{{ __('Statement balance check') }}</div>
     <div class="table-responsive">
         <table class="table table-sm mb-0">
-            <thead><tr><th>{{ __('Statement') }}</th><th>{{ __('Period') }}</th><th class="text-end">{{ __('Lines') }}</th><th class="text-end">{{ __('Net') }}</th></tr></thead>
+            <thead><tr><th>{{ __('Source file') }}</th><th>{{ __('Statement') }}</th><th>{{ __('Period') }}</th><th class="text-end">{{ __('Lines') }}</th><th class="text-end">{{ __('Net') }}</th></tr></thead>
             <tbody>
             @foreach($statements as $s)
-                <tr><td>{{ $s->statement_no }}</td><td class="small">{{ \Illuminate\Support\Carbon::parse($s->mn)->format('d/m/Y') }} – {{ \Illuminate\Support\Carbon::parse($s->mx)->format('d/m/Y') }}</td>
+                <tr><td class="small text-muted">{{ $s->source_file }}</td><td>{{ $s->statement_no }}</td><td class="small">{{ \Illuminate\Support\Carbon::parse($s->mn)->format('d/m/Y') }} – {{ \Illuminate\Support\Carbon::parse($s->mx)->format('d/m/Y') }}</td>
                     <td class="lg-num">{{ $s->c }}</td><td class="lg-num {{ $s->net >= 0 ? 'lg-in' : 'lg-out' }}">{{ number_format((float) $s->net, 2, ',', ' ') }}</td></tr>
             @endforeach
             </tbody>

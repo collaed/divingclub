@@ -28,8 +28,11 @@ class LedgerController extends Controller
 
         $stateCounts = LedgerTransaction::unconfirmed()->selectRaw('state, count(*) c')->groupBy('state')->pluck('c', 'state');
 
-        $statements = LedgerTransaction::selectRaw('statement_no, min(transaction_date) mn, max(transaction_date) mx, count(*) c, sum(amount) net')
-            ->whereNotNull('statement_no')->groupBy('statement_no')->orderByDesc('mn')->get();
+        // Grouped by (source_file, statement_no), not statement_no alone — two different
+        // imports both number their statements 1, 2, 3..., so grouping on the number alone
+        // merged unrelated periods (e.g. January of two different years) into one row.
+        $statements = LedgerTransaction::selectRaw('source_file, statement_no, min(transaction_date) mn, max(transaction_date) mx, count(*) c, sum(amount) net')
+            ->whereNotNull('statement_no')->groupBy('source_file', 'statement_no')->orderByDesc('mn')->get();
 
         return view('admin.ledger.index', [
             'transactions' => $transactions,

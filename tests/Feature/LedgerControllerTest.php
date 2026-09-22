@@ -158,4 +158,18 @@ class LedgerControllerTest extends TestCase
         $this->actingAs($this->createBureauUser())->get(route('admin.ledger.operations'))
             ->assertOk()->assertSee('Todi fine');
     }
+
+    /**
+     * Two different imports both number their statements 1, 2, 3... — grouping the
+     * balance check by statement_no alone merged unrelated periods (e.g. January of
+     * two different years) into one row. Caught on staging importing two real exports.
+     */
+    public function test_the_statement_balance_check_does_not_merge_statements_with_the_same_number_from_different_files(): void
+    {
+        $this->tx(['statement_no' => '1', 'source_file' => '2025.xlsx', 'transaction_date' => '2025-01-14']);
+        $this->tx(['statement_no' => '1', 'source_file' => '2026.xlsx', 'transaction_date' => '2026-01-05']);
+
+        $this->actingAs($this->createBureauUser())->get(route('admin.ledger.index'))
+            ->assertOk()->assertSee('2025.xlsx')->assertSee('2026.xlsx')->assertSee('14/01/2025')->assertSee('05/01/2026');
+    }
 }
