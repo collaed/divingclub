@@ -31,13 +31,25 @@ class SendTrackedDocumentEmail implements ShouldQueue
                 'url' => $url,
             ])->render();
 
-            Mail::html($html, fn ($m) => $m->to($this->addressesFor($recipient))->subject($recipient->dispatch->subject));
+            Mail::html($html, fn ($m) => $m->from(...$this->fromAddress())->to($this->addressesFor($recipient))->subject($recipient->dispatch->subject));
 
             $recipient->update(['sent_at' => now(), 'send_error' => null]);
         } catch (Throwable $e) {
             $recipient->update(['send_error' => mb_substr($e->getMessage(), 0, 250)]);
             report($e);
         }
+    }
+
+    /**
+     * A real, monitored inbox rather than the app-wide default (an alias
+     * mailbox meant for inbound routing, not for a recipient to reply to) —
+     * a tracked document is exactly the kind of send someone might reply to.
+     *
+     * @return array{0: string, 1: string|null}
+     */
+    private function fromAddress(): array
+    {
+        return [config('club.contact_email'), config('mail.from.name')];
     }
 
     /**

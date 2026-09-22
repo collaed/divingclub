@@ -89,6 +89,51 @@ class KanbanBoardTest extends TestCase
         $this->assertSame('todo', $card->fresh()->status);
     }
 
+    public function test_a_bureau_member_can_add_a_card_by_hand(): void
+    {
+        $response = $this->actingAs($this->createBureauUser())->post(route('kanban.store'), [
+            'title' => 'Book the venue for the AG',
+            'responsible' => 'Fred',
+            'context' => 'Discussed but no compte-rendu yet.',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('kanban_cards', [
+            'title' => 'Book the venue for the AG',
+            'responsible' => 'Fred',
+            'status' => KanbanCard::STATUS_TODO,
+            'source_document_name' => null,
+        ]);
+    }
+
+    public function test_adding_a_card_requires_a_title(): void
+    {
+        $this->actingAs($this->createBureauUser())->post(route('kanban.store'), ['title' => ''])
+            ->assertSessionHasErrors('title');
+
+        $this->assertDatabaseCount('kanban_cards', 0);
+    }
+
+    public function test_a_manually_added_card_is_distinguished_from_an_extracted_one(): void
+    {
+        $manual = KanbanCard::create(['title' => 'Manual', 'status' => 'todo', 'source_document_name' => null]);
+        $extracted = KanbanCard::create(['title' => 'Extracted', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+
+        $this->assertTrue($manual->isManual());
+        $this->assertFalse($extracted->isManual());
+    }
+
+    public function test_responsible_color_is_stable_for_the_same_name_and_null_for_no_one(): void
+    {
+        $a = KanbanCard::create(['title' => 'A', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf', 'responsible' => 'Roger']);
+        $b = KanbanCard::create(['title' => 'B', 'status' => 'todo', 'source_document_name' => 'CR 2.pdf', 'responsible' => 'Roger']);
+        $unassigned = KanbanCard::create(['title' => 'C', 'status' => 'todo', 'source_document_name' => 'CR 3.pdf']);
+
+        $this->assertNotNull($a->responsibleColor());
+        $this->assertSame($a->responsibleColor(), $b->responsibleColor());
+        $this->assertNull($unassigned->responsibleColor());
+    }
+
     public function test_discarding_a_card_hides_it_without_deleting_it(): void
     {
         $card = KanbanCard::create(['title' => 'Stale action', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);

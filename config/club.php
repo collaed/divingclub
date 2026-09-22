@@ -16,4 +16,10 @@ return [
     // Inbound mail alias address: {mailbox}+{alias}@{domain}
     // e.g. cep+bureau@clubcep.eu, cep+event.42@clubcep.eu
     'mail_address' => env('CLUB_MAIL_ADDRESS', 'club@'.env('CLUB_DOMAIN', 'example.com')),
+
+    // A real, monitored inbox for member-facing sends someone might reply to
+    // (e.g. tracked documents) — separate from MAIL_FROM_ADDRESS (the app-wide
+    // default for automated/no-reply mail) and from CLUB_MAIL_ADDRESS above
+    // (inbound alias routing only).
+    'contact_email' => env('CLUB_CONTACT_EMAIL', 'info@example.com'),
 ];

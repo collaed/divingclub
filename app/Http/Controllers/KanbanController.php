@@ -32,6 +32,20 @@ class KanbanController extends Controller
         ]);
     }
 
+    /** A card added by hand from the board — no source document, always starts in "To do". */
+    public function store(Request $request): RedirectResponse
+    {
+        $v = $request->validate([
+            'title' => 'required|string|max:255',
+            'responsible' => 'nullable|string|max:255',
+            'context' => 'nullable|string|max:2000',
+        ]);
+
+        KanbanCard::create($v + ['status' => KanbanCard::STATUS_TODO]);
+
+        return back()->with('success', __('Card added.'));
+    }
+
     public function updateStatus(Request $request, KanbanCard $card): RedirectResponse|JsonResponse
     {
         $v = $request->validate(['status' => 'required|in:'.implode(',', KanbanCard::STATUSES)]);

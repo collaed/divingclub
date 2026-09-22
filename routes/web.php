@@ -288,6 +288,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Kanban board of actions extracted from compte-rendus — any bureau role.
     Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->group(function () {
         Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban.index');
+        Route::post('/kanban', [KanbanController::class, 'store'])->name('kanban.store');
         Route::post('/kanban/{card}/status', [KanbanController::class, 'updateStatus'])->name('kanban.status');
         Route::post('/kanban/{card}/discard', [KanbanController::class, 'discard'])->name('kanban.discard');
     });

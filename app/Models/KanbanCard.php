@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $responsible
  * @property string|null $context
  * @property string $status
- * @property string $source_document_name
+ * @property string|null $source_document_name
  * @property string|null $source_document_folder
  * @property Carbon|null $source_document_date
  * @property Carbon|null $discarded_at
@@ -44,5 +44,28 @@ class KanbanCard extends Model
     public function scopeActive(Builder $query): void
     {
         $query->whereNull('discarded_at');
+    }
+
+    /** Added by hand from the board, rather than extracted from a compte-rendu. */
+    public function isManual(): bool
+    {
+        return $this->source_document_name === null;
+    }
+
+    /**
+     * A stable, distinct-ish colour per responsible name (not stored — derived,
+     * so renaming or retyping the same name consistently keeps the same colour
+     * without a colour-picker to maintain). Null for no one assigned, so the
+     * card keeps its default neutral border.
+     */
+    public function responsibleColor(): ?string
+    {
+        if (! $this->responsible) {
+            return null;
+        }
+
+        $hue = crc32(mb_strtolower(trim($this->responsible))) % 360;
+
+        return "hsl({$hue}, 65%, 45%)";
     }
 }

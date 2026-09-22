@@ -68,4 +68,20 @@ class SendTrackedDocumentEmailAddressesTest extends TestCase
         sort($addresses);
         $this->assertSame(['primary@x.com', 'secondary.opted-in@x.com'], $addresses);
     }
+
+    /**
+     * A tracked document is sent from a real, monitored inbox (CLUB_CONTACT_EMAIL)
+     * rather than the app-wide MAIL_FROM_ADDRESS default, which is an alias
+     * mailbox meant for inbound routing, not one a recipient's reply would reach.
+     */
+    public function test_sends_from_the_club_contact_address_not_the_app_default(): void
+    {
+        config(['club.contact_email' => 'info@clubcep.eu', 'mail.from.name' => 'CEP']);
+
+        $job = new SendTrackedDocumentEmail(1);
+        $method = new \ReflectionMethod(SendTrackedDocumentEmail::class, 'fromAddress');
+        $method->setAccessible(true);
+
+        $this->assertSame(['info@clubcep.eu', 'CEP'], $method->invoke($job));
+    }
 }
