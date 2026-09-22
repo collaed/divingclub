@@ -33,9 +33,7 @@
     </div>
 </div>
 
-@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
-@if(session('warning'))<div class="alert alert-warning">{{ session('warning') }}</div>@endif
-@error('statement')<div class="alert alert-danger">{{ $message }}</div>@enderror
+{{-- success/warning/validation-error flashes are already rendered by the shared layout --}}
 
 <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
     @php
