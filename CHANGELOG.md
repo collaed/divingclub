@@ -122,6 +122,17 @@ load) before building further on top of it._
   "0 line(s) confirmed." with no explanation, read live as the button being broken. Ineligible
   rows' checkboxes are now disabled with a tooltip, and the flash message says explicitly how
   many were skipped and why.
+- **Kanban board stayed empty on production.** Two causes: the compte-rendu extraction task
+  had two silent-failure paths (an empty or non-JSON AI reply) with nothing logged, so a
+  stuck document was retried every 3 hours forever with no clue why — and since the newest
+  unprocessed compte-rendu is always retried first, it blocked every older one behind it too.
+  Separately, the scheduler always marked the task's heartbeat as successful regardless of
+  its real outcome, hiding the failure from the dashboard entirely (same class of bug as the
+  earlier weekly-backup fix). Both are fixed and both are now logged if it happens again.
+  Production was also still configured to push every extracted card to staging's board
+  instead of keeping its own (an earlier deliberate split, from before the board had its own
+  page on production) — switched to local storage, and staging's 53 already-extracted cards
+  were copied over so nothing already found is missing from the board people will actually use.
 
 ### Needs attention
 - The ledger and the kanban board are restricted to `bureau_master` and marked in red in the
