@@ -26,6 +26,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InstructorAvailabilityController;
+use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\MembersDirectoryController;
 use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\ProfileCertificationController;
@@ -283,6 +284,13 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     // Dive data import/export (UDDF + DAN DL7)
     Route::post('/dive-data/import-uddf', [DiveDataController::class, 'importUddf'])->name('dive-data.import-uddf');
     Route::get('/dive-data/export-uddf', [DiveDataController::class, 'exportUddf'])->name('dive-data.export-uddf');
+
+    // Kanban board of actions extracted from compte-rendus — bureau_master only.
+    Route::middleware('role:bureau_master')->group(function () {
+        Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban.index');
+        Route::post('/kanban/{card}/status', [KanbanController::class, 'updateStatus'])->name('kanban.status');
+        Route::post('/kanban/{card}/discard', [KanbanController::class, 'discard'])->name('kanban.discard');
+    });
 
     // Instructor Availability (read-only for all members, editable for instructors/bureau)
     Route::get('/availability', [InstructorAvailabilityController::class, 'index'])->name('availability.index');

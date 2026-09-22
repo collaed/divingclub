@@ -26,12 +26,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $visibility
  * @property string|null $description
  * @property string|null $uploaded_by
+ * @property Carbon|null $kanban_processed_at
+ * @property string|null $kanban_skip_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 class LibraryFile extends Model
 {
-    protected $fillable = ['filename', 'original_name', 'path', 'mime_type', 'size', 'folder', 'visibility', 'description', 'uploaded_by'];
+    protected $fillable = ['filename', 'original_name', 'path', 'mime_type', 'size', 'folder', 'visibility', 'description', 'uploaded_by', 'kanban_processed_at', 'kanban_skip_reason'];
+
+    protected function casts(): array
+    {
+        return ['kanban_processed_at' => 'datetime'];
+    }
 
     // Visibility levels ordered from most to least restrictive
     const VISIBILITY_OPTIONS = ['public', 'members', 'instructors', 'bureau'];

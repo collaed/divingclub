@@ -1,9 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\FederationApiController;
+use App\Http\Controllers\Api\KanbanIngestController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// Kanban card ingestion (compte-rendu action extraction pushing from another app — see config/kanban.php)
+Route::post('/kanban/cards', [KanbanIngestController::class, 'store'])->middleware('throttle:60,1');
 
 // Inter-club federation API (authenticated via X-Club-Key-Id / X-Club-Secret headers)
 Route::prefix('federation')->middleware('throttle:30,1')->group(function () {
