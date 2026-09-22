@@ -26,6 +26,7 @@ class UpdateProfileInfoRequest extends FormRequest
             'postal_code' => 'nullable|string|max:20',
             'country' => 'nullable|string|max:100',
             'iban' => 'nullable|string|max:34',
+            'account_holder_name' => 'nullable|string|max:255',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_phone' => 'nullable|string|max:50',
             'emergency_contact_relationship' => 'nullable|string|max:100',

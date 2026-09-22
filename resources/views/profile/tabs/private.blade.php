@@ -49,6 +49,11 @@
             <input type="text" name="iban" data-mask="iban" class="form-control @error('iban') is-invalid @enderror" value="{{ old('iban', $d?->iban) }}" placeholder="LU00 0000 0000 0000 0000">
             @error('iban') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">{{ __('Account holder name') }} <small class="text-muted">({{ __('only if different, e.g. a spouse\'s or parent\'s account') }})</small></label>
+            <input type="text" name="account_holder_name" class="form-control @error('account_holder_name') is-invalid @enderror" value="{{ old('account_holder_name', $d?->account_holder_name) }}">
+            @error('account_holder_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
     </div>
     <hr>
     <h6>{{ __('Emergency Contact') }}</h6>
