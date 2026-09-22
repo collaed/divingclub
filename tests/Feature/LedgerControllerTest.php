@@ -114,6 +114,52 @@ class LedgerControllerTest extends TestCase
         $this->assertSame($bureau->id, $tx->confirmed_by);
     }
 
+    /**
+     * The in-place AJAX path (.kiro/steering/in-place-ajax.md): an XHR request
+     * asking for JSON gets a JSON body it can act on without a page reload,
+     * instead of the redirect+flash the plain-form fallback gets.
+     */
+    public function test_confirming_via_ajax_returns_json_and_the_row_is_gone_from_a_refetch(): void
+    {
+        $tx = $this->tx();
+
+        $this->actingAs($this->createBureauUser())
+            ->postJson(route('admin.ledger.confirm', $tx))
+            ->assertOk()
+            ->assertJson(['ok' => true, 'removed' => true, 'id' => $tx->id]);
+
+        $this->assertNotNull($tx->fresh()->confirmed_at);
+    }
+
+    public function test_bulk_confirming_via_ajax_returns_the_confirmed_ids_and_state_counts(): void
+    {
+        $expected = $this->tx(['state' => LedgerTransaction::STATE_EXPECTED]);
+        $unknown = $this->tx(['state' => LedgerTransaction::STATE_UNKNOWN]);
+
+        $response = $this->actingAs($this->createBureauUser())
+            ->postJson(route('admin.ledger.bulk-confirm'), ['ids' => [$expected->id, $unknown->id]])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'removedIds' => [$expected->id]]);
+
+        $this->assertArrayHasKey('stateCounts', $response->json());
+        $this->assertNotNull($expected->fresh()->confirmed_at);
+        $this->assertNull($unknown->fresh()->confirmed_at);
+    }
+
+    public function test_tagging_via_ajax_returns_the_re_rendered_row_html(): void
+    {
+        $tx = $this->tx(['counterparty_name' => 'Marie Dupont']);
+        $tag = LedgerTag::where('slug', 'cotisation')->firstOrFail();
+
+        $response = $this->actingAs($this->createBureauUser())
+            ->postJson(route('admin.ledger.tag', $tx), ['tag_id' => $tag->id])
+            ->assertOk()
+            ->assertJson(['ok' => true]);
+
+        $this->assertStringContainsString('#'.$tag->label, $response->json('html'));
+        $this->assertTrue($tx->fresh()->tags->contains('id', $tag->id));
+    }
+
     public function test_bulk_confirm_only_confirms_trusted_states_not_unknown_or_to_confirm(): void
     {
         $expected = $this->tx(['state' => LedgerTransaction::STATE_EXPECTED]);
