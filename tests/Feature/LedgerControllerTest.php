@@ -127,6 +127,53 @@ class LedgerControllerTest extends TestCase
         $this->assertNull($confirmState->fresh()->confirmed_at);
     }
 
+    /**
+     * Selecting only ineligible rows used to silently do nothing but say
+     * "0 line(s) confirmed." — read live as the button being broken. It now
+     * says explicitly that they weren't green, and flashes as a warning
+     * rather than a success when nothing was actually confirmed.
+     */
+    public function test_bulk_confirm_explains_when_everything_selected_was_skipped(): void
+    {
+        $confirmState = $this->tx(['state' => LedgerTransaction::STATE_CONFIRM]);
+
+        $response = $this->actingAs($this->createBureauUser())->from(route('admin.ledger.index'))
+            ->post(route('admin.ledger.bulk-confirm'), ['ids' => [$confirmState->id]]);
+
+        $response->assertRedirect();
+        $this->assertNull($confirmState->fresh()->confirmed_at);
+        $this->assertStringContainsString('not confirmed', session('warning'));
+        $this->assertNull(session('success'));
+    }
+
+    public function test_bulk_confirm_reports_both_confirmed_and_skipped_when_mixed(): void
+    {
+        $expected = $this->tx(['state' => LedgerTransaction::STATE_EXPECTED]);
+        $unknown = $this->tx(['state' => LedgerTransaction::STATE_UNKNOWN]);
+
+        $this->actingAs($this->createBureauUser())->post(route('admin.ledger.bulk-confirm'), ['ids' => [$expected->id, $unknown->id]]);
+
+        $this->assertStringContainsString('1 line(s) confirmed', session('success'));
+        $this->assertStringContainsString('not confirmed', session('success'));
+    }
+
+    public function test_the_bulk_select_checkbox_is_disabled_for_lines_that_are_not_green(): void
+    {
+        $eligible = $this->tx(['state' => LedgerTransaction::STATE_RECOGNISED, 'counterparty_name' => 'Eligible Row']);
+        $ineligible = $this->tx(['state' => LedgerTransaction::STATE_CONFIRM, 'counterparty_name' => 'Ineligible Row']);
+
+        $html = $this->actingAs($this->createBureauUser())->get(route('admin.ledger.index'))->getContent();
+
+        $dom = new \DOMDocument;
+        @$dom->loadHTML((string) $html);
+        $xpath = new \DOMXPath($dom);
+        $eligibleBox = $xpath->query("//input[@value='{$eligible->id}']")->item(0);
+        $ineligibleBox = $xpath->query("//input[@value='{$ineligible->id}']")->item(0);
+
+        $this->assertFalse($eligibleBox->hasAttribute('disabled'));
+        $this->assertTrue($ineligibleBox->hasAttribute('disabled'));
+    }
+
     public function test_a_fixed_tag_can_be_applied_to_a_transaction(): void
     {
         $tx = $this->tx();

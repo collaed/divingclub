@@ -76,8 +76,20 @@
             <tbody>
             @forelse($transactions as $tx)
                 @php [$label, $class] = $labels[$tx->state] ?? ['?', 'lg-unknown']; @endphp
+                @php
+                    // Bulk-confirm silently ignores anything not already green (see
+                    // LedgerController::bulkConfirm) — disabling the checkbox here instead
+                    // of letting it submit and do nothing. Caught live: a bureau member
+                    // selected amber rows, got "0 line(s) confirmed.", and read that as the
+                    // button being broken rather than as "nothing here was eligible."
+                    $bulkEligible = in_array($tx->state, [\App\Models\LedgerTransaction::STATE_EXPECTED, \App\Models\LedgerTransaction::STATE_RECOGNISED, \App\Models\LedgerTransaction::STATE_LOOP], true);
+                @endphp
                 <tr class="lg-row {{ $class }}" data-ledger-row>
-                    <td><input type="checkbox" name="ids[]" value="{{ $tx->id }}" form="lg-bulk-form" class="form-check-input"></td>
+                    <td>
+                        <input type="checkbox" name="ids[]" value="{{ $tx->id }}" form="lg-bulk-form" class="form-check-input"
+                               @disabled(! $bulkEligible)
+                               @unless($bulkEligible) title="{{ __('Only green (Expected / Recognised / Paired) lines can be bulk-confirmed — review this one individually.') }}" @endunless>
+                    </td>
                     <td class="small">{{ $tx->transaction_date->format('d/m/Y') }}</td>
                     <td style="min-width:14rem">
                         <strong>{{ $tx->counterparty?->name ?? $tx->counterparty_name ?? __('Unknown') }}</strong>

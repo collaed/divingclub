@@ -84,12 +84,21 @@ class LedgerController extends Controller
     public function bulkConfirm(Request $request): RedirectResponse
     {
         $v = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
-        // Bulk action never confirms an amber/red/unmatched line — only what the classifier already trusts.
+        // Bulk action never confirms an amber/red/unmatched line — only what the classifier
+        // already trusts. The checkbox is disabled for anything else, but that alone made a
+        // 0-confirmed submission (every selected row ineligible) look like the button doing
+        // nothing — say explicitly when that's why the count is low.
         $count = LedgerTransaction::whereIn('id', $v['ids'])
             ->whereIn('state', [LedgerTransaction::STATE_EXPECTED, LedgerTransaction::STATE_RECOGNISED, LedgerTransaction::STATE_LOOP])
             ->update(['confirmed_at' => now(), 'confirmed_by' => $request->user()->id]);
 
-        return back()->with('success', __(':count line(s) confirmed.', ['count' => $count]));
+        $skipped = count($v['ids']) - $count;
+        $message = __(':count line(s) confirmed.', ['count' => $count]);
+        if ($skipped > 0) {
+            $message .= ' '.__(':skipped not confirmed — only green (Expected / Recognised / Paired) lines can be bulk-confirmed; amber and red need individual review.', ['skipped' => $skipped]);
+        }
+
+        return back()->with($count > 0 ? 'success' : 'warning', $message);
     }
 
     public function tag(Request $request, LedgerTransaction $transaction): RedirectResponse
