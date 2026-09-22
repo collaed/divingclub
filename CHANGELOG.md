@@ -80,7 +80,9 @@ load) before building further on top of it._
   name (the same person always gets the same colour, no colour list to maintain). A new
   "+ Add a card" form lets a bureau member create a card by hand, without waiting for
   extraction; a manually-added card has no source compte-rendu and shows a dashed outline
-  to mark it as such, next to the AI-extracted ones.
+  to mark it as such, next to the AI-extracted ones. Each card can also carry a flat,
+  dated progress log — a short note plus the author's initials, oldest first — to record
+  what's happened on it over time without editing its title or context.
 
 ### Changed
 - Sympathisant pays the nominal amount whatever the age (no under-18 reduction).
@@ -111,6 +113,7 @@ load) before building further on top of it._
 - `member_details` gains `account_holder_name` (nullable, empty for existing rows).
 - `kanban_cards.source_document_name` is now nullable (null marks a manually-added card).
 - New env var `CLUB_CONTACT_EMAIL` (a real, monitored inbox — see Fixed, below).
+- New table `kanban_card_comments`, empty until the first comment is added.
 
 ### Fixed
 - Background jobs that run longer than a minute (article translation) were killed
