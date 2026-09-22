@@ -237,6 +237,8 @@ Route::middleware('role:bureau_master')->group(function (): void {
     Route::post('/ledger/{transaction}/confirm', [LedgerController::class, 'confirm'])->name('ledger.confirm');
     Route::post('/ledger/bulk-confirm', [LedgerController::class, 'bulkConfirm'])->name('ledger.bulk-confirm');
     Route::post('/ledger/{transaction}/tag', [LedgerController::class, 'tag'])->name('ledger.tag');
+    Route::post('/ledger/{transaction}/tag/new', [LedgerController::class, 'createTag'])->name('ledger.tag.create');
+    Route::delete('/ledger/{transaction}/tag/{tag}', [LedgerController::class, 'untag'])->name('ledger.tag.remove');
     Route::post('/ledger/bulk-tag', [LedgerController::class, 'bulkTag'])->name('ledger.bulk-tag');
     Route::post('/ledger/{transaction}/operation', [LedgerController::class, 'assignOperation'])->name('ledger.assign-operation');
 });
