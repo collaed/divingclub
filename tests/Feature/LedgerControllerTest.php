@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\LedgerCounterparty;
 use App\Models\LedgerOperation;
 use App\Models\LedgerTag;
 use App\Models\LedgerTransaction;
 use App\Models\MemberDetail;
 use App\Models\User;
+use App\Services\LedgerClassificationService;
 use Database\Seeders\LedgerTagSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -314,9 +316,9 @@ class LedgerControllerTest extends TestCase
         ])->assertRedirect();
 
         $tx->refresh();
-        $this->assertNotNull($tx->operation);
-        $this->assertSame('Juan-les-Pins', $tx->operation->name);
-        $this->assertSame('trip', $tx->operation->kind);
+        $this->assertCount(1, $tx->operations);
+        $this->assertSame('Juan-les-Pins', $tx->operations->first()->name);
+        $this->assertSame('trip', $tx->operations->first()->kind);
     }
 
     /**
@@ -336,7 +338,7 @@ class LedgerControllerTest extends TestCase
         $this->actingAs($bureau)->post(route('admin.ledger.assign-operation', $second), ['new_name' => 'Cap Vert', 'new_kind' => 'trip']);
 
         $this->assertSame(1, LedgerOperation::where('name', 'Cap Vert')->count());
-        $this->assertSame($first->fresh()->operation_id, $second->fresh()->operation_id);
+        $this->assertSame($first->fresh()->operations->first()->id, $second->fresh()->operations->first()->id);
     }
 
     public function test_accepting_a_suggested_group_matches_an_existing_operation_case_insensitively(): void
@@ -346,7 +348,7 @@ class LedgerControllerTest extends TestCase
 
         $this->actingAs($this->createBureauUser())->post(route('admin.ledger.assign-operation', $tx), ['new_name' => 'Cap Vert', 'new_kind' => 'trip']);
 
-        $this->assertSame($existing->id, $tx->fresh()->operation_id);
+        $this->assertSame([$existing->id], $tx->fresh()->operations->pluck('id')->all());
         $this->assertSame(1, LedgerOperation::count());
     }
 
@@ -357,14 +359,41 @@ class LedgerControllerTest extends TestCase
 
         $this->actingAs($this->createBureauUser())->post(route('admin.ledger.assign-operation', $tx), ['operation_id' => $op->id])->assertRedirect();
 
-        $this->assertSame($op->id, $tx->fresh()->operation_id);
+        $this->assertSame([$op->id], $tx->fresh()->operations->pluck('id')->all());
+    }
+
+    public function test_a_transaction_can_be_assigned_to_a_second_group_without_losing_the_first(): void
+    {
+        $first = LedgerOperation::create(['name' => 'Todi', 'kind' => 'trip']);
+        $second = LedgerOperation::create(['name' => 'Graviere', 'kind' => 'trip']);
+        $tx = $this->tx();
+        $bureau = $this->createBureauUser();
+
+        $this->actingAs($bureau)->post(route('admin.ledger.assign-operation', $tx), ['operation_id' => $first->id]);
+        $this->actingAs($bureau)->post(route('admin.ledger.assign-operation', $tx), ['operation_id' => $second->id]);
+
+        $this->assertSame([$first->id, $second->id], $tx->fresh()->operations->pluck('id')->sort()->values()->all());
+    }
+
+    public function test_a_group_can_be_removed_from_a_transaction_without_touching_others(): void
+    {
+        $keep = LedgerOperation::create(['name' => 'Todi', 'kind' => 'trip']);
+        $remove = LedgerOperation::create(['name' => 'Graviere', 'kind' => 'trip']);
+        $tx = $this->tx();
+        $tx->operations()->attach([$keep->id, $remove->id]);
+
+        $this->actingAs($this->createBureauUser())->delete(route('admin.ledger.operation.remove', [$tx, $remove]))->assertRedirect();
+
+        $tx->refresh();
+        $this->assertSame([$keep->id], $tx->operations->pluck('id')->all());
     }
 
     public function test_operations_screen_shows_the_net_of_each_operation(): void
     {
         $op = LedgerOperation::create(['name' => 'Todi fine', 'kind' => 'loop']);
-        $this->tx(['operation_id' => $op->id, 'amount' => 181.34]);
-        $this->tx(['operation_id' => $op->id, 'amount' => -181.34]);
+        $a = $this->tx(['amount' => 181.34]);
+        $b = $this->tx(['amount' => -181.34]);
+        $op->transactions()->attach([$a->id, $b->id]);
 
         $this->actingAs($this->createBureauUser())->get(route('admin.ledger.operations'))
             ->assertOk()->assertSee('Todi fine');
@@ -382,5 +411,117 @@ class LedgerControllerTest extends TestCase
 
         $this->actingAs($this->createBureauUser())->get(route('admin.ledger.index'))
             ->assertOk()->assertSee('2025.xlsx')->assertSee('2026.xlsx')->assertSee('14/01/2025')->assertSee('05/01/2026');
+    }
+
+    /**
+     * Continuous re-evaluation: an amber/red line is re-checked after every tag,
+     * group, or removal — either it turns out to be "good enough" (green), or its
+     * explanation is refreshed to say what's now known, even if the colour doesn't
+     * change yet.
+     */
+    public function test_tagging_a_line_that_already_has_a_known_counterparty_turns_it_green(): void
+    {
+        $counterparty = LedgerCounterparty::create(['name' => 'Steinfort', 'kind' => 'venue']);
+        $tx = $this->tx(['state' => LedgerTransaction::STATE_CONFIRM, 'counterparty_id' => $counterparty->id]);
+        $tag = LedgerTag::where('slug', 'pool_rental')->firstOrFail();
+
+        $this->actingAs($this->createBureauUser())->post(route('admin.ledger.tag', $tx), ['tag_id' => $tag->id]);
+
+        $tx->refresh();
+        $this->assertSame(LedgerTransaction::STATE_RECOGNISED, $tx->state);
+        $this->assertStringContainsString('Pool rental', $tx->state_reason);
+        $this->assertStringContainsString('Steinfort', $tx->state_reason);
+    }
+
+    public function test_tagging_a_line_with_no_counterparty_stays_amber_but_the_reason_updates(): void
+    {
+        $tx = $this->tx(['state' => LedgerTransaction::STATE_UNKNOWN, 'state_reason' => 'Neither the counterparty nor the purpose is recognised.']);
+        $tag = LedgerTag::where('slug', 'gear')->firstOrFail();
+
+        $this->actingAs($this->createBureauUser())->post(route('admin.ledger.tag', $tx), ['tag_id' => $tag->id]);
+
+        $tx->refresh();
+        $this->assertSame(LedgerTransaction::STATE_CONFIRM, $tx->state);
+        $this->assertStringContainsString('Gear', $tx->state_reason);
+        $this->assertStringContainsString('still needs a human check', $tx->state_reason);
+    }
+
+    public function test_grouping_both_sides_of_a_balanced_loop_turns_them_green(): void
+    {
+        $loop = LedgerOperation::create(['name' => 'Todi fine', 'kind' => LedgerOperation::KIND_LOOP]);
+        $a = $this->tx(['state' => LedgerTransaction::STATE_UNKNOWN, 'amount' => 181.34]);
+        $b = $this->tx(['state' => LedgerTransaction::STATE_UNKNOWN, 'amount' => -181.34]);
+        $bureau = $this->createBureauUser();
+
+        $this->actingAs($bureau)->post(route('admin.ledger.assign-operation', $a), ['operation_id' => $loop->id]);
+        $this->actingAs($bureau)->post(route('admin.ledger.assign-operation', $b), ['operation_id' => $loop->id]);
+
+        $this->assertSame(LedgerTransaction::STATE_LOOP, $a->fresh()->state);
+        $this->assertSame(LedgerTransaction::STATE_LOOP, $b->fresh()->state);
+    }
+
+    public function test_removing_the_only_tag_from_a_recognised_line_drops_it_back_to_confirm(): void
+    {
+        $counterparty = LedgerCounterparty::create(['name' => 'Steinfort', 'kind' => 'venue']);
+        $tag = LedgerTag::where('slug', 'pool_rental')->firstOrFail();
+        $tx = $this->tx(['state' => LedgerTransaction::STATE_RECOGNISED, 'counterparty_id' => $counterparty->id]);
+        $tx->tags()->attach($tag->id);
+
+        $this->actingAs($this->createBureauUser())->delete(route('admin.ledger.tag.remove', [$tx, $tag]));
+
+        $this->assertSame(LedgerTransaction::STATE_CONFIRM, $tx->fresh()->state);
+    }
+
+    public function test_reevaluate_never_touches_an_already_confirmed_line(): void
+    {
+        $tx = $this->tx(['state' => LedgerTransaction::STATE_CONFIRM, 'confirmed_at' => now(), 'confirmed_by' => $this->createBureauUser()->id]);
+        $tag = LedgerTag::where('slug', 'gear')->firstOrFail();
+
+        app(LedgerClassificationService::class)->reevaluate($tx->fresh());
+
+        $this->assertSame(LedgerTransaction::STATE_CONFIRM, $tx->fresh()->state);
+    }
+
+    public function test_the_review_screen_filters_by_a_selected_tag_and_sums_the_matches(): void
+    {
+        $tag = LedgerTag::where('slug', 'deposit')->firstOrFail();
+        $matching = $this->tx(['amount' => 100]);
+        $matching->tags()->attach($tag->id);
+        $other = $this->tx(['amount' => -50]);
+
+        $response = $this->actingAs($this->createBureauUser())->get(route('admin.ledger.review', ['tags' => [$tag->id]]));
+
+        $response->assertOk();
+        $shown = $response->viewData('transactions');
+        $this->assertTrue($shown->contains('id', $matching->id));
+        $this->assertFalse($shown->contains('id', $other->id));
+        $this->assertEqualsWithDelta(100.0, $response->viewData('totalIn'), 0.001);
+        $this->assertEqualsWithDelta(100.0, $response->viewData('net'), 0.001);
+    }
+
+    public function test_the_review_screen_filters_by_a_selected_group_and_nets_a_closed_loop_to_zero(): void
+    {
+        $loop = LedgerOperation::create(['name' => 'Todi fine', 'kind' => LedgerOperation::KIND_LOOP]);
+        $a = $this->tx(['amount' => 181.34]);
+        $b = $this->tx(['amount' => -181.34]);
+        $loop->transactions()->attach([$a->id, $b->id]);
+        $unrelated = $this->tx(['amount' => 999]);
+
+        $response = $this->actingAs($this->createBureauUser())->get(route('admin.ledger.review', ['operations' => [$loop->id]]));
+
+        $shown = $response->viewData('transactions');
+        $this->assertCount(2, $shown);
+        $this->assertFalse($shown->contains('id', $unrelated->id));
+        $this->assertEqualsWithDelta(0.0, $response->viewData('net'), 0.001);
+    }
+
+    public function test_the_review_screen_with_nothing_selected_shows_no_lines(): void
+    {
+        $this->tx();
+
+        $response = $this->actingAs($this->createBureauUser())->get(route('admin.ledger.review'));
+
+        $response->assertOk();
+        $this->assertCount(0, $response->viewData('transactions'));
     }
 }

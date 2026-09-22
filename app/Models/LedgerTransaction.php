@@ -36,7 +36,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $category
  * @property string $state
  * @property string|null $state_reason
- * @property int|null $operation_id
  * @property string|null $suggested_group
  * @property Carbon|null $confirmed_at
  * @property int|null $confirmed_by
@@ -62,7 +61,7 @@ class LedgerTransaction extends Model
         'transaction_date', 'value_date', 'amount', 'running_balance', 'statement_no', 'operation_type',
         'communication_1', 'communication_2', 'communication_3', 'communication_4',
         'beneficiary_account', 'counterparty_name', 'counterparty_address', 'counterparty_locality', 'counterparty_id',
-        'category', 'state', 'state_reason', 'operation_id', 'suggested_group',
+        'category', 'state', 'state_reason', 'suggested_group',
         'confirmed_at', 'confirmed_by', 'source_file', 'dedup_hash', 'imported_by',
     ];
 
@@ -80,10 +79,15 @@ class LedgerTransaction extends Model
         return $this->belongsTo(LedgerCounterparty::class, 'counterparty_id');
     }
 
-    /** @return BelongsTo<LedgerOperation, $this> */
-    public function operation(): BelongsTo
+    /**
+     * Usually one, but exceptionally more than one — e.g. one van-rental invoice
+     * split between two separate outings.
+     *
+     * @return BelongsToMany<LedgerOperation, $this>
+     */
+    public function operations(): BelongsToMany
     {
-        return $this->belongsTo(LedgerOperation::class, 'operation_id');
+        return $this->belongsToMany(LedgerOperation::class, 'ledger_operation_transaction')->withTimestamps();
     }
 
     /** @return BelongsToMany<LedgerTag, $this> */

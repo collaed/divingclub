@@ -9,6 +9,7 @@ use App\Http\Requests\ImportLedgerStatementRequest;
 use App\Models\LedgerOperation;
 use App\Models\LedgerTag;
 use App\Models\LedgerTransaction;
+use App\Services\LedgerClassificationService;
 use App\Services\LedgerStatementImportService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -17,11 +18,14 @@ use Illuminate\Support\Str;
 
 class LedgerController extends Controller
 {
-    public function __construct(private LedgerStatementImportService $importer) {}
+    public function __construct(
+        private LedgerStatementImportService $importer,
+        private LedgerClassificationService $classifier,
+    ) {}
 
     public function index(Request $request): View
     {
-        $transactions = LedgerTransaction::with(['counterparty', 'operation', 'tags'])
+        $transactions = LedgerTransaction::with(['counterparty', 'operations', 'tags'])
             ->unconfirmed()
             ->when($request->filled('state'), fn ($q) => $q->where('state', $request->string('state')))
             ->orderByDesc('transaction_date')->orderByDesc('id')
@@ -50,6 +54,47 @@ class LedgerController extends Controller
         $operations = LedgerOperation::withCount('transactions')->with('transactions')->orderByDesc('created_at')->get();
 
         return view('admin.ledger.operations', ['operations' => $operations]);
+    }
+
+    /**
+     * Pick any number of tags and/or groups from the cloud below and see every
+     * matching transaction (a line matches if it carries any selected tag OR
+     * belongs to any selected group) with a running +/− sum — the way to check
+     * whether a group of expenses balances out, or add up everything under one
+     * tag across the whole ledger, confirmed or not.
+     */
+    public function review(Request $request): View
+    {
+        $tagIds = array_filter(array_map('intval', (array) $request->input('tags', [])));
+        $operationIds = array_filter(array_map('intval', (array) $request->input('operations', [])));
+
+        $transactions = collect();
+        if ($tagIds !== [] || $operationIds !== []) {
+            $transactions = LedgerTransaction::with(['counterparty', 'operations', 'tags'])
+                ->where(function ($q) use ($tagIds, $operationIds): void {
+                    if ($tagIds !== []) {
+                        $q->orWhereHas('tags', fn ($t) => $t->whereIn('ledger_tags.id', $tagIds));
+                    }
+                    if ($operationIds !== []) {
+                        $q->orWhereHas('operations', fn ($o) => $o->whereIn('ledger_operations.id', $operationIds));
+                    }
+                })
+                ->orderByDesc('transaction_date')->get();
+        }
+
+        $totalIn = (float) $transactions->filter(fn (LedgerTransaction $t): bool => (float) $t->amount > 0)->sum('amount');
+        $totalOut = (float) $transactions->filter(fn (LedgerTransaction $t): bool => (float) $t->amount < 0)->sum('amount');
+
+        return view('admin.ledger.review', [
+            'tags' => LedgerTag::withCount('transactions')->orderByDesc('transactions_count')->orderBy('label')->get(),
+            'operations' => LedgerOperation::withCount('transactions')->orderBy('name')->get(),
+            'selectedTagIds' => $tagIds,
+            'selectedOperationIds' => $operationIds,
+            'transactions' => $transactions,
+            'totalIn' => $totalIn,
+            'totalOut' => $totalOut,
+            'net' => $totalIn + $totalOut,
+        ]);
     }
 
     public function import(ImportLedgerStatementRequest $request): RedirectResponse
@@ -105,6 +150,7 @@ class LedgerController extends Controller
     {
         $v = $request->validate(['tag_id' => 'required|exists:ledger_tags,id', 'value' => 'nullable|string|max:255']);
         $transaction->tags()->syncWithoutDetaching([$v['tag_id'] => ['value' => $v['value'] ?? null]]);
+        $this->classifier->reevaluate($transaction);
 
         return back()->with('success', __('Tag applied.'));
     }
@@ -112,6 +158,7 @@ class LedgerController extends Controller
     public function untag(LedgerTransaction $transaction, LedgerTag $tag): RedirectResponse
     {
         $transaction->tags()->detach($tag->id);
+        $this->classifier->reevaluate($transaction);
 
         return back()->with('success', __('Tag removed.'));
     }
@@ -142,6 +189,7 @@ class LedgerController extends Controller
             ]);
 
         $transaction->tags()->syncWithoutDetaching([$tag->id]);
+        $this->classifier->reevaluate($transaction);
 
         return back()->with('success', __('Tag ":label" created and applied.', ['label' => $tag->label]));
     }
@@ -163,12 +211,19 @@ class LedgerController extends Controller
         $v = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer', 'tag_id' => 'required|exists:ledger_tags,id', 'value' => 'nullable|string|max:255']);
         foreach (LedgerTransaction::whereIn('id', $v['ids'])->get() as $tx) {
             $tx->tags()->syncWithoutDetaching([$v['tag_id'] => ['value' => $v['value'] ?? null]]);
+            $this->classifier->reevaluate($tx);
         }
 
         return back()->with('success', __('Tag applied to :count line(s).', ['count' => count($v['ids'])]));
     }
 
-    /** Assign to an existing operation, or create one on the fly (a suggested group name becomes a one-click operation). */
+    /**
+     * Attaches an operation — doesn't replace any the line already has, since a
+     * transaction can exceptionally belong to more than one (e.g. one van-rental
+     * invoice split between two separate outings). Creates one on the fly if
+     * "new_name" doesn't match an existing operation (a suggested group name
+     * becomes a one-click operation).
+     */
     public function assignOperation(Request $request, LedgerTransaction $transaction): RedirectResponse
     {
         $v = $request->validate([
@@ -189,8 +244,19 @@ class LedgerController extends Controller
                 ?? LedgerOperation::create(['name' => $v['new_name'], 'kind' => $v['new_kind'] ?? LedgerOperation::KIND_OTHER])->id;
         }
 
-        $transaction->update(['operation_id' => $operationId]);
+        if ($operationId) {
+            $transaction->operations()->syncWithoutDetaching([$operationId]);
+            $this->classifier->reevaluate($transaction);
+        }
 
         return back()->with('success', __('Assigned.'));
+    }
+
+    public function removeOperation(LedgerTransaction $transaction, LedgerOperation $operation): RedirectResponse
+    {
+        $transaction->operations()->detach($operation->id);
+        $this->classifier->reevaluate($transaction);
+
+        return back()->with('success', __('Removed from :name.', ['name' => $operation->name]));
     }
 }

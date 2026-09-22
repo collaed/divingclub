@@ -213,7 +213,7 @@ class LedgerStatementImportServiceTest extends TestCase
 
         $tx = LedgerTransaction::firstOrFail();
         $this->assertSame('Juan-les-Pins', $tx->suggested_group);
-        $this->assertNull($tx->operation_id);
+        $this->assertCount(0, $tx->operations);
         @unlink($path);
     }
 }

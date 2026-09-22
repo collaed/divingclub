@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property int $id
@@ -34,5 +35,11 @@ class LedgerTag extends Model
     protected function casts(): array
     {
         return ['proposed' => 'boolean'];
+    }
+
+    /** @return BelongsToMany<LedgerTransaction, $this> */
+    public function transactions(): BelongsToMany
+    {
+        return $this->belongsToMany(LedgerTransaction::class, 'ledger_transaction_tag')->withPivot('value')->withTimestamps();
     }
 }

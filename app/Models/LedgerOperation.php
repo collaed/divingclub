@@ -7,7 +7,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property int $id
@@ -36,10 +36,15 @@ class LedgerOperation extends Model
 
     protected $fillable = ['name', 'kind', 'status', 'event_id', 'budget_amount', 'notes'];
 
-    /** @return HasMany<LedgerTransaction, $this> */
-    public function transactions(): HasMany
+    /**
+     * Usually one operation per transaction, but exceptionally more than one —
+     * e.g. one van-rental invoice split between two separate outings.
+     *
+     * @return BelongsToMany<LedgerTransaction, $this>
+     */
+    public function transactions(): BelongsToMany
     {
-        return $this->hasMany(LedgerTransaction::class, 'operation_id');
+        return $this->belongsToMany(LedgerTransaction::class, 'ledger_operation_transaction')->withTimestamps();
     }
 
     /** @return BelongsTo<Event, $this> */
