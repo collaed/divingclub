@@ -120,7 +120,14 @@ class LedgerController extends Controller
 
         $operationId = $v['operation_id'] ?? null;
         if (! $operationId && ! empty($v['new_name'])) {
-            $operationId = LedgerOperation::create(['name' => $v['new_name'], 'kind' => $v['new_kind'] ?? LedgerOperation::KIND_OTHER])->id;
+            // firstOrCreate, not create: each row with the same suggested group posts
+            // "new_name" independently, and the page isn't reloaded between accepts, so
+            // a second row accepting "Cap Vert" before the first page refresh must reuse
+            // the operation the first row just created, not spawn a duplicate.
+            $operationId = LedgerOperation::query()
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower($v['new_name'])])
+                ->first()?->id
+                ?? LedgerOperation::create(['name' => $v['new_name'], 'kind' => $v['new_kind'] ?? LedgerOperation::KIND_OTHER])->id;
         }
 
         $transaction->update(['operation_id' => $operationId]);

@@ -154,6 +154,37 @@ class LedgerControllerTest extends TestCase
         $this->assertSame('trip', $tx->operation->kind);
     }
 
+    /**
+     * Each row with the same suggested group posts "new_name" independently, and the
+     * page is a full POST redirect — not reloaded between accepts — so a second row
+     * accepting "Cap Vert" before the page refreshes must reuse the operation the
+     * first row just created, not spawn a duplicate with the same name. Caught live
+     * on staging: several real "Cap Vert" lines each created their own operation.
+     */
+    public function test_accepting_the_same_suggested_group_twice_reuses_one_operation(): void
+    {
+        $first = $this->tx(['suggested_group' => 'Cap Vert']);
+        $second = $this->tx(['suggested_group' => 'Cap Vert']);
+        $bureau = $this->createBureauUser();
+
+        $this->actingAs($bureau)->post(route('admin.ledger.assign-operation', $first), ['new_name' => 'Cap Vert', 'new_kind' => 'trip']);
+        $this->actingAs($bureau)->post(route('admin.ledger.assign-operation', $second), ['new_name' => 'Cap Vert', 'new_kind' => 'trip']);
+
+        $this->assertSame(1, LedgerOperation::where('name', 'Cap Vert')->count());
+        $this->assertSame($first->fresh()->operation_id, $second->fresh()->operation_id);
+    }
+
+    public function test_accepting_a_suggested_group_matches_an_existing_operation_case_insensitively(): void
+    {
+        $existing = LedgerOperation::create(['name' => 'cap vert', 'kind' => 'trip']);
+        $tx = $this->tx(['suggested_group' => 'Cap Vert']);
+
+        $this->actingAs($this->createBureauUser())->post(route('admin.ledger.assign-operation', $tx), ['new_name' => 'Cap Vert', 'new_kind' => 'trip']);
+
+        $this->assertSame($existing->id, $tx->fresh()->operation_id);
+        $this->assertSame(1, LedgerOperation::count());
+    }
+
     public function test_a_transaction_can_be_assigned_to_an_existing_operation(): void
     {
         $op = LedgerOperation::create(['name' => 'Pool rental', 'kind' => 'cost_centre']);
