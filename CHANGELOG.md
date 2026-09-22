@@ -73,6 +73,14 @@ load) before building further on top of it._
   previously went nowhere — now feeds the ledger's counterparty matcher directly, so a
   member's payments are recognised from the first imported statement line instead of only
   after the ledger's own fuzzy name-matching first happens to succeed.
+- **Ledger**: a "Reviewed" view (Ledger → "Reviewed (N)") lists already-confirmed lines,
+  most recent first — the way to go back and check or undo a past confirm. Read-only besides
+  an Unconfirm action, which sends a line back to the inbox.
+- **Kanban board**: each card gets a stable left-border colour derived from its "responsible"
+  name (the same person always gets the same colour, no colour list to maintain). A new
+  "+ Add a card" form lets a bureau member create a card by hand, without waiting for
+  extraction; a manually-added card has no source compte-rendu and shows a dashed outline
+  to mark it as such, next to the AI-extracted ones.
 
 ### Changed
 - Sympathisant pays the nominal amount whatever the age (no under-18 reduction).
@@ -85,6 +93,10 @@ load) before building further on top of it._
 - Members Directory (`/members`): the age filter is now five single-condition options
   (< 12, < 14, < 16, < 18, 18 and over — matching the ages the club's own course levels and
   badges are gated at) instead of ten-year brackets.
+- **Kanban board**: opened to every bureau role (bureau_master, bureau_finance,
+  bureau_technical) instead of bureau_master only, and dropped from the red "super high
+  privilege" nav styling it shared with Votes, which was specifically meant to signal that
+  narrower tier.
 
 ### Data changes
 - Payments gain a payment method, a note and an "insurance registered" date (new columns, empty for existing rows).
@@ -97,6 +109,8 @@ load) before building further on top of it._
   A transaction↔operation is now many-to-many (new `ledger_operation_transaction` pivot;
   the old `ledger_transactions.operation_id` column is dropped, data carried over).
 - `member_details` gains `account_holder_name` (nullable, empty for existing rows).
+- `kanban_cards.source_document_name` is now nullable (null marks a manually-added card).
+- New env var `CLUB_CONTACT_EMAIL` (a real, monitored inbox — see Fixed, below).
 
 ### Fixed
 - Background jobs that run longer than a minute (article translation) were killed
@@ -133,6 +147,9 @@ load) before building further on top of it._
   instead of keeping its own (an earlier deliberate split, from before the board had its own
   page on production) — switched to local storage, and staging's 53 already-extracted cards
   were copied over so nothing already found is missing from the board people will actually use.
+- Tracked-document emails were sent from `clubcep@clubcep.eu` — an alias mailbox meant for
+  inbound routing, not a real inbox — so a recipient's reply went nowhere useful. Now sent
+  from `info@clubcep.eu` (new `CLUB_CONTACT_EMAIL` config), a monitored inbox.
 
 ### Needs attention
 - The ledger and the kanban board are restricted to `bureau_master` and marked in red in the
