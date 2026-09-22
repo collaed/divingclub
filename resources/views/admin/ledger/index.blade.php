@@ -13,6 +13,15 @@
     .lg-chip { display:inline-block; padding:.05rem .45rem; border-radius:.35rem; font-size:.72rem; background:var(--bs-tertiary-bg); border:1px solid var(--bs-border-color); }
     .lg-tag { display:inline-block; padding:0 .4rem; border-radius:.3rem; font-size:.72rem; background:var(--bs-info-bg-subtle); color:var(--bs-info-text-emphasis); border:1px solid var(--bs-info-border-subtle); }
     .lg-var-empty { background:transparent; border:1px dashed var(--bs-warning-border-subtle); color:var(--bs-warning-text-emphasis); }
+    {{-- Red/green on a tag: what the club is expected to do, not the amount's actual sign — a
+         green "cotisation" tag stays green even applied to a refund line, it's the tag's own
+         real-world meaning (see LedgerTag::direction, seeded in LedgerTagSeeder). --}}
+    .lg-tag-in  { background:var(--bs-success-bg-subtle); color:var(--bs-success-text-emphasis); border:1px solid var(--bs-success-border-subtle); }
+    .lg-tag-out { background:var(--bs-danger-bg-subtle); color:var(--bs-danger-text-emphasis); border:1px solid var(--bs-danger-border-subtle); }
+    .lg-tag-remove { border:0; background:transparent; padding:0 0 0 .3rem; margin:0; line-height:1; color:inherit; opacity:.65; font-size:1em; cursor:pointer; }
+    .lg-tag-remove:hover { opacity:1; }
+    .lg-dot { display:inline-block; width:.5rem; height:.5rem; border-radius:50%; margin-right:.3rem; }
+    .lg-dot-in { background:#146c43; } .lg-dot-out { background:#b02a37; }
     .lg-num { font-variant-numeric: tabular-nums; text-align:right; white-space:nowrap; }
     .lg-in { color:#146c43; } .lg-out { color:#b02a37; }
     #lg-bulk { position:sticky; bottom:0; z-index:5; }
@@ -52,6 +61,14 @@
      instead. The checkboxes below associate with this one by id (form="lg-bulk-form")
      instead, which works from anywhere in the document. --}}
 <form id="lg-bulk-form" method="POST" action="{{ route('admin.ledger.bulk-confirm') }}">@csrf</form>
+{{-- Shared by every row's group/tag combobox — an <input list> picks up suggestions
+     from whichever <datalist> its "list" attribute names, so one copy here is enough. --}}
+<datalist id="lg-operations-list">
+    @foreach($operations as $op)<option value="{{ $op->name }}">@endforeach
+</datalist>
+<datalist id="lg-tags-list">
+    @foreach($fixedTags->merge($variableTags) as $tag)<option value="{{ $tag->label }}">@endforeach
+</datalist>
 <div class="card dc-card">
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
@@ -72,7 +89,16 @@
                     <td>@if($tx->category)<span class="lg-chip" title="{{ config('ledger.categories')[$tx->category] ?? '' }}">{{ $tx->category }}</span>@endif</td>
                     <td>
                         @foreach($tx->tags as $tag)
-                            <span class="lg-tag {{ $tag->pivot->value ? '' : ($tag->kind === 'variable' ? 'lg-var-empty' : '') }}">#{{ $tag->label }}{{ $tag->pivot->value ? ': '.$tag->pivot->value : '' }}</span>
+                            @php
+                                $dirClass = $tag->direction === 'in' ? 'lg-tag-in' : ($tag->direction === 'out' ? 'lg-tag-out' : ($tag->pivot->value ? '' : ($tag->kind === 'variable' ? 'lg-var-empty' : '')));
+                            @endphp
+                            <form method="POST" action="{{ route('admin.ledger.tag.remove', [$tx, $tag]) }}" class="d-inline-block mb-1">
+                                @csrf @method('DELETE')
+                                <span class="lg-tag {{ $dirClass }}">
+                                    #{{ $tag->label }}{{ $tag->pivot->value ? ': '.$tag->pivot->value : '' }}
+                                    <button type="submit" class="lg-tag-remove" aria-label="{{ __('Remove tag') }}" title="{{ __('Remove tag') }}">×</button>
+                                </span>
+                            </form>
                         @endforeach
                         <div class="dropdown d-inline-block">
                             <button class="btn btn-sm btn-outline-secondary py-0 px-1 dropdown-toggle" type="button" data-bs-toggle="dropdown">+</button>
@@ -80,7 +106,12 @@
                                 @foreach($fixedTags as $tag)
                                     <form method="POST" action="{{ route('admin.ledger.tag', $tx) }}" class="mb-1">
                                         @csrf<input type="hidden" name="tag_id" value="{{ $tag->id }}">
-                                        <button type="submit" class="dropdown-item small">#{{ $tag->label }}</button>
+                                        <button type="submit" class="dropdown-item small">
+                                            @if($tag->direction === 'in')<span class="lg-dot lg-dot-in" title="{{ __('Club receives') }}"></span>
+                                            @elseif($tag->direction === 'out')<span class="lg-dot lg-dot-out" title="{{ __('Club pays') }}"></span>
+                                            @endif
+                                            #{{ $tag->label }}
+                                        </button>
                                     </form>
                                 @endforeach
                                 <hr class="my-1">
@@ -91,6 +122,17 @@
                                         <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('Set') }}</button>
                                     </form>
                                 @endforeach
+                                <hr class="my-1">
+                                <form method="POST" action="{{ route('admin.ledger.tag.create', $tx) }}" class="d-flex flex-wrap gap-1 px-2">
+                                    @csrf
+                                    <input type="text" name="label" list="lg-tags-list" class="form-control form-control-sm" style="width:8rem" placeholder="{{ __('New tag…') }}" maxlength="60" required>
+                                    <select name="direction" class="form-select form-select-sm" style="width:auto" aria-label="{{ __('Money direction (only used when creating)') }}">
+                                        <option value="">{{ __('Neutral') }}</option>
+                                        <option value="in">{{ __('Club receives') }}</option>
+                                        <option value="out">{{ __('Club pays') }}</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="{{ __('Add this tag to the list and apply it here') }}">{{ __('Add') }}</button>
+                                </form>
                             </div>
                         </div>
                     </td>
@@ -98,19 +140,20 @@
                         @if($tx->operation)
                             <span class="lg-chip">{{ $tx->operation->name }}</span>
                         @else
+                            @if($tx->suggested_group)
+                                <div class="small text-muted">{{ __('Suggested:') }} {{ $tx->suggested_group }}</div>
+                            @endif
                             <form method="POST" action="{{ route('admin.ledger.assign-operation', $tx) }}" class="d-flex gap-1">
                                 @csrf
-                                <select name="operation_id" class="form-select form-select-sm" style="width:auto">
-                                    <option value="">{{ $tx->suggested_group ? __('Group? ').$tx->suggested_group.'…' : __('Assign…') }}</option>
-                                    @foreach($operations as $op)<option value="{{ $op->id }}">{{ $op->name }}</option>@endforeach
+                                <input type="text" name="new_name" list="lg-operations-list" class="form-control form-control-sm" style="width:9rem"
+                                       value="{{ $tx->suggested_group }}" placeholder="{{ __('Type or pick a group…') }}">
+                                <select name="new_kind" class="form-select form-select-sm" style="width:auto" aria-label="{{ __('Kind (only used when creating a new group)') }}">
+                                    <option value="trip">{{ __('Trip') }}</option>
+                                    <option value="loop">{{ __('Loop') }}</option>
+                                    <option value="cost_centre">{{ __('Cost centre') }}</option>
+                                    <option value="other">{{ __('Other') }}</option>
                                 </select>
-                                @if($tx->suggested_group)
-                                    <input type="hidden" name="new_name" value="{{ $tx->suggested_group }}">
-                                    <input type="hidden" name="new_kind" value="trip">
-                                    <button type="submit" class="btn btn-sm btn-outline-success" title="{{ __('Yes') }}">✓</button>
-                                @else
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('Go') }}</button>
-                                @endif
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('Assign') }}</button>
                             </form>
                         @endif
                     </td>

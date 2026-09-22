@@ -13,6 +13,7 @@ use App\Services\LedgerStatementImportService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class LedgerController extends Controller
 {
@@ -97,6 +98,55 @@ class LedgerController extends Controller
         $transaction->tags()->syncWithoutDetaching([$v['tag_id'] => ['value' => $v['value'] ?? null]]);
 
         return back()->with('success', __('Tag applied.'));
+    }
+
+    public function untag(LedgerTransaction $transaction, LedgerTag $tag): RedirectResponse
+    {
+        $transaction->tags()->detach($tag->id);
+
+        return back()->with('success', __('Tag removed.'));
+    }
+
+    /**
+     * A bureau_master isn't stuck with the seeded starter set: typing a label that
+     * doesn't already exist creates it (matched case-insensitively against the
+     * existing list first, so a near-retype reuses rather than duplicates) and
+     * applies it to this row in the same step. Only bureau_master can reach the
+     * ledger at all, so there's no separate treasurer-approval step — creating it
+     * here is the approval.
+     */
+    public function createTag(Request $request, LedgerTransaction $transaction): RedirectResponse
+    {
+        $v = $request->validate([
+            'label' => 'required|string|max:60',
+            'kind' => 'nullable|in:'.implode(',', [LedgerTag::KIND_FIXED, LedgerTag::KIND_VARIABLE]),
+            'direction' => 'nullable|in:'.implode(',', [LedgerTag::DIRECTION_IN, LedgerTag::DIRECTION_OUT]),
+        ]);
+
+        $tag = LedgerTag::whereRaw('LOWER(label) = ?', [mb_strtolower($v['label'])])->first()
+            ?? LedgerTag::create([
+                'slug' => $this->uniqueTagSlug($v['label']),
+                'label' => $v['label'],
+                'kind' => $v['kind'] ?? LedgerTag::KIND_FIXED,
+                'direction' => $v['direction'] ?? null,
+                'sort_order' => (int) LedgerTag::max('sort_order') + 1,
+            ]);
+
+        $transaction->tags()->syncWithoutDetaching([$tag->id]);
+
+        return back()->with('success', __('Tag ":label" created and applied.', ['label' => $tag->label]));
+    }
+
+    /** A clean slug from the label; a short suffix only if two different labels would otherwise collide. */
+    private function uniqueTagSlug(string $label): string
+    {
+        $base = Str::slug($label, '_') ?: 'tag';
+        $slug = $base;
+        for ($i = 2; LedgerTag::where('slug', $slug)->exists(); $i++) {
+            $slug = "{$base}_{$i}";
+        }
+
+        return $slug;
     }
 
     public function bulkTag(Request $request): RedirectResponse

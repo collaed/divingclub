@@ -137,6 +137,61 @@ class LedgerControllerTest extends TestCase
         $this->assertTrue($tx->fresh()->tags->contains('id', $tag->id));
     }
 
+    public function test_a_tag_can_be_removed_from_a_transaction(): void
+    {
+        $tx = $this->tx();
+        $keep = LedgerTag::where('slug', 'gear')->firstOrFail();
+        $remove = LedgerTag::where('slug', 'cotisation')->firstOrFail();
+        $tx->tags()->attach([$keep->id, $remove->id]);
+
+        $this->actingAs($this->createBureauUser())->delete(route('admin.ledger.tag.remove', [$tx, $remove]))->assertRedirect();
+
+        $tx->refresh();
+        $this->assertFalse($tx->tags->contains('id', $remove->id));
+        $this->assertTrue($tx->tags->contains('id', $keep->id));
+    }
+
+    public function test_removing_a_tag_the_transaction_never_had_is_a_harmless_noop(): void
+    {
+        $tx = $this->tx();
+        $tag = LedgerTag::where('slug', 'gear')->firstOrFail();
+
+        $this->actingAs($this->createBureauUser())->delete(route('admin.ledger.tag.remove', [$tx, $tag]))->assertRedirect();
+
+        $this->assertFalse($tx->fresh()->tags->contains('id', $tag->id));
+    }
+
+    public function test_seeded_fixed_tags_carry_the_direction_the_club_actually_expects(): void
+    {
+        $this->assertSame(LedgerTag::DIRECTION_IN, LedgerTag::where('slug', 'cotisation')->firstOrFail()->direction);
+        $this->assertSame(LedgerTag::DIRECTION_IN, LedgerTag::where('slug', 'deposit')->firstOrFail()->direction);
+        $this->assertSame(LedgerTag::DIRECTION_OUT, LedgerTag::where('slug', 'gear')->firstOrFail()->direction);
+        $this->assertSame(LedgerTag::DIRECTION_OUT, LedgerTag::where('slug', 'federation')->firstOrFail()->direction);
+        $this->assertNull(LedgerTag::where('slug', 'fine')->firstOrFail()->direction);
+        $this->assertNull(LedgerTag::where('slug', 'for')->firstOrFail()->direction);
+    }
+
+    public function test_a_new_tag_can_be_created_with_a_money_direction(): void
+    {
+        $tx = $this->tx();
+
+        $this->actingAs($this->createBureauUser())->post(route('admin.ledger.tag.create', $tx), [
+            'label' => 'Sponsorship received', 'direction' => 'in',
+        ])->assertRedirect();
+
+        $tag = LedgerTag::where('label', 'Sponsorship received')->firstOrFail();
+        $this->assertSame(LedgerTag::DIRECTION_IN, $tag->direction);
+    }
+
+    public function test_a_new_tag_with_no_direction_chosen_is_neutral(): void
+    {
+        $tx = $this->tx();
+
+        $this->actingAs($this->createBureauUser())->post(route('admin.ledger.tag.create', $tx), ['label' => 'Miscellaneous']);
+
+        $this->assertNull(LedgerTag::where('label', 'Miscellaneous')->firstOrFail()->direction);
+    }
+
     public function test_a_variable_tag_carries_its_filled_in_value(): void
     {
         $tx = $this->tx();
@@ -160,6 +215,47 @@ class LedgerControllerTest extends TestCase
 
         $this->assertSame('Luca G.', $a->fresh()->tags->first()->pivot->value);
         $this->assertSame('Luca G.', $b->fresh()->tags->first()->pivot->value);
+    }
+
+    public function test_a_brand_new_tag_is_created_and_applied_in_one_step(): void
+    {
+        $tx = $this->tx();
+        $before = LedgerTag::count();
+
+        $this->actingAs($this->createBureauUser())->post(route('admin.ledger.tag.create', $tx), ['label' => 'Réception ouverture'])
+            ->assertRedirect();
+
+        $this->assertSame($before + 1, LedgerTag::count());
+        $tag = LedgerTag::where('label', 'Réception ouverture')->firstOrFail();
+        $this->assertSame(LedgerTag::KIND_FIXED, $tag->kind);
+        $this->assertTrue($tx->fresh()->tags->contains('id', $tag->id));
+    }
+
+    public function test_creating_the_same_new_tag_label_twice_reuses_it_instead_of_duplicating(): void
+    {
+        $first = $this->tx();
+        $second = $this->tx();
+        $bureau = $this->createBureauUser();
+
+        $this->actingAs($bureau)->post(route('admin.ledger.tag.create', $first), ['label' => 'Réception ouverture']);
+        $this->actingAs($bureau)->post(route('admin.ledger.tag.create', $second), ['label' => 'réception ouverture']); // different case
+
+        $this->assertSame(1, LedgerTag::where('label', 'Réception ouverture')->count());
+        $this->assertSame($first->fresh()->tags->first()->id, $second->fresh()->tags->first()->id);
+    }
+
+    public function test_a_new_tag_label_colliding_with_an_existing_slug_still_gets_created(): void
+    {
+        LedgerTag::create(['slug' => 'gonflage_special', 'label' => 'Existing', 'kind' => LedgerTag::KIND_FIXED]);
+        $before = LedgerTag::count();
+        $tx = $this->tx();
+
+        // Would both slugify to "gonflage_special" — must not collide on the unique slug column.
+        $this->actingAs($this->createBureauUser())->post(route('admin.ledger.tag.create', $tx), ['label' => 'Gonflage special'])
+            ->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame($before + 1, LedgerTag::count());
+        $this->assertSame('gonflage_special_2', LedgerTag::where('label', 'Gonflage special')->firstOrFail()->slug);
     }
 
     public function test_a_suggested_group_can_be_turned_into_a_new_operation_in_one_click(): void

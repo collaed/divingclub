@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $slug
  * @property string $label
  * @property string $kind
+ * @property string|null $direction
  * @property string|null $description
  * @property bool $proposed
  * @property int $sort_order
@@ -24,7 +25,11 @@ class LedgerTag extends Model
 
     public const KIND_VARIABLE = 'variable';
 
-    protected $fillable = ['slug', 'label', 'kind', 'description', 'proposed', 'sort_order'];
+    public const DIRECTION_IN = 'in';
+
+    public const DIRECTION_OUT = 'out';
+
+    protected $fillable = ['slug', 'label', 'kind', 'direction', 'description', 'proposed', 'sort_order'];
 
     protected function casts(): array
     {
