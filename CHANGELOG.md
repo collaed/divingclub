@@ -3,13 +3,37 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
-## Unreleased
-
-On `main` and staging, not yet on production.
+## 2026-09-22 — prod
 
 _Data-only change already applied on production (2026-09-21): 21 members' IBAN filled from the 2026 bank export (payees of the club's own reimbursements); 2 already held the same value. Nothing was overwritten._
 
+_The membership-renewals-and-earlier block below reached production earlier today as a side
+effect of deploying the kanban board directly from its feature branch (which was based on the
+then-current `main`) rather than via the usual `main` → prod path — worth knowing since it
+wasn't announced as its own release at the time. Confirmed working (health check, a real page
+load) before building further on top of it._
+
 ### New
+- **Ledger** (Admin → Finance → Ledger, bureau_master only): import the bank's own `.xlsx`
+  account-history export (chosen over its CSV export, whose character encoding is inconsistent
+  between exports — the `.xlsx` carries real dates, amounts and accented text with no guessing).
+  Each line is checked against the running balance within its statement, deduplicated against
+  earlier imports, and classified: deep green when it matches a known amount, light green when
+  the counterparty and purpose are known but there's nothing to check against, amber to confirm,
+  red when nothing is recognised. Fixed tags (from the club's own accounting categories) and
+  variable "fill once, apply to several lines" tags (`#for: ___`, `#covers: ___`…) can be
+  applied singly or in bulk; a name-only "Group? Cap Vert…" suggestion turns into a real
+  operation (a trip, a closed loop, a recurring cost centre) in one click, never automatically.
+  A statement balance-check table sits at the bottom, per source file.
+- **Actions from compte-rendus** (Admin → Content & comms, bureau_master only): a kanban board
+  (To do / In progress / Done) of action items extracted from the club's meeting minutes. A
+  background task on production (the documents live there) picks one unprocessed compte-rendu
+  every 3 hours, extracts its text and asks an AI model for the actions and who's responsible,
+  and posts the result onto the board. A card links back to its source document and date, and
+  can be moved between columns or discarded as obsolete without being deleted.
+- Members Directory (`/members`): a **Level** filter, matching either the scuba
+  (`certification_level`) or the apnea (`apnea_level`) field — a level like "N1" can live in
+  either depending on how the member's data was entered.
 - **Membership renewals screen** (Payments → Membership renewals): every current member who
   has not paid the season, with the amount to expect — their commitment if they made one,
   otherwise their status and last season's insurance at this season's prices. A green
@@ -40,9 +64,17 @@ _Data-only change already applied on production (2026-09-21): 21 members' IBAN f
 - "Actif" is no longer offered when creating a member or editing a profile (a member who
   already has it keeps it displayed).
 
+- Members Directory (`/members`): the age filter is now five single-condition options
+  (< 12, < 14, < 16, < 18, 18 and over — matching the ages the club's own course levels and
+  badges are gated at) instead of ten-year brackets.
+
 ### Data changes
 - Payments gain a payment method, a note and an "insurance registered" date (new columns, empty for existing rows).
 - The FLASSA licence age date moved from 1 September to 1 November (one row).
+- Two new tables for the ledger (`ledger_transactions`, `ledger_counterparties`, `ledger_tags`,
+  `ledger_operations`) and one for the kanban board (`kanban_cards`); both start empty on
+  production. The ledger's fixed tags and the club's known recurring non-member counterparties
+  (Steinfort, the insurer, the two FFESSM federation senders, Luxair…) are seeded.
 
 ### Fixed
 - Background jobs that run longer than a minute (article translation) were killed
@@ -51,6 +83,15 @@ _Data-only change already applied on production (2026-09-21): 21 members' IBAN f
   health warning on staging.
 - The weekly backup's health signal no longer reports success when the backup itself
   failed; a failure now shows on the dashboard and the external monitor.
+- A page-load toast for a "your changes were saved"-style message silently failed everywhere
+  (the function it called was defined lower in the page than where it was first used) — it
+  still showed as a plain banner, so this was invisible unless you had the console open.
+- The ledger's statement balance-check table merged two different files' identically-numbered
+  statements (e.g. both exports call their first statement "1") into one row.
+
+### Needs attention
+- The ledger and the kanban board are restricted to `bureau_master` and marked in red in the
+  nav, like Votes — the same convention as the club's other most sensitive admin screens.
 
 ## 2026-09-20 — prod at `7476988` (second release, from main)
 
