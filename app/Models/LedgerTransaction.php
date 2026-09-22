@@ -96,6 +96,12 @@ class LedgerTransaction extends Model
         return $this->belongsToMany(LedgerTag::class, 'ledger_transaction_tag')->withPivot('value')->withTimestamps();
     }
 
+    /** @return BelongsTo<User, $this> */
+    public function confirmedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
     /** Every non-empty communication line joined, for keyword matching and display. */
     public function communication(): string
     {
@@ -106,5 +112,11 @@ class LedgerTransaction extends Model
     public function scopeUnconfirmed(Builder $query): void
     {
         $query->whereNull('confirmed_at');
+    }
+
+    /** Already-reviewed lines — for going back to check or undo a past confirm. */
+    public function scopeConfirmed(Builder $query): void
+    {
+        $query->whereNotNull('confirmed_at');
     }
 }

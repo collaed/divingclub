@@ -102,6 +102,44 @@ class LedgerControllerTest extends TestCase
         $this->actingAs($this->createBureauUser())->get(route('admin.ledger.index'))->assertOk()->assertDontSee('Already Done');
     }
 
+    /**
+     * "?reviewed=1" is the way back to already-confirmed lines — the inbox itself
+     * only ever shows what's still outstanding. See LedgerController::index().
+     */
+    public function test_reviewed_mode_lists_confirmed_lines_and_hides_unconfirmed_ones(): void
+    {
+        $this->tx(['counterparty_name' => 'Still Open']);
+        $this->tx(['counterparty_name' => 'Already Reviewed', 'confirmed_at' => now(), 'confirmed_by' => $this->createBureauUser()->id]);
+
+        $response = $this->actingAs($this->createBureauUser())->get(route('admin.ledger.index', ['reviewed' => 1]));
+
+        $response->assertOk()->assertSee('Already Reviewed')->assertDontSee('Still Open');
+    }
+
+    public function test_unconfirming_a_line_sends_it_back_to_the_inbox(): void
+    {
+        $bureau = $this->createBureauUser();
+        $tx = $this->tx(['confirmed_at' => now(), 'confirmed_by' => $bureau->id]);
+
+        $this->actingAs($bureau)->post(route('admin.ledger.unconfirm', $tx))->assertRedirect();
+
+        $tx->refresh();
+        $this->assertNull($tx->confirmed_at);
+        $this->assertNull($tx->confirmed_by);
+    }
+
+    public function test_unconfirming_via_ajax_returns_json_and_the_row_leaves_the_reviewed_list(): void
+    {
+        $tx = $this->tx(['confirmed_at' => now()]);
+
+        $this->actingAs($this->createBureauUser())
+            ->postJson(route('admin.ledger.unconfirm', $tx))
+            ->assertOk()
+            ->assertJson(['ok' => true, 'removed' => true, 'id' => $tx->id]);
+
+        $this->assertNull($tx->fresh()->confirmed_at);
+    }
+
     public function test_confirming_a_line_stamps_who_and_when(): void
     {
         $tx = $this->tx();

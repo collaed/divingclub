@@ -285,8 +285,8 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/dive-data/import-uddf', [DiveDataController::class, 'importUddf'])->name('dive-data.import-uddf');
     Route::get('/dive-data/export-uddf', [DiveDataController::class, 'exportUddf'])->name('dive-data.export-uddf');
 
-    // Kanban board of actions extracted from compte-rendus — bureau_master only.
-    Route::middleware('role:bureau_master')->group(function () {
+    // Kanban board of actions extracted from compte-rendus — any bureau role.
+    Route::middleware('role:bureau_master,bureau_finance,bureau_technical')->group(function () {
         Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban.index');
         Route::post('/kanban/{card}/status', [KanbanController::class, 'updateStatus'])->name('kanban.status');
         Route::post('/kanban/{card}/discard', [KanbanController::class, 'discard'])->name('kanban.discard');

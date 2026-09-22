@@ -236,6 +236,7 @@ Route::middleware('role:bureau_master')->group(function (): void {
     Route::get('/ledger/review', [LedgerController::class, 'review'])->name('ledger.review');
     Route::post('/ledger/import', [LedgerController::class, 'import'])->name('ledger.import');
     Route::post('/ledger/{transaction}/confirm', [LedgerController::class, 'confirm'])->name('ledger.confirm');
+    Route::post('/ledger/{transaction}/unconfirm', [LedgerController::class, 'unconfirm'])->name('ledger.unconfirm');
     Route::post('/ledger/bulk-confirm', [LedgerController::class, 'bulkConfirm'])->name('ledger.bulk-confirm');
     Route::post('/ledger/{transaction}/tag', [LedgerController::class, 'tag'])->name('ledger.tag');
     Route::post('/ledger/{transaction}/tag/new', [LedgerController::class, 'createTag'])->name('ledger.tag.create');

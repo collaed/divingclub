@@ -29,10 +29,21 @@
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
     <div>
-        <h4 class="mb-0">{{ __('Ledger') }}</h4>
-        <small class="text-muted">{{ __('Bank movements: classify, tag, and group. Confirming a line records it as reviewed.') }}</small>
+        <h4 class="mb-0">{{ $reviewed ? __('Ledger — reviewed lines') : __('Ledger') }}</h4>
+        <small class="text-muted">
+            @if($reviewed)
+                {{ __('Already-confirmed lines, most recently reviewed first — undo a confirm to send one back to the inbox.') }}
+            @else
+                {{ __('Bank movements: classify, tag, and group. Confirming a line records it as reviewed.') }}
+            @endif
+        </small>
     </div>
     <div class="d-flex gap-2">
+        @if($reviewed)
+            <a href="{{ route('admin.ledger.index') }}" class="btn btn-sm btn-outline-secondary">{{ __('Back to the inbox') }}</a>
+        @else
+            <a href="{{ route('admin.ledger.index', ['reviewed' => 1]) }}" class="btn btn-sm btn-outline-secondary">{{ __('Reviewed') }} ({{ $confirmedCount }})</a>
+        @endif
         <a href="{{ route('admin.ledger.operations') }}" class="btn btn-sm btn-outline-secondary">{{ __('Operations') }}</a>
         <a href="{{ route('admin.ledger.review') }}" class="btn btn-sm btn-outline-secondary">{{ __('Review by tag / group') }}</a>
         <form method="POST" action="{{ route('admin.ledger.import') }}" enctype="multipart/form-data" class="d-flex gap-2">
@@ -49,10 +60,11 @@
     @php
         $labels = ['expected' => ['✓✓ '.__('Expected'), 'lg-expected'], 'recognised' => ['✓ '.__('Recognised'), 'lg-recognised'],
                    'confirm' => ['≈ '.__('To confirm'), 'lg-confirm'], 'unknown' => ['? '.__('Unknown'), 'lg-unknown'], 'loop' => ['⇄ '.__('Paired'), 'lg-loop']];
+        $reviewedParam = $reviewed ? ['reviewed' => 1] : [];
     @endphp
-    <a href="{{ route('admin.ledger.index') }}" class="lg-pill lg-chip {{ request('state') ? '' : 'border border-primary' }}">{{ __('All') }} · <span data-state-pill="all">{{ $stateCounts['all'] ?? 0 }}</span></a>
+    <a href="{{ route('admin.ledger.index', $reviewedParam) }}" class="lg-pill lg-chip {{ request('state') ? '' : 'border border-primary' }}">{{ __('All') }} · <span data-state-pill="all">{{ $stateCounts['all'] ?? 0 }}</span></a>
     @foreach($labels as $state => [$label, $class])
-        <a href="{{ route('admin.ledger.index', ['state' => $state]) }}" class="lg-pill {{ $class }} {{ request('state') === $state ? 'border border-dark' : '' }}">{{ $label }} · <span data-state-pill="{{ $state }}">{{ $stateCounts[$state] ?? 0 }}</span></a>
+        <a href="{{ route('admin.ledger.index', ['state' => $state, ...$reviewedParam]) }}" class="lg-pill {{ $class }} {{ request('state') === $state ? 'border border-dark' : '' }}">{{ $label }} · <span data-state-pill="{{ $state }}">{{ $stateCounts[$state] ?? 0 }}</span></a>
     @endforeach
 </div>
 
@@ -73,18 +85,28 @@
 <div class="card dc-card">
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
-            <thead><tr><th></th><th>{{ __('Date') }}</th><th>{{ __('Counterparty · communication') }}</th><th class="text-end">{{ __('Amount') }}</th><th>{{ __('State') }}</th><th>{{ __('Category') }}</th><th>{{ __('Tags') }}</th><th>{{ __('Group') }}</th><th></th></tr></thead>
+            <thead>
+                @if($reviewed)
+                    <tr><th>{{ __('Date') }}</th><th>{{ __('Counterparty · communication') }}</th><th class="text-end">{{ __('Amount') }}</th><th>{{ __('State') }}</th><th>{{ __('Category') }}</th><th>{{ __('Tags') }}</th><th>{{ __('Group') }}</th><th>{{ __('Confirmed') }}</th><th></th></tr>
+                @else
+                    <tr><th></th><th>{{ __('Date') }}</th><th>{{ __('Counterparty · communication') }}</th><th class="text-end">{{ __('Amount') }}</th><th>{{ __('State') }}</th><th>{{ __('Category') }}</th><th>{{ __('Tags') }}</th><th>{{ __('Group') }}</th><th></th></tr>
+                @endif
+            </thead>
             <tbody id="lg-tbody">
             @forelse($transactions as $tx)
-                @include('admin.ledger._row', ['tx' => $tx])
+                @include($reviewed ? 'admin.ledger._row_reviewed' : 'admin.ledger._row', ['tx' => $tx])
             @empty
-                <tr><td colspan="9" class="text-center text-muted py-4">{{ __('Nothing to review — import a statement to get started.') }}</td></tr>
+                <tr><td colspan="9" class="text-center text-muted py-4">{{ $reviewed ? __('Nothing confirmed yet.') : __('Nothing to review — import a statement to get started.') }}</td></tr>
             @endforelse
             </tbody>
         </table>
     </div>
     <div id="lg-bulk" class="card-footer bg-body-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <button type="submit" form="lg-bulk-form" class="btn btn-sm btn-success">{{ __('Confirm the selected lines (green only)') }}</button>
+        @unless($reviewed)
+            <button type="submit" form="lg-bulk-form" class="btn btn-sm btn-success">{{ __('Confirm the selected lines (green only)') }}</button>
+        @else
+            <span></span>
+        @endunless
         {{ $transactions->links() }}
     </div>
 </div>

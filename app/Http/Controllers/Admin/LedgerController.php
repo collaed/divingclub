@@ -26,10 +26,17 @@ class LedgerController extends Controller
 
     public function index(Request $request): View
     {
-        $transactions = LedgerTransaction::with(['counterparty', 'operations', 'tags'])
-            ->unconfirmed()
+        // "Reviewed" browses back through already-confirmed lines (to check or
+        // undo a past confirm) instead of the normal to-do inbox — a separate
+        // mode on the same screen rather than a second page, so every other
+        // filter (state, pagination) still works the same way in both.
+        $reviewed = $request->boolean('reviewed');
+
+        $transactions = LedgerTransaction::with(['counterparty', 'operations', 'tags', 'confirmedBy'])
+            ->when($reviewed, fn ($q) => $q->confirmed(), fn ($q) => $q->unconfirmed())
             ->when($request->filled('state'), fn ($q) => $q->where('state', $request->string('state')))
-            ->orderByDesc('transaction_date')->orderByDesc('id')
+            ->when($reviewed, fn ($q) => $q->orderByDesc('confirmed_at'), fn ($q) => $q->orderByDesc('transaction_date'))
+            ->orderByDesc('id')
             ->paginate(30)->withQueryString();
 
         // Grouped by (source_file, statement_no), not statement_no alone — two different
@@ -40,7 +47,9 @@ class LedgerController extends Controller
 
         return view('admin.ledger.index', [
             'transactions' => $transactions,
-            'stateCounts' => $this->stateCounts(),
+            'reviewed' => $reviewed,
+            'confirmedCount' => LedgerTransaction::confirmed()->count(),
+            'stateCounts' => $this->stateCounts($reviewed),
             'statements' => $statements,
             'labels' => $this->translatedLabels(),
             'fixedTags' => LedgerTag::where('kind', LedgerTag::KIND_FIXED)->orderBy('sort_order')->get(),
@@ -128,6 +137,18 @@ class LedgerController extends Controller
         }
 
         return back()->with('success', __('Confirmed.'));
+    }
+
+    /** Undoes a confirm — reached from the "reviewed" list, for going back on a mistake. */
+    public function unconfirm(Request $request, LedgerTransaction $transaction): RedirectResponse|JsonResponse
+    {
+        $transaction->update(['confirmed_at' => null, 'confirmed_by' => null]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'removed' => true, 'id' => $transaction->id, 'stateCounts' => $this->stateCounts(true)]);
+        }
+
+        return back()->with('success', __('Back in the inbox to review again.'));
     }
 
     public function bulkConfirm(Request $request): RedirectResponse|JsonResponse
@@ -308,9 +329,11 @@ class LedgerController extends Controller
     }
 
     /** @return array<string, int> */
-    private function stateCounts(): array
+    private function stateCounts(bool $reviewed = false): array
     {
-        $counts = LedgerTransaction::unconfirmed()->selectRaw('state, count(*) c')->groupBy('state')->pluck('c', 'state')->all();
+        $counts = LedgerTransaction::query()
+            ->when($reviewed, fn ($q) => $q->confirmed(), fn ($q) => $q->unconfirmed())
+            ->selectRaw('state, count(*) c')->groupBy('state')->pluck('c', 'state')->all();
         $counts['all'] = array_sum($counts);
 
         return $counts;

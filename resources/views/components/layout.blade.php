@@ -248,9 +248,11 @@
                                             <a class="dropdown-item" href="{{ route('admin.document-dispatch.index') }}">@icon('📤') {{ __('Tracked docs') }}</a>
                                             @endif
                                             <a class="dropdown-item" href="{{ route('admin.email-stats') }}">@icon('📊') {{ __('Email Stats') }}</a>
+                                            @if(auth()->user()->isBureau())
+                                            <a class="dropdown-item" href="{{ route('kanban.index') }}">@icon('📋') {{ __('Actions (compte-rendus)') }}</a>
+                                            @endif
                                             @if(auth()->user()->hasRole('bureau_master'))
                                             <a class="dropdown-item text-danger" href="{{ route('admin.votes.index') }}">@icon('🗳️') {{ __('Votes') }}</a>
-                                            <a class="dropdown-item text-danger" href="{{ route('kanban.index') }}">@icon('📋') {{ __('Actions (compte-rendus)') }}</a>
                                             @endif
                                         </div>
                                         <div class="dc-admin-menu-group">
