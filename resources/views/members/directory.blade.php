@@ -23,14 +23,22 @@
         <div class="col-md-2">
             <select name="age" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Ages') }}</option>
-                @foreach(['8-13' => '8–13', '14-20' => '14–20', '21-30' => '21–30', '31-40' => '31–40', '41-50' => '41–50', '51-60' => '51–60', '61-70' => '61–70', '71-99' => '71+'] as $v => $l)
+                @foreach(['u12' => __('< 12'), 'u14' => __('< 14'), 'u16' => __('< 16'), 'u18' => __('< 18'), 'o18' => __('18 and over')] as $v => $l)
                     <option value="{{ $v }}" {{ request('age') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="level" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">{{ __('All Levels') }}</option>
+                @foreach($levels as $l)
+                    <option value="{{ $l }}" {{ request('level') === $l ? 'selected' : '' }}>{{ $l }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-3">
             <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
-            @if(request()->hasAny(['search', 'status', 'instructor', 'age']))
+            @if(request()->hasAny(['search', 'status', 'instructor', 'age', 'level']))
                 <a href="{{ route('members.directory') }}" class="btn btn-sm btn-outline-secondary">✕</a>
             @endif
             <span class="text-muted small ms-2">{{ $members->total() }} {{ __('members') }}</span>

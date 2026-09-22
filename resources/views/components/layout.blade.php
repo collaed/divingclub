@@ -35,6 +35,25 @@
 <body class="d-flex flex-column min-vh-100 layout-{{ \App\Services\ThemeService::activeLayout() }}">
     <a href="#main-content" class="skip-link">{{ __('Skip to content') }}</a>
     <div class="dc-toast-container" id="toastContainer"></div>
+    <script>
+    // Defined here, immediately after the container it targets, because the flash-message
+    // blocks below call it inline — defining it near the bottom of <body> (as before) meant
+    // those calls ran before the function existed ("dcToast is not defined").
+    function dcToast(msg, type) {
+        var c = document.getElementById('toastContainer');
+        if (!c) return;
+        var t = document.createElement('div');
+        t.className = 'dc-toast ' + (type || 'info');
+        t.textContent = msg;
+        c.appendChild(t);
+        setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 4000);
+    }
+    // Global alias — the documented convention is showToast(message, type).
+    // Map Bootstrap-style 'danger' to the toast's 'error' style class.
+    window.showToast = function (msg, type) {
+        dcToast(msg, type === 'danger' ? 'error' : type);
+    };
+    </script>
 
     {{-- Impersonation banner --}}
     @if(session('impersonating'))
@@ -598,22 +617,6 @@
             hidden.value = opt ? opt.dataset.id : '';
         });
     })();
-    </script>
-    <script>
-    function dcToast(msg, type) {
-        var c = document.getElementById('toastContainer');
-        if (!c) return;
-        var t = document.createElement('div');
-        t.className = 'dc-toast ' + (type || 'info');
-        t.textContent = msg;
-        c.appendChild(t);
-        setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 4000);
-    }
-    // Global alias — the documented convention is showToast(message, type).
-    // Map Bootstrap-style 'danger' to the toast's 'error' style class.
-    window.showToast = function (msg, type) {
-        dcToast(msg, type === 'danger' ? 'error' : type);
-    };
     </script>
     @stack('scripts')
 </body>

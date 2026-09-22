@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
+use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 
 class MembersDirectoryController extends Controller
 {
     use PaginatesFromRequest;
+
+    /** Age filter option => cutoff in years from today. "o18" is the one "and over" option; the rest are "under". */
+    private const AGE_FILTERS = ['u12' => 12, 'u14' => 14, 'u16' => 16, 'u18' => 18, 'o18' => 18];
 
     public function directory(Request $request): View|Response
     {
@@ -57,12 +62,22 @@ class MembersDirectoryController extends Controller
             }
         }
 
-        // Age bracket filter
-        if ($request->filled('age')) {
-            [$min, $max] = explode('-', $request->age);
-            $from = now()->subYears((int) $max + 1)->addDay()->format('Y-m-d');
-            $to = now()->subYears((int) $min)->format('Y-m-d');
-            $query->whereHas('detail', fn ($q) => $q->whereBetween('date_of_birth', [$from, $to]));
+        // Age filter: each option is its own "under N" / "18 and over" threshold
+        // (not a partition into disjoint brackets) — matches the ages the
+        // club's own course levels and badges are gated at.
+        if ($request->filled('age') && array_key_exists($request->age, self::AGE_FILTERS)) {
+            $cutoff = now()->subYears(self::AGE_FILTERS[$request->age])->format('Y-m-d');
+            $query->whereHas('detail', fn ($q) => $request->age === 'o18'
+                ? $q->where('date_of_birth', '<=', $cutoff)
+                : $q->where('date_of_birth', '>', $cutoff));
+        }
+
+        // Level filter: a level code (e.g. "N1") can live in either of two free-text
+        // fields depending on how the member's data was entered — the legacy scuba
+        // certification_level, or apnea_level for freediving — so it matches whichever
+        // one holds it, not a fixed vocabulary of "the right" field.
+        if ($request->filled('level')) {
+            $query->whereHas('detail', fn ($q) => $q->where('certification_level', $request->level)->orWhere('apnea_level', $request->level));
         }
 
         $sortable = ['last_name', 'certification_level', 'adhesion_year'];
@@ -80,7 +95,16 @@ class MembersDirectoryController extends Controller
             return view('members._directory_rows', compact('members'));
         }
 
-        return view('members.directory', compact('members', 'statuses'));
+        return view('members.directory', compact('members', 'statuses') + ['levels' => $this->levelOptions()]);
+    }
+
+    /** Every distinct level value in use, from either field, for the filter dropdown. */
+    private function levelOptions(): Collection
+    {
+        $scuba = MemberDetail::whereNotNull('certification_level')->distinct()->pluck('certification_level');
+        $apnea = MemberDetail::whereNotNull('apnea_level')->distinct()->pluck('apnea_level');
+
+        return $scuba->merge($apnea)->filter()->unique()->sort()->values();
     }
 
     public function trombinoscope(): View
