@@ -201,6 +201,9 @@
                                             <a class="dropdown-item" href="{{ route('admin.audit-finances') }}">@icon('📋') {{ __('Financial Audit') }}</a>
                                             @endcan
                                             <a class="dropdown-item" href="{{ route('admin.annual-report') }}">@icon('📈') {{ __('Annual Report') }}</a>
+                                            @if(auth()->user()->hasRole('bureau_master'))
+                                            <a class="dropdown-item text-danger" href="{{ route('admin.ledger.index') }}">@icon('🏦') {{ __('Ledger') }}</a>
+                                            @endif
                                         </div>
                                         <div class="dc-admin-menu-group">
                                             <h6 class="dropdown-header">{{ __('Diving') }}</h6>
