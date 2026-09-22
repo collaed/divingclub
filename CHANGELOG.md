@@ -55,6 +55,24 @@ load) before building further on top of it._
   they are charged the licence they need.
 - Members roster: **"Actif" is now a filter** listing every member in good standing this
   season (paid the current season, or honoraire), regardless of status.
+- **Ledger**: groups and tags are now type-or-pick comboboxes — typing a name that doesn't
+  exist yet creates it and applies it in the same step, instead of only offering the fixed
+  seeded list. Applied tags can be removed (×) and are coloured red/green by what the club
+  is expected to do (pay vs receive), independent of the line's own amount sign. Tagging,
+  grouping or removing either from an amber/red line re-checks it immediately — it can turn
+  green on the spot, or its explanation refreshes to say what's still missing. A transaction
+  can exceptionally belong to more than one group (e.g. one van-rental invoice split between
+  two outings). A new **Review by tag / group** screen (Ledger → "Review by tag / group")
+  shows every tag and group as a clickable, usage-counted cloud; selecting any combination
+  lists the matching lines with a running +/− sum, to check a group of expenses balances out.
+  Every row action (confirm, tag, untag, create a tag, assign/remove a group, bulk-confirm)
+  now saves silently via AJAX — the row updates or disappears in place, no page reload.
+- Member profile, Private tab: a new **Account holder name** field, for when a member's
+  payments come from an account not in their own name (a spouse's or parent's) and the bank
+  statement won't show a usable IBAN. Saving it — or the pre-existing IBAN field, which
+  previously went nowhere — now feeds the ledger's counterparty matcher directly, so a
+  member's payments are recognised from the first imported statement line instead of only
+  after the ledger's own fuzzy name-matching first happens to succeed.
 
 ### Changed
 - Sympathisant pays the nominal amount whatever the age (no under-18 reduction).
@@ -75,6 +93,10 @@ load) before building further on top of it._
   `ledger_operations`) and one for the kanban board (`kanban_cards`); both start empty on
   production. The ledger's fixed tags and the club's known recurring non-member counterparties
   (Steinfort, the insurer, the two FFESSM federation senders, Luxair…) are seeded.
+- `ledger_tags` gains a `direction` column (in/out, seeded per tag's real-world meaning).
+  A transaction↔operation is now many-to-many (new `ledger_operation_transaction` pivot;
+  the old `ledger_transactions.operation_id` column is dropped, data carried over).
+- `member_details` gains `account_holder_name` (nullable, empty for existing rows).
 
 ### Fixed
 - Background jobs that run longer than a minute (article translation) were killed
@@ -88,6 +110,18 @@ load) before building further on top of it._
   still showed as a plain banner, so this was invisible unless you had the console open.
 - The ledger's statement balance-check table merged two different files' identically-numbered
   statements (e.g. both exports call their first statement "1") into one row.
+- Every per-row ledger action (tag, confirm, assign a group) was silently submitting the
+  bulk-confirm form instead — the whole table sat inside that form, and a browser drops a
+  nested `<form>`'s own boundary. Fixed with a standalone bulk-confirm form the checkboxes
+  associate to by id; the previously-affected 5 real "Cap Vert" duplicate operations already
+  created on production from this were merged back into one.
+- Accepting a name-only group suggestion (e.g. "Cap Vert") always created a new operation
+  even when one by that name already existed, so two rows accepting the same suggestion
+  before a page refresh produced two operations instead of sharing one.
+- Bulk-confirming a selection where nothing was eligible (amber/red rows) said
+  "0 line(s) confirmed." with no explanation, read live as the button being broken. Ineligible
+  rows' checkboxes are now disabled with a tooltip, and the flash message says explicitly how
+  many were skipped and why.
 
 ### Needs attention
 - The ledger and the kanban board are restricted to `bureau_master` and marked in red in the
