@@ -58,20 +58,30 @@ class ComptesRendusActionExtractionService
         $prompt = "This is the text of \"{$documentLabel}\", the minutes (compte-rendu) of a diving club committee's meeting."
             .' List every concrete action item or task that someone was asked to do — not general discussion, decisions with nothing left to do, or routine reports.'
             .' For each one give a short title (a few words, in French, matching the document\'s language), who is responsible if a name is given (or null), and a short'
-            .' supporting quote or paraphrase from the text (one sentence).'
+            .' supporting quote or paraphrase from the text (one sentence, under 20 words).'
             ."\n\nDocument text:\n".mb_substr($text, 0, 6000)
             ."\n\nRespond with ONLY a JSON array, no other text, like:\n"
             .'[{"title": "...", "responsible": "..." or null, "context": "..."}]'
-            .' Respond with [] if there are no action items.';
+            .' Respond with [] if there are no action items. List at most 12 items.';
 
         try {
             $response = Http::withToken($apiToken)->timeout(60)->post(
                 "https://api.cloudflare.com/client/v4/accounts/{$accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct",
-                ['messages' => [['role' => 'user', 'content' => $prompt]]]
+                // max_tokens: the default budget is too small for a full action list with
+                // quotes — a truncated reply is invalid JSON and was silently discarded as
+                // a failure every time. Caught live on production: a real compte-rendu with
+                // 9 real actions returned null on every attempt until this was raised.
+                ['messages' => [['role' => 'user', 'content' => $prompt]], 'max_tokens' => 2048]
             );
 
             if (! $response->ok()) {
                 Log::warning('Cloudflare AI compte-rendu extraction failed', ['status' => $response->status()]);
+
+                return null;
+            }
+
+            if ($response->json('result.choices.0.finish_reason') === 'length') {
+                Log::warning('Cloudflare AI compte-rendu extraction truncated', ['document' => $documentLabel]);
 
                 return null;
             }

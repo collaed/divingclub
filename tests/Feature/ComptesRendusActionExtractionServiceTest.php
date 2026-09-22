@@ -102,6 +102,26 @@ class ComptesRendusActionExtractionServiceTest extends TestCase
         $this->assertSame('Roger', $actions[0]['responsible']);
     }
 
+    /**
+     * Caught live on production: the default output token budget was too small for a
+     * real compte-rendu's action list, so the reply was cut off mid-JSON and silently
+     * discarded as a failure on every attempt. A generous max_tokens is requested, and
+     * a still-truncated reply (finish_reason "length") is treated as a failure rather
+     * than fed to json_decode.
+     */
+    public function test_extract_actions_sends_a_generous_token_budget_and_rejects_a_truncated_reply(): void
+    {
+        config(['services.cloudflare.account_id' => 'acc', 'services.cloudflare.api_token' => 'tok']);
+        Http::fake(['api.cloudflare.com/*' => Http::response([
+            'result' => ['choices' => [['finish_reason' => 'length', 'message' => ['content' => '[{"title": "Cut off mid']]]],
+        ])]);
+
+        $actions = app(ComptesRendusActionExtractionService::class)->extractActions('long text', 'CR 1.pdf');
+
+        $this->assertNull($actions);
+        Http::assertSent(fn ($r) => ($r->data()['max_tokens'] ?? null) >= 2048);
+    }
+
     public function test_extract_actions_returns_null_when_the_ai_call_fails(): void
     {
         config(['services.cloudflare.account_id' => 'acc', 'services.cloudflare.api_token' => 'tok']);
