@@ -16,8 +16,7 @@ use Illuminate\Support\Facades\Storage;
  * PDF, a small XML strip for .docx — these are typed documents, not scans,
  * so no OCR is needed), ask Cloudflare Workers AI for the action items and
  * who's responsible, then either save them locally or push them to another
- * app's board (see config/kanban.php — production has the documents,
- * staging has the board being reviewed).
+ * app's board (see config/kanban.php).
  */
 class ComptesRendusActionExtractionService
 {
