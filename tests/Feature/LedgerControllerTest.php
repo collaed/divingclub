@@ -47,6 +47,21 @@ class LedgerControllerTest extends TestCase
         $this->actingAs($member)->get(route('admin.ledger.index'))->assertForbidden();
     }
 
+    /**
+     * The ledger is bureau_master only — narrower than the rest of admin.php,
+     * which the other bureau roles can otherwise reach.
+     */
+    public function test_bureau_finance_and_bureau_technical_cannot_open_the_ledger(): void
+    {
+        foreach (['bureau_finance', 'bureau_technical'] as $role) {
+            $user = User::factory()->create(['email_verified_at' => now()]);
+            MemberDetail::create(['user_id' => $user->id, 'first_name' => 'A', 'last_name' => 'B']);
+            $user->assignRole($role);
+
+            $this->actingAs($user)->get(route('admin.ledger.index'))->assertForbidden();
+        }
+    }
+
     public function test_the_inbox_lists_unconfirmed_transactions_grouped_by_state(): void
     {
         $this->tx(['state' => LedgerTransaction::STATE_EXPECTED, 'counterparty_name' => 'Marie Dupont']);
