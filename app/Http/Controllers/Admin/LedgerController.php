@@ -12,6 +12,7 @@ use App\Models\LedgerTransaction;
 use App\Services\LedgerClassificationService;
 use App\Services\LedgerStatementImportService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -31,8 +32,6 @@ class LedgerController extends Controller
             ->orderByDesc('transaction_date')->orderByDesc('id')
             ->paginate(30)->withQueryString();
 
-        $stateCounts = LedgerTransaction::unconfirmed()->selectRaw('state, count(*) c')->groupBy('state')->pluck('c', 'state');
-
         // Grouped by (source_file, statement_no), not statement_no alone — two different
         // imports both number their statements 1, 2, 3..., so grouping on the number alone
         // merged unrelated periods (e.g. January of two different years) into one row.
@@ -41,8 +40,9 @@ class LedgerController extends Controller
 
         return view('admin.ledger.index', [
             'transactions' => $transactions,
-            'stateCounts' => $stateCounts,
+            'stateCounts' => $this->stateCounts(),
             'statements' => $statements,
+            'labels' => $this->translatedLabels(),
             'fixedTags' => LedgerTag::where('kind', LedgerTag::KIND_FIXED)->orderBy('sort_order')->get(),
             'variableTags' => LedgerTag::where('kind', LedgerTag::KIND_VARIABLE)->orderBy('sort_order')->get(),
             'operations' => LedgerOperation::orderBy('name')->get(),
@@ -119,46 +119,64 @@ class LedgerController extends Controller
         return back()->with('success', $message);
     }
 
-    public function confirm(Request $request, LedgerTransaction $transaction): RedirectResponse
+    public function confirm(Request $request, LedgerTransaction $transaction): RedirectResponse|JsonResponse
     {
         $transaction->update(['confirmed_at' => now(), 'confirmed_by' => $request->user()->id]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'removed' => true, 'id' => $transaction->id, 'stateCounts' => $this->stateCounts()]);
+        }
 
         return back()->with('success', __('Confirmed.'));
     }
 
-    public function bulkConfirm(Request $request): RedirectResponse
+    public function bulkConfirm(Request $request): RedirectResponse|JsonResponse
     {
         $v = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
         // Bulk action never confirms an amber/red/unmatched line — only what the classifier
         // already trusts. The checkbox is disabled for anything else, but that alone made a
         // 0-confirmed submission (every selected row ineligible) look like the button doing
         // nothing — say explicitly when that's why the count is low.
-        $count = LedgerTransaction::whereIn('id', $v['ids'])
+        $eligible = LedgerTransaction::whereIn('id', $v['ids'])
             ->whereIn('state', [LedgerTransaction::STATE_EXPECTED, LedgerTransaction::STATE_RECOGNISED, LedgerTransaction::STATE_LOOP])
-            ->update(['confirmed_at' => now(), 'confirmed_by' => $request->user()->id]);
+            ->pluck('id');
+        LedgerTransaction::whereIn('id', $eligible)->update(['confirmed_at' => now(), 'confirmed_by' => $request->user()->id]);
 
+        $count = $eligible->count();
         $skipped = count($v['ids']) - $count;
         $message = __(':count line(s) confirmed.', ['count' => $count]);
         if ($skipped > 0) {
             $message .= ' '.__(':skipped not confirmed — only green (Expected / Recognised / Paired) lines can be bulk-confirmed; amber and red need individual review.', ['skipped' => $skipped]);
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'removedIds' => $eligible->values(), 'message' => $message, 'success' => $count > 0, 'stateCounts' => $this->stateCounts()]);
+        }
+
         return back()->with($count > 0 ? 'success' : 'warning', $message);
     }
 
-    public function tag(Request $request, LedgerTransaction $transaction): RedirectResponse
+    public function tag(Request $request, LedgerTransaction $transaction): RedirectResponse|JsonResponse
     {
         $v = $request->validate(['tag_id' => 'required|exists:ledger_tags,id', 'value' => 'nullable|string|max:255']);
         $transaction->tags()->syncWithoutDetaching([$v['tag_id'] => ['value' => $v['value'] ?? null]]);
         $this->classifier->reevaluate($transaction);
 
+        if ($request->expectsJson()) {
+            return $this->rowResponse($transaction, __('Tag applied.'));
+        }
+
         return back()->with('success', __('Tag applied.'));
     }
 
-    public function untag(LedgerTransaction $transaction, LedgerTag $tag): RedirectResponse
+    public function untag(Request $request, LedgerTransaction $transaction, LedgerTag $tag): RedirectResponse|JsonResponse
     {
         $transaction->tags()->detach($tag->id);
         $this->classifier->reevaluate($transaction);
+
+        if ($request->expectsJson()) {
+            return $this->rowResponse($transaction, __('Tag removed.'));
+        }
 
         return back()->with('success', __('Tag removed.'));
     }
@@ -171,7 +189,7 @@ class LedgerController extends Controller
      * ledger at all, so there's no separate treasurer-approval step — creating it
      * here is the approval.
      */
-    public function createTag(Request $request, LedgerTransaction $transaction): RedirectResponse
+    public function createTag(Request $request, LedgerTransaction $transaction): RedirectResponse|JsonResponse
     {
         $v = $request->validate([
             'label' => 'required|string|max:60',
@@ -191,7 +209,12 @@ class LedgerController extends Controller
         $transaction->tags()->syncWithoutDetaching([$tag->id]);
         $this->classifier->reevaluate($transaction);
 
-        return back()->with('success', __('Tag ":label" created and applied.', ['label' => $tag->label]));
+        $message = __('Tag ":label" created and applied.', ['label' => $tag->label]);
+        if ($request->expectsJson()) {
+            return $this->rowResponse($transaction, $message);
+        }
+
+        return back()->with('success', $message);
     }
 
     /** A clean slug from the label; a short suffix only if two different labels would otherwise collide. */
@@ -224,7 +247,7 @@ class LedgerController extends Controller
      * "new_name" doesn't match an existing operation (a suggested group name
      * becomes a one-click operation).
      */
-    public function assignOperation(Request $request, LedgerTransaction $transaction): RedirectResponse
+    public function assignOperation(Request $request, LedgerTransaction $transaction): RedirectResponse|JsonResponse
     {
         $v = $request->validate([
             'operation_id' => 'nullable|exists:ledger_operations,id',
@@ -249,14 +272,59 @@ class LedgerController extends Controller
             $this->classifier->reevaluate($transaction);
         }
 
+        if ($request->expectsJson()) {
+            return $this->rowResponse($transaction, __('Assigned.'));
+        }
+
         return back()->with('success', __('Assigned.'));
     }
 
-    public function removeOperation(LedgerTransaction $transaction, LedgerOperation $operation): RedirectResponse
+    public function removeOperation(Request $request, LedgerTransaction $transaction, LedgerOperation $operation): RedirectResponse|JsonResponse
     {
         $transaction->operations()->detach($operation->id);
         $this->classifier->reevaluate($transaction);
 
-        return back()->with('success', __('Removed from :name.', ['name' => $operation->name]));
+        $message = __('Removed from :name.', ['name' => $operation->name]);
+        if ($request->expectsJson()) {
+            return $this->rowResponse($transaction, $message);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /** The re-rendered row (fresh state/tags/groups) plus updated pill counts, for an in-place swap. */
+    private function rowResponse(LedgerTransaction $transaction, string $message): JsonResponse
+    {
+        $transaction->refresh()->load(['counterparty', 'operations', 'tags']);
+
+        $html = view('admin.ledger._row', [
+            'tx' => $transaction,
+            'labels' => $this->translatedLabels(),
+            'fixedTags' => LedgerTag::where('kind', LedgerTag::KIND_FIXED)->orderBy('sort_order')->get(),
+            'variableTags' => LedgerTag::where('kind', LedgerTag::KIND_VARIABLE)->orderBy('sort_order')->get(),
+        ])->render();
+
+        return response()->json(['ok' => true, 'html' => $html, 'message' => $message, 'stateCounts' => $this->stateCounts()]);
+    }
+
+    /** @return array<string, int> */
+    private function stateCounts(): array
+    {
+        $counts = LedgerTransaction::unconfirmed()->selectRaw('state, count(*) c')->groupBy('state')->pluck('c', 'state')->all();
+        $counts['all'] = array_sum($counts);
+
+        return $counts;
+    }
+
+    /** @return array<string, array{string, string}> */
+    private function translatedLabels(): array
+    {
+        return [
+            'expected' => ['✓✓ '.__('Expected'), 'lg-expected'],
+            'recognised' => ['✓ '.__('Recognised'), 'lg-recognised'],
+            'confirm' => ['≈ '.__('To confirm'), 'lg-confirm'],
+            'unknown' => ['? '.__('Unknown'), 'lg-unknown'],
+            'loop' => ['⇄ '.__('Paired'), 'lg-loop'],
+        ];
     }
 }
