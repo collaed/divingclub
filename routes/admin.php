@@ -233,6 +233,7 @@ Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignore
 Route::middleware('role:bureau_master')->group(function (): void {
     Route::get('/ledger', [LedgerController::class, 'index'])->name('ledger.index');
     Route::get('/ledger/operations', [LedgerController::class, 'operations'])->name('ledger.operations');
+    Route::get('/ledger/review', [LedgerController::class, 'review'])->name('ledger.review');
     Route::post('/ledger/import', [LedgerController::class, 'import'])->name('ledger.import');
     Route::post('/ledger/{transaction}/confirm', [LedgerController::class, 'confirm'])->name('ledger.confirm');
     Route::post('/ledger/bulk-confirm', [LedgerController::class, 'bulkConfirm'])->name('ledger.bulk-confirm');
@@ -241,6 +242,7 @@ Route::middleware('role:bureau_master')->group(function (): void {
     Route::delete('/ledger/{transaction}/tag/{tag}', [LedgerController::class, 'untag'])->name('ledger.tag.remove');
     Route::post('/ledger/bulk-tag', [LedgerController::class, 'bulkTag'])->name('ledger.bulk-tag');
     Route::post('/ledger/{transaction}/operation', [LedgerController::class, 'assignOperation'])->name('ledger.assign-operation');
+    Route::delete('/ledger/{transaction}/operation/{operation}', [LedgerController::class, 'removeOperation'])->name('ledger.operation.remove');
 });
 
 // Document Intake — shared upload point for licence scans and bank

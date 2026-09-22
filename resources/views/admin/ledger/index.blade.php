@@ -34,6 +34,7 @@
     </div>
     <div class="d-flex gap-2">
         <a href="{{ route('admin.ledger.operations') }}" class="btn btn-sm btn-outline-secondary">{{ __('Operations') }}</a>
+        <a href="{{ route('admin.ledger.review') }}" class="btn btn-sm btn-outline-secondary">{{ __('Review by tag / group') }}</a>
         <form method="POST" action="{{ route('admin.ledger.import') }}" enctype="multipart/form-data" class="d-flex gap-2">
             @csrf
             <input type="file" name="statement" accept=".xlsx" class="form-control form-control-sm" required>
@@ -148,26 +149,31 @@
                             </div>
                         </div>
                     </td>
-                    <td>
-                        @if($tx->operation)
-                            <span class="lg-chip">{{ $tx->operation->name }}</span>
-                        @else
-                            @if($tx->suggested_group)
-                                <div class="small text-muted">{{ __('Suggested:') }} {{ $tx->suggested_group }}</div>
-                            @endif
-                            <form method="POST" action="{{ route('admin.ledger.assign-operation', $tx) }}" class="d-flex gap-1">
-                                @csrf
-                                <input type="text" name="new_name" list="lg-operations-list" class="form-control form-control-sm" style="width:9rem"
-                                       value="{{ $tx->suggested_group }}" placeholder="{{ __('Type or pick a group…') }}">
-                                <select name="new_kind" class="form-select form-select-sm" style="width:auto" aria-label="{{ __('Kind (only used when creating a new group)') }}">
-                                    <option value="trip">{{ __('Trip') }}</option>
-                                    <option value="loop">{{ __('Loop') }}</option>
-                                    <option value="cost_centre">{{ __('Cost centre') }}</option>
-                                    <option value="other">{{ __('Other') }}</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('Assign') }}</button>
+                    <td style="min-width:11rem">
+                        {{-- Usually one, but exceptionally more than one (e.g. a single van-rental
+                             invoice split between two outings) — so every assigned group shows,
+                             removable, and the box to add another always stays available. --}}
+                        @foreach($tx->operations as $op)
+                            <form method="POST" action="{{ route('admin.ledger.operation.remove', [$tx, $op]) }}" class="d-inline-block mb-1">
+                                @csrf @method('DELETE')
+                                <span class="lg-chip">{{ $op->name }}<button type="submit" class="lg-tag-remove" aria-label="{{ __('Remove from :name', ['name' => $op->name]) }}" title="{{ __('Remove from :name', ['name' => $op->name]) }}">×</button></span>
                             </form>
+                        @endforeach
+                        @if($tx->suggested_group && ! $tx->operations->contains('name', $tx->suggested_group))
+                            <div class="small text-muted">{{ __('Suggested:') }} {{ $tx->suggested_group }}</div>
                         @endif
+                        <form method="POST" action="{{ route('admin.ledger.assign-operation', $tx) }}" class="d-flex gap-1 mt-1">
+                            @csrf
+                            <input type="text" name="new_name" list="lg-operations-list" class="form-control form-control-sm" style="width:9rem"
+                                   value="{{ $tx->operations->isEmpty() ? $tx->suggested_group : '' }}" placeholder="{{ $tx->operations->isEmpty() ? __('Type or pick a group…') : __('Add another…') }}">
+                            <select name="new_kind" class="form-select form-select-sm" style="width:auto" aria-label="{{ __('Kind (only used when creating a new group)') }}">
+                                <option value="trip">{{ __('Trip') }}</option>
+                                <option value="loop">{{ __('Loop') }}</option>
+                                <option value="cost_centre">{{ __('Cost centre') }}</option>
+                                <option value="other">{{ __('Other') }}</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('Assign') }}</button>
+                        </form>
                     </td>
                     <td>
                         <form method="POST" action="{{ route('admin.ledger.confirm', $tx) }}">

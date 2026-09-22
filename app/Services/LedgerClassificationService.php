@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\LedgerCounterparty;
+use App\Models\LedgerOperation;
 use App\Models\LedgerTag;
 use App\Models\LedgerTransaction;
 use App\Models\MemberDetail;
@@ -43,6 +44,75 @@ class LedgerClassificationService
                 $tx->tags()->syncWithoutDetaching([$tag->id]);
             }
         }
+    }
+
+    /**
+     * Re-checks an amber/red line after a manual action (tag, untag, group change)
+     * — the only path that can raise it to green, or refresh its explanation with
+     * what's now known, without redoing the from-scratch text classification
+     * (which would blow away a manual override that no longer text-matches a
+     * rule). A confirmed line is left alone — it's already reviewed and closed.
+     */
+    public function reevaluate(LedgerTransaction $tx): void
+    {
+        if ($tx->confirmed_at) {
+            return;
+        }
+
+        $tx->loadMissing(['tags', 'operations']);
+
+        if (! $tx->counterparty_id) {
+            $tx->counterparty_id = $this->matchCounterparty($tx)?->id;
+        }
+        $tx->load('counterparty');
+
+        // A closed loop that nets to zero is settled, whatever led it there — and
+        // since it's this transaction joining that may be what just balanced it,
+        // every sibling in the loop is updated too, not only the one passed in
+        // (the other side could have been added first, before the loop closed).
+        $loop = $tx->operations->first(fn (LedgerOperation $op): bool => $op->kind === LedgerOperation::KIND_LOOP);
+        if ($loop && $loop->transactions()->count() >= 2 && abs($loop->net()) < 0.01) {
+            $loop->transactions()->get()->each(function (LedgerTransaction $sibling) use ($loop): void {
+                if ($sibling->confirmed_at) {
+                    return;
+                }
+                $sibling->state = LedgerTransaction::STATE_LOOP;
+                $sibling->state_reason = "Part of the closed loop \"{$loop->name}\" — nets to zero.";
+                $sibling->save();
+            });
+
+            return;
+        }
+
+        // A human-applied tag is at least as strong a signal as a text-matched
+        // rule — tagged plus a known counterparty is "recognised" (light green).
+        $tag = $tx->tags->first();
+        if ($tag && $tx->counterparty_id) {
+            $tx->state = LedgerTransaction::STATE_RECOGNISED;
+            $tx->state_reason = "Tagged #{$tag->label}, known counterparty ({$tx->counterparty?->name}) — no amount to check against.";
+            $tx->save();
+
+            return;
+        }
+
+        $bits = [];
+        if ($tag) {
+            $bits[] = 'tagged '.$tx->tags->map(fn (LedgerTag $t): string => '#'.$t->label)->implode(', ');
+        }
+        if ($tx->operations->isNotEmpty()) {
+            $bits[] = 'grouped under '.$tx->operations->pluck('name')->implode(', ');
+        }
+        if ($tx->counterparty_id) {
+            $bits[] = 'counterparty known';
+        }
+
+        if ($bits === []) {
+            return; // nothing new — leave state and state_reason as they were
+        }
+
+        $tx->state = LedgerTransaction::STATE_CONFIRM;
+        $tx->state_reason = ucfirst(implode('; ', $bits)).' — still needs a human check.';
+        $tx->save();
     }
 
     /** @var Collection<int, MemberDetail>|null memoized for the lifetime of this instance, so a batch import doesn't re-fetch every member per row */
