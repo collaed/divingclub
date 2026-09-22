@@ -11,25 +11,21 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
 
+/**
+ * The board went to production restricted to bureau_master only — narrower
+ * than the original staging design (bureau + instructors) — matching the
+ * other "super high privilege" items in the nav (e.g. Votes).
+ */
 class KanbanBoardTest extends TestCase
 {
     use RefreshDatabase;
     use SeedsRoles;
 
-    private function instructor(): User
+    private function withRole(string $role): User
     {
         $u = User::factory()->create(['email_verified_at' => now()]);
-        MemberDetail::create(['user_id' => $u->id, 'first_name' => 'Insty', 'last_name' => 'Ructor']);
-        $u->assignRole('instructor');
-
-        return $u;
-    }
-
-    private function member(): User
-    {
-        $u = User::factory()->create(['email_verified_at' => now()]);
-        MemberDetail::create(['user_id' => $u->id, 'first_name' => 'Plain', 'last_name' => 'Member']);
-        $u->assignRole('member');
+        MemberDetail::create(['user_id' => $u->id, 'first_name' => 'Test', 'last_name' => ucfirst($role)]);
+        $u->assignRole($role);
 
         return $u;
     }
@@ -40,13 +36,15 @@ class KanbanBoardTest extends TestCase
         $this->seedRoles();
     }
 
-    public function test_bureau_and_instructors_see_the_board_but_a_plain_member_does_not(): void
+    public function test_only_bureau_master_sees_the_board(): void
     {
         KanbanCard::create(['title' => 'Renew the pool contract', 'status' => 'todo', 'source_document_name' => 'CR bureau 01-01-2026.pdf']);
 
         $this->actingAs($this->createBureauUser())->get(route('kanban.index'))->assertOk()->assertSee('Renew the pool contract');
-        $this->actingAs($this->instructor())->get(route('kanban.index'))->assertOk()->assertSee('Renew the pool contract');
-        $this->actingAs($this->member())->get(route('kanban.index'))->assertForbidden();
+
+        foreach (['bureau_finance', 'bureau_technical', 'instructor', 'instructor_apnea', 'member'] as $role) {
+            $this->actingAs($this->withRole($role))->get(route('kanban.index'))->assertForbidden();
+        }
     }
 
     public function test_cards_are_grouped_by_status_and_discarded_ones_are_hidden(): void
@@ -59,13 +57,22 @@ class KanbanBoardTest extends TestCase
             ->assertOk()->assertSee('Todo card')->assertSee('Doing card')->assertDontSee('Old card');
     }
 
-    public function test_an_instructor_can_move_a_card_between_columns(): void
+    public function test_bureau_master_can_move_a_card_between_columns(): void
     {
         $card = KanbanCard::create(['title' => 'Buy tanks', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
 
-        $this->actingAs($this->instructor())->post(route('kanban.status', $card), ['status' => 'doing'])->assertRedirect();
+        $this->actingAs($this->createBureauUser())->post(route('kanban.status', $card), ['status' => 'doing'])->assertRedirect();
 
         $this->assertSame('doing', $card->fresh()->status);
+    }
+
+    public function test_an_instructor_can_no_longer_move_a_card(): void
+    {
+        $card = KanbanCard::create(['title' => 'Buy tanks', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+
+        $this->actingAs($this->withRole('instructor'))->post(route('kanban.status', $card), ['status' => 'doing'])->assertForbidden();
+
+        $this->assertSame('todo', $card->fresh()->status);
     }
 
     public function test_discarding_a_card_hides_it_without_deleting_it(): void
