@@ -12,10 +12,12 @@ use App\Http\Requests\UpdateProfileInfoRequest;
 use App\Http\Requests\UpdateProfileLanguageRequest;
 use App\Models\Document;
 use App\Models\LedgerCounterparty;
+use App\Models\LedgerTransaction;
 use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
 use App\Models\User;
+use App\Services\LedgerClassificationService;
 use App\Services\MedicalComplianceService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -60,7 +62,40 @@ class ProfileController extends Controller
         // Header-only precision (exact age, exact medical-expiry date).
         $tierManifest = $tierVault || $isInstructor;
 
-        return view('profile.show', compact('target', 'viewer', 'statuses', 'statusSets', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierSensitive', 'tierManifest'));
+        // Same boundary as the ledger itself (bureau_master only) — this is
+        // raw bank transaction data, just viewed from the member side.
+        $cotisationCandidates = collect();
+        $cotisationDerived = [];
+        $showIdentified = $request->boolean('show_identified');
+        $cotSearch = trim((string) $request->get('cot_search', ''));
+        if ($viewer->hasRole('bureau_master')) {
+            $linkedIds = $target->cotisationTransactions()->pluck('ledger_transactions.id');
+            $like = config('database.default') === 'pgsql' ? 'ILIKE' : 'LIKE';
+
+            $cotisationCandidates = LedgerTransaction::with('members')
+                ->whereHas('tags', fn ($q) => $q->where('slug', 'cotisation'))
+                ->when(! $showIdentified, fn ($q) => $q->whereNotIn('id', $linkedIds))
+                ->when($cotSearch !== '', function ($q) use ($cotSearch, $like): void {
+                    $q->where(function ($q2) use ($cotSearch, $like): void {
+                        foreach (['communication_1', 'communication_2', 'communication_3', 'communication_4', 'counterparty_name'] as $col) {
+                            $q2->orWhere($col, $like, "%{$cotSearch}%");
+                        }
+                    });
+                })
+                ->orderByDesc('transaction_date')
+                ->limit(50)
+                ->get();
+
+            $classifier = app(LedgerClassificationService::class);
+            foreach ($cotisationCandidates as $candidate) {
+                $cotisationDerived[$candidate->id] = $classifier->deriveCotisationDetails($candidate);
+            }
+        }
+
+        return view('profile.show', compact(
+            'target', 'viewer', 'statuses', 'statusSets', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierSensitive', 'tierManifest',
+            'cotisationCandidates', 'cotisationDerived', 'showIdentified', 'cotSearch',
+        ));
     }
 
     public function updateInfo(Request $request, ?User $user = null): RedirectResponse
@@ -176,6 +211,30 @@ class ProfileController extends Controller
         $this->syncLedgerCounterparty($target, $validated['iban'] ?? null, $validated['account_holder_name'] ?? null);
 
         return back()->with('success', __('Private info updated.'))->withInput(['tab' => 'private']);
+    }
+
+    /**
+     * Links a cotisation-tagged transaction to this member — never exclusive,
+     * since a couple or a parent and child can pay both their cotisations in
+     * one transfer, so linking it here must not remove it as a candidate for
+     * anyone else's screen.
+     */
+    public function linkCotisation(Request $request, User $user, LedgerTransaction $transaction): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('bureau_master'), 403);
+
+        $user->cotisationTransactions()->syncWithoutDetaching([$transaction->id => ['linked_by' => $request->user()->id]]);
+
+        return back()->with('success', __('Linked.'))->withInput(['tab' => 'renewal']);
+    }
+
+    public function unlinkCotisation(Request $request, User $user, LedgerTransaction $transaction): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('bureau_master'), 403);
+
+        $user->cotisationTransactions()->detach($transaction->id);
+
+        return back()->with('success', __('Unlinked.'))->withInput(['tab' => 'renewal']);
     }
 
     /**

@@ -244,6 +244,11 @@ Route::middleware('role:bureau_master')->group(function (): void {
     Route::post('/ledger/bulk-tag', [LedgerController::class, 'bulkTag'])->name('ledger.bulk-tag');
     Route::post('/ledger/{transaction}/operation', [LedgerController::class, 'assignOperation'])->name('ledger.assign-operation');
     Route::delete('/ledger/{transaction}/operation/{operation}', [LedgerController::class, 'removeOperation'])->name('ledger.operation.remove');
+
+    // Same boundary as the rest of the ledger — linking a bank transaction to a
+    // member from their own profile screen is still raw ledger data underneath.
+    Route::post('/members/{user}/cotisation/{transaction}', [ProfileController::class, 'linkCotisation'])->name('profile.cotisation.link');
+    Route::delete('/members/{user}/cotisation/{transaction}', [ProfileController::class, 'unlinkCotisation'])->name('profile.cotisation.unlink');
 });
 
 // Document Intake — shared upload point for licence scans and bank

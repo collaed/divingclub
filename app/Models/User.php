@@ -239,6 +239,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return strtoupper(substr($this->detail?->first_name ?? '?', 0, 1).substr($this->detail?->last_name ?? '', 0, 1));
     }
 
+    /** Ledger transactions confirmed as (at least in part) this member's cotisation. */
+    public function cotisationTransactions(): BelongsToMany
+    {
+        return $this->belongsToMany(LedgerTransaction::class, 'ledger_transaction_member')->withPivot('linked_by')->withTimestamps();
+    }
+
     /** @deprecated Use isBureau() or $user->can('permission') for granular checks. */
     public function isBureauMaster(): bool
     {

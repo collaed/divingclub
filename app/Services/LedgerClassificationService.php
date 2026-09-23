@@ -241,4 +241,60 @@ class LedgerClassificationService
 
         return [LedgerTransaction::STATE_UNKNOWN, 'Neither the counterparty nor the purpose is recognised.'];
     }
+
+    /**
+     * Best-effort read of which cotisation category and insurance option a
+     * payment was for, straight from the bank communication text — which,
+     * for this club, is usually the member typing back the club's own
+     * payment instructions almost verbatim (e.g. "Cotisation 2026
+     * Fonctionnaire Loisir 1 Top"). A fallback for the rare line where the
+     * text is too vague would need to reverse-match the paid amount against
+     * every cep+licence+insurance combination for that season instead — not
+     * implemented here, since text matching alone covers the large majority.
+     *
+     * @return array{category: string|null, categoryLabel: string|null, insurance: string|null, insuranceLabel: string|null}
+     */
+    public function deriveCotisationDetails(LedgerTransaction $tx): array
+    {
+        $text = $tx->communication_1.' '.$tx->communication_2.' '.$tx->communication_3.' '.$tx->communication_4;
+
+        $category = $this->matchFirst($text, [
+            'fonctionnaire' => '/fonctionn?aire/i',
+            'jeune16' => '/jeune\s*16/i',
+            'jeune' => '/jeune/i',
+            'enfant' => '/enf\s*ant/i',
+            'externe' => '/externe/i',
+            'sympathisant' => '/sympathisant/i',
+        ]);
+
+        // Checked most-specific (Top) first — "Loisir 1" is a substring of "Loisir 1 Top".
+        $insurance = $this->matchFirst($text, [
+            'loisir1top' => '/loisir\s*1\s*top/i',
+            'loisir2top' => '/loisir\s*2\s*top/i',
+            'loisir3top' => '/loisir\s*3\s*top/i',
+            'loisir1' => '/loisir\s*1\b/i',
+            'loisir2' => '/loisir\s*2\b/i',
+            'loisir3' => '/loisir\s*3\b/i',
+            'none' => '/(sans|pas d\').{0,15}assurance/i',
+        ]);
+
+        return [
+            'category' => $category,
+            'categoryLabel' => $category ? config("cotisation.cep.{$category}.label") : null,
+            'insurance' => $insurance,
+            'insuranceLabel' => $insurance ? config("cotisation.insurance.{$insurance}.label") : null,
+        ];
+    }
+
+    /** @param  array<string, string>  $patterns  key => regex, checked in order, first match wins */
+    private function matchFirst(string $text, array $patterns): ?string
+    {
+        foreach ($patterns as $key => $pattern) {
+            if (preg_match($pattern, $text) === 1) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
 }

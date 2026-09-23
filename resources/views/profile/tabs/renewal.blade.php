@@ -177,6 +177,74 @@
     <p class="text-muted">{{ __('No licence records yet.') }}</p>
 @endif
 
+@if($viewer->hasRole('bureau_master'))
+<hr class="my-4">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+    <h6 class="mb-0">{{ __('Cotisation bank payments') }}</h6>
+    <a href="{{ route('admin.ledger.index') }}" class="small">{{ __('Open the ledger') }}</a>
+</div>
+<p class="small text-muted">
+    {{ __('Cotisation-tagged bank lines, to link to this member — a couple or a parent and child can pay both cotisations in one transfer, so a line already linked to someone else can still be linked here too. Category and insurance are read straight from the bank communication text when it names them.') }}
+</p>
+@php $showRoute = $viewer->id === $target->id ? route('profile.show') : route('admin.profile.show', $target); @endphp
+<form method="GET" action="{{ $showRoute }}" class="d-flex flex-wrap gap-2 align-items-center mb-2">
+    <input type="hidden" name="tab" value="renewal">
+    <input type="text" name="cot_search" class="form-control form-control-sm" style="max-width:16rem" placeholder="{{ __('Search name, amount, communication…') }}" value="{{ $cotSearch }}">
+    <div class="form-check">
+        <input type="checkbox" name="show_identified" value="1" id="cot-show-identified" class="form-check-input" onchange="this.form.submit()" @checked($showIdentified)>
+        <label class="form-check-label small" for="cot-show-identified">{{ __('Show also those already identified') }}</label>
+    </div>
+    <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('Search') }}</button>
+</form>
+@if($cotisationCandidates->isEmpty())
+    <p class="small text-muted">{{ $showIdentified ? __('No cotisation lines found.') : __('Nothing unidentified — try "Show also those already identified", or search.') }}</p>
+@else
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead><tr><th>{{ __('Date') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Communication') }}</th><th>{{ __('Derived') }}</th><th>{{ __('Linked to') }}</th><th></th></tr></thead>
+        <tbody>
+        @foreach($cotisationCandidates as $tx)
+            @php
+                $derived = $cotisationDerived[$tx->id] ?? ['categoryLabel' => null, 'insuranceLabel' => null];
+                $linkedToTarget = $tx->members->contains('id', $target->id);
+            @endphp
+            <tr>
+                <td class="small">{{ $tx->transaction_date->format('d/m/Y') }}</td>
+                <td class="small">{{ number_format((float) $tx->amount, 2, ',', ' ') }}</td>
+                <td class="small">{{ $tx->communication() ?: $tx->counterparty_name }}</td>
+                <td class="small">
+                    @if($derived['categoryLabel'] || $derived['insuranceLabel'])
+                        {{ $derived['categoryLabel'] }}
+                        @if($derived['insuranceLabel'])<br>{{ $derived['insuranceLabel'] }}@endif
+                    @else
+                        <span class="text-muted fst-italic">{{ __('not detected') }}</span>
+                    @endif
+                </td>
+                <td class="small">{{ $tx->members->map(fn ($m) => $m->initials())->implode(', ') ?: '—' }}</td>
+                <td>
+                    @if($linkedToTarget)
+                        <form method="POST" action="{{ route('admin.profile.cotisation.unlink', [$target, $tx]) }}">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('Unlink') }}</button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('admin.profile.cotisation.link', [$target, $tx]) }}">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Link to this member') }}</button>
+                        </form>
+                    @endif
+                </td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+</div>
+@if($cotisationCandidates->count() === 50)
+    <p class="small text-muted">{{ __('Showing the 50 most recent — narrow with search to find an older one.') }}</p>
+@endif
+@endif
+@endif
+
 {{-- QR scanner script --}}
 @if($licences->where('federation.acronym', 'FFESSM')->isNotEmpty())
 @push('scripts')

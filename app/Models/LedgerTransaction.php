@@ -102,6 +102,17 @@ class LedgerTransaction extends Model
         return $this->belongsTo(User::class, 'confirmed_by');
     }
 
+    /**
+     * Usually one, but exceptionally more than one — a couple or a parent
+     * and child can pay both their cotisations in a single transfer.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'ledger_transaction_member')->withPivot('linked_by')->withTimestamps();
+    }
+
     /** Every non-empty communication line joined, for keyword matching and display. */
     public function communication(): string
     {
