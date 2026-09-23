@@ -151,6 +151,19 @@
         var row = form.closest('[data-ledger-row]');
         var body = new FormData(form);
 
+        // Confirming folds in whatever's currently showing in this row's group
+        // box — a suggestion or a typed name the user never separately clicked
+        // "Assign" on looks already "set" there, so Confirm honours it instead
+        // of silently dropping it.
+        if (form.hasAttribute('data-ledger-confirm') && row) {
+            var groupInput = row.querySelector('input[name="new_name"]');
+            if (groupInput && groupInput.value.trim() !== '') {
+                body.append('new_name', groupInput.value.trim());
+                var kindSelect = row.querySelector('select[name="new_kind"]');
+                if (kindSelect) { body.append('new_kind', kindSelect.value); }
+            }
+        }
+
         fetch(form.getAttribute('action'), {
             method: 'POST',
             headers: { Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },

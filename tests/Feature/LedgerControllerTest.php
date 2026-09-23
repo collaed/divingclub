@@ -169,6 +169,45 @@ class LedgerControllerTest extends TestCase
         $this->assertNotNull($tx->fresh()->confirmed_at);
     }
 
+    /**
+     * Caught live: a bureau member "confirmed the suggestion" by clicking
+     * Confirm alone — the group box's suggested value looked already "set"
+     * in the UI, but nothing had actually submitted it. Confirm now folds
+     * in whatever's showing there.
+     */
+    public function test_confirming_with_a_pending_group_name_also_assigns_it(): void
+    {
+        $tx = $this->tx(['suggested_group' => 'Juan-les-Pins']);
+
+        $this->actingAs($this->createBureauUser())
+            ->postJson(route('admin.ledger.confirm', $tx), ['new_name' => 'Juan-les-Pins'])
+            ->assertOk()->assertJson(['ok' => true]);
+
+        $tx->refresh();
+        $this->assertNotNull($tx->confirmed_at);
+        $this->assertTrue($tx->operations->contains('name', 'Juan-les-Pins'));
+    }
+
+    public function test_confirming_reuses_an_existing_operation_by_name_rather_than_duplicating(): void
+    {
+        $existing = LedgerOperation::create(['name' => 'Juan-les-Pins', 'kind' => LedgerOperation::KIND_TRIP]);
+        $tx = $this->tx();
+
+        $this->actingAs($this->createBureauUser())->postJson(route('admin.ledger.confirm', $tx), ['new_name' => 'juan-les-pins']);
+
+        $this->assertSame(1, LedgerOperation::where('name', 'Juan-les-Pins')->count());
+        $this->assertTrue($tx->fresh()->operations->contains('id', $existing->id));
+    }
+
+    public function test_confirming_with_no_group_shown_behaves_exactly_as_before(): void
+    {
+        $tx = $this->tx();
+
+        $this->actingAs($this->createBureauUser())->postJson(route('admin.ledger.confirm', $tx))->assertOk();
+
+        $this->assertCount(0, $tx->fresh()->operations);
+    }
+
     public function test_bulk_confirming_via_ajax_returns_the_confirmed_ids_and_state_counts(): void
     {
         $expected = $this->tx(['state' => LedgerTransaction::STATE_EXPECTED]);

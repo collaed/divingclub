@@ -130,6 +130,22 @@ class LedgerController extends Controller
 
     public function confirm(Request $request, LedgerTransaction $transaction): RedirectResponse|JsonResponse
     {
+        $v = $request->validate([
+            'new_name' => 'nullable|string|max:255',
+            'new_kind' => 'nullable|in:'.implode(',', [LedgerOperation::KIND_LOOP, LedgerOperation::KIND_TRIP, LedgerOperation::KIND_COST_CENTRE, LedgerOperation::KIND_OTHER]),
+        ]);
+
+        // The group box next to a row can hold a suggestion or a typed name the
+        // user never explicitly clicked "Assign" on — it looks already "set" in
+        // the UI, so confirming applies whatever's showing there too, rather
+        // than silently discarding it. Caught live: a bureau member "confirmed
+        // the suggestion" by clicking Confirm alone, and the group was lost.
+        $operationId = $this->resolveOperationId(null, $v['new_name'] ?? null, $v['new_kind'] ?? null);
+        if ($operationId) {
+            $transaction->operations()->syncWithoutDetaching([$operationId]);
+            $this->classifier->reevaluate($transaction);
+        }
+
         $transaction->update(['confirmed_at' => now(), 'confirmed_by' => $request->user()->id]);
 
         if ($request->expectsJson()) {
@@ -276,17 +292,7 @@ class LedgerController extends Controller
             'new_kind' => 'nullable|in:'.implode(',', [LedgerOperation::KIND_LOOP, LedgerOperation::KIND_TRIP, LedgerOperation::KIND_COST_CENTRE, LedgerOperation::KIND_OTHER]),
         ]);
 
-        $operationId = $v['operation_id'] ?? null;
-        if (! $operationId && ! empty($v['new_name'])) {
-            // firstOrCreate, not create: each row with the same suggested group posts
-            // "new_name" independently, and the page isn't reloaded between accepts, so
-            // a second row accepting "Cap Vert" before the first page refresh must reuse
-            // the operation the first row just created, not spawn a duplicate.
-            $operationId = LedgerOperation::query()
-                ->whereRaw('LOWER(name) = ?', [mb_strtolower($v['new_name'])])
-                ->first()?->id
-                ?? LedgerOperation::create(['name' => $v['new_name'], 'kind' => $v['new_kind'] ?? LedgerOperation::KIND_OTHER])->id;
-        }
+        $operationId = $this->resolveOperationId($v['operation_id'] ?? null, $v['new_name'] ?? null, $v['new_kind'] ?? null);
 
         if ($operationId) {
             $transaction->operations()->syncWithoutDetaching([$operationId]);
@@ -311,6 +317,29 @@ class LedgerController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * An explicit operation id wins; otherwise firstOrCreate by name (case-
+     * insensitive) — not create, since two rows can post the same "new_name"
+     * independently (e.g. two lines both accepting a "Cap Vert" suggestion)
+     * before either page refreshes, and must share one operation, not spawn
+     * a duplicate.
+     */
+    private function resolveOperationId(?int $operationId, ?string $newName, ?string $newKind): ?int
+    {
+        if ($operationId) {
+            return $operationId;
+        }
+
+        if (empty($newName)) {
+            return null;
+        }
+
+        return LedgerOperation::query()
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($newName)])
+            ->first()?->id
+            ?? LedgerOperation::create(['name' => $newName, 'kind' => $newKind ?? LedgerOperation::KIND_OTHER])->id;
     }
 
     /** The re-rendered row (fresh state/tags/groups) plus updated pill counts, for an in-place swap. */

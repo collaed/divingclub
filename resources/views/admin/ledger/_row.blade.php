@@ -98,7 +98,10 @@
         </form>
     </td>
     <td>
-        <form method="POST" action="{{ route('admin.ledger.confirm', $tx) }}" data-ledger-ajax>
+        {{-- data-ledger-confirm: the submit handler also folds in whatever's
+             currently showing in this row's group box (see index.blade.php) —
+             it looks already "set" there even before "Assign" is clicked. --}}
+        <form method="POST" action="{{ route('admin.ledger.confirm', $tx) }}" data-ledger-ajax data-ledger-confirm>
             @csrf
             <button type="submit" class="btn btn-sm btn-outline-success">{{ __('Confirm') }}</button>
         </form>
