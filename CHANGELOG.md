@@ -3,6 +3,24 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-09-25 — prod
+
+### Fixed
+- **Ledger: confirming a line silently dropped its group.** The group box next to a row
+  can hold a suggestion or a typed name the user never separately clicked "Assign" on —
+  it looks already "set" in the UI, but only Assign actually submitted it. Confirm now
+  folds in whatever's showing there. This bug had been present since the ledger's first
+  real use; **134 already-confirmed transactions** (72 Juan-les-Pins, 39 Oman, 17 Cap Vert,
+  4 Rochefontaine, 2 Todi) were repaired directly on production using the same
+  match-or-create-by-name logic as the fix itself — nothing guessed.
+- **Transactional emails (password reset, email verification) were branded as the generic
+  app name and always in English**, regardless of the recipient's language — a French
+  sender paired with English, genericly-branded content reads as a phishing mismatch to
+  spam filters. Now branded with the club's own name and physical address (both already
+  configured via Theme Settings, just not wired into these emails), sent in the member's
+  preferred language (French by default), with French translations added for the built-in
+  notification text.
+
 ## 2026-09-22 — prod
 
 _Data-only change already applied on production (2026-09-21): 21 members' IBAN filled from the 2026 bank export (payees of the club's own reimbursements); 2 already held the same value. Nothing was overwritten._
