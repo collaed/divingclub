@@ -8,6 +8,7 @@ use App\Traits\Auditable;
 use Carbon\Carbon;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -43,7 +44,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read StatusSet|null $statusSet
  * @property-read Collection $emails
  */
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     use Auditable, HasFactory, HasRoles, Notifiable;
     use SoftDeletes;
@@ -74,6 +75,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Applied automatically by Laravel to any notification sent via
+     * $this->notify(...) (e.g. the built-in email-verification notice).
+     * Anonymous-route sends (see sendPasswordResetNotification()) don't pick
+     * this up on their own — those set ->locale() explicitly instead.
+     */
+    public function preferredLocale(): string
+    {
+        return $this->preferred_locale ?: 'fr';
+    }
+
+    /**
      * Send the reset link to every verified address the member owns, not just
      * the primary one — this is what the forgot-password page promises. The
      * token stays keyed by primary_email (getEmailForPasswordReset), and the
@@ -85,7 +97,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token): void
     {
         foreach ($this->passwordResetRecipients() as $address) {
-            Notification::route('mail', $address)->notify(new ResetPasswordNotification($token));
+            Notification::route('mail', $address)->notify((new ResetPasswordNotification($token))->locale($this->preferredLocale()));
         }
     }
 
