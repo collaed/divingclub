@@ -111,6 +111,11 @@ class PasswordResetLinkTest extends TestCase
 
     public function test_the_rendered_email_is_branded_with_the_clubs_own_name_and_address_not_the_generic_app_name(): void
     {
+        // A sentinel, not the real prod value ("DivingClub") — this must
+        // catch ANY leftover raw config('app.name') use, on any environment,
+        // not just happen to pass because the test env's app.name differs
+        // from prod's.
+        config(['app.name' => 'Sentinel App Name Should Not Leak']);
         ThemeSetting::set('club_full_name', 'Club Européen de Plongée');
         ThemeSetting::set('club_address', '10, rue Benjamin Franklin / L-1540 Luxembourg');
         $user = $this->member('brand-check@example.com');
@@ -127,7 +132,7 @@ class PasswordResetLinkTest extends TestCase
 
         $this->assertStringContainsString('Club Européen de Plongée', $rendered);
         $this->assertStringContainsString('10, rue Benjamin Franklin', $rendered);
-        $this->assertStringNotContainsString('DivingClub', $rendered);
+        $this->assertStringNotContainsString('Sentinel App Name Should Not Leak', $rendered);
         // The subject line itself is a mail header, not part of the rendered
         // body — checking a body line the French translation feeds instead.
         $this->assertStringContainsString('Vous recevez cet e-mail car nous avons reçu une demande', $rendered);
