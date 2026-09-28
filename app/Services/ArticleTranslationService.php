@@ -71,26 +71,7 @@ class ArticleTranslationService
 
         // Validate: if API returned null for both, it's a failure
         if (! $title && ! $body) {
-            if ($existing) {
-                $existing->increment('retries');
-
-                return $existing;
-            }
-
-            // firstOrCreate keyed on (article_id, locale): a concurrent worker
-            // may have inserted this translation since the lookup above.
-            return $article->translations()->firstOrCreate(
-                ['locale' => $targetLocale],
-                [
-                    'title' => $article->title,
-                    'body' => $article->body,
-                    'auto_translated' => false,
-                    'stale' => true,
-                    'source_hash' => $sourceHash,
-                    'source_word_count' => $sourceWords,
-                    'retries' => 1,
-                ]
-            );
+            return $this->recordFailedTranslation($article, $existing, $targetLocale, $sourceHash, $sourceWords);
         }
 
         // A field that came back null failed to translate and falls back to
@@ -131,6 +112,34 @@ class ArticleTranslationService
         }
 
         return $result;
+    }
+
+    /**
+     * Record a translation attempt where both provider calls returned null.
+     * Extracted out of translate() so it stays within Sonar's return-count limit.
+     */
+    protected function recordFailedTranslation(Article $article, ?ArticleTranslation $existing, string $targetLocale, string $sourceHash, int $sourceWords): ArticleTranslation
+    {
+        if ($existing) {
+            $existing->increment('retries');
+
+            return $existing;
+        }
+
+        // firstOrCreate keyed on (article_id, locale): a concurrent worker
+        // may have inserted this translation since the lookup above.
+        return $article->translations()->firstOrCreate(
+            ['locale' => $targetLocale],
+            [
+                'title' => $article->title,
+                'body' => $article->body,
+                'auto_translated' => false,
+                'stale' => true,
+                'source_hash' => $sourceHash,
+                'source_word_count' => $sourceWords,
+                'retries' => 1,
+            ]
+        );
     }
 
     /**
