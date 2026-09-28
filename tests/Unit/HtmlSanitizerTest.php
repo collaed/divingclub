@@ -15,7 +15,10 @@ class HtmlSanitizerTest extends TestCase
      */
     public function test_rich_preset_preserves_bootstrap_classes_on_block_elements(): void
     {
-        $html = '<p class="text-center">Centered</p><h2 class="text-end">Right</h2><li class="text-start">Item</li>';
+        // <li> must be wrapped in <ul>/<ol> — HTMLPurifier's content-model
+        // check strips a bare <li> as invalid nesting regardless of the
+        // [class] allow-list, which is unrelated to what this test targets.
+        $html = '<p class="text-center">Centered</p><h2 class="text-end">Right</h2><ul><li class="text-start">Item</li></ul>';
 
         $clean = HtmlSanitizer::clean($html, 'rich');
 

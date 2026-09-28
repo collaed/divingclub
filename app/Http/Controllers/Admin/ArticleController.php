@@ -17,6 +17,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Laravel\Facades\Image;
@@ -264,11 +265,28 @@ class ArticleController extends Controller
      */
     public function uploadImage(Request $request, Article $article): JsonResponse
     {
-        $request->validate([
+        // Built with $request->validate() (throws, then redirects back with
+        // flashed errors) first — but this endpoint is only ever called by
+        // the rich editor's fetch()-based upload handler and is typed to
+        // always return JsonResponse, so a validation failure must produce
+        // JSON too, not a 302 the caller can't sanely consume. A plain
+        // Validator sidesteps the redirect-on-failure default entirely.
+        $validator = validator($request->all(), [
             'file' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
 
+        // Request::file() is typed UploadedFile|array|null — the validation
+        // above guarantees a single valid file at runtime, but narrowing here
+        // makes that guarantee visible to static analysis instead of leaving
+        // every call below it as an unverified null/array dereference.
         $file = $request->file('file');
+        if (! $file instanceof UploadedFile) {
+            abort(422);
+        }
+
         $mime = $file->getMimeType();
         $extension = match ($mime) {
             'image/png' => 'png',
