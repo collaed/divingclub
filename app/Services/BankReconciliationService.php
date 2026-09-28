@@ -130,7 +130,7 @@ class BankReconciliationService
 
             // The model occasionally wraps its JSON in a code fence despite
             // being told not to — strip that before decoding.
-            $content = trim((string) preg_replace('/^```(?:json)?|```$/m', '', trim($content)));
+            $content = trim((string) preg_replace('/(?:^```(?:json)?)|(?:```$)/m', '', trim($content)));
             $decoded = json_decode($content, true);
 
             return is_array($decoded) ? $decoded : null;
@@ -313,7 +313,7 @@ class BankReconciliationService
 
             // The model occasionally wraps its JSON in a code fence despite
             // being told not to — strip that before decoding.
-            $content = trim((string) preg_replace('/^```(?:json)?|```$/m', '', trim($content)));
+            $content = trim((string) preg_replace('/(?:^```(?:json)?)|(?:```$)/m', '', trim($content)));
             $decoded = json_decode($content, true);
 
             return is_array($decoded) ? $decoded : null;

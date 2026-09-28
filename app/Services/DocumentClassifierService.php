@@ -91,7 +91,7 @@ class DocumentClassifierService
                 return null;
             }
 
-            $content = trim((string) preg_replace('/^```(?:json)?|```$/m', '', trim($content)));
+            $content = trim((string) preg_replace('/(?:^```(?:json)?)|(?:```$)/m', '', trim($content)));
             $decoded = json_decode($content, true);
             if (! is_array($decoded) || ! in_array($decoded['type'] ?? null, ['licence_scan', 'bank_statement'], true)) {
                 return null;
