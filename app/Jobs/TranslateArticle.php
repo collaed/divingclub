@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Helpers\LocaleHelper;
 use App\Models\Article;
 use App\Services\ArticleTranslationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,7 +28,7 @@ class TranslateArticle implements ShouldQueue
             return;
         }
 
-        $locales = array_diff(config('app.supported_locales', ['en', 'de', 'lb', 'pt', 'it', 'nl', 'es', 'pl', 'hu', 'ro', 'el', 'et', 'sk', 'fi']), ['fr']);
+        $locales = array_diff(LocaleHelper::enabledLocales(), ['fr']);
         $svc->translateAll($article, $locales);
     }
 }

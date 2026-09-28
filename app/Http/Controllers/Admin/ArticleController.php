@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Helpers\HtmlSanitizer;
+use App\Helpers\LocaleHelper;
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Jobs\TranslateArticle;
@@ -16,7 +17,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ArticleController extends Controller
 {
@@ -170,10 +173,127 @@ class ArticleController extends Controller
 
     public function translate(Request $request, Article $article): RedirectResponse
     {
-        $locales = config('app.available_locales', ['en', 'fr', 'de', 'lb', 'pt', 'it', 'es', 'nl', 'ro', 'hu', 'sk']);
+        $locales = LocaleHelper::enabledLocales();
         $source = $request->input('source_locale', 'fr');
         (new ArticleTranslationService)->translateAll($article, $locales, $source);
 
         return back()->with('success', __('Translations generated for :count languages.', ['count' => count($locales) - 1]));
+    }
+
+    /**
+     * Status grid: every enabled locale, plus the French original, with an
+     * at-a-glance state (original / manually edited / auto-translated /
+     * stale / flagged / missing) and a link to edit it.
+     */
+    public function translations(Article $article): View
+    {
+        $locales = collect(LocaleHelper::enabledLocales())
+            ->reject(fn (string $locale): bool => $locale === 'fr')
+            ->values();
+        $translations = $article->translations->keyBy('locale');
+
+        return view('admin.articles.translations.index', compact('article', 'locales', 'translations'));
+    }
+
+    /**
+     * Edit one locale's title/body directly — the French original is edited
+     * on the normal article form instead, since it IS the Article row.
+     */
+    public function editTranslation(Article $article, string $locale): RedirectResponse|View
+    {
+        if ($locale === 'fr') {
+            return redirect()->route('admin.articles.edit', $article);
+        }
+
+        $translation = $article->translations()->where('locale', $locale)->first();
+
+        return view('admin.articles.translations.edit', compact('article', 'locale', 'translation'));
+    }
+
+    /**
+     * Save a human-curated translation. Marked auto_translated=false so no
+     * automatic pass (ProcessTranslations, the bulk "Generate translations"
+     * button, this article's own next save) ever silently overwrites it —
+     * see ArticleTranslationService::translate().
+     */
+    public function updateTranslation(Request $request, Article $article, string $locale): RedirectResponse
+    {
+        abort_if($locale === 'fr', 404);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+        ]);
+
+        $article->translations()->updateOrCreate(['locale' => $locale], [
+            'title' => $validated['title'],
+            'body' => HtmlSanitizer::clean($validated['body']),
+            'auto_translated' => false,
+            'stale' => false,
+            'source_hash' => ArticleTranslationService::sourceHash($article),
+            'retries' => 0,
+            'flagged_at' => null,
+            'flag_reason' => null,
+        ]);
+
+        return redirect()->route('admin.articles.translations.edit', [$article, $locale])
+            ->with('success', __('Translation saved.'));
+    }
+
+    /**
+     * Discard a manually-curated (or stale/flagged) translation and regenerate
+     * it via the AI provider. force:true is what lets this override a manual
+     * edit — the confirmation dialog is the UI's job (see the edit view).
+     */
+    public function regenerateTranslation(Article $article, string $locale): RedirectResponse
+    {
+        abort_if($locale === 'fr', 404);
+
+        (new ArticleTranslationService)->translate($article, $locale, 'fr', force: true);
+
+        return redirect()->route('admin.articles.translations.edit', [$article, $locale])
+            ->with('success', __('Translation regenerated.'));
+    }
+
+    /**
+     * Inline image upload for the rich editor (TinyMCE images_upload_handler).
+     * Re-encoded through Intervention rather than stored as-is: this strips
+     * EXIF/metadata and neutralizes malformed or polyglot image payloads, and
+     * downscales anything oversized instead of trusting whatever the
+     * contributor's camera/phone produced.
+     */
+    public function uploadImage(Request $request, Article $article): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+        ]);
+
+        $file = $request->file('file');
+        $mime = $file->getMimeType();
+        $extension = match ($mime) {
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            default => 'jpg',
+        };
+
+        $image = Image::decode($file->getContent())->scaleDown(width: 1600);
+        $encoded = match ($extension) {
+            'png' => $image->encodeUsingMediaType('image/png'),
+            'gif' => $image->encodeUsingMediaType('image/gif'),
+            'webp' => $image->encodeUsingMediaType('image/webp', quality: 85),
+            default => $image->encodeUsingMediaType('image/jpeg', quality: 85),
+        };
+
+        // Never trust the uploaded filename (path traversal, homograph tricks,
+        // double extensions) — a fresh random name plus the extension we just
+        // derived from the re-encoded content is the only name that's used.
+        $path = 'articles/inline/'.$article->id.'/'.Str::random(24).'.'.$extension;
+        // Storage::put() (unlike EncodedImage::save($absolutePath)) creates any
+        // missing parent directories — needed here since this per-article
+        // folder won't exist yet for a first upload.
+        Storage::disk('public')->put($path, (string) $encoded);
+
+        return response()->json(['location' => Storage::disk('public')->url($path)]);
     }
 }

@@ -1,5 +1,10 @@
 <x-admin-layout :title="$article->exists ? __('Edit Article') : __('New Article')">
-    <h4 class="mb-4">{{ $article->exists ? __('Edit Article') : __('New Article') }}</h4>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h4 class="mb-0">{{ $article->exists ? __('Edit Article') : __('New Article') }}</h4>
+        @if($article->exists)
+            <a href="{{ route('admin.articles.translations', $article) }}" class="btn btn-outline-secondary btn-sm">@icon('🌐') {{ __('Manage Translations') }}</a>
+        @endif
+    </div>
 
     <form method="POST" action="{{ $article->exists ? route('admin.articles.update', $article) : route('admin.articles.store') }}" enctype="multipart/form-data">
         @csrf
@@ -113,5 +118,5 @@
         </form>
     @endif
 
-    <x-rich-editor />
+    <x-rich-editor :upload-url="$article->exists ? route('admin.articles.upload-image', $article) : null" />
 </x-admin-layout>
