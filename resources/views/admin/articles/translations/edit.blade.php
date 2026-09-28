@@ -45,15 +45,15 @@
                 @method('PUT')
 
                 <div class="mb-3">
-                    <label class="form-label">{{ __('Title') }}</label>
-                    <input type="text" name="title" class="form-control @error('title') is-invalid @enderror"
+                    <label for="translation-title" class="form-label">{{ __('Title') }}</label>
+                    <input type="text" id="translation-title" name="title" class="form-control @error('title') is-invalid @enderror"
                            value="{{ old('title', $translation->title ?? $article->title) }}" required>
                     @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">{{ __('Body') }}</label>
-                    <textarea name="body" class="tinymce">{{ old('body', $translation->body ?? $article->body) }}</textarea>
+                    <label for="translation-body" class="form-label">{{ __('Body') }}</label>
+                    <textarea id="translation-body" name="body" class="tinymce">{{ old('body', $translation->body ?? $article->body) }}</textarea>
                     @error('body') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 </div>
 
