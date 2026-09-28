@@ -61,7 +61,7 @@ class LibraryController extends Controller
         $request->validate([
             'files' => 'required|array|min:1',
             'files.*' => 'file|max:51200',
-            'folder' => 'required|string',
+            'folder' => 'required|string|max:255',
             'visibility' => 'required|in:public,members,instructors,bureau',
             'description' => 'nullable|string|max:500',
         ]);

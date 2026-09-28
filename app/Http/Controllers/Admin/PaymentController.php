@@ -139,7 +139,7 @@ class PaymentController extends Controller
     {
         $request->validate([
             'components' => 'required|array',
-            'components.*.label' => 'required|string',
+            'components.*.label' => 'required|string|max:255',
             'components.*.amount' => 'required|numeric|min:0',
         ]);
 
@@ -170,7 +170,7 @@ class PaymentController extends Controller
     public function importStatement(Request $request): RedirectResponse
     {
         $request->validate([
-            'statement' => 'required_without:statement_pdf|nullable|string',
+            'statement' => 'required_without:statement_pdf|nullable|string|max:200000',
             'statement_pdf' => 'required_without:statement|nullable|file|mimes:pdf|max:10240',
             'statement_ref' => 'nullable|string|max:100',
         ]);
