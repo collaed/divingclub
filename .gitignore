@@ -34,8 +34,7 @@ members_by_domain.csv
 /divepics/*
 !/divepics/.gitkeep
 
-# Wasmer deployment
-.env.wasmer
+# Local-only files
 license-private.pem
 inpro
 scripts/license-private.pem
@@ -58,3 +57,7 @@ mail_branch.zip
 # Python E2E suite bytecode
 tests/e2e/__pycache__/
 *.pyc
+
+# Local blackbox/whitebox manual test scripts (contain env-specific paths/creds)
+scripts/blackbox-test.py
+scripts/whitebox-test.py

@@ -115,7 +115,7 @@ All 22 admin controllers have zero dedicated tests. The only admin test is `test
 
 ### 4.1 🟡 SESSION_SECURE_COOKIE Not Set
 **File:** `config/session.php:172`
-`'secure' => env('SESSION_SECURE_COOKIE')` — defaults to `null` (not enforced). On HTTPS deployments (Wasmer, Hetzner), session cookies should be secure-only.
+`'secure' => env('SESSION_SECURE_COOKIE')` — defaults to `null` (not enforced). On HTTPS deployments (Hetzner), session cookies should be secure-only.
 **Fix:** Set `SESSION_SECURE_COOKIE=true` in production `.env` files.
 
 ### 4.2 🟡 CORS Allows All Methods

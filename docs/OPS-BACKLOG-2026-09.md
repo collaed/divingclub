@@ -86,8 +86,9 @@ prod `failed_jobs` with ~335 rows and keeps `/health` "degraded").
 ### 2.5 Housekeeping
 - [ ] Remove the stale `/opt/deploy/apps/divingclub-prod/php.ini` (Wasmer
       leftover — `upload_max_filesize=10M` — **inert** on Hetzner FPM, only
-      misleads). The repo copy is legit Wasmer config; consider renaming it
-      `php.wasmer.ini` and pointing `deploy-wasmer.sh` at it.
+      misleads). Wasmer is fully decommissioned as a deployment target — the
+      repo's own copy of this file (and `deploy-wasmer.sh`) has been deleted,
+      so just remove the server-side leftover too, nothing to rename or keep.
 - [ ] Drop the superseded staging stash (5 regression files + already-merged work):
       `ssh test.clubcep.eu 'sudo -u clubcep git -C /opt/deploy/apps/divingclub stash drop stash@{0}'`
       (`stash@{1..4}` are your older ones — leave them).

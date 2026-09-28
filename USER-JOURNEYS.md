@@ -438,7 +438,7 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 | 30 | Bureau | Email → group "event" → select event → send |
 | 31 | System (cron) | schedule:run → auto-translate oldest article |
 | 32 | Dive Director | Dive Group Planner → auto-propose → validate → print fiche de sécurité |
-| 33 | Small club admin | Wasmer deploy → /install → SQLite → operational |
+| 33 | Small club admin | Deploy → /install → SQLite → operational |
 | 34 | Bureau Master | Minors & Consent → link guardian → record consent |
 | 35 | Member | Event photos → GDPR consent → auto-publish |
 | 36 | Bureau Master | Settings → Social Media → Facebook auto-publish |
@@ -543,9 +543,9 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 
 **Actor:** Technical person deploying a new instance.
 
-1. Deploy code to server (or Wasmer). Visit the site URL.
+1. Deploy code to server. Visit the site URL.
 2. Automatically redirected to `/install` (EnsureInstalled middleware).
-3. Enter club name, choose database (SQLite for small clubs/Wasmer, MySQL for larger).
+3. Enter club name, choose database (SQLite for small clubs, MySQL for larger).
 4. If MySQL: enter host, port, database, username, password.
 5. Enter admin email and password.
 6. Click "Install" → migrations run, reference data seeded (39 dive rules, 110+ cert levels, 11 federations), admin account created.
@@ -648,17 +648,16 @@ Scenarios ordered from simplest (anonymous visitor) to most complex (system setu
 
 ---
 
-## Journey 33 — New Club Deploys on Wasmer (Free Tier)
+## Journey 33 — New Club Deploys with SQLite (Free Tier)
 
-**Actor:** Small club wanting a free hosted instance.
+**Actor:** Small club wanting a lightweight, low-cost instance.
 
-1. Fork the repo, push to Wasmer Edge.
-2. Visit the Wasmer URL → install wizard appears.
-3. Choose SQLite (only option on Wasmer — no MySQL available).
-4. Set club name, admin credentials.
-5. Install completes. DB is ~2 MB, well within 100 MB free tier.
-6. Configure theme, upload logo, set federation preferences.
-7. Invite members. Club operational.
+1. Deploy the repo to a small PHP host. Visit the site URL → install wizard appears.
+2. Choose SQLite (zero-config, single file).
+3. Set club name, admin credentials.
+4. Install completes. DB is ~2 MB, well within typical free-tier hosting limits.
+5. Configure theme, upload logo, set federation preferences.
+6. Invite members. Club operational.
 
 ---
 

@@ -14,18 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
-// Ensure storage directories exist (Wasmer Edge deploys from git without them)
-foreach ([
-    __DIR__.'/../storage/framework/views',
-    __DIR__.'/../storage/framework/cache/data',
-    __DIR__.'/../storage/framework/sessions',
-    __DIR__.'/../storage/logs',
-] as $dir) {
-    if (! is_dir($dir)) {
-        @mkdir($dir, 0755, true);
-    }
-}
-
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',

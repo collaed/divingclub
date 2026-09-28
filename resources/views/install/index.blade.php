@@ -42,7 +42,7 @@
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="db_driver" id="db_sqlite" value="sqlite" {{ old('db_driver', 'sqlite') === 'sqlite' ? 'checked' : '' }} onchange="toggleMysql()">
                             <label class="form-check-label" for="db_sqlite">
-                                <strong>SQLite</strong> <span class="text-muted">— zero config, single file, ideal for small clubs & Wasmer</span>
+                                <strong>SQLite</strong> <span class="text-muted">— zero config, single file, ideal for small clubs</span>
                             </label>
                         </div>
                         <div class="form-check form-check-inline mt-2">

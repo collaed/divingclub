@@ -64,7 +64,7 @@
 <li><a href="#journey-30-admin-emails-all-event-participants">Journey 30 — Admin Emails All Event Participants</a></li>
 <li><a href="#journey-31-system-auto-translates-articles">Journey 31 — System Auto-Translates Articles</a></li>
 <li><a href="#journey-32-dive-director-plans-a-mixed-level-dive">Journey 32 — Dive Director Plans a Mixed-Level Dive</a></li>
-<li><a href="#journey-33-new-club-deploys-on-wasmer-free-tier">Journey 33 — New Club Deploys on Wasmer (Free Tier)</a></li>
+<li><a href="#journey-33-new-club-deploys-with-sqlite-free-tier">Journey 33 — New Club Deploys with SQLite (Free Tier)</a></li>
 <li><a href="#journey-34-bureau-manages-minors-parental-consent">Journey 34 — Bureau Manages Minors &amp; Parental Consent</a></li>
 <li><a href="#journey-35-member-uploads-event-photos-with-gdpr-consent">Journey 35 — Member Uploads Event Photos with GDPR Consent</a></li>
 <li><a href="#journey-36-bureau-configures-social-media-auto-publish">Journey 36 — Bureau Configures Social Media Auto-Publish</a></li>
@@ -666,7 +666,7 @@
 <tr class="odd">
 <td>33</td>
 <td>Small club admin</td>
-<td>Wasmer deploy → /install → SQLite → operational</td>
+<td>Deploy → /install → SQLite → operational</td>
 </tr>
 <tr class="even">
 <td>34</td>
@@ -827,9 +827,9 @@
 <h2 id="journey-26-bureau-master-runs-the-install-wizard">Journey 26 — Bureau Master Runs the Install Wizard</h2>
 <p><strong>Actor:</strong> Technical person deploying a new instance.</p>
 <ol type="1">
-<li>Deploy code to server (or Wasmer). Visit the site URL.</li>
+<li>Deploy code to server. Visit the site URL.</li>
 <li>Automatically redirected to <code>/install</code> (EnsureInstalled middleware).</li>
-<li>Enter club name, choose database (SQLite for small clubs/Wasmer, MySQL for larger).</li>
+<li>Enter club name, choose database (SQLite for small clubs, MySQL for larger).</li>
 <li>If MySQL: enter host, port, database, username, password.</li>
 <li>Enter admin email and password.</li>
 <li>Click “Install” → migrations run, reference data seeded (39 dive rules, 110+ cert levels, 11 federations), admin account created.</li>
@@ -928,14 +928,13 @@
 </ul></li>
 </ol>
 <hr />
-<h2 id="journey-33-new-club-deploys-on-wasmer-free-tier">Journey 33 — New Club Deploys on Wasmer (Free Tier)</h2>
-<p><strong>Actor:</strong> Small club wanting a free hosted instance.</p>
+<h2 id="journey-33-new-club-deploys-with-sqlite-free-tier">Journey 33 — New Club Deploys with SQLite (Free Tier)</h2>
+<p><strong>Actor:</strong> Small club wanting a lightweight, low-cost instance.</p>
 <ol type="1">
-<li>Fork the repo, push to Wasmer Edge.</li>
-<li>Visit the Wasmer URL → install wizard appears.</li>
-<li>Choose SQLite (only option on Wasmer — no MySQL available).</li>
+<li>Deploy the repo to a small PHP host. Visit the site URL → install wizard appears.</li>
+<li>Choose SQLite (zero-config, single file).</li>
 <li>Set club name, admin credentials.</li>
-<li>Install completes. DB is ~2 MB, well within 100 MB free tier.</li>
+<li>Install completes. DB is ~2 MB, well within typical free-tier hosting limits.</li>
 <li>Configure theme, upload logo, set federation preferences.</li>
 <li>Invite members. Club operational.</li>
 </ol>

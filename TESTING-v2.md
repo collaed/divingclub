@@ -387,7 +387,6 @@ ab -n 50 -c 5 http://localhost:8000/events
 | Concurrent writes | ~50/sec | ~5000/sec |
 | DB size limit | Practical ~1GB | Unlimited |
 | Backup | Copy single file | mysqldump |
-| Wasmer compatible | ✅ | ❌ |
 | Suitable for | 1-500 members | 500+ members |
 
 ## 8. FFESSM Code du Sport Age Requirements (Art. A322-88/89)

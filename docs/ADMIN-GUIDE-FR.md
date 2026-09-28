@@ -66,7 +66,7 @@ Bienvenue dans le système d'administration DivingClub — la plateforme de gest
 
 Après le déploiement de DivingClub, l'**assistant d'installation** apparaît automatiquement à la première visite. Il permet de choisir :
 
-- **SQLite** — zéro configuration, fichier unique, idéal pour les petits clubs et déploiements Wasmer/cloud (100 Mo gratuit)
+- **SQLite** — zéro configuration, fichier unique, idéal pour les petits clubs (100 Mo gratuit)
 - **MySQL / MariaDB** — pour les déploiements multi-clubs plus importants
 
 L'assistant crée la base de données, exécute les migrations, insère les données de référence (fédérations, niveaux de certification, règles de plongée) et crée votre compte administrateur.
