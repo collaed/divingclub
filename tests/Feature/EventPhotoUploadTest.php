@@ -156,7 +156,7 @@ class EventPhotoUploadTest extends TestCase
     private function createMinimalJpeg(): string
     {
         $img = imagecreatetruecolor(10, 10);
-        $color = imagecolorallocate($img, rand(0, 255), rand(0, 255), rand(0, 255));
+        $color = imagecolorallocate($img, random_int(0, 255), random_int(0, 255), random_int(0, 255));
         imagefill($img, 0, 0, $color);
         ob_start();
         imagejpeg($img);

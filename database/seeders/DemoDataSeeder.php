@@ -113,15 +113,15 @@ class DemoDataSeeder extends Seeder
                 $certLevel = CertificationLevel::where('federation_id', $m['fed']->id)->where('code', $m['cert'])->first();
                 if ($certLevel) {
                     $user->certificationLevels()->syncWithoutDetaching([
-                        $certLevel->id => ['obtained_date' => now()->subYears(rand(1, 5))->format('Y-m-d'), 'is_primary' => true, 'display_priority' => 1],
+                        $certLevel->id => ['obtained_date' => now()->subYears(random_int(1, 5))->format('Y-m-d'), 'is_primary' => true, 'display_priority' => 1],
                     ]);
                 }
             }
 
             // Generate fake medical certificate for non-pending members
             if ($m['role'] !== 'pending') {
-                $certType = $certTypes[array_rand($certTypes)];
-                $issueDate = now()->subMonths(rand(1, 8));
+                $certType = $certTypes[random_int(0, count($certTypes) - 1)];
+                $issueDate = now()->subMonths(random_int(1, 8));
 
                 // Create a fake PDF-like file
                 $fakeCert = "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>\nendobj\nxref\n0 4\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n0\n%%EOF\n% Medical Certificate for ".$m['first'].' '.$m['last']."\n% Type: ".strtoupper($certType)."\n% Date: ".$issueDate->format('Y-m-d');
@@ -140,7 +140,7 @@ class DemoDataSeeder extends Seeder
                         'size_bytes' => strlen($fakeCert),
                         'date_established' => $issueDate->format('Y-m-d'),
                         'cert_type' => $certType,
-                        'is_verified' => rand(0, 1) ? true : false,
+                        'is_verified' => random_int(0, 1) ? true : false,
                         'is_current' => true,
                     ]
                 );

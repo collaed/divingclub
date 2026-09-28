@@ -103,7 +103,7 @@ foreach ($events as $ev) {
     $regs = EventRegistration::where('event_id', $ev->id)->where('status', 'registered')->with('user')->get();
     foreach ($regs as $reg) {
         $comm = 'CEP-'.strtoupper(Str::random(4)).'-'.$reg->user_id;
-        $isPaid = rand(0, 100) < 40; // 40% already paid
+        $isPaid = random_int(0, 100) < 40; // 40% already paid
 
         PaymentExpected::create([
             'user_id' => $reg->user_id,
@@ -113,7 +113,7 @@ foreach ($events as $ev) {
             'communication' => $comm,
             'status' => $isPaid ? 'paid' : 'pending',
             'amount_paid' => $isPaid ? $ev->estimated_cost : 0,
-            'paid_at' => $isPaid ? now()->subDays(rand(1, 10))->toDateString() : null,
+            'paid_at' => $isPaid ? now()->subDays(random_int(1, 10))->toDateString() : null,
         ]);
     }
     echo "  {$ev->title}: {$regs->count()} payment records (€{$ev->estimated_cost} each)\n";
@@ -204,8 +204,8 @@ foreach ($diveEvents as $ev) {
             'event_id' => $ev->id,
             'name' => 'Palanquée '.($gi + 1),
             'dive_mode' => 'exploration',
-            'planned_depth' => rand(15, 35),
-            'planned_duration' => rand(30, 50),
+            'planned_depth' => random_int(15, 35),
+            'planned_duration' => random_int(30, 50),
             'gas_mix' => 'Air',
             'line_number' => $gi + 1,
             'planned_entry_time' => '09:'.str_pad($gi * 15, 2, '0', STR_PAD_LEFT),
@@ -236,8 +236,8 @@ foreach ($photoEvents as $ev) {
             'uploaded_by' => $members->random()->id,
             'path' => $photo->path,
             'thumbnail_path' => $photo->thumbnail_path,
-            'quality_score' => rand(70, 98),
-            'has_faces' => (bool) rand(0, 1),
+            'quality_score' => random_int(70, 98),
+            'has_faces' => (bool) random_int(0, 1),
             'approved' => true,
             'gdpr_consent' => true,
         ]);

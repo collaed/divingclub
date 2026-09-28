@@ -96,7 +96,7 @@ class SampleDataSeeder extends Seeder
             $eq = Equipment::create([
                 'name' => $i[0], 'type' => $i[1], 'serial_number' => $i[2],
                 'short_number' => $i[3], 'brand' => $i[4],
-                'purchase_date' => now()->subYears(rand(1, 5)),
+                'purchase_date' => now()->subYears(random_int(1, 5)),
                 'condition' => 'good', 'status' => 'available',
                 'is_loanable' => $i[5], 'location' => 'Warehouse',
                 'is_child_sized' => str_contains($i[0], 'XXXS') || str_contains($i[0], 'enfant'),
@@ -137,7 +137,7 @@ class SampleDataSeeder extends Seeder
         ];
         foreach ($articles as $a) {
             Article::create([
-                'title' => $a[0], 'slug' => Str::slug($a[0]).'-'.rand(100, 999),
+                'title' => $a[0], 'slug' => Str::slug($a[0]).'-'.random_int(100, 999),
                 'article_type' => $a[1], 'body' => $a[2],
                 'is_published' => true, 'is_public' => $a[3],
                 'author_id' => $admin->id,
@@ -150,7 +150,7 @@ class SampleDataSeeder extends Seeder
             $borrower = $members->random();
             EquipmentLoan::create([
                 'equipment_id' => $eq->id, 'user_id' => $borrower->id,
-                'loaned_at' => now()->subDays(rand(1, 7)), 'loaned_by' => $admin->id,
+                'loaned_at' => now()->subDays(random_int(1, 7)), 'loaned_by' => $admin->id,
             ]);
             $eq->update(['status' => 'on_loan', 'last_seen_at' => now()]);
         }

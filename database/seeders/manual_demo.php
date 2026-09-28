@@ -155,8 +155,8 @@ $withoutInstructor = 0;
 
 foreach ($upcomingEvents as $ev) {
     // 80% chance an instructor is available
-    if (rand(1, 100) <= 80) {
-        $inst = $instructors->random(rand(1, min(3, $instructors->count())));
+    if (random_int(1, 100) <= 80) {
+        $inst = $instructors->random(random_int(1, min(3, $instructors->count())));
         foreach ($inst as $i) {
             InstructorAvailability::updateOrCreate([
                 'user_id' => $i->id,
@@ -188,7 +188,7 @@ $regEvents = Event::where('event_date', '>=', '2026-04-13')
 
 $totalRegs = 0;
 foreach ($regEvents as $ev) {
-    $count = rand(4, min(15, $ev->max_participants + 3)); // some overflow for waiting list
+    $count = random_int(4, min(15, $ev->max_participants + 3)); // some overflow for waiting list
     $selected = $members->random(min($count, $members->count()));
 
     foreach ($selected as $j => $user) {

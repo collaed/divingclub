@@ -283,7 +283,7 @@ class CepSeeder extends Seeder
                 'location' => $site,
                 'max_participants' => $max, 'season_id' => $season->id,
                 'dive_site_id' => $diveSites[$site] ?? null,
-                'estimated_cost' => rand(15, 45),
+                'estimated_cost' => random_int(15, 45),
             ];
         }
 
