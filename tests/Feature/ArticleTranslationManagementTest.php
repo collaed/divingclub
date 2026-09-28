@@ -76,9 +76,12 @@ class ArticleTranslationManagementTest extends TestCase
             ])
             ->assertRedirect(route('admin.articles.translations.edit', [$this->article, 'de']));
 
-        $translation = $this->article->translations()->where('locale', 'de')->first();
+        // firstOrFail(), not first(): its return type is the model itself
+        // (it throws instead of returning null), so every dereference below
+        // is on a value static analysis can see is never null — a plain
+        // first() + assertNotNull() leaves that only true at runtime.
+        $translation = $this->article->translations()->where('locale', 'de')->firstOrFail();
 
-        $this->assertNotNull($translation);
         $this->assertSame('Das Datum hat sich geändert', $translation->title);
         $this->assertStringContainsString('14/10', $translation->body);
         $this->assertStringNotContainsString('<script>', $translation->body);
@@ -103,7 +106,7 @@ class ArticleTranslationManagementTest extends TestCase
         app(ArticleTranslationService::class)->translateAll($this->article, ['de'], 'fr');
 
         Http::assertNothingSent();
-        $translation = $this->article->translations()->where('locale', 'de')->first();
+        $translation = $this->article->translations()->where('locale', 'de')->firstOrFail();
         $this->assertSame('Manuell korrigiert', $translation->title);
         $this->assertFalse($translation->auto_translated);
     }
@@ -133,7 +136,7 @@ class ArticleTranslationManagementTest extends TestCase
             ->post(route('admin.articles.translations.regenerate', [$this->article, 'de']))
             ->assertRedirect(route('admin.articles.translations.edit', [$this->article, 'de']));
 
-        $translation = $this->article->translations()->where('locale', 'de')->first();
+        $translation = $this->article->translations()->where('locale', 'de')->firstOrFail();
         $this->assertSame('Regenerierter Titel', $translation->title);
         $this->assertTrue($translation->auto_translated);
     }
