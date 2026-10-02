@@ -3,6 +3,17 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-10-02 — prod
+
+### Fixed
+- **Medical certificate exam date** had no default on the upload form, inviting mistakes —
+  caught live when a member's cert showed 01/01/2026 as the exam date (confirmed, via the
+  upload's own deterministic filename, that this was genuinely typed in, not an OCR guess).
+  The date field now defaults to today. The bureau review screen also showed this date
+  read-only with no way to catch or fix a wrong one before validating — it's now editable
+  there too, pre-filled with the current value, submitted alongside Validate/Reject; a blank
+  submission never wipes an existing date.
+
 ## 2026-09-25 — prod
 
 ### Fixed
