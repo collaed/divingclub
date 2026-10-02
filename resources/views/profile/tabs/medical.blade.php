@@ -76,7 +76,7 @@
         </div>
         <div class="col-md-3">
             <label class="form-label">{{ __('Certificate Date') }}</label>
-            <input type="date" name="date_established" class="form-control @error('date_established') is-invalid @enderror" required>
+            <input type="date" name="date_established" class="form-control @error('date_established') is-invalid @enderror" value="{{ old('date_established', now()->toDateString()) }}" required>
             @error('date_established') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-2">

@@ -43,14 +43,21 @@ class MedicalReviewController extends Controller
     {
         abort_unless($document->category === 'medical' && $document->isPendingReview(), 404);
 
-        $request->validate(['comment' => 'nullable|string|max:2000']);
-        $comment = trim((string) $request->input('comment')) ?: null;
+        $v = $request->validate(['comment' => 'nullable|string|max:2000', 'date_established' => 'nullable|date']);
+        $comment = trim((string) ($v['comment'] ?? '')) ?: null;
 
         $document->update([
             'is_verified' => true,
             'verified_by' => auth()->id(),
             'verified_at' => now(),
             'review_comment' => $comment,
+            // The member typed this at upload time and nothing catches a typo
+            // before it lands here — e.g. "01/01/2026" when the exam was
+            // really done the day of upload — so the reviewer can fix it as
+            // part of validating, same field they're already looking at.
+            // Never cleared to null: an accidentally-blank submit must not
+            // wipe out a date that was already correct.
+            ...(! empty($v['date_established']) ? ['date_established' => $v['date_established']] : []),
         ]);
 
         app(MedicalComplianceService::class)->evaluateCertificate($document);
@@ -79,12 +86,13 @@ class MedicalReviewController extends Controller
     {
         abort_unless($document->category === 'medical' && $document->isPendingReview(), 404);
 
-        $request->validate(['comment' => 'required|string|max:2000']);
+        $v = $request->validate(['comment' => 'required|string|max:2000', 'date_established' => 'nullable|date']);
 
         $document->update([
             'rejected_at' => now(),
             'rejected_by' => auth()->id(),
-            'review_comment' => $request->input('comment'),
+            'review_comment' => $v['comment'],
+            ...(! empty($v['date_established']) ? ['date_established' => $v['date_established']] : []),
         ]);
 
         SendMedicalCertificateRejectedEmail::dispatch($document->id)->afterCommit();

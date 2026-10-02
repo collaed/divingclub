@@ -70,6 +70,13 @@
                             <td>
                                 <form method="POST" class="dc-medical-review-form" data-form>
                                     @csrf
+                                    {{-- The member typed this at upload time — nothing catches a typo before
+                                         it lands here, so it's correctable as part of reviewing rather than
+                                         only visible. --}}
+                                    <div class="input-group input-group-sm mb-1">
+                                        <span class="input-group-text">{{ __('Exam date') }}</span>
+                                        <input type="date" name="date_established" class="form-control" value="{{ $doc->date_established?->format('Y-m-d') }}">
+                                    </div>
                                     <div class="input-group input-group-sm mb-1">
                                         <select class="form-select dc-preset-select" data-target="comment-{{ $doc->id }}">
                                             <option value="">{{ __('Predefined comment…') }}</option>

@@ -108,6 +108,50 @@ class MedicalReviewTest extends TestCase
         Bus::assertDispatched(SendMedicalCertificateApprovedEmail::class, fn ($job) => $job->documentId === $doc->id);
     }
 
+    /**
+     * Caught live: a member submitted "01/01/2026" as a cert's exam date and
+     * the bureau had no way to correct it before validating — see
+     * MedicalCertificateUploadTest for the matching upload-form default fix.
+     */
+    public function test_validating_can_correct_the_date_established(): void
+    {
+        Bus::fake();
+        $doc = $this->pendingDoc($this->member());
+        $doc->update(['date_established' => '2026-01-01']);
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.medical-review.validate', $doc), ['date_established' => '2026-09-15'])
+            ->assertRedirect();
+
+        $this->assertSame('2026-09-15', $doc->fresh()->date_established->toDateString());
+    }
+
+    public function test_validating_with_a_blank_date_does_not_wipe_the_existing_one(): void
+    {
+        Bus::fake();
+        $doc = $this->pendingDoc($this->member());
+        $doc->update(['date_established' => '2026-01-01']);
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.medical-review.validate', $doc), ['date_established' => ''])
+            ->assertRedirect();
+
+        $this->assertSame('2026-01-01', $doc->fresh()->date_established->toDateString());
+    }
+
+    public function test_rejecting_can_also_correct_the_date_established(): void
+    {
+        Bus::fake();
+        $doc = $this->pendingDoc($this->member());
+        $doc->update(['date_established' => '2026-01-01']);
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.medical-review.reject', $doc), ['comment' => 'Wrong exam date, please resubmit.', 'date_established' => '2026-09-15'])
+            ->assertRedirect();
+
+        $this->assertSame('2026-09-15', $doc->fresh()->date_established->toDateString());
+    }
+
     public function test_reject_requires_a_comment_and_emails_the_member(): void
     {
         Bus::fake();
