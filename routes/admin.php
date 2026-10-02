@@ -71,6 +71,18 @@ Route::post('/members/{user}/send-reset', [MemberController::class, 'sendReset']
 Route::resource('articles', ArticleController::class)->except('show');
 Route::post('articles/{article}/translate', [ArticleController::class, 'translate'])->name('articles.translate');
 Route::patch('articles/{article}/toggle-publish', [ArticleController::class, 'togglePublish'])->name('articles.toggle-publish');
+Route::post('articles/{article}/upload-image', [ArticleController::class, 'uploadImage'])->name('articles.upload-image');
+
+// Per-locale translation editing — {locale} is constrained (via a route-local
+// ->where(), NOT the global Route::pattern() — routes/web.php already has its
+// own unrelated /locale/{locale} language switcher, and a global pattern would
+// silently constrain that one too) to the codes config/languages.php actually
+// defines, so a bogus locale 404s instead of reaching the controller.
+Route::get('articles/{article}/translations', [ArticleController::class, 'translations'])->name('articles.translations');
+$localePattern = implode('|', array_keys(config('languages', [])));
+Route::get('articles/{article}/translations/{locale}', [ArticleController::class, 'editTranslation'])->name('articles.translations.edit')->where('locale', $localePattern);
+Route::put('articles/{article}/translations/{locale}', [ArticleController::class, 'updateTranslation'])->name('articles.translations.update')->where('locale', $localePattern);
+Route::post('articles/{article}/translations/{locale}/regenerate', [ArticleController::class, 'regenerateTranslation'])->name('articles.translations.regenerate')->where('locale', $localePattern);
 Route::resource('links', LinkController::class)->only(['index', 'store', 'destroy']);
 
 // Newsletters
