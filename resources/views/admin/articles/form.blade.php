@@ -7,13 +7,13 @@
 
         <div class="row">
             <div class="col-md-8 mb-3">
-                <label class="form-label">{{ __('Title') }}</label>
-                <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $article->title) }}" required>
+                <label class="form-label" for="articleTitle">{{ __('Title') }}</label>
+                <input type="text" id="articleTitle" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $article->title) }}" required>
                 @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-4 mb-3">
-                <label class="form-label">{{ __('Type') }}</label>
-                <select name="article_type" class="form-select @error('article_type') is-invalid @enderror" required>
+                <label class="form-label" for="articleType">{{ __('Type') }}</label>
+                <select name="article_type" id="articleType" class="form-select @error('article_type') is-invalid @enderror" required>
                     @foreach(\App\Models\Article::TYPES as $key => $meta)
                         <option value="{{ $key }}" {{ old('article_type', $article->article_type) === $key ? 'selected' : '' }}>
                             {{ $meta['icon'] }} {{ __($meta['label']) }}
@@ -25,20 +25,20 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">{{ __('Body') }}</label>
-            <textarea name="body" class="tinymce">{{ old('body', $article->body) }}</textarea>
+            <label class="form-label" for="articleBody">{{ __('Body') }}</label>
+            <textarea id="articleBody" name="body" class="tinymce">{{ old('body', $article->body) }}</textarea>
             @error('body') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
         </div>
 
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">{{ __('Featured Image') }}</label>
-                <input type="file" name="featured_image" class="form-control @error('featured_image') is-invalid @enderror" accept="image/*">
+                <label class="form-label" for="articleFeaturedImage">{{ __('Featured Image') }}</label>
+                <input type="file" id="articleFeaturedImage" name="featured_image" class="form-control @error('featured_image') is-invalid @enderror" accept="image/*">
                 @error('featured_image') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">{{ __('Attach Vote') }}</label>
-                <select name="vote_id" class="form-select">
+                <label class="form-label" for="articleVoteId">{{ __('Attach Vote') }}</label>
+                <select name="vote_id" id="articleVoteId" class="form-select">
                     <option value="">{{ __('None') }}</option>
                     @foreach($votes as $v)
                         <option value="{{ $v->id }}" {{ old('vote_id', $article->vote_id) == $v->id ? 'selected' : '' }}>
@@ -54,15 +54,15 @@
             <div class="col-md-3">
                 <div class="form-check">
                     <input type="hidden" name="is_published" value="0">
-                    <input type="checkbox" name="is_published" value="1" class="form-check-input" {{ old('is_published', $article->is_published) ? 'checked' : '' }}>
-                    <label class="form-check-label">{{ __('Published') }}</label>
+                    <input type="checkbox" name="is_published" value="1" id="articleIsPublished" class="form-check-input" {{ old('is_published', $article->is_published) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="articleIsPublished">{{ __('Published') }}</label>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-check">
                     <input type="hidden" name="is_public" value="0">
-                    <input type="checkbox" name="is_public" value="1" class="form-check-input" {{ old('is_public', $article->is_public ?? true) ? 'checked' : '' }}>
-                    <label class="form-check-label">{{ __('Public (visible without login)') }}</label>
+                    <input type="checkbox" name="is_public" value="1" id="articleIsPublic" class="form-check-input" {{ old('is_public', $article->is_public ?? true) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="articleIsPublic">{{ __('Public (visible without login)') }}</label>
                 </div>
             </div>
         </div>
@@ -78,8 +78,8 @@
                             <div class="card-body p-2">
                                 <small class="text-muted">{{ $img->caption ?? $img->alt_text ?? '—' }} ({{ $img->layout_hint }})</small>
                                 <div class="form-check mt-1">
-                                    <input type="checkbox" name="delete_images[]" value="{{ $img->id }}" class="form-check-input">
-                                    <label class="form-check-label small text-danger">{{ __('Delete') }}</label>
+                                    <input type="checkbox" name="delete_images[]" value="{{ $img->id }}" id="deleteImage{{ $img->id }}" class="form-check-input">
+                                    <label class="form-check-label small text-danger" for="deleteImage{{ $img->id }}">{{ __('Delete') }}</label>
                                 </div>
                             </div>
                         </div>
@@ -89,10 +89,12 @@
         @endif
         <div id="galleryInputs">
             <div class="row g-2 mb-2 gallery-row">
-                <div class="col-md-5"><input type="file" name="gallery[]" class="form-control form-control-sm" accept="image/*"></div>
-                <div class="col-md-4"><input type="text" name="gallery_captions[]" class="form-control form-control-sm" placeholder="{{ __('Caption') }}"></div>
+                {{-- aria-label, not id: the "+ Add image" button below clones this
+                     whole row with cloneNode(true), which would duplicate an id --}}
+                <div class="col-md-5"><input type="file" name="gallery[]" class="form-control form-control-sm" accept="image/*" aria-label="{{ __('Image') }}"></div>
+                <div class="col-md-4"><input type="text" name="gallery_captions[]" class="form-control form-control-sm" placeholder="{{ __('Caption') }}" aria-label="{{ __('Caption') }}"></div>
                 <div class="col-md-3">
-                    <select name="gallery_layouts[]" class="form-select form-select-sm">
+                    <select name="gallery_layouts[]" class="form-select form-select-sm" aria-label="{{ __('Layout') }}">
                         <option value="full">{{ __('Full width') }}</option>
                         <option value="half">{{ __('Half') }}</option>
                         <option value="third">{{ __('Third') }}</option>
