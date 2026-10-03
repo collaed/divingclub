@@ -23,51 +23,51 @@
             <form method="POST" action="{{ route('admin.event-automation-rules.store') }}" class="row g-2">
                 @csrf
                 <div class="col-md-3">
-                    <label class="form-label small mb-1">{{ __('Applies to') }}</label>
-                    <select name="target" class="form-select form-select-sm dc-target-select" required>
+                    <label class="form-label small mb-1" for="rule-target">{{ __('Applies to') }}</label>
+                    <select name="target" id="rule-target" class="form-select form-select-sm dc-target-select" required>
                         <option value="pattern">{{ __('A recurring pattern (default)') }}</option>
                         <option value="event">{{ __('One specific event (override)') }}</option>
                     </select>
                 </div>
                 <div class="col-md-4 dc-target-pattern">
-                    <label class="form-label small mb-1">{{ __('Pattern') }}</label>
-                    <select name="season_pattern_id" class="form-select form-select-sm">
+                    <label class="form-label small mb-1" for="rule-season-pattern">{{ __('Pattern') }}</label>
+                    <select name="season_pattern_id" id="rule-season-pattern" class="form-select form-select-sm">
                         @foreach($patterns as $p)
                             <option value="{{ $p->id }}">{{ $dayNames[$p->day_of_week] ?? $p->day_of_week }} {{ $p->start_time }} — {{ $p->title }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-4 dc-target-event" hidden>
-                    <label class="form-label small mb-1">{{ __('Event') }}</label>
-                    <select name="event_id" class="form-select form-select-sm">
+                    <label class="form-label small mb-1" for="rule-event">{{ __('Event') }}</label>
+                    <select name="event_id" id="rule-event" class="form-select form-select-sm">
                         @foreach($events as $e)
                             <option value="{{ $e->id }}">{{ $e->event_date?->format('d/m/Y') }} — {{ $e->title }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small mb-1">{{ __('Rule') }}</label>
-                    <select name="rule_type" class="form-select form-select-sm dc-rule-type" required>
+                    <label class="form-label small mb-1" for="rule-type">{{ __('Rule') }}</label>
+                    <select name="rule_type" id="rule-type" class="form-select form-select-sm dc-rule-type" required>
                         @foreach($ruleTypeLabels as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-2 dc-threshold-field">
-                    <label class="form-label small mb-1">{{ __('Threshold') }}</label>
-                    <input type="number" name="threshold" min="0" class="form-control form-control-sm" placeholder="{{ __('e.g. 4') }}">
+                    <label class="form-label small mb-1" for="rule-threshold">{{ __('Threshold') }}</label>
+                    <input type="number" name="threshold" id="rule-threshold" min="0" class="form-control form-control-sm" placeholder="{{ __('e.g. 4') }}">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label small mb-1">{{ __('When to check') }}</label>
-                    <select name="trigger" class="form-select form-select-sm dc-trigger-select">
+                    <label class="form-label small mb-1" for="rule-trigger">{{ __('When to check') }}</label>
+                    <select name="trigger" id="rule-trigger" class="form-select form-select-sm dc-trigger-select">
                         @foreach($triggerLabels as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-2 dc-hours-before-field" hidden>
-                    <label class="form-label small mb-1">{{ __('Hours before') }}</label>
-                    <input type="number" name="hours_before_event" min="1" class="form-control form-control-sm" placeholder="{{ __('e.g. 6') }}">
+                    <label class="form-label small mb-1" for="rule-hours-before">{{ __('Hours before') }}</label>
+                    <input type="number" name="hours_before_event" id="rule-hours-before" min="1" class="form-control form-control-sm" placeholder="{{ __('e.g. 6') }}">
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
                     <div class="form-check">
@@ -77,16 +77,16 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small mb-1">{{ __('Email subject') }}</label>
-                    <input type="text" name="email_subject" class="form-control form-control-sm" placeholder="{{ __('Left blank: a default subject is used') }}">
+                    <label class="form-label small mb-1" for="rule-email-subject">{{ __('Email subject') }}</label>
+                    <input type="text" name="email_subject" id="rule-email-subject" class="form-control form-control-sm" placeholder="{{ __('Left blank: a default subject is used') }}">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small mb-1">{{ __('Extra fixed recipients') }}</label>
-                    <input type="text" name="extra_recipients" class="form-control form-control-sm" placeholder="{{ __('comma-separated addresses') }}">
+                    <label class="form-label small mb-1" for="rule-extra-recipients">{{ __('Extra fixed recipients') }}</label>
+                    <input type="text" name="extra_recipients" id="rule-extra-recipients" class="form-control form-control-sm" placeholder="{{ __('comma-separated addresses') }}">
                 </div>
                 <div class="col-12">
-                    <label class="form-label small mb-1">{{ __('Email text') }}</label>
-                    <textarea name="email_body" rows="3" class="form-control form-control-sm" placeholder="{{ __('What the recipients will read — you can use {event}, {date}, {time}, {datetime}, {location}') }}"></textarea>
+                    <label class="form-label small mb-1" for="rule-email-body">{{ __('Email text') }}</label>
+                    <textarea name="email_body" id="rule-email-body" rows="3" class="form-control form-control-sm" placeholder="{{ __('What the recipients will read — you can use {event}, {date}, {time}, {datetime}, {location}') }}"></textarea>
                 </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-sm btn-primary">@icon('➕') {{ __('Add rule') }}</button>
