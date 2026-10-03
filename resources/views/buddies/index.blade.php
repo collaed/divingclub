@@ -62,7 +62,7 @@
                         @if($req->user_id !== auth()->id() && !$myResponse)
                             <form method="POST" action="{{ route('buddies.respond', $req) }}" class="mt-2 d-flex gap-2">
                                 @csrf
-                                <input type="text" name="message" class="form-control form-control-sm" placeholder="{{ __('Optional message…') }}">
+                                <input type="text" name="message" class="form-control form-control-sm" placeholder="{{ __('Optional message…') }}" aria-label="{{ __('Optional message…') }}">
                                 <button class="btn btn-sm btn-primary text-nowrap">@icon('✋') {{ __("I'm in!") }}</button>
                             </form>
                         @elseif($myResponse)
@@ -83,41 +83,41 @@
                     <form method="POST" action="{{ route('buddies.store') }}">
                         @csrf
                         <div class="mb-2">
-                            <label class="form-label small">{{ __('Where?') }}</label>
+                            <label class="form-label small" for="buddySite">{{ __('Where?') }}</label>
                             <select name="dive_site_id" class="form-select form-select-sm" id="buddySite">
                                 <option value="">{{ __('Other location…') }}</option>
                                 @foreach($sites as $s)
                                     <option value="{{ $s->id }}">{{ $s->name }}</option>
                                 @endforeach
                             </select>
-                            <input type="text" name="location_text" class="form-control form-control-sm mt-1" id="buddyLocationText" placeholder="{{ __('Or type a location') }}">
+                            <input type="text" name="location_text" class="form-control form-control-sm mt-1" id="buddyLocationText" placeholder="{{ __('Or type a location') }}" aria-label="{{ __('Or type a location') }}">
                         </div>
                         <div class="mb-2">
-                            <label class="form-label small">{{ __('When?') }}</label>
-                            <input type="date" name="dive_date" class="form-control form-control-sm" required min="{{ date('Y-m-d') }}">
+                            <label class="form-label small" for="buddyDiveDate">{{ __('When?') }}</label>
+                            <input type="date" name="dive_date" id="buddyDiveDate" class="form-control form-control-sm" required min="{{ date('Y-m-d') }}">
                         </div>
                         <div class="mb-2">
-                            <input type="text" name="dive_time" class="form-control form-control-sm" placeholder="{{ __('Time (e.g. morning, 10:00)') }}">
+                            <input type="text" name="dive_time" class="form-control form-control-sm" placeholder="{{ __('Time (e.g. morning, 10:00)') }}" aria-label="{{ __('Time (e.g. morning, 10:00)') }}">
                         </div>
                         <div class="mb-2">
-                            <label class="form-label small">{{ __('What do you need?') }}</label>
-                            <select name="need_type" class="form-select form-select-sm" required>
+                            <label class="form-label small" for="buddyNeedType">{{ __('What do you need?') }}</label>
+                            <select name="need_type" id="buddyNeedType" class="form-select form-select-sm" required>
                                 @foreach(\App\Models\BuddyRequest::NEED_TYPES as $k => $v)
                                     <option value="{{ $k }}">{{ $v }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="mb-2">
-                            <input type="number" name="max_depth" class="form-control form-control-sm" placeholder="{{ __('Planned max depth (m)') }}" min="1">
+                            <input type="number" name="max_depth" class="form-control form-control-sm" placeholder="{{ __('Planned max depth (m)') }}" min="1" aria-label="{{ __('Planned max depth (m)') }}">
                         </div>
                         <div class="mb-2">
-                            <input type="text" name="desired_cert_level" class="form-control form-control-sm" placeholder="{{ __('Desired buddy level (e.g. N2+, OWD)') }}">
+                            <input type="text" name="desired_cert_level" class="form-control form-control-sm" placeholder="{{ __('Desired buddy level (e.g. N2+, OWD)') }}" aria-label="{{ __('Desired buddy level (e.g. N2+, OWD)') }}">
                         </div>
                         <div class="mb-2">
-                            <input type="number" name="max_buddies" class="form-control form-control-sm" placeholder="{{ __('Max number of buddies') }}" min="1" max="10">
+                            <input type="number" name="max_buddies" class="form-control form-control-sm" placeholder="{{ __('Max number of buddies') }}" min="1" max="10" aria-label="{{ __('Max number of buddies') }}">
                         </div>
                         <div class="mb-2">
-                            <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="{{ __('Details, plans, what you want to do…') }}"></textarea>
+                            <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="{{ __('Details, plans, what you want to do…') }}" aria-label="{{ __('Details, plans, what you want to do…') }}"></textarea>
                         </div>
                         <button class="btn btn-primary btn-sm w-100">{{ __('Post Request') }}</button>
                     </form>
