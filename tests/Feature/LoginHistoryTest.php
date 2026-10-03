@@ -89,6 +89,53 @@ class LoginHistoryTest extends TestCase
             ->assertSee('Home');
     }
 
+    /**
+     * The reverse lookup: not "what did this member do" but "who browsed a
+     * page matching this pattern" — the member column only appears here,
+     * since a path search can span more than one person.
+     */
+    public function test_searching_by_path_shows_who_visited_it_across_members(): void
+    {
+        $master = $this->user('bureau_master');
+        $alice = $this->user('member');
+        $bob = $this->user('member');
+
+        PageVisit::create(['user_id' => $alice->id, 'method' => 'GET', 'path' => '/admin/ledger', 'route_name' => 'admin.ledger.index', 'status' => 200]);
+        PageVisit::create(['user_id' => $bob->id, 'method' => 'GET', 'path' => '/admin/ledger/review', 'route_name' => 'admin.ledger.review', 'status' => 200]);
+        PageVisit::create(['user_id' => $alice->id, 'method' => 'GET', 'path' => '/', 'route_name' => 'home', 'status' => 200]);
+
+        $res = $this->actingAs($master)->get('/admin/logins?tab=activity&path=ledger');
+
+        $res->assertOk()
+            ->assertSee('/admin/ledger', false)
+            ->assertSee('/admin/ledger/review', false)
+            ->assertSee(__('Member'));
+    }
+
+    public function test_path_search_combined_with_a_member_narrows_to_that_members_matching_visits(): void
+    {
+        $master = $this->user('bureau_master');
+        $alice = $this->user('member');
+        $bob = $this->user('member');
+
+        PageVisit::create(['user_id' => $alice->id, 'method' => 'GET', 'path' => '/admin/ledger', 'route_name' => 'admin.ledger.index', 'status' => 200]);
+        PageVisit::create(['user_id' => $alice->id, 'method' => 'GET', 'path' => '/admin/library', 'route_name' => 'admin.library.index', 'status' => 200]);
+        PageVisit::create(['user_id' => $bob->id, 'method' => 'GET', 'path' => '/admin/ledger', 'route_name' => 'admin.ledger.index', 'status' => 200]);
+
+        $res = $this->actingAs($master)->get('/admin/logins?tab=activity&user='.$alice->id.'&path=ledger');
+
+        $res->assertOk()->assertSee('/admin/ledger', false)->assertSee($alice->detail->first_name);
+    }
+
+    public function test_path_search_with_no_matches_shows_the_empty_state(): void
+    {
+        $master = $this->user('bureau_master');
+        PageVisit::create(['user_id' => $this->user('member')->id, 'method' => 'GET', 'path' => '/', 'route_name' => 'home', 'status' => 200]);
+
+        $this->actingAs($master)->get('/admin/logins?tab=activity&path=does-not-exist')
+            ->assertOk()->assertSee('No page views in the retention window.');
+    }
+
     public function test_non_bureau_master_is_forbidden(): void
     {
         $this->actingAs($this->user('bureau_finance'))->get('/admin/logins')->assertForbidden();

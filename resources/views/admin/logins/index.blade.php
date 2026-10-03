@@ -193,15 +193,34 @@
                     {{ trans_choice('Page views by logged-in members over the last :count day.|Page views by logged-in members over the last :count days.', $retentionDays, ['count' => $retentionDays]) }}
                 </p>
 
-                @if($trailUser)
-                    <a href="{{ route('admin.logins.index', ['tab' => 'activity']) }}" class="btn btn-sm btn-outline-secondary mb-3">← {{ __('Back to recent connections') }}</a>
-                    <h5 class="mb-3">@icon('👣') {{ $memberName($trailUser) }}</h5>
+                <form method="GET" action="{{ route('admin.logins.index') }}" class="d-flex gap-2 align-items-end mb-3">
+                    <input type="hidden" name="tab" value="activity">
+                    @if($trailUser)<input type="hidden" name="user" value="{{ $trailUser->id }}">@endif
+                    <div>
+                        <label class="form-label small mb-1" for="activity-path-search">{{ __('URL / path contains') }}</label>
+                        <input type="text" id="activity-path-search" name="path" value="{{ $pathSearch }}" class="form-control form-control-sm" style="width:20rem" placeholder="{{ __('e.g. /admin/ledger — find who browsed it') }}">
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
+                    @if($pathSearch !== '' || $trailUser)
+                        <a href="{{ route('admin.logins.index', ['tab' => 'activity']) }}" class="btn btn-sm btn-outline-secondary">{{ __('Clear') }}</a>
+                    @endif
+                </form>
+
+                @if($trail !== null)
+                    @if($trailUser)
+                        <h5 class="mb-3">@icon('👣') {{ $memberName($trailUser) }}</h5>
+                    @endif
                     <div class="table-responsive">
                         <table class="table table-sm table-hover">
-                            <thead><tr><th data-sort-col>{{ __('When') }}</th><th data-sort-col>{{ __('Page') }}</th><th data-sort-col>{{ __('Title') }}</th><th data-sort-col>{{ __('Route') }}</th><th data-sort-col>{{ __('Status') }}</th></tr></thead>
+                            <thead><tr>
+                                @unless($trailUser)<th data-sort-col>{{ __('Member') }}</th>@endunless
+                                <th data-sort-col>{{ __('When') }}</th><th data-sort-col>{{ __('Page') }}</th><th data-sort-col>{{ __('Title') }}</th><th data-sort-col>{{ __('Route') }}</th><th data-sort-col>{{ __('Status') }}</th>
+                            </tr></thead>
                             <tbody>
                                 @forelse($trail as $visit)
+                                    @php($vu = $trailUser ?: ($visit->user_id ? ($trailUsers[$visit->user_id] ?? null) : null))
                                     <tr>
+                                        @unless($trailUser)<td class="small">{{ $vu ? $memberName($vu) : __('deleted user') }}</td>@endunless
                                         <td class="text-nowrap small" data-sort-value="{{ $visit->created_at?->timestamp ?? 0 }}" title="{{ $visit->created_at?->format('Y-m-d H:i:s') }}">{{ $visit->created_at?->diffForHumans() }}</td>
                                         <td class="small"><code>{{ $visit->path }}</code></td>
                                         <td class="small" style="max-width: 220px;">
@@ -211,7 +230,7 @@
                                         <td class="small {{ $statusClass($visit->status) }}">{{ $visit->status ?? '—' }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="5" class="text-muted text-center py-4">{{ __('No page views in the retention window.') }}</td></tr>
+                                    <tr><td colspan="{{ $trailUser ? 5 : 6 }}" class="text-muted text-center py-4">{{ __('No page views in the retention window.') }}</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

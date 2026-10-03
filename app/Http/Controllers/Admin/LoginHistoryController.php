@@ -76,25 +76,45 @@ class LoginHistoryController extends Controller
             ->get()
             ->keyBy('id');
 
+        // "Trail" covers two reverse-direction lookups with the same query
+        // shape: one member's whole history (?user=), or — to answer "who
+        // browsed a page matching this?" — every visit whose path matches a
+        // typed pattern (?path=), regardless of who made it. Either, both, or
+        // neither can be set; neither falls back to the connections summary.
+        $pathSearch = trim((string) $request->get('path', ''));
         $trailUser = null;
         $trail = null;
         $trailTitles = [];
-        if ($request->integer('user') > 0) {
-            $trailUser = User::with('detail')->find($request->integer('user'));
+        $trailUsers = [];
+        if ($request->integer('user') > 0 || $pathSearch !== '') {
+            if ($request->integer('user') > 0) {
+                $trailUser = User::with('detail')->find($request->integer('user'));
+            }
+
+            $like = config('database.default') === 'pgsql' ? 'ILIKE' : 'LIKE';
             $trail = PageVisit::query()
-                ->where('user_id', $request->integer('user'))
                 ->where('created_at', '>=', $activitySince)
+                ->when($trailUser, fn ($q) => $q->where('user_id', $trailUser->id))
+                ->when($pathSearch !== '', fn ($q) => $q->where('path', $like, "%{$pathSearch}%"))
                 ->orderByDesc('created_at')
                 ->limit(500)
                 ->get();
             $trailTitles = $this->resolvePageTitles($trail);
+
+            // Only fetched when the result can span more than one member —
+            // the single-user trail already knows who it's for via $trailUser.
+            if (! $trailUser) {
+                $trailUsers = User::with('detail')
+                    ->whereIn('id', $trail->pluck('user_id')->filter()->unique()->all())
+                    ->get()->keyBy('id');
+            }
         }
 
         return view('admin.logins.index', compact(
             'logins', 'stats', 'failed',
             'members', 'neverSeen',
             'activityEnabled', 'retentionDays',
-            'connections', 'connectionUsers', 'trail', 'trailUser', 'trailTitles',
+            'connections', 'connectionUsers', 'trail', 'trailUser', 'trailTitles', 'trailUsers', 'pathSearch',
         ));
     }
 
