@@ -71,22 +71,22 @@
                 <div class="col-auto"><strong class="small">{{ $lic->federation->acronym }}</strong></div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0">{{ __('Licence #') }}</label>
-                    <input type="text" name="licence_number" class="form-control form-control-sm" value="{{ $lic->licence_number }}">
+                    <input type="text" name="licence_number" class="form-control form-control-sm" value="{{ $lic->licence_number }}" aria-label="{{ __('Licence #') }}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0">{{ __('Request Date') }}</label>
                     <div class="input-group input-group-sm">
-                        <input type="date" name="licence_request_date" class="form-control" value="{{ $lic->licence_request_date?->format('Y-m-d') }}">
+                        <input type="date" name="licence_request_date" class="form-control" value="{{ $lic->licence_request_date?->format('Y-m-d') }}" aria-label="{{ __('Request Date') }}">
                         <button type="button" class="btn btn-outline-secondary" onclick="this.previousElementSibling.value='{{ date('Y-m-d') }}'">{{ __('Today') }}</button>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0">{{ __('Season') }}</label>
-                    <input type="text" name="season" class="form-control form-control-sm" value="{{ $lic->season }}">
+                    <input type="text" name="season" class="form-control form-control-sm" value="{{ $lic->season }}" aria-label="{{ __('Season') }}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0">{{ __('Insurance') }}</label>
-                    <select name="insurance_type" class="form-select form-select-sm">
+                    <select name="insurance_type" class="form-select form-select-sm" aria-label="{{ __('Insurance') }}">
                         <option value="">—</option>
                         @foreach(['Loisir 1','Loisir 2','Loisir 3','Loisir 1 Top','Loisir 2 Top','Loisir 3 Top','Aucune'] as $ins)
                             <option value="{{ $ins }}" {{ $lic->insurance_type === $ins ? 'selected' : '' }}>{{ $ins }}</option>
@@ -95,7 +95,7 @@
                 </div>
                 <div class="col-md-1">
                     <label class="form-label small mb-0">{{ __('Pending') }}</label>
-                    <select name="licence_request_pending" class="form-select form-select-sm">
+                    <select name="licence_request_pending" class="form-select form-select-sm" aria-label="{{ __('Pending') }}">
                         <option value="0" {{ !$lic->licence_request_pending ? 'selected' : '' }}>{{ __('No') }}</option>
                         <option value="1" {{ $lic->licence_request_pending ? 'selected' : '' }}>{{ __('Yes') }}</option>
                     </select>
@@ -120,8 +120,8 @@
             <div class="row g-2 align-items-end">
                 <div class="col-auto"><strong class="small text-primary">@icon('➕') {{ __('Add licence') }}</strong></div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">{{ __('Federation') }}</label>
-                    <select name="federation_id" class="form-select form-select-sm" required>
+                    <label class="form-label small mb-0" for="newLicenceFederation">{{ __('Federation') }}</label>
+                    <select name="federation_id" id="newLicenceFederation" class="form-select form-select-sm" required>
                         <option value="">{{ __('Select…') }}</option>
                         @foreach($addableFederations as $fed)
                             <option value="{{ $fed->id }}">{{ $fed->acronym }}</option>
@@ -129,16 +129,16 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">{{ __('Licence #') }}</label>
-                    <input type="text" name="licence_number" class="form-control form-control-sm" value="{{ old('licence_number') }}">
+                    <label class="form-label small mb-0" for="newLicenceNumber">{{ __('Licence #') }}</label>
+                    <input type="text" name="licence_number" id="newLicenceNumber" class="form-control form-control-sm" value="{{ old('licence_number') }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">{{ __('Season') }}</label>
-                    <input type="text" name="season" class="form-control form-control-sm" value="{{ old('season') }}">
+                    <label class="form-label small mb-0" for="newLicenceSeason">{{ __('Season') }}</label>
+                    <input type="text" name="season" id="newLicenceSeason" class="form-control form-control-sm" value="{{ old('season') }}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">{{ __('Insurance') }}</label>
-                    <select name="insurance_type" class="form-select form-select-sm">
+                    <label class="form-label small mb-0" for="newLicenceInsurance">{{ __('Insurance') }}</label>
+                    <select name="insurance_type" id="newLicenceInsurance" class="form-select form-select-sm">
                         <option value="">—</option>
                         @foreach(['Loisir 1','Loisir 2','Loisir 3','Loisir 1 Top','Loisir 2 Top','Loisir 3 Top','Aucune'] as $ins)
                             <option value="{{ $ins }}" {{ old('insurance_type') === $ins ? 'selected' : '' }}>{{ $ins }}</option>
@@ -146,9 +146,9 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small mb-0">{{ __('Request Date') }}</label>
+                    <label class="form-label small mb-0" for="newLicenceRequestDate">{{ __('Request Date') }}</label>
                     <div class="input-group input-group-sm">
-                        <input type="date" name="licence_request_date" class="form-control" value="{{ old('licence_request_date') }}">
+                        <input type="date" name="licence_request_date" id="newLicenceRequestDate" class="form-control" value="{{ old('licence_request_date') }}">
                         <button type="button" class="btn btn-outline-secondary" onclick="this.previousElementSibling.value='{{ date('Y-m-d') }}'">{{ __('Today') }}</button>
                     </div>
                 </div>
@@ -189,7 +189,7 @@
 @php $showRoute = $viewer->id === $target->id ? route('profile.show') : route('admin.profile.show', $target); @endphp
 <form method="GET" action="{{ $showRoute }}" class="d-flex flex-wrap gap-2 align-items-center mb-2">
     <input type="hidden" name="tab" value="renewal">
-    <input type="text" name="cot_search" class="form-control form-control-sm" style="max-width:16rem" placeholder="{{ __('Search name, amount, communication…') }}" value="{{ $cotSearch }}">
+    <input type="text" name="cot_search" class="form-control form-control-sm" style="max-width:16rem" placeholder="{{ __('Search name, amount, communication…') }}" aria-label="{{ __('Search name, amount, communication…') }}" value="{{ $cotSearch }}">
     <div class="form-check">
         <input type="checkbox" name="show_identified" value="1" id="cot-show-identified" class="form-check-input" onchange="this.form.submit()" @checked($showIdentified)>
         <label class="form-check-label small" for="cot-show-identified">{{ __('Show also those already identified') }}</label>
