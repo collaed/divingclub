@@ -42,28 +42,28 @@
                     <form id="patternForm" class="mt-3">
                         <div class="row g-2">
                             <div class="col-md-3">
-                                <select name="day_of_week" class="form-select form-select-sm" required>
+                                <select name="day_of_week" class="form-select form-select-sm" aria-label="{{ __('Day of week') }}" required>
                                     @foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $i => $d)
                                         <option value="{{ $i }}">{{ __($d) }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2"><input type="text" name="start_time" data-picker="time" class="form-control form-control-sm" placeholder="19:00" required></div>
-                            <div class="col-md-2"><input type="text" name="end_time" data-picker="time" class="form-control form-control-sm" placeholder="21:00"></div>
+                            <div class="col-md-2"><input type="text" name="start_time" data-picker="time" class="form-control form-control-sm" placeholder="19:00" aria-label="{{ __('Start time') }}" required></div>
+                            <div class="col-md-2"><input type="text" name="end_time" data-picker="time" class="form-control form-control-sm" placeholder="21:00" aria-label="{{ __('End time') }}"></div>
                             <div class="col-md-2">
-                                <select name="event_type" class="form-select form-select-sm" required data-taper-color>
+                                <select name="event_type" class="form-select form-select-sm" aria-label="{{ __('Event type') }}" required data-taper-color>
                                     @foreach($activityTypes as $key => $meta)
                                         <option value="{{ $key }}" data-color="{{ $meta['color'] }}">{{ $meta['icon'] }} {{ __(trim($meta['label'], '↳ ')) }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-3"><input type="text" name="title" class="form-control form-control-sm" placeholder="{{ __('Title') }}" required></div>
+                            <div class="col-md-3"><input type="text" name="title" class="form-control form-control-sm" placeholder="{{ __('Title') }}" aria-label="{{ __('Title') }}" required></div>
                         </div>
                         <div class="row g-2 mt-1">
-                            <div class="col-md-5"><input type="text" name="location" class="form-control form-control-sm" placeholder="{{ __('Location') }}"></div>
-                            <div class="col-md-2"><input type="number" name="max_participants" class="form-control form-control-sm" placeholder="{{ __('Max') }}" min="1"></div>
-                            <div class="col-md-2"><input type="number" name="registration_opens_days_before" class="form-control form-control-sm" placeholder="{{ __('Opens X days before') }}" min="1"></div>
-                            <div class="col-md-2"><input type="color" name="color_hex" class="form-control form-control-sm form-control-color" value="#0077be"></div>
+                            <div class="col-md-5"><input type="text" name="location" class="form-control form-control-sm" placeholder="{{ __('Location') }}" aria-label="{{ __('Location') }}"></div>
+                            <div class="col-md-2"><input type="number" name="max_participants" class="form-control form-control-sm" placeholder="{{ __('Max') }}" aria-label="{{ __('Max participants') }}" min="1"></div>
+                            <div class="col-md-2"><input type="number" name="registration_opens_days_before" class="form-control form-control-sm" placeholder="{{ __('Opens X days before') }}" aria-label="{{ __('Opens X days before') }}" min="1"></div>
+                            <div class="col-md-2"><input type="color" name="color_hex" class="form-control form-control-sm form-control-color" aria-label="{{ __('Colour') }}" value="#0077be"></div>
                             <div class="col-md-1"><button type="submit" class="btn btn-sm btn-primary w-100">{{ __('Add') }}</button></div>
                         </div>
                     </form>
@@ -91,14 +91,14 @@
 
                     <form id="holidayForm" class="mt-3">
                         <div class="row g-2">
-                            <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Holiday name') }}" required></div>
+                            <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Holiday name') }}" aria-label="{{ __('Holiday name') }}" required></div>
                             <div class="col-md-6">
-                                <input type="text" id="holidayRange" class="form-control form-control-sm" data-picker="daterange" data-range-start="#holStart" data-range-end="#holEnd" placeholder="{{ __('Select dates') }}">
+                                <input type="text" id="holidayRange" class="form-control form-control-sm" data-picker="daterange" data-range-start="#holStart" data-range-end="#holEnd" placeholder="{{ __('Select dates') }}" aria-label="{{ __('Select dates') }}">
                                 <input type="hidden" name="start_date" id="holStart">
                                 <input type="hidden" name="end_date" id="holEnd">
                             </div>
                             <div class="col-md-2">
-                                <div class="form-check mt-1"><input type="hidden" name="is_adhoc" value="0"><input type="checkbox" name="is_adhoc" value="1" class="form-check-input"><label class="form-check-label small">{{ __('Ad-hoc') }}</label></div>
+                                <div class="form-check mt-1"><input type="hidden" name="is_adhoc" value="0"><input type="checkbox" name="is_adhoc" value="1" id="holIsAdhoc" class="form-check-input"><label class="form-check-label small" for="holIsAdhoc">{{ __('Ad-hoc') }}</label></div>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary mt-2">{{ __('Add Holiday') }}</button>
@@ -128,9 +128,9 @@
                                 @php [$mm, $dd] = array_pad(explode('-', $tier['from']), 2, '01'); @endphp
                                 <div class="row g-2 mb-2 taper-row align-items-center">
                                     <div class="col-auto"><label class="small text-muted mb-0">{{ __('From') }}</label></div>
-                                    <div class="col-auto"><input type="text" name="from[]" class="form-control form-control-sm" style="width:90px" value="{{ $tier['from'] }}" placeholder="MM-DD" pattern="\d{2}-\d{2}" required></div>
+                                    <div class="col-auto"><input type="text" name="from[]" class="form-control form-control-sm" style="width:90px" value="{{ $tier['from'] }}" placeholder="MM-DD" aria-label="{{ __('From') }}" pattern="\d{2}-\d{2}" required></div>
                                     <div class="col-auto"><label class="small text-muted mb-0">{{ __('Rate') }}</label></div>
-                                    <div class="col-auto"><div class="input-group input-group-sm" style="width:100px"><input type="number" name="pct[]" class="form-control" min="0" max="100" value="{{ $tier['pct'] }}" required><span class="input-group-text">%</span></div></div>
+                                    <div class="col-auto"><div class="input-group input-group-sm" style="width:100px"><input type="number" name="pct[]" class="form-control" min="0" max="100" value="{{ $tier['pct'] }}" aria-label="{{ __('Rate') }}" required><span class="input-group-text">%</span></div></div>
                                     <div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger taper-del">&#x2715;</button></div>
                                 </div>
                             @empty
@@ -142,9 +142,9 @@
                     <template id="taperRowTpl">
                         <div class="row g-2 mb-2 taper-row align-items-center">
                             <div class="col-auto"><label class="small text-muted mb-0">{{ __('From') }}</label></div>
-                            <div class="col-auto"><input type="text" name="from[]" class="form-control form-control-sm" style="width:90px" placeholder="MM-DD" pattern="\d{2}-\d{2}" required></div>
+                            <div class="col-auto"><input type="text" name="from[]" class="form-control form-control-sm" style="width:90px" placeholder="MM-DD" aria-label="{{ __('From') }}" pattern="\d{2}-\d{2}" required></div>
                             <div class="col-auto"><label class="small text-muted mb-0">{{ __('Rate') }}</label></div>
-                            <div class="col-auto"><div class="input-group input-group-sm" style="width:100px"><input type="number" name="pct[]" class="form-control" min="0" max="100" required><span class="input-group-text">%</span></div></div>
+                            <div class="col-auto"><div class="input-group input-group-sm" style="width:100px"><input type="number" name="pct[]" class="form-control" min="0" max="100" aria-label="{{ __('Rate') }}" required><span class="input-group-text">%</span></div></div>
                             <div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger taper-del">&#x2715;</button></div>
                         </div>
                     </template>
@@ -188,67 +188,67 @@
                     <div class="modal-body">
                         <div class="row g-2 mb-3">
                             <div class="col-md-4">
-                                <label class="form-label">{{ __('Day') }}</label>
-                                <select name="day_of_week" class="form-select" required>
+                                <label class="form-label" for="editPatternDay">{{ __('Day') }}</label>
+                                <select id="editPatternDay" name="day_of_week" class="form-select" required>
                                     @foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $i => $d)
                                         <option value="{{ $i }}">{{ __($d) }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">{{ __('Start Time') }}</label>
-                                <input type="text" name="start_time" class="form-control" data-picker="time" required>
+                                <label class="form-label" for="editPatternStart">{{ __('Start Time') }}</label>
+                                <input type="text" id="editPatternStart" name="start_time" class="form-control" data-picker="time" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">{{ __('End Time') }}</label>
-                                <input type="text" name="end_time" class="form-control" data-picker="time">
+                                <label class="form-label" for="editPatternEnd">{{ __('End Time') }}</label>
+                                <input type="text" id="editPatternEnd" name="end_time" class="form-control" data-picker="time">
                             </div>
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('Type') }}</label>
-                                <select name="event_type" class="form-select" required>
+                                <label class="form-label" for="editPatternType">{{ __('Type') }}</label>
+                                <select id="editPatternType" name="event_type" class="form-select" required>
                                     @foreach($activityTypes as $key => $meta)
                                         <option value="{{ $key }}" data-color="{{ $meta['color'] }}">{{ $meta['icon'] }} {{ __(trim($meta['label'], '↳ ')) }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('Title') }}</label>
-                                <input type="text" name="title" class="form-control" required>
+                                <label class="form-label" for="editPatternTitle">{{ __('Title') }}</label>
+                                <input type="text" id="editPatternTitle" name="title" class="form-control" required>
                             </div>
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-md-8">
-                                <label class="form-label">{{ __('Location') }}</label>
-                                <input type="text" name="location" class="form-control">
+                                <label class="form-label" for="editPatternLocation">{{ __('Location') }}</label>
+                                <input type="text" id="editPatternLocation" name="location" class="form-control">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">{{ __('Color') }}</label>
-                                <input type="color" name="color_hex" class="form-control form-control-color w-100" value="#0077be">
+                                <label class="form-label" for="editPatternColor">{{ __('Color') }}</label>
+                                <input type="color" id="editPatternColor" name="color_hex" class="form-control form-control-color w-100" value="#0077be">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">{{ __('Description') }}</label>
-                            <textarea name="description" class="form-control" rows="2"></textarea>
+                            <label class="form-label" for="editPatternDescription">{{ __('Description') }}</label>
+                            <textarea id="editPatternDescription" name="description" class="form-control" rows="2"></textarea>
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-md-4">
-                                <label class="form-label">{{ __('Max Participants') }}</label>
-                                <input type="number" name="max_participants" class="form-control" min="1">
+                                <label class="form-label" for="editPatternMaxParticipants">{{ __('Max Participants') }}</label>
+                                <input type="number" id="editPatternMaxParticipants" name="max_participants" class="form-control" min="1">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">{{ __('Opens (days before)') }}</label>
-                                <input type="number" name="registration_opens_days_before" class="form-control" min="1">
+                                <label class="form-label" for="editPatternOpensBefore">{{ __('Opens (days before)') }}</label>
+                                <input type="number" id="editPatternOpensBefore" name="registration_opens_days_before" class="form-control" min="1">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">{{ __('Closes (days before)') }}</label>
-                                <input type="number" name="registration_closes_days_before" class="form-control" min="0">
+                                <label class="form-label" for="editPatternClosesBefore">{{ __('Closes (days before)') }}</label>
+                                <input type="number" id="editPatternClosesBefore" name="registration_closes_days_before" class="form-control" min="0">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">{{ __('WhatsApp Group URL') }}</label>
-                            <input type="url" name="whatsapp_group_url" class="form-control" placeholder="https://chat.whatsapp.com/...">
+                            <label class="form-label" for="editPatternWhatsapp">{{ __('WhatsApp Group URL') }}</label>
+                            <input type="url" id="editPatternWhatsapp" name="whatsapp_group_url" class="form-control" placeholder="https://chat.whatsapp.com/...">
                         </div>
                         <hr>
                         <div class="form-check">
