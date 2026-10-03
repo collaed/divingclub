@@ -33,17 +33,17 @@
                     <td style="max-width:5rem">
                         <input type="number" min="0" max="120" step="1" name="taper_below_age"
                                class="form-control form-control-sm js-component-field"
-                               value="{{ $c->taper_below_age }}" placeholder="—">
+                               value="{{ $c->taper_below_age }}" placeholder="—" aria-label="{{ __('Age <') }}">
                     </td>
                     <td style="max-width:5.5rem">
                         <input type="number" min="0" max="1" step="0.01" name="taper_ratio"
                                class="form-control form-control-sm js-component-field"
-                               value="{{ $c->taper_ratio !== null ? rtrim(rtrim(number_format((float) $c->taper_ratio, 3), '0'), '.') : '' }}" placeholder="—">
+                               value="{{ $c->taper_ratio !== null ? rtrim(rtrim(number_format((float) $c->taper_ratio, 3), '0'), '.') : '' }}" placeholder="—" aria-label="{{ __('Ratio') }}">
                     </td>
                     <td style="max-width:9rem">
                         <input type="date" name="age_anchor_date"
                                class="form-control form-control-sm js-component-field"
-                               value="{{ $c->age_anchor_date?->format('Y-m-d') }}">
+                               value="{{ $c->age_anchor_date?->format('Y-m-d') }}" aria-label="{{ __('Anchor') }}">
                     </td>
                     <td>
                         <form method="POST" action="{{ route('admin.payments.component.destroy', $c) }}" class="d-inline" data-confirm="{{ __('Delete?') }}" data-confirm-style="danger">
@@ -63,20 +63,20 @@
             <form method="POST" action="{{ route('admin.payments.component.store') }}">
                 @csrf
                 <div class="row g-2">
-                    <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm @error('name') is-invalid @enderror" placeholder="{{ __('Name') }}" required>@error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
-                    <div class="col-md-2"><input type="text" name="slug" class="form-control form-control-sm @error('slug') is-invalid @enderror" placeholder="{{ __('Slug') }}" required>@error('slug') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
-                    <div class="col-md-2"><input type="number" name="amount" class="form-control form-control-sm @error('amount') is-invalid @enderror" placeholder="{{ __('Amount') }}" step="0.01" required>@error('amount') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
+                    <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm @error('name') is-invalid @enderror" placeholder="{{ __('Name') }}" aria-label="{{ __('Name') }}" required>@error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
+                    <div class="col-md-2"><input type="text" name="slug" class="form-control form-control-sm @error('slug') is-invalid @enderror" placeholder="{{ __('Slug') }}" aria-label="{{ __('Slug') }}" required>@error('slug') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
+                    <div class="col-md-2"><input type="number" name="amount" class="form-control form-control-sm @error('amount') is-invalid @enderror" placeholder="{{ __('Amount') }}" step="0.01" aria-label="{{ __('Amount') }}" required>@error('amount') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
                     <div class="col-md-4">
-                        <div class="form-check form-check-inline"><input type="checkbox" name="is_base" value="1" class="form-check-input"><label class="form-check-label small">{{ __('Base') }}</label></div>
-                        <div class="form-check form-check-inline"><input type="checkbox" name="is_optional" value="1" class="form-check-input"><label class="form-check-label small">{{ __('Optional') }}</label></div>
-                        <div class="form-check form-check-inline"><input type="checkbox" name="prorata_eligible" value="1" class="form-check-input"><label class="form-check-label small">{{ __('Taperable') }}</label></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" name="is_base" value="1" id="newComponentBase" class="form-check-input"><label class="form-check-label small" for="newComponentBase">{{ __('Base') }}</label></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" name="is_optional" value="1" id="newComponentOptional" class="form-check-input"><label class="form-check-label small" for="newComponentOptional">{{ __('Optional') }}</label></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" name="prorata_eligible" value="1" id="newComponentTaperable" class="form-check-input"><label class="form-check-label small" for="newComponentTaperable">{{ __('Taperable') }}</label></div>
                     </div>
                     <div class="col-md-1"><button class="btn btn-sm btn-primary w-100">{{ __('Add') }}</button></div>
                 </div>
                 <div class="row g-2 mt-1">
-                    <div class="col-md-2"><input type="number" name="taper_below_age" class="form-control form-control-sm" placeholder="{{ __('Age <') }}" min="0" max="120" step="1"></div>
-                    <div class="col-md-2"><input type="number" name="taper_ratio" class="form-control form-control-sm" placeholder="{{ __('Ratio (0-1)') }}" min="0" max="1" step="0.01"></div>
-                    <div class="col-md-3"><input type="date" name="age_anchor_date" class="form-control form-control-sm" title="{{ __('Age anchor date') }}"></div>
+                    <div class="col-md-2"><input type="number" name="taper_below_age" class="form-control form-control-sm" placeholder="{{ __('Age <') }}" aria-label="{{ __('Age <') }}" min="0" max="120" step="1"></div>
+                    <div class="col-md-2"><input type="number" name="taper_ratio" class="form-control form-control-sm" placeholder="{{ __('Ratio (0-1)') }}" aria-label="{{ __('Ratio (0-1)') }}" min="0" max="1" step="0.01"></div>
+                    <div class="col-md-3"><input type="date" name="age_anchor_date" class="form-control form-control-sm" title="{{ __('Age anchor date') }}" aria-label="{{ __('Age anchor date') }}"></div>
                 </div>
             </form>
         </div>
