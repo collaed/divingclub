@@ -207,8 +207,8 @@
                         <td>
                             <form action="{{ route('events.settlement.approve', [$event, $r]) }}" method="POST" class="d-inline-flex gap-1 align-items-center">
                                 @csrf
-                                <input type="number" step="0.01" name="approved_amount" value="{{ $r->amount }}" class="form-control form-control-sm" style="width:90px" required>
-                                <select name="category" class="form-select form-select-sm" style="width:100px">
+                                <input type="number" step="0.01" name="approved_amount" value="{{ $r->amount }}" class="form-control form-control-sm" style="width:90px" aria-label="{{ __('Approved amount') }}" required>
+                                <select name="category" class="form-select form-select-sm" style="width:100px" aria-label="{{ __('Category') }}">
                                     <option value="general" {{ $r->category === 'general' ? 'selected' : '' }}>{{ __('General') }}</option>
                                     <option value="transit" {{ $r->category === 'transit' ? 'selected' : '' }}>{{ __('Transit') }}</option>
                                     <option value="individual" {{ $r->category === 'individual' ? 'selected' : '' }}>{{ __('Individual charge') }}</option>
@@ -218,7 +218,7 @@
                             </form>
                             <form action="{{ route('events.settlement.reject', [$event, $r]) }}" method="POST" class="d-inline">
                                 @csrf
-                                <input type="text" name="reviewer_notes" placeholder="{{ __('Reason') }}" class="form-control form-control-sm d-inline-block" style="width:120px">
+                                <input type="text" name="reviewer_notes" placeholder="{{ __('Reason') }}" aria-label="{{ __('Reason') }}" class="form-control form-control-sm d-inline-block" style="width:120px">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">✕</button>
                             </form>
                         </td>
@@ -241,14 +241,14 @@
                     <form action="{{ route('events.settlement.update-vans', $event) }}" method="POST" class="d-flex gap-2 align-items-end mb-3">
                         @csrf
                         <div>
-                            <label class="form-label form-label-sm">{{ __('Number of vans') }}</label>
-                            <input type="number" name="van_count" value="{{ $event->van_count ?? 0 }}" min="0" max="10" class="form-control form-control-sm" style="width:70px">
+                            <label class="form-label form-label-sm" for="van-count-input">{{ __('Number of vans') }}</label>
+                            <input type="number" id="van-count-input" name="van_count" value="{{ $event->van_count ?? 0 }}" min="0" max="10" class="form-control form-control-sm" style="width:70px">
                         </div>
                         <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Set') }}</button>
                     </form>
                     <div class="d-flex gap-2 align-items-end">
                         <div>
-                            <label class="form-label form-label-sm">{{ __('Day rate (local transit)') }}</label>
+                            <label class="form-label form-label-sm" for="day-rate-input">{{ __('Day rate (local transit)') }}</label>
                             <div class="input-group input-group-sm" style="width:120px">
                                 <input type="number" step="0.01" id="day-rate-input" value="{{ $event->local_daily_charge ?? 0 }}" min="0" class="form-control form-control-sm">
                                 <span class="input-group-text">€</span>
@@ -267,7 +267,7 @@
                     <form action="{{ route('events.settlement.bureau-receipt', $event) }}" method="POST" class="row g-2 align-items-end">
                         @csrf
                         <div class="col-auto">
-                            <label class="form-label form-label-sm">{{ __('Category') }}</label>
+                            <label class="form-label form-label-sm" for="add-category">{{ __('Category') }}</label>
                             <select name="category" class="form-select form-select-sm" required id="add-category">
                                 <option value="general">📦 {{ __('General (shared equally)') }}</option>
                                 <option value="transit">🚐 {{ __('Transit (van riders)') }}</option>
@@ -276,7 +276,7 @@
                             </select>
                         </div>
                         <div class="col-auto" id="add-member-col">
-                            <label class="form-label form-label-sm">{{ __('Paid by / Charged to') }}</label>
+                            <label class="form-label form-label-sm" for="add-user-id">{{ __('Paid by / Charged to') }}</label>
                             <select name="user_id" id="add-user-id" class="form-select form-select-sm">
                                 <option value="">— {{ __('Club expense') }} —</option>
                                 @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->participantName()) as $tp)
@@ -285,15 +285,15 @@
                             </select>
                         </div>
                         <div class="col-auto">
-                            <label class="form-label form-label-sm">{{ __('Amount') }}</label>
+                            <label class="form-label form-label-sm" for="add-amount">{{ __('Amount') }}</label>
                             <div class="input-group input-group-sm">
-                                <input type="number" step="0.01" name="amount" min="0.01" required class="form-control" style="width:100px">
+                                <input type="number" step="0.01" name="amount" id="add-amount" min="0.01" required class="form-control" style="width:100px">
                                 <span class="input-group-text">€</span>
                             </div>
                         </div>
                         <div class="col">
-                            <label class="form-label form-label-sm">{{ __('Description') }}</label>
-                            <input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Extra drinks bar') }}" required>
+                            <label class="form-label form-label-sm" for="add-description">{{ __('Description') }}</label>
+                            <input type="text" id="add-description" name="description" class="form-control form-control-sm" placeholder="{{ __('e.g. Fuel A7 Lyon, Extra drinks bar') }}" required>
                         </div>
                         <input type="hidden" name="is_third_party" value="0" id="add-third-party-val">
                         <div class="col-auto align-self-end">
@@ -325,8 +325,8 @@
             <form action="{{ route('events.settlement.prepayment', $event) }}" method="POST" class="row g-2 align-items-end">
                 @csrf
                 <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Participant') }}</label>
-                    <select name="participant_id" class="form-select form-select-sm" required>
+                    <label class="form-label form-label-sm" for="prepayment-participant">{{ __('Participant') }}</label>
+                    <select name="participant_id" id="prepayment-participant" class="form-select form-select-sm" required>
                         @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->participantName()) as $tp)
                             @php
                                 $existing = $tp->user_id
@@ -338,9 +338,9 @@
                     </select>
                 </div>
                 <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Amount') }}</label>
+                    <label class="form-label form-label-sm" for="prepayment-amount">{{ __('Amount') }}</label>
                     <div class="input-group input-group-sm" style="width:120px">
-                        <input type="number" step="0.01" name="amount" min="0" required class="form-control">
+                        <input type="number" step="0.01" name="amount" id="prepayment-amount" min="0" required class="form-control">
                         <span class="input-group-text">€</span>
                     </div>
                 </div>
@@ -359,29 +359,29 @@
             <form action="{{ route('events.settlement.update-dive-pricing', $event) }}" method="POST" class="row g-2 align-items-end">
                 @csrf
                 <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Price per dive') }}</label>
+                    <label class="form-label form-label-sm" for="dive-unit-price">{{ __('Price per dive') }}</label>
                     <div class="input-group input-group-sm" style="width:110px">
-                        <input type="number" step="0.01" name="dive_unit_price" value="{{ $event->dive_unit_price ?? 0 }}" min="0" class="form-control">
+                        <input type="number" step="0.01" name="dive_unit_price" id="dive-unit-price" value="{{ $event->dive_unit_price ?? 0 }}" min="0" class="form-control">
                         <span class="input-group-text">€</span>
                     </div>
                 </div>
                 <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Nitrox supplement') }}</label>
+                    <label class="form-label form-label-sm" for="nitrox-supplement">{{ __('Nitrox supplement') }}</label>
                     <div class="input-group input-group-sm" style="width:110px">
-                        <input type="number" step="0.01" name="nitrox_supplement" value="{{ $event->nitrox_supplement ?? 0 }}" min="0" class="form-control">
+                        <input type="number" step="0.01" name="nitrox_supplement" id="nitrox-supplement" value="{{ $event->nitrox_supplement ?? 0 }}" min="0" class="form-control">
                         <span class="input-group-text">€</span>
                     </div>
                 </div>
                 <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Instructor subsidy/day') }}</label>
+                    <label class="form-label form-label-sm" for="instructor-daily-subsidy">{{ __('Instructor subsidy/day') }}</label>
                     <div class="input-group input-group-sm" style="width:110px">
-                        <input type="number" step="0.01" name="instructor_daily_subsidy" value="{{ $event->instructor_daily_subsidy ?? 0 }}" min="0" class="form-control">
+                        <input type="number" step="0.01" name="instructor_daily_subsidy" id="instructor-daily-subsidy" value="{{ $event->instructor_daily_subsidy ?? 0 }}" min="0" class="form-control">
                         <span class="input-group-text">€</span>
                     </div>
                 </div>
                 <div class="col-auto">
-                    <label class="form-label form-label-sm">{{ __('Dive days') }}</label>
-                    <input type="number" name="dive_days" value="{{ $event->dive_days ?? '' }}" min="1" max="30" class="form-control form-control-sm" style="width:70px" placeholder="{{ $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1 }}">
+                    <label class="form-label form-label-sm" for="dive-days">{{ __('Dive days') }}</label>
+                    <input type="number" name="dive_days" id="dive-days" value="{{ $event->dive_days ?? '' }}" min="1" max="30" class="form-control form-control-sm" style="width:70px" placeholder="{{ $event->event_date->diffInDays($event->end_date ?? $event->event_date) ?: 1 }}">
                 </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Save') }}</button>
@@ -447,10 +447,10 @@
                         ? collect($settlement['participants'])->firstWhere('user_id', $tp->user_id)
                         : collect($settlement['participants'])->first(fn($p) => $p['user_id'] === null && $p['name'] === $tp->non_member_name); @endphp
                     <tr data-participant-id="{{ $tp->id }}" data-url="{{ route('events.settlement.update-participant', [$event, $tp]) }}">
-                        <td>{{ $tp->participantName() }}@if($tp->isNonMember()) <span class="badge bg-secondary" style="font-size:0.6rem">{{ __('non-member') }}</span>@endif @if($tp->user?->detail?->active_instructor) <span class="badge bg-primary" style="font-size:0.6rem">{{ __('Instr.') }}</span>@if($event->instructor_daily_subsidy && $event->settlement_status === 'open')<input type="number" name="supervising_days" value="{{ $tp->supervising_days }}" min="0" max="{{ $event->dive_days ?? 30 }}" class="form-control form-control-sm d-inline-block ms-1 auto-save" style="width:50px;font-size:0.7rem" title="{{ __('Supervising days') }}">@elseif($tp->supervising_days > 0) <small class="text-muted">({{ $tp->supervising_days }}j)</small>@endif @endif</td>
+                        <td>{{ $tp->participantName() }}@if($tp->isNonMember()) <span class="badge bg-secondary" style="font-size:0.6rem">{{ __('non-member') }}</span>@endif @if($tp->user?->detail?->active_instructor) <span class="badge bg-primary" style="font-size:0.6rem">{{ __('Instr.') }}</span>@if($event->instructor_daily_subsidy && $event->settlement_status === 'open')<input type="number" name="supervising_days" value="{{ $tp->supervising_days }}" min="0" max="{{ $event->dive_days ?? 30 }}" class="form-control form-control-sm d-inline-block ms-1 auto-save" style="width:50px;font-size:0.7rem" title="{{ __('Supervising days') }}" aria-label="{{ __('Supervising days') }}">@elseif($tp->supervising_days > 0) <small class="text-muted">({{ $tp->supervising_days }}j)</small>@endif @endif</td>
                         @if($event->settlement_status === 'open')
                         <td>
-                            <select name="transit_mode" class="form-select form-select-sm auto-save" style="width:80px">
+                            <select name="transit_mode" class="form-select form-select-sm auto-save" style="width:80px" aria-label="{{ __('Mode') }}">
                                 <option value="van" {{ ($pResult['transit_mode'] ?? '') === 'van' ? 'selected' : '' }}>🚐</option>
                                 <option value="own" {{ ($pResult['transit_mode'] ?? '') === 'own' ? 'selected' : '' }}>🚗</option>
                                 <option value="fly" {{ ($pResult['transit_mode'] ?? '') === 'fly' ? 'selected' : '' }}>✈️</option>
@@ -458,7 +458,7 @@
                         </td>
                         @if($event->van_count)
                         <td>
-                            <select name="van_number" class="form-select form-select-sm auto-save" style="width:80px">
+                            <select name="van_number" class="form-select form-select-sm auto-save" style="width:80px" aria-label="{{ __('Van') }}">
                                 <option value="">—</option>
                                 @for($v = 1; $v <= $event->van_count; $v++)
                                     <option value="{{ $v }}" {{ $tp->van_number == $v ? 'selected' : '' }}>{{ $v }}</option>
@@ -468,13 +468,13 @@
                         @endif
                         <td>
                             <div class="input-group input-group-sm" style="width:90px">
-                                <input type="number" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm auto-save">
+                                <input type="number" name="driving_percentage" value="{{ $tp->driving_percentage }}" min="0" max="100" class="form-control form-control-sm auto-save" aria-label="{{ __('Driving %') }}">
                                 <span class="input-group-text">%</span>
                             </div>
                         </td>
                         <td>
                             <div class="input-group input-group-sm" style="width:90px">
-                                <input type="number" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="{{ $tripDays }}" class="form-control form-control-sm auto-save" {{ ($pResult['transit_mode'] ?? '') === 'van' ? 'disabled' : '' }}>
+                                <input type="number" name="local_transit_days" value="{{ $tp->local_transit_days }}" min="0" max="{{ $tripDays }}" class="form-control form-control-sm auto-save" aria-label="{{ __('Local Days') }}" {{ ($pResult['transit_mode'] ?? '') === 'van' ? 'disabled' : '' }}>
                                 <span class="input-group-text">/{{ $tripDays }}</span>
                             </div>
                         </td>
@@ -772,7 +772,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">{{ __('Member') }}</label>
+                        <label class="form-label" for="edit-user-id">{{ __('Member') }}</label>
                         <select name="user_id" id="edit-user-id" class="form-select" required>
                             @foreach($event->tripParticipants->sortBy(fn($tp) => $tp->participantName()) as $tp)
                                 <option value="{{ $tp->user_id ?? 'nm:'.$tp->id }}">{{ $tp->participantName() }}</option>
@@ -780,14 +780,14 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ __('Amount') }}</label>
+                        <label class="form-label" for="edit-amount">{{ __('Amount') }}</label>
                         <div class="input-group">
                             <input type="number" step="0.01" name="amount" id="edit-amount" min="0.01" required class="form-control">
                             <span class="input-group-text">€</span>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ __('Category') }}</label>
+                        <label class="form-label" for="edit-category">{{ __('Category') }}</label>
                         <select name="category" id="edit-category" class="form-select" required>
                             <option value="individual">👤 {{ __('Individual charge') }}</option>
                             <option value="transit">🚐 {{ __('Transit (fuel, tolls)') }}</option>
@@ -796,7 +796,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ __('Description') }}</label>
+                        <label class="form-label" for="edit-description">{{ __('Description') }}</label>
                         <input type="text" name="description" id="edit-description" class="form-control" required>
                     </div>
                     <div class="mb-3">
