@@ -21,8 +21,8 @@
                 <div class="form-text">{{ __('The event colour follows its type (config/activity_types.php).') }}</div>
             </div>
             <div class="col-md-1 mb-3">
-                <label class="form-label">{{ __('Focus') }}</label>
-                <select name="focus_group" class="form-select">
+                <label class="form-label" for="focusGroup">{{ __('Focus') }}</label>
+                <select name="focus_group" id="focusGroup" class="form-select">
                     <option value="">—</option>
                     @foreach(config('event_focus_groups') as $slug => $fg)
                         <option value="{{ $slug }}" {{ old('focus_group', $event->focus_group) === $slug ? 'selected' : '' }}>{{ $fg['icon'] }} {{ $fg['label'] }}</option>
@@ -34,21 +34,21 @@
 
         <div class="row">
             <div class="col-md-3 mb-3">
-                <label class="form-label">{{ __('Date') }} *</label>
-                <input type="text" name="event_date" data-picker="date" class="form-control @error('event_date') is-invalid @enderror" value="{{ old('event_date', $event->event_date?->format('Y-m-d')) }}" required>
+                <label class="form-label" for="eventDate">{{ __('Date') }} *</label>
+                <input type="text" id="eventDate" name="event_date" data-picker="date" class="form-control @error('event_date') is-invalid @enderror" value="{{ old('event_date', $event->event_date?->format('Y-m-d')) }}" required>
                 @error('event_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-2 mb-3">
-                <label class="form-label">{{ __('Start Time') }}</label>
-                <input type="text" name="event_time" data-picker="time" class="form-control" value="{{ old('event_time', $event->event_time ? substr($event->event_time, 0, 5) : '') }}">
+                <label class="form-label" for="eventTime">{{ __('Start Time') }}</label>
+                <input type="text" id="eventTime" name="event_time" data-picker="time" class="form-control" value="{{ old('event_time', $event->event_time ? substr($event->event_time, 0, 5) : '') }}">
             </div>
             <div class="col-md-2 mb-3">
-                <label class="form-label">{{ __('End Time') }}</label>
-                <input type="text" name="end_time" data-picker="time" class="form-control" value="{{ old('end_time', $event->end_time ? substr($event->end_time, 0, 5) : '') }}">
+                <label class="form-label" for="endTime">{{ __('End Time') }}</label>
+                <input type="text" id="endTime" name="end_time" data-picker="time" class="form-control" value="{{ old('end_time', $event->end_time ? substr($event->end_time, 0, 5) : '') }}">
             </div>
             <div class="col-md-3 mb-3">
-                <label class="form-label">{{ __('End Date') }}</label>
-                <input type="text" name="end_date" data-picker="date" class="form-control" value="{{ old('end_date', $event->end_date?->format('Y-m-d')) }}">
+                <label class="form-label" for="endDate">{{ __('End Date') }}</label>
+                <input type="text" id="endDate" name="end_date" data-picker="date" class="form-control" value="{{ old('end_date', $event->end_date?->format('Y-m-d')) }}">
             </div>
             <div class="col-md-2 mb-3">
                 <label class="form-label">{{ __('Season') }}</label>
@@ -65,8 +65,8 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">{{ __('Location') }}</label>
-            <input type="text" name="location" class="form-control" list="location-suggestions" value="{{ old('location', $event->location) }}" placeholder="{{ __('Address or place name (used for Google Maps link)') }}">
+            <label class="form-label" for="eventLocation">{{ __('Location') }}</label>
+            <input type="text" id="eventLocation" name="location" class="form-control" list="location-suggestions" value="{{ old('location', $event->location) }}" placeholder="{{ __('Address or place name (used for Google Maps link)') }}">
             <datalist id="location-suggestions">
                 @foreach($locationSuggestions ?? [] as $loc)
                     <option value="{{ $loc }}">
@@ -75,8 +75,8 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">{{ __('Description') }}</label>
-            <textarea name="description" class="tinymce">{{ old('description', $event->description) }}</textarea>
+            <label class="form-label" for="eventDescription">{{ __('Description') }}</label>
+            <textarea id="eventDescription" name="description" class="tinymce">{{ old('description', $event->description) }}</textarea>
         </div>
 
         <div class="row">
@@ -99,8 +99,8 @@
                 </select>
             </div>
             <div class="col-md-3 mb-3">
-                <label class="form-label">{{ __('Assistants') }}</label>
-                <select name="assistant_ids[]" class="form-select" multiple size="4">
+                <label class="form-label" for="assistantIds">{{ __('Assistants') }}</label>
+                <select name="assistant_ids[]" id="assistantIds" class="form-select" multiple size="4">
                     @foreach(\App\Models\User::role(['instructor','bureau_master','bureau_technical'])->with('detail')->orderBy('primary_email')->get() as $u)
                         <option value="{{ $u->id }}" {{ in_array($u->id, old('assistant_ids', $event->assistant_ids ?? [])) ? 'selected' : '' }}>
                             {{ $u->detail?->first_name }} {{ $u->detail?->last_name }}
@@ -110,8 +110,8 @@
                 <small class="text-muted">{{ __('Ctrl+click to select multiple') }}</small>
             </div>
             <div class="col-md-3 mb-3">
-                <label class="form-label">{{ __('Permissions Expire') }}</label>
-                <input type="text" name="permissions_expire_date" data-picker="date" class="form-control" value="{{ old('permissions_expire_date', $event->permissions_expire_date?->format('Y-m-d')) }}">
+                <label class="form-label" for="permissionsExpireDate">{{ __('Permissions Expire') }}</label>
+                <input type="text" id="permissionsExpireDate" name="permissions_expire_date" data-picker="date" class="form-control" value="{{ old('permissions_expire_date', $event->permissions_expire_date?->format('Y-m-d')) }}">
             </div>
         </div>
 
@@ -137,9 +137,9 @@
 
         <div class="row">
             <div class="col-md-3 mb-3">
-                <label class="form-label">{{ __('Registration') }}</label>
+                <label class="form-label" for="registrationMode">{{ __('Registration') }}</label>
                 @php $rm = old('registration_mode', $event->registration_mode ?? 'open'); @endphp
-                <select name="registration_mode" class="form-select">
+                <select name="registration_mode" id="registrationMode" class="form-select">
                     <option value="open" @selected($rm === 'open')>{{ __('Open (default)') }}</option>
                     <option value="required" @selected($rm === 'required')>{{ __('Required') }}</option>
                     <option value="not_needed" @selected($rm === 'not_needed')>{{ __('Not needed') }}</option>
@@ -161,12 +161,12 @@
         <div class="row">
             @foreach([1,2,3] as $i)
                 <div class="col-md-2 mb-3">
-                    <label class="form-label small">{{ __('Deposit :n Date', ['n' => $i]) }}</label>
-                    <input type="text" name="deposit_{{ $i }}_date" data-picker="date" class="form-control form-control-sm" value="{{ old('deposit_'.$i.'_date', $event->{'deposit_'.$i.'_date'}?->format('Y-m-d')) }}">
+                    <label class="form-label small" for="deposit{{ $i }}Date">{{ __('Deposit :n Date', ['n' => $i]) }}</label>
+                    <input type="text" id="deposit{{ $i }}Date" name="deposit_{{ $i }}_date" data-picker="date" class="form-control form-control-sm" value="{{ old('deposit_'.$i.'_date', $event->{'deposit_'.$i.'_date'}?->format('Y-m-d')) }}">
                 </div>
                 <div class="col-md-2 mb-3">
-                    <label class="form-label small">{{ __('Amount €') }}</label>
-                    <input type="number" name="deposit_{{ $i }}_amount" class="form-control form-control-sm" value="{{ old('deposit_'.$i.'_amount', $event->{'deposit_'.$i.'_amount'}) }}" step="0.01" min="0">
+                    <label class="form-label small" for="deposit{{ $i }}Amount">{{ __('Amount €') }}</label>
+                    <input type="number" id="deposit{{ $i }}Amount" name="deposit_{{ $i }}_amount" class="form-control form-control-sm" value="{{ old('deposit_'.$i.'_amount', $event->{'deposit_'.$i.'_amount'}) }}" step="0.01" min="0">
                 </div>
             @endforeach
         </div>
@@ -180,8 +180,8 @@
                 <small class="text-muted">{{ __('Open WhatsApp → Group → Invite via link → Copy link') }}</small>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">{{ __('Dive Site') }}</label>
-                <select name="dive_site_id" class="form-select">
+                <label class="form-label" for="diveSiteId">{{ __('Dive Site') }}</label>
+                <select name="dive_site_id" id="diveSiteId" class="form-select">
                     <option value="">{{ __('— None —') }}</option>
                     @foreach($diveSites ?? [] as $site)
                         <option value="{{ $site->id }}" @selected(old('dive_site_id', $event->dive_site_id) == $site->id)>
