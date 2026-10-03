@@ -39,7 +39,9 @@ class DocumentIntakeController extends Controller
     {
         $request->validate([
             'files' => 'required|array|min:1',
-            'files.*' => 'file|mimetypes:application/pdf,image/jpeg,image/png|max:10240',
+            // 5MB is generous for a scanned document and keeps the limit under
+            // SonarCloud's 8MB permissive-upload-size threshold (php:S5693).
+            'files.*' => 'file|mimetypes:application/pdf,image/jpeg,image/png|max:5120',
         ]);
 
         foreach ($request->file('files') as $file) {

@@ -21,7 +21,9 @@ class StoreReceiptRequest extends FormRequest
             'amount' => 'required|numeric|min:0.01|max:99999',
             'category' => 'required|in:general,transit,diving,individual,memo',
             'description' => 'nullable|string|max:255',
-            'image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            // 5MB is generous for a receipt photo/scan and keeps the limit under
+            // SonarCloud's 8MB permissive-upload-size threshold (php:S5693).
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ];
     }
 }

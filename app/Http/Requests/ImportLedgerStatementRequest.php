@@ -17,6 +17,9 @@ class ImportLedgerStatementRequest extends FormRequest
     /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
-        return ['statement' => 'required|file|mimes:xlsx|max:10240'];
+        // 5MB is generous for a bank statement export (even years of transactions
+        // stay well under this) and keeps the limit under SonarCloud's 8MB
+        // permissive-upload-size threshold (php:S5693).
+        return ['statement' => 'required|file|mimes:xlsx|max:5120'];
     }
 }

@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run build
       - name: Verify build artifacts
         run: test -f public/build/manifest.json
