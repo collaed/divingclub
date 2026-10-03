@@ -5,6 +5,14 @@ What reached production, newest first. Conventions are in
 
 ## 2026-10-03 — prod
 
+### New
+- **Connection log (Admin → Logins → Activity): search page visits by URL/path pattern.**
+  Previously only "what did this one member do" (look up their full trail) was possible.
+  A new text field searches every member's page visits for a matching path within the
+  3-day retention window — the reverse lookup, "who browsed a page matching this?". Combines
+  with the existing member filter when both are set; the results table gains a Member column
+  only when a search can span more than one person.
+
 ### Fixed (SonarCloud quality gate)
 - **Permissive file-upload size limits** (php:S5693): lowered 4 upload endpoints (bank
   statement import, document intake, licence scans, receipts) from 10MB to 5MB — still
