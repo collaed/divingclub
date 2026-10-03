@@ -3,7 +3,26 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
-## 2026-10-02 — prod
+## 2026-10-03 — prod
+
+### Fixed (SonarCloud quality gate)
+- **Permissive file-upload size limits** (php:S5693): lowered 4 upload endpoints (bank
+  statement import, document intake, licence scans, receipts) from 10MB to 5MB — still
+  generous for what they actually receive, and under SonarCloud's 8MB threshold. Two
+  endpoints that genuinely need more (event-photo/video gallery uploads, up to 100MB) were
+  left as is — shrinking those would have broken real video uploads to satisfy a linter.
+- **CI**: added `--ignore-scripts` to the build job's `npm ci` (githubactions:S6505), so a
+  compromised package's install-time script can't run. Verified first that this doesn't
+  break the actual build (esbuild, a Vite dependency, ships a postinstall, but the build
+  completed cleanly without it — its platform binary resolves via `optionalDependencies`).
+- **Accessibility: ~260 form controls with no accessible name** (Web:InputWithoutLabelCheck,
+  the largest single finding family in the backlog at 558 total) across every admin/member
+  screen with 10 or more instances — settings, seasons, trip settlement, dive sites, dive
+  group rules, events, fee components, licence editing, articles, event automation rules,
+  federation levels, vote group creation, buddy requests. Purely additive `aria-label` or
+  `for`/`id` attributes, no visual or behavioural change; verified with `artisan view:cache`
+  (no Blade syntax errors) plus each area's existing test suite. The remaining ~300 are
+  spread thinly across many more files and were left for a follow-up pass.
 
 ### Fixed
 - **Medical certificate exam date** had no default on the upload form, inviting mistakes —
