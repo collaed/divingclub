@@ -9,29 +9,29 @@
             <form method="POST" action="{{ route('admin.dive-group-rules.store') }}">
                 @csrf
                 <div class="row g-2">
-                    <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Rule name') }}" required></div>
+                    <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Rule name') }}" aria-label="{{ __('Rule name') }}" required></div>
                     <div class="col-md-2">
-                        <select name="scope" class="form-select form-select-sm" required>
+                        <select name="scope" class="form-select form-select-sm" aria-label="{{ __('Scope') }}" required>
                             <option value="global">{{ __('Global') }}</option>
                             @foreach($federations as $f)<option value="{{ $f }}">{{ $f }}</option>@endforeach
                         </select>
                     </div>
-                    <div class="col-md-2"><input type="text" name="diver_condition" class="form-control form-control-sm" placeholder="no_cert / max_rank:20 / any" required></div>
+                    <div class="col-md-2"><input type="text" name="diver_condition" class="form-control form-control-sm" placeholder="no_cert / max_rank:20 / any" aria-label="{{ __('Diver Condition') }}" required></div>
                     <div class="col-md-2">
-                        <select name="dive_mode" class="form-select form-select-sm" required>
+                        <select name="dive_mode" class="form-select form-select-sm" aria-label="{{ __('Mode') }}" required>
                             @foreach(['supervised','autonomous','training','certification'] as $m)<option value="{{ $m }}">{{ ucfirst($m) }}</option>@endforeach
                         </select>
                     </div>
-                    <div class="col-md-1"><input type="number" name="min_leader_rank" class="form-control form-control-sm" placeholder="{{ __('Leader rank') }}" required></div>
+                    <div class="col-md-1"><input type="number" name="min_leader_rank" class="form-control form-control-sm" placeholder="{{ __('Leader rank') }}" aria-label="{{ __('Leader rank') }}" required></div>
                     <div class="col-md-1">
-                        <select name="leader_category" class="form-select form-select-sm" required>
+                        <select name="leader_category" class="form-select form-select-sm" aria-label="{{ __('Leader Cat.') }}" required>
                             <option value="diver">{{ __('Diver') }}</option>
                             <option value="instructor">{{ __('Instructor') }}</option>
                         </select>
                     </div>
-                    <div class="col-md-2"><input type="number" name="max_depth" class="form-control form-control-sm" placeholder="{{ __('Max depth') }}"></div>
-                    <div class="col-md-1"><input type="number" name="max_group_size" class="form-control form-control-sm" value="4" min="1" max="10" required></div>
-                    <div class="col-md-7"><input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description') }}"></div>
+                    <div class="col-md-2"><input type="number" name="max_depth" class="form-control form-control-sm" placeholder="{{ __('Max depth') }}" aria-label="{{ __('Max depth') }}"></div>
+                    <div class="col-md-1"><input type="number" name="max_group_size" class="form-control form-control-sm" value="4" min="1" max="10" aria-label="{{ __('Size') }}" required></div>
+                    <div class="col-md-7"><input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description') }}" aria-label="{{ __('Description') }}"></div>
                     <div class="col-md-2"><button class="btn btn-primary btn-sm w-100">{{ __('Add') }}</button></div>
                 </div>
             </form>
@@ -50,31 +50,31 @@
                     <tr class="{{ $rule->is_active ? '' : 'text-muted' }}">
                         <form method="POST" action="{{ route('admin.dive-group-rules.update', $rule) }}">
                             @csrf @method('PUT')
-                            <td><input type="text" name="name" value="{{ $rule->name }}" class="form-control form-control-sm"></td>
+                            <td><input type="text" name="name" value="{{ $rule->name }}" class="form-control form-control-sm" aria-label="{{ __('Name') }}"></td>
                             <td>
-                                <select name="scope" class="form-select form-select-sm">
+                                <select name="scope" class="form-select form-select-sm" aria-label="{{ __('Scope') }}">
                                     <option value="global" @selected($rule->scope === 'global')>Global</option>
                                     @foreach($federations as $f)<option value="{{ $f }}" @selected($rule->scope === $f)>{{ $f }}</option>@endforeach
                                 </select>
                             </td>
-                            <td><input type="text" name="diver_condition" value="{{ $rule->diver_condition }}" class="form-control form-control-sm" style="width:120px"></td>
+                            <td><input type="text" name="diver_condition" value="{{ $rule->diver_condition }}" class="form-control form-control-sm" style="width:120px" aria-label="{{ __('Diver Condition') }}"></td>
                             <td>
-                                <select name="dive_mode" class="form-select form-select-sm">
+                                <select name="dive_mode" class="form-select form-select-sm" aria-label="{{ __('Mode') }}">
                                     @foreach(['supervised','autonomous','training','certification'] as $m)<option value="{{ $m }}" @selected($rule->dive_mode === $m)>{{ ucfirst($m) }}</option>@endforeach
                                 </select>
                             </td>
-                            <td><input type="number" name="min_leader_rank" value="{{ $rule->min_leader_rank }}" class="form-control form-control-sm" style="width:70px"></td>
+                            <td><input type="number" name="min_leader_rank" value="{{ $rule->min_leader_rank }}" class="form-control form-control-sm" style="width:70px" aria-label="{{ __('Leader Rank') }}"></td>
                             <td>
-                                <select name="leader_category" class="form-select form-select-sm">
+                                <select name="leader_category" class="form-select form-select-sm" aria-label="{{ __('Leader Cat.') }}">
                                     <option value="diver" @selected($rule->leader_category === 'diver')>Diver</option>
                                     <option value="instructor" @selected($rule->leader_category === 'instructor')>Instructor</option>
                                 </select>
                             </td>
-                            <td><input type="number" name="max_depth" value="{{ $rule->max_depth }}" class="form-control form-control-sm" style="width:70px"></td>
-                            <td><input type="number" name="max_group_size" value="{{ $rule->max_group_size }}" class="form-control form-control-sm" style="width:60px"></td>
+                            <td><input type="number" name="max_depth" value="{{ $rule->max_depth }}" class="form-control form-control-sm" style="width:70px" aria-label="{{ __('Depth') }}"></td>
+                            <td><input type="number" name="max_group_size" value="{{ $rule->max_group_size }}" class="form-control form-control-sm" style="width:60px" aria-label="{{ __('Size') }}"></td>
                             <td>
                                 <input type="hidden" name="is_active" value="0">
-                                <input type="checkbox" name="is_active" value="1" class="form-check-input" @checked($rule->is_active)>
+                                <input type="checkbox" name="is_active" value="1" class="form-check-input" aria-label="{{ __('Active') }}" @checked($rule->is_active)>
                             </td>
                             <td class="text-end text-nowrap">
                                 <button class="btn btn-sm btn-outline-primary">💾</button>
