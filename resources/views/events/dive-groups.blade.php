@@ -78,7 +78,7 @@
         @endif
         <div class="input-group input-group-sm" style="width:auto">
             <span class="input-group-text">{{ __('Max depth') }}</span>
-            <input type="number" id="proposeDepth" class="form-control" value="{{ $event->diveSite?->max_depth ?? 20 }}" min="1" max="60" style="width:60px">
+            <input type="number" id="proposeDepth" class="form-control" value="{{ $event->diveSite?->max_depth ?? 20 }}" min="1" max="60" style="width:60px" aria-label="{{ __('Max depth') }}">
             <span class="input-group-text">m</span>
             <button class="btn btn-primary" onclick="proposeGroups()">@icon('🤖') {{ __('Auto-propose (Fiche de Sécurité)') }}</button>
         </div>
@@ -141,26 +141,26 @@
                 <div class="card-body py-2">
                     <form method="POST" action="{{ route('events.dive-groups.store', $event) }}">
                         @csrf
-                        <input type="text" name="name" class="form-control form-control-sm mb-1" placeholder="{{ __('Group name') }}">
+                        <input type="text" name="name" class="form-control form-control-sm mb-1" placeholder="{{ __('Group name') }}" aria-label="{{ __('Group name') }}">
                         <div class="d-flex gap-1 mb-1">
-                            <select name="dive_mode" class="form-select form-select-sm" required>
+                            <select name="dive_mode" class="form-select form-select-sm" aria-label="{{ __('Dive mode') }}" required>
                                 <option value="supervised">{{ __('Supervised') }}</option>
                                 <option value="autonomous">{{ __('Autonomous') }}</option>
                                 <option value="training">{{ __('Training') }}</option>
                                 <option value="certification">{{ __('Certification') }}</option>
                             </select>
-                            <input type="number" name="planned_depth" class="form-control form-control-sm" placeholder="m" style="width:60px" min="1">
+                            <input type="number" name="planned_depth" class="form-control form-control-sm" placeholder="m" style="width:60px" min="1" aria-label="{{ __('Planned depth') }}">
                         </div>
                         <div class="d-flex gap-1 mb-1">
-                            <input type="number" name="planned_duration" class="form-control form-control-sm" placeholder="{{ __('min') }}" style="width:60px" min="1">
-                            <select name="gas_mix" class="form-select form-select-sm">
+                            <input type="number" name="planned_duration" class="form-control form-control-sm" placeholder="{{ __('min') }}" style="width:60px" min="1" aria-label="{{ __('Planned duration') }}">
+                            <select name="gas_mix" class="form-select form-select-sm" aria-label="{{ __('Gas mix') }}">
                                 @foreach(\App\Models\DiveGroup::GAS_MIXES as $k => $v)
                                     <option value="{{ $k }}">{{ $v }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="d-flex gap-1 mb-1">
-                            <select name="line_number" class="form-select form-select-sm">
+                            <select name="line_number" class="form-select form-select-sm" aria-label="{{ __('Line') }}">
                                 <option value="">{{ __('Line…') }}</option>
                                 @for($i = 1; $i <= 4; $i++)
                                     <option value="{{ $i }}">{{ __('Line') }} {{ $i }}</option>
@@ -168,10 +168,10 @@
                             </select>
                         </div>
                         <div class="d-flex gap-1 mb-1">
-                            <input type="time" name="planned_entry_time" class="form-control form-control-sm" placeholder="{{ __('Entry') }}">
-                            <input type="time" name="planned_exit_time" class="form-control form-control-sm" placeholder="{{ __('Exit') }}">
+                            <input type="time" name="planned_entry_time" class="form-control form-control-sm" placeholder="{{ __('Entry') }}" aria-label="{{ __('Entry') }}">
+                            <input type="time" name="planned_exit_time" class="form-control form-control-sm" placeholder="{{ __('Exit') }}" aria-label="{{ __('Exit') }}">
                         </div>
-                        <select name="purpose" class="form-select form-select-sm mb-1">
+                        <select name="purpose" class="form-select form-select-sm mb-1" aria-label="{{ __('Purpose') }}">
                             <option value="">{{ __('Purpose…') }}</option>
                             @foreach($purposes as $k => $p)
                                 <option value="{{ $k }}">{{ $p['icon'] }} {{ $p['label'] }}</option>
@@ -262,7 +262,7 @@
                                 });
                             @endphp
                             <x-member-select name="user_id" :members="$unassignedOptions" class="form-control-sm" placeholder="+" required />
-                            <select name="role" class="form-select form-select-sm" style="width:80px">
+                            <select name="role" class="form-select form-select-sm" style="width:80px" aria-label="{{ __('Role') }}">
                                 <option value="diver">🤿</option>
                                 <option value="leader">👑</option>
                             </select>
