@@ -48,9 +48,9 @@
                     </table>
                     <form method="POST" action="{{ route('admin.settings.status.store') }}" class="row g-2 mt-2">
                         @csrf
-                        <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Name') }}" required></div>
-                        <div class="col-md-3"><input type="text" name="slug" class="form-control form-control-sm" placeholder="{{ __('slug') }}" required></div>
-                        <div class="col-md-3"><input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description') }}"></div>
+                        <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Name') }}" aria-label="{{ __('Name') }}" required></div>
+                        <div class="col-md-3"><input type="text" name="slug" class="form-control form-control-sm" placeholder="{{ __('slug') }}" aria-label="{{ __('slug') }}" required></div>
+                        <div class="col-md-3"><input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description') }}" aria-label="{{ __('Description') }}"></div>
                         <div class="col-md-3"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Status') }}</button></div>
                     </form>
                     <p class="text-muted small mt-2 mb-0">{{ __('A status can only be deleted when no member uses it and no membership fee is defined for it. Deleting a status also removes it from the dues calculator selector.') }}</p>
@@ -145,15 +145,15 @@
                     @endif
                     <form method="POST" action="{{ route('admin.settings.membership-fee.store') }}" class="row g-2 mt-2">
                         @csrf
-                        <div class="col-md-1"><input type="text" name="season_year" class="form-control form-control-sm" placeholder="{{ date('Y') }}" value="{{ date('Y') }}" required></div>
+                        <div class="col-md-1"><input type="text" name="season_year" class="form-control form-control-sm" placeholder="{{ date('Y') }}" aria-label="{{ __('Season year') }}" value="{{ date('Y') }}" required></div>
                         <div class="col-md-2">
-                            <select name="status_id" class="form-select form-select-sm" required>
+                            <select name="status_id" class="form-select form-select-sm" aria-label="{{ __('Status') }}" required>
                                 @foreach($statuses as $s)<option value="{{ $s->id }}">{{ $s->name }}</option>@endforeach
                             </select>
                         </div>
-                        <div class="col-md-2"><input type="number" name="amount" class="form-control form-control-sm" placeholder="€" step="0.01" min="0" required></div>
-                        <div class="col-md-2"><input type="text" name="label" class="form-control form-control-sm" placeholder="{{ __('Label (optional)') }}"></div>
-                        <div class="col-md-3"><input type="text" name="notes" class="form-control form-control-sm" placeholder="{{ __('Notes (e.g. AG decision)') }}"></div>
+                        <div class="col-md-2"><input type="number" name="amount" class="form-control form-control-sm" placeholder="€" aria-label="{{ __('Amount') }}" step="0.01" min="0" required></div>
+                        <div class="col-md-2"><input type="text" name="label" class="form-control form-control-sm" placeholder="{{ __('Label (optional)') }}" aria-label="{{ __('Label') }}"></div>
+                        <div class="col-md-3"><input type="text" name="notes" class="form-control form-control-sm" placeholder="{{ __('Notes (e.g. AG decision)') }}" aria-label="{{ __('Notes') }}"></div>
                         <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary">{{ __('Set Fee') }}</button></div>
                     </form>
                 </div>
@@ -181,7 +181,7 @@
                                             <div class="form-check">
                                                 <input type="checkbox" class="form-check-input js-set-status" data-set="{{ $set->id }}" value="{{ $s->id }}" id="set{{ $set->id }}_st{{ $s->id }}" {{ in_array($s->id, $setStatusIds) ? 'checked' : '' }}>
                                                 <label class="form-check-label small" for="set{{ $set->id }}_st{{ $s->id }}">{{ $s->name }}</label>
-                                                <input type="radio" name="default_set{{ $set->id }}" class="form-check-input ms-2 js-set-default" data-set="{{ $set->id }}" value="{{ $s->id }}" title="{{ __('Default (full)') }}" {{ $defaultId == $s->id ? 'checked' : '' }}>
+                                                <input type="radio" name="default_set{{ $set->id }}" class="form-check-input ms-2 js-set-default" data-set="{{ $set->id }}" value="{{ $s->id }}" title="{{ __('Default (full)') }}" aria-label="{{ __('Default (full)') }}" {{ $defaultId == $s->id ? 'checked' : '' }}>
                                             </div>
                                         </div>
                                     @endforeach
@@ -192,9 +192,9 @@
 
                     <form method="POST" action="{{ route('admin.settings.status-set.store') }}" class="row g-2 mt-2">
                         @csrf
-                        <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Set name') }}" required></div>
-                        <div class="col-md-3"><input type="text" name="slug" class="form-control form-control-sm" placeholder="{{ __('slug') }}" required></div>
-                        <div class="col-md-3"><input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description') }}"></div>
+                        <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="{{ __('Set name') }}" aria-label="{{ __('Set name') }}" required></div>
+                        <div class="col-md-3"><input type="text" name="slug" class="form-control form-control-sm" placeholder="{{ __('slug') }}" aria-label="{{ __('slug') }}" required></div>
+                        <div class="col-md-3"><input type="text" name="description" class="form-control form-control-sm" placeholder="{{ __('Description') }}" aria-label="{{ __('Description') }}"></div>
                         <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Set') }}</button></div>
                     </form>
 
@@ -243,45 +243,45 @@
                         @csrf
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('Club Full Name') }}</label>
-                                <input type="text" name="club_full_name" class="form-control" value="{{ $themeSettings['club_full_name'] ?? '' }}" placeholder="My Diving Club" required>
+                                <label class="form-label" for="club_full_name">{{ __('Club Full Name') }}</label>
+                                <input type="text" id="club_full_name" name="club_full_name" class="form-control" value="{{ $themeSettings['club_full_name'] ?? '' }}" placeholder="My Diving Club" required>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Short Code') }}</label>
-                                <input type="text" name="club_short_code" class="form-control" value="{{ $themeSettings['club_short_code'] ?? '' }}" placeholder="MDC" maxlength="10">
+                                <label class="form-label" for="club_short_code">{{ __('Short Code') }}</label>
+                                <input type="text" id="club_short_code" name="club_short_code" class="form-control" value="{{ $themeSettings['club_short_code'] ?? '' }}" placeholder="MDC" maxlength="10">
                                 <small class="text-muted">{{ __('Used in payment communications (e.g. MDC-2026-42-NAME)') }}</small>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Contact Email') }}</label>
-                                <input type="email" name="club_email" class="form-control" value="{{ $themeSettings['club_email'] ?? '' }}" placeholder="info@club.example">
+                                <label class="form-label" for="club_email">{{ __('Contact Email') }}</label>
+                                <input type="email" id="club_email" name="club_email" class="form-control" value="{{ $themeSettings['club_email'] ?? '' }}" placeholder="info@club.example">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('Postal Address') }}</label>
-                                <input type="text" name="club_address" class="form-control" value="{{ $themeSettings['club_address'] ?? '' }}" placeholder="B.P. 1162, L-1011 Luxembourg">
+                                <label class="form-label" for="club_address">{{ __('Postal Address') }}</label>
+                                <input type="text" id="club_address" name="club_address" class="form-control" value="{{ $themeSettings['club_address'] ?? '' }}" placeholder="B.P. 1162, L-1011 Luxembourg">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Phone') }}</label>
-                                <input type="text" name="club_phone" class="form-control" value="{{ $themeSettings['club_phone'] ?? '' }}">
+                                <label class="form-label" for="club_phone">{{ __('Phone') }}</label>
+                                <input type="text" id="club_phone" name="club_phone" class="form-control" value="{{ $themeSettings['club_phone'] ?? '' }}">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Country') }}</label>
-                                <input type="text" name="club_country" class="form-control" value="{{ $themeSettings['club_country'] ?? '' }}" placeholder="Luxembourg">
+                                <label class="form-label" for="club_country">{{ __('Country') }}</label>
+                                <input type="text" id="club_country" name="club_country" class="form-control" value="{{ $themeSettings['club_country'] ?? '' }}" placeholder="Luxembourg">
                             </div>
                         </div>
                         <hr>
                         <h6>@icon('🏠') {{ __('Warehouse / Club House') }}</h6>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('Warehouse Address') }}</label>
-                                <input type="text" name="warehouse_address" class="form-control" value="{{ $themeSettings['warehouse_address'] ?? '' }}" placeholder="123 Main Street, City">
+                                <label class="form-label" for="warehouse_address">{{ __('Warehouse Address') }}</label>
+                                <input type="text" id="warehouse_address" name="warehouse_address" class="form-control" value="{{ $themeSettings['warehouse_address'] ?? '' }}" placeholder="123 Main Street, City">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Latitude') }}</label>
-                                <input type="text" name="warehouse_lat" class="form-control" value="{{ $themeSettings['warehouse_lat'] ?? '' }}" placeholder="49.6547">
+                                <label class="form-label" for="warehouse_lat">{{ __('Latitude') }}</label>
+                                <input type="text" id="warehouse_lat" name="warehouse_lat" class="form-control" value="{{ $themeSettings['warehouse_lat'] ?? '' }}" placeholder="49.6547">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Longitude') }}</label>
-                                <input type="text" name="warehouse_lon" class="form-control" value="{{ $themeSettings['warehouse_lon'] ?? '' }}" placeholder="6.2197">
+                                <label class="form-label" for="warehouse_lon">{{ __('Longitude') }}</label>
+                                <input type="text" id="warehouse_lon" name="warehouse_lon" class="form-control" value="{{ $themeSettings['warehouse_lon'] ?? '' }}" placeholder="6.2197">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Club Identity') }}</button>
@@ -295,10 +295,10 @@
                     <div id="training-locations">
                         @foreach($locations as $i => $loc)
                             <div class="row g-2 mb-2 location-row">
-                                <div class="col-md-4"><input type="text" name="loc_name[]" class="form-control form-control-sm" value="{{ $loc['name'] ?? '' }}" placeholder="{{ __('Name (e.g. City Pool)') }}"></div>
-                                <div class="col-md-4"><input type="text" name="loc_address[]" class="form-control form-control-sm" value="{{ $loc['address'] ?? '' }}" placeholder="{{ __('Address') }}"></div>
-                                <div class="col-md-1"><input type="text" name="loc_lat[]" class="form-control form-control-sm" value="{{ $loc['lat'] ?? '' }}" placeholder="{{ __('Lat') }}"></div>
-                                <div class="col-md-1"><input type="text" name="loc_lon[]" class="form-control form-control-sm" value="{{ $loc['lon'] ?? '' }}" placeholder="{{ __('Lon') }}"></div>
+                                <div class="col-md-4"><input type="text" name="loc_name[]" class="form-control form-control-sm" value="{{ $loc['name'] ?? '' }}" placeholder="{{ __('Name (e.g. City Pool)') }}" aria-label="{{ __('Name (e.g. City Pool)') }}"></div>
+                                <div class="col-md-4"><input type="text" name="loc_address[]" class="form-control form-control-sm" value="{{ $loc['address'] ?? '' }}" placeholder="{{ __('Address') }}" aria-label="{{ __('Address') }}"></div>
+                                <div class="col-md-1"><input type="text" name="loc_lat[]" class="form-control form-control-sm" value="{{ $loc['lat'] ?? '' }}" placeholder="{{ __('Lat') }}" aria-label="{{ __('Latitude') }}"></div>
+                                <div class="col-md-1"><input type="text" name="loc_lon[]" class="form-control form-control-sm" value="{{ $loc['lon'] ?? '' }}" placeholder="{{ __('Lon') }}" aria-label="{{ __('Longitude') }}"></div>
                                 <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.location-row').remove()">✕</button></div>
                             </div>
                         @endforeach
@@ -317,12 +317,12 @@
                     <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                         @csrf
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6"><label class="form-label">Facebook</label><input type="url" name="social_facebook" class="form-control form-control-sm" value="{{ $themeSettings['social_facebook'] ?? '' }}" placeholder="https://facebook.com/yourclub"></div>
-                            <div class="col-md-6"><label class="form-label">Instagram</label><input type="url" name="social_instagram" class="form-control form-control-sm" value="{{ $themeSettings['social_instagram'] ?? '' }}" placeholder="https://instagram.com/yourclub"></div>
-                            <div class="col-md-6"><label class="form-label">YouTube</label><input type="url" name="social_youtube" class="form-control form-control-sm" value="{{ $themeSettings['social_youtube'] ?? '' }}" placeholder="https://youtube.com/@yourclub"></div>
-                            <div class="col-md-6"><label class="form-label">TikTok</label><input type="url" name="social_tiktok" class="form-control form-control-sm" value="{{ $themeSettings['social_tiktok'] ?? '' }}" placeholder="https://tiktok.com/@yourclub"></div>
-                            <div class="col-md-6"><label class="form-label">X / Twitter</label><input type="url" name="social_x" class="form-control form-control-sm" value="{{ $themeSettings['social_x'] ?? '' }}" placeholder="https://x.com/yourclub"></div>
-                            <div class="col-md-6"><label class="form-label">WhatsApp</label><input type="url" name="social_whatsapp" class="form-control form-control-sm" value="{{ $themeSettings['social_whatsapp'] ?? '' }}" placeholder="https://chat.whatsapp.com/invite-link"></div>
+                            <div class="col-md-6"><label class="form-label" for="social_facebook">Facebook</label><input type="url" id="social_facebook" name="social_facebook" class="form-control form-control-sm" value="{{ $themeSettings['social_facebook'] ?? '' }}" placeholder="https://facebook.com/yourclub"></div>
+                            <div class="col-md-6"><label class="form-label" for="social_instagram">Instagram</label><input type="url" id="social_instagram" name="social_instagram" class="form-control form-control-sm" value="{{ $themeSettings['social_instagram'] ?? '' }}" placeholder="https://instagram.com/yourclub"></div>
+                            <div class="col-md-6"><label class="form-label" for="social_youtube">YouTube</label><input type="url" id="social_youtube" name="social_youtube" class="form-control form-control-sm" value="{{ $themeSettings['social_youtube'] ?? '' }}" placeholder="https://youtube.com/@yourclub"></div>
+                            <div class="col-md-6"><label class="form-label" for="social_tiktok">TikTok</label><input type="url" id="social_tiktok" name="social_tiktok" class="form-control form-control-sm" value="{{ $themeSettings['social_tiktok'] ?? '' }}" placeholder="https://tiktok.com/@yourclub"></div>
+                            <div class="col-md-6"><label class="form-label" for="social_x">X / Twitter</label><input type="url" id="social_x" name="social_x" class="form-control form-control-sm" value="{{ $themeSettings['social_x'] ?? '' }}" placeholder="https://x.com/yourclub"></div>
+                            <div class="col-md-6"><label class="form-label" for="social_whatsapp">WhatsApp</label><input type="url" id="social_whatsapp" name="social_whatsapp" class="form-control form-control-sm" value="{{ $themeSettings['social_whatsapp'] ?? '' }}" placeholder="https://chat.whatsapp.com/invite-link"></div>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Social Links') }}</button>
                     </form>
@@ -334,14 +334,14 @@
                         @csrf
                         <div class="row g-3 mb-3">
                             <div class="col-md-8">
-                                <label class="form-label">{{ __('Article Base URL') }}</label>
-                                <input type="url" name="newsletter_article_base_url" class="form-control form-control-sm" value="{{ $themeSettings['newsletter_article_base_url'] ?? '' }}" placeholder="https://www.clubcep.eu">
+                                <label class="form-label" for="newsletter_article_base_url">{{ __('Article Base URL') }}</label>
+                                <input type="url" id="newsletter_article_base_url" name="newsletter_article_base_url" class="form-control form-control-sm" value="{{ $themeSettings['newsletter_article_base_url'] ?? '' }}" placeholder="https://www.clubcep.eu">
                                 <div class="form-text">{{ __('e.g. https://www.clubcep.eu — article links will become https://www.clubcep.eu/article/slug') }}</div>
                             </div>
                             <div class="col-md-8">
-                                <label class="form-label">{{ __('Newsletter Font') }}</label>
+                                <label class="form-label" for="newsletter_font">{{ __('Newsletter Font') }}</label>
                                 @php $currentFont = $themeSettings['newsletter_font'] ?? 'clean'; @endphp
-                                <select name="newsletter_font" class="form-select form-select-sm">
+                                <select id="newsletter_font" name="newsletter_font" class="form-select form-select-sm">
                                     <option value="clean" @selected($currentFont === 'clean')>Clean — IBM Plex Sans</option>
                                     <option value="classic" @selected($currentFont === 'classic')>Classic — Libre Baskerville</option>
                                     <option value="sharp" @selected($currentFont === 'sharp')>Sharp — JetBrains Mono</option>
@@ -424,22 +424,22 @@
                         @foreach($medicalRules as $r)
                             <tr>
                                 <td>
-                                    <select form="medrule-bulk" name="rule[{{ $r->id }}][federation_id]" class="form-select form-select-sm">
+                                    <select form="medrule-bulk" name="rule[{{ $r->id }}][federation_id]" class="form-select form-select-sm" aria-label="{{ __('Federation') }}">
                                         @foreach($federations as $f)
                                             <option value="{{ $f->id }}" {{ $r->federation_id == $f->id ? 'selected' : '' }}>{{ $f->acronym }}</option>
                                         @endforeach
                                     </select>
                                 </td>
-                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][age_bracket_low]" class="form-control form-control-sm" value="{{ $r->age_bracket_low }}" min="0" style="width:70px"></td>
-                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][age_bracket_high]" class="form-control form-control-sm" value="{{ $r->age_bracket_high }}" min="0" style="width:70px"></td>
+                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][age_bracket_low]" class="form-control form-control-sm" value="{{ $r->age_bracket_low }}" min="0" style="width:70px" aria-label="{{ __('Age from') }}"></td>
+                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][age_bracket_high]" class="form-control form-control-sm" value="{{ $r->age_bracket_high }}" min="0" style="width:70px" aria-label="{{ __('Age to') }}"></td>
                                 <td>
-                                    <select form="medrule-bulk" name="rule[{{ $r->id }}][cert_type]" class="form-select form-select-sm">
+                                    <select form="medrule-bulk" name="rule[{{ $r->id }}][cert_type]" class="form-select form-select-sm" aria-label="{{ __('Certificate type') }}">
                                         @foreach(['gp' => 'GP', 'ent' => 'ENT', 'cardio' => 'Cardio', 'ophthalmologist' => 'Ophthalmologist', 'other' => 'Other'] as $v => $l)
                                             <option value="{{ $v }}" {{ $r->cert_type === $v ? 'selected' : '' }}>{{ $l }}</option>
                                         @endforeach
                                     </select>
                                 </td>
-                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][validity_months]" class="form-control form-control-sm" value="{{ $r->validity_months }}" min="1" style="width:70px"></td>
+                                <td><input type="number" form="medrule-bulk" name="rule[{{ $r->id }}][validity_months]" class="form-control form-control-sm" value="{{ $r->validity_months }}" min="1" style="width:70px" aria-label="{{ __('Validity (months)') }}"></td>
                                 <td class="text-end text-nowrap">
                                     <form method="POST" action="{{ route('admin.settings.medical-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
                                         @csrf @method('DELETE')
@@ -454,19 +454,19 @@
                     <form method="POST" action="{{ route('admin.settings.medical-rule.store') }}" class="row g-2 mt-2">
                         @csrf
                         <div class="col-md-2">
-                            <select name="federation_id" class="form-select form-select-sm" required>
+                            <select name="federation_id" class="form-select form-select-sm" aria-label="{{ __('Federation') }}" required>
                                 <option value="">{{ __('Federation') }}</option>
                                 @foreach($federations as $f)<option value="{{ $f->id }}">{{ $f->acronym }}</option>@endforeach
                             </select>
                         </div>
-                        <div class="col-md-1"><input type="number" name="age_bracket_low" class="form-control form-control-sm" placeholder="{{ __('From') }}" min="0" required></div>
-                        <div class="col-md-1"><input type="number" name="age_bracket_high" class="form-control form-control-sm" placeholder="{{ __('To') }}" min="0" required></div>
+                        <div class="col-md-1"><input type="number" name="age_bracket_low" class="form-control form-control-sm" placeholder="{{ __('From') }}" aria-label="{{ __('Age from') }}" min="0" required></div>
+                        <div class="col-md-1"><input type="number" name="age_bracket_high" class="form-control form-control-sm" placeholder="{{ __('To') }}" aria-label="{{ __('Age to') }}" min="0" required></div>
                         <div class="col-md-2">
-                            <select name="cert_type" class="form-select form-select-sm" required>
+                            <select name="cert_type" class="form-select form-select-sm" aria-label="{{ __('Certificate type') }}" required>
                                 <option value="gp">GP</option><option value="ent">ENT</option><option value="cardio">Cardio</option><option value="ophthalmologist">Ophthalmologist</option><option value="other">Other</option>
                             </select>
                         </div>
-                        <div class="col-md-2"><input type="number" name="validity_months" class="form-control form-control-sm" placeholder="{{ __('Months') }}" min="1" required></div>
+                        <div class="col-md-2"><input type="number" name="validity_months" class="form-control form-control-sm" placeholder="{{ __('Months') }}" aria-label="{{ __('Validity (months)') }}" min="1" required></div>
                         <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Rule') }}</button></div>
                     </form>
                 </div>
@@ -485,11 +485,11 @@
                         <tbody>
                         @foreach($maintenanceRules as $r)
                             <tr>
-                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][equipment_type]" class="form-control form-control-sm" value="{{ $r->equipment_type }}" required></td>
-                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][maintenance_name]" class="form-control form-control-sm" value="{{ $r->maintenance_name }}" required></td>
-                                <td><input type="number" form="maintrule-bulk" name="rule[{{ $r->id }}][interval_months]" class="form-control form-control-sm" value="{{ $r->interval_months }}" min="1" style="width:70px"></td>
-                                <td><input type="checkbox" form="maintrule-bulk" name="mandatory[]" value="{{ $r->id }}" class="form-check-input" {{ $r->is_mandatory ? 'checked' : '' }}></td>
-                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][regulation_reference]" class="form-control form-control-sm" value="{{ $r->regulation_reference }}"></td>
+                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][equipment_type]" class="form-control form-control-sm" value="{{ $r->equipment_type }}" aria-label="{{ __('Equipment Type') }}" required></td>
+                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][maintenance_name]" class="form-control form-control-sm" value="{{ $r->maintenance_name }}" aria-label="{{ __('Maintenance') }}" required></td>
+                                <td><input type="number" form="maintrule-bulk" name="rule[{{ $r->id }}][interval_months]" class="form-control form-control-sm" value="{{ $r->interval_months }}" min="1" style="width:70px" aria-label="{{ __('Interval (months)') }}"></td>
+                                <td><input type="checkbox" form="maintrule-bulk" name="mandatory[]" value="{{ $r->id }}" class="form-check-input" aria-label="{{ __('Mandatory') }}" {{ $r->is_mandatory ? 'checked' : '' }}></td>
+                                <td><input type="text" form="maintrule-bulk" name="rule[{{ $r->id }}][regulation_reference]" class="form-control form-control-sm" value="{{ $r->regulation_reference }}" aria-label="{{ __('Regulation') }}"></td>
                                 <td class="text-end text-nowrap">
                                     <form method="POST" action="{{ route('admin.settings.maintenance-rule.destroy', $r) }}" class="d-inline" data-confirm="Delete?" data-confirm-style="danger" data-confirm-btn="{{ __('Confirm') }}">
                                         @csrf @method('DELETE')
@@ -503,13 +503,13 @@
                     <button type="submit" form="maintrule-bulk" class="btn btn-sm btn-primary">{{ __('Save all rules') }}</button>
                     <form method="POST" action="{{ route('admin.settings.maintenance-rule.store') }}" class="row g-2 mt-2">
                         @csrf
-                        <div class="col-md-2"><input type="text" name="equipment_type" class="form-control form-control-sm" placeholder="{{ __('Type (e.g. regulator)') }}" required></div>
-                        <div class="col-md-3"><input type="text" name="maintenance_name" class="form-control form-control-sm" placeholder="{{ __('Maintenance name') }}" required></div>
-                        <div class="col-md-1"><input type="number" name="interval_months" class="form-control form-control-sm" placeholder="{{ __('Mo.') }}" min="1" required></div>
+                        <div class="col-md-2"><input type="text" name="equipment_type" class="form-control form-control-sm" placeholder="{{ __('Type (e.g. regulator)') }}" aria-label="{{ __('Type (e.g. regulator)') }}" required></div>
+                        <div class="col-md-3"><input type="text" name="maintenance_name" class="form-control form-control-sm" placeholder="{{ __('Maintenance name') }}" aria-label="{{ __('Maintenance name') }}" required></div>
+                        <div class="col-md-1"><input type="number" name="interval_months" class="form-control form-control-sm" placeholder="{{ __('Mo.') }}" aria-label="{{ __('Interval (months)') }}" min="1" required></div>
                         <div class="col-md-1">
-                            <div class="form-check mt-1"><input type="hidden" name="is_mandatory" value="0"><input type="checkbox" name="is_mandatory" value="1" class="form-check-input" checked><label class="form-check-label small">{{ __('Mand.') }}</label></div>
+                            <div class="form-check mt-1"><input type="hidden" name="is_mandatory" value="0"><input type="checkbox" name="is_mandatory" value="1" id="new_maintrule_mandatory" class="form-check-input" checked><label class="form-check-label small" for="new_maintrule_mandatory">{{ __('Mand.') }}</label></div>
                         </div>
-                        <div class="col-md-3"><input type="text" name="regulation_reference" class="form-control form-control-sm" placeholder="{{ __('Regulation ref (optional)') }}"></div>
+                        <div class="col-md-3"><input type="text" name="regulation_reference" class="form-control form-control-sm" placeholder="{{ __('Regulation ref (optional)') }}" aria-label="{{ __('Regulation reference') }}"></div>
                         <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Rule') }}</button></div>
                     </form>
                 </div>
@@ -547,16 +547,16 @@
                     <form method="POST" action="{{ route('admin.settings.theme.update') }}" class="row g-2 mb-4">
                         @csrf
                         <div class="col-md-6">
-                            <label class="form-label small mb-1">{{ __('Text') }}</label>
-                            <input type="text" name="landing_cta_text" class="form-control form-control-sm" maxlength="160" value="{{ $themeSettings['landing_cta_text'] ?? '' }}" placeholder="{{ __('Free discovery evening — Wednesday 30 September') }}">
+                            <label class="form-label small mb-1" for="landing_cta_text">{{ __('Text') }}</label>
+                            <input type="text" id="landing_cta_text" name="landing_cta_text" class="form-control form-control-sm" maxlength="160" value="{{ $themeSettings['landing_cta_text'] ?? '' }}" placeholder="{{ __('Free discovery evening — Wednesday 30 September') }}">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small mb-1">{{ __('Link') }}</label>
-                            <input type="url" name="landing_cta_url" class="form-control form-control-sm" value="{{ $themeSettings['landing_cta_url'] ?? '' }}" placeholder="https://…">
+                            <label class="form-label small mb-1" for="landing_cta_url">{{ __('Link') }}</label>
+                            <input type="url" id="landing_cta_url" name="landing_cta_url" class="form-control form-control-sm" value="{{ $themeSettings['landing_cta_url'] ?? '' }}" placeholder="https://…">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small mb-1">{{ __('Show until') }}</label>
-                            <input type="date" name="landing_cta_until" class="form-control form-control-sm" value="{{ $themeSettings['landing_cta_until'] ?? '' }}">
+                            <label class="form-label small mb-1" for="landing_cta_until">{{ __('Show until') }}</label>
+                            <input type="date" id="landing_cta_until" name="landing_cta_until" class="form-control form-control-sm" value="{{ $themeSettings['landing_cta_until'] ?? '' }}">
                         </div>
                         <div class="col-12"><button class="btn btn-sm btn-primary">{{ __('Save') }}</button></div>
                     </form>
@@ -623,25 +623,28 @@
                         <div class="row g-2 mb-3">
                             @foreach(['primary_color' => 'Primary', 'secondary_color' => 'Secondary', 'accent_color' => 'Accent', 'header_gradient_start' => 'Header Start', 'header_gradient_end' => 'Header End', 'footer_bg' => 'Footer BG'] as $key => $label)
                                 <div class="col-md-2">
-                                    <label class="form-label small">{{ $label }}</label>
-                                    <input type="color" name="{{ $key }}" class="form-control form-control-color w-100" value="{{ $themeSettings[$key] ?? '#003366' }}">
+                                    <label class="form-label small" for="{{ $key }}">{{ $label }}</label>
+                                    <input type="color" id="{{ $key }}" name="{{ $key }}" class="form-control form-control-color w-100" value="{{ $themeSettings[$key] ?? '#003366' }}">
                                 </div>
                             @endforeach
                         </div>
 
                         <h6>{{ __('Branding') }}</h6>
                         <div class="row g-2 mb-3">
-                            <div class="col-md-1"><label class="form-label small">{{ __('Emoji') }}</label><input type="text" name="logo_emoji" class="form-control form-control-sm" value="{{ $themeSettings['logo_emoji'] ?? '🤿' }}"></div>
-                            <div class="col-md-2"><label class="form-label small">{{ __('Accent Text') }}</label><input type="text" name="logo_accent_text" class="form-control form-control-sm" value="{{ $themeSettings['logo_accent_text'] ?? 'Diving' }}"></div>
-                            <div class="col-md-2"><label class="form-label small">{{ __('Plain Text') }}</label><input type="text" name="logo_plain_text" class="form-control form-control-sm" value="{{ $themeSettings['logo_plain_text'] ?? 'Club' }}"></div>
-                            <div class="col-md-4"><label class="form-label small">{{ __('Club Full Name') }}</label><input type="text" name="club_full_name" class="form-control form-control-sm" value="{{ $themeSettings['club_full_name'] ?? '' }}"></div>
+                            <div class="col-md-1"><label class="form-label small" for="logo_emoji">{{ __('Emoji') }}</label><input type="text" id="logo_emoji" name="logo_emoji" class="form-control form-control-sm" value="{{ $themeSettings['logo_emoji'] ?? '🤿' }}"></div>
+                            <div class="col-md-2"><label class="form-label small" for="logo_accent_text">{{ __('Accent Text') }}</label><input type="text" id="logo_accent_text" name="logo_accent_text" class="form-control form-control-sm" value="{{ $themeSettings['logo_accent_text'] ?? 'Diving' }}"></div>
+                            <div class="col-md-2"><label class="form-label small" for="logo_plain_text">{{ __('Plain Text') }}</label><input type="text" id="logo_plain_text" name="logo_plain_text" class="form-control form-control-sm" value="{{ $themeSettings['logo_plain_text'] ?? 'Club' }}"></div>
+                            {{-- id suffixed _branding: "club_full_name" is already the id of the Club
+                                 Identity field above, in a different <form> — duplicate ids on one
+                                 page are invalid HTML even across separate forms. --}}
+                            <div class="col-md-4"><label class="form-label small" for="club_full_name_branding">{{ __('Club Full Name') }}</label><input type="text" id="club_full_name_branding" name="club_full_name" class="form-control form-control-sm" value="{{ $themeSettings['club_full_name'] ?? '' }}"></div>
                         </div>
 
                         <h6>{{ __('Layout') }}</h6>
                         <div class="row g-2 mb-3">
                             <div class="col-md-3">
-                                <label class="form-label small">{{ __('Width') }}</label>
-                                <select name="layout_width" class="form-select form-select-sm">
+                                <label class="form-label small" for="layout_width">{{ __('Width') }}</label>
+                                <select id="layout_width" name="layout_width" class="form-select form-select-sm">
                                     @foreach(['container' => 'Normal', 'container-lg' => 'Wide', 'container-xl' => 'Extra Wide', 'container-fluid' => 'Full Width'] as $v => $l)
                                         <option value="{{ $v }}" {{ ($themeSettings['layout_width'] ?? 'container-lg') === $v ? 'selected' : '' }}>{{ $l }}</option>
                                     @endforeach
@@ -746,8 +749,8 @@
                         @csrf
                         <div class="row g-3 mb-3">
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Auto-Publish') }}</label>
-                                <select name="social_auto_publish" class="form-select">
+                                <label class="form-label" for="social_auto_publish">{{ __('Auto-Publish') }}</label>
+                                <select id="social_auto_publish" name="social_auto_publish" class="form-select">
                                     <option value="0" {{ ($themeSettings['social_auto_publish'] ?? '0') === '0' ? 'selected' : '' }}>{{ __('Disabled') }}</option>
                                     <option value="1" {{ ($themeSettings['social_auto_publish'] ?? '0') === '1' ? 'selected' : '' }}>{{ __('Enabled') }}</option>
                                 </select>
@@ -757,37 +760,37 @@
                         <h6 class="mt-3">Facebook <small class="text-muted">({{ __('private group') }})</small></h6>
                         <div class="row g-3 mb-3">
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Publish to Facebook') }}</label>
-                                <select name="fb_publish_enabled" class="form-select">
+                                <label class="form-label" for="fb_publish_enabled">{{ __('Publish to Facebook') }}</label>
+                                <select id="fb_publish_enabled" name="fb_publish_enabled" class="form-select">
                                     <option value="0" {{ ($themeSettings['fb_publish_enabled'] ?? '1') === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
                                     <option value="1" {{ ($themeSettings['fb_publish_enabled'] ?? '1') === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('FB Group is Closed') }}</label>
-                                <select name="fb_group_is_closed" class="form-select">
+                                <label class="form-label" for="fb_group_is_closed">{{ __('FB Group is Closed') }}</label>
+                                <select id="fb_group_is_closed" name="fb_group_is_closed" class="form-select">
                                     <option value="0" {{ ($themeSettings['fb_group_is_closed'] ?? '0') === '0' ? 'selected' : '' }}>{{ __('No / Unknown') }}</option>
                                     <option value="1" {{ ($themeSettings['fb_group_is_closed'] ?? '0') === '1' ? 'selected' : '' }}>{{ __('Yes, confirmed closed') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('Facebook Group ID') }}</label>
-                                <input type="text" name="fb_group_id" class="form-control" value="{{ $themeSettings['fb_group_id'] ?? '' }}" placeholder="123456789012345">
+                                <label class="form-label" for="fb_group_id">{{ __('Facebook Group ID') }}</label>
+                                <input type="text" id="fb_group_id" name="fb_group_id" class="form-control" value="{{ $themeSettings['fb_group_id'] ?? '' }}" placeholder="123456789012345">
                             </div>
                         </div>
 
                         <h6 class="mt-3">Instagram <small class="text-muted">({{ __('public — content rules may differ') }})</small></h6>
                         <div class="row g-3 mb-3">
                             <div class="col-md-3">
-                                <label class="form-label">{{ __('Publish to Instagram') }}</label>
-                                <select name="ig_publish_enabled" class="form-select">
+                                <label class="form-label" for="ig_publish_enabled">{{ __('Publish to Instagram') }}</label>
+                                <select id="ig_publish_enabled" name="ig_publish_enabled" class="form-select">
                                     <option value="0" {{ ($themeSettings['ig_publish_enabled'] ?? '0') === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
                                     <option value="1" {{ ($themeSettings['ig_publish_enabled'] ?? '0') === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ __('Instagram Business Account ID') }}</label>
-                                <input type="text" name="ig_account_id" class="form-control" value="{{ $themeSettings['ig_account_id'] ?? '' }}" placeholder="17841400000000000">
+                                <label class="form-label" for="ig_account_id">{{ __('Instagram Business Account ID') }}</label>
+                                <input type="text" id="ig_account_id" name="ig_account_id" class="form-control" value="{{ $themeSettings['ig_account_id'] ?? '' }}" placeholder="17841400000000000">
                             </div>
                         </div>
 
@@ -814,8 +817,8 @@
                     @csrf
                     @php $enabled = \App\Http\Middleware\SetLocale::enabledLocales(); @endphp
                     <div class="mb-3">
-                        <label class="form-label fw-bold">{{ __('Default Language') }}</label>
-                        <select name="default_locale" class="form-select form-select-sm" style="max-width:300px">
+                        <label class="form-label fw-bold" for="default_locale">{{ __('Default Language') }}</label>
+                        <select id="default_locale" name="default_locale" class="form-select form-select-sm" style="max-width:300px">
                             @foreach(config('languages', []) as $code => $lang)
                                 @if(in_array($code, $enabled))
                                     <option value="{{ $code }}" {{ \App\Models\ThemeSetting::get('default_locale', config('app.locale')) === $code ? 'selected' : '' }}>
@@ -869,7 +872,7 @@
                 <form method="POST" action="{{ route('admin.settings.theme.update') }}">
                     @csrf
                     <div class="mb-3">
-                        <textarea name="license_key" class="form-control font-monospace" rows="3" placeholder="{{ __('Paste your license key here...') }}">{{ $themeSettings['license_key'] ?? '' }}</textarea>
+                        <textarea name="license_key" class="form-control font-monospace" rows="3" placeholder="{{ __('Paste your license key here...') }}" aria-label="{{ __('License Key') }}">{{ $themeSettings['license_key'] ?? '' }}</textarea>
                         <small class="text-muted">{{ __('License keys are signed codes that unlock member registration beyond 100 members.') }}</small>
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm">{{ __('Save License Key') }}</button>
