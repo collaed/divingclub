@@ -4,13 +4,16 @@ namespace Tests\Feature;
 
 use App\Models\Article;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Message;
+use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Group;
+use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
 
 #[Group('p1')]
 class TrialRequestTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, SeedsRoles;
 
     public function test_trial_page_loads(): void
     {
@@ -30,6 +33,32 @@ class TrialRequestTest extends TestCase
         ])->assertRedirect()->assertSessionHas('success');
 
         $this->assertDatabaseHas('trial_requests', ['email' => 'jean@example.com', 'first_name' => 'Jean']);
+    }
+
+    public function test_submitting_notifies_bureau_by_email(): void
+    {
+        $this->seedRoles();
+        $bureau = $this->createBureauUser();
+
+        $message = $this->createMock(Message::class);
+        $message->expects($this->once())->method('to')->with([$bureau->primary_email])->willReturnSelf();
+        $message->expects($this->once())->method('subject')->with(__('New trial dive request'))->willReturnSelf();
+
+        Mail::shouldReceive('raw')
+            ->once()
+            ->withArgs(function ($text, $callback) use ($message) {
+                $callback($message);
+
+                return true;
+            });
+
+        $this->post('/trial', [
+            'first_name' => 'Jean',
+            'last_name' => 'Dupont',
+            'email' => 'jean@example.com',
+            'website' => '',
+            '_ts' => time() - 5,
+        ]);
     }
 
     public function test_source_is_stored_in_admin_notes(): void
