@@ -3,6 +3,15 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-10-06 — prod at a155bb8
+
+### Fixed
+- **Trial dive requests had no alert to the bureau.** Submitting the inline "leave
+  your details" form (e.g. from an article) only wrote a row to the trial-requests
+  list — nothing told anyone a new request existed unless someone happened to check
+  that admin page. Every submission now emails the bureau (master/finance/technical)
+  with the requester's name, email and phone.
+
 ## 2026-10-03 — prod
 
 ### New
