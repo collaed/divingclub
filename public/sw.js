@@ -18,7 +18,14 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    if (event.request.mode === 'navigate') {
+    // A <form method="POST"> submission that causes a full-page reload is
+    // ALSO "navigate" mode, not just GET page loads — and iOS Safari has a
+    // long-documented WebKit bug where re-dispatching a POST's body (and
+    // sometimes its Cookie header) through fetch(event.request) inside a
+    // service worker silently drops both, arriving at the server as an
+    // empty, cookie-less request. Only intercept GETs; let every POST/PUT/
+    // etc. hit the network exactly as the browser built it.
+    if (event.request.method === 'GET' && event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request).catch(() => caches.match(OFFLINE_URL))
         );
