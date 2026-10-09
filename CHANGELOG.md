@@ -3,16 +3,32 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-10-09 — prod at 7ac9a67
+
+### Fixed
+- **Root cause found for the iPhone upload failures (this entry supersedes the
+  "backgrounding the camera" theory below — it reproduced with an existing
+  photo too, no camera involved).** The service worker (`public/sw.js`)
+  intercepted every `navigate`-mode fetch to serve an offline fallback, but a
+  `<form method="POST">` submission that reloads the page is *also*
+  `navigate` mode, not just GET page loads. Re-dispatching that request from
+  inside the service worker hits a long-documented iOS Safari/WebKit bug that
+  silently drops the POST body and sometimes the Cookie header — the actual
+  explanation for both this and the September avatar-upload incident, which
+  that fix only papered over with a friendlier redirect. The service worker
+  now only intercepts GETs; every POST/PUT/etc. reaches the network exactly
+  as the browser built it.
+
 ## 2026-10-09 — prod at 8b45a72
 
 ### Fixed
 - **A medical-certificate upload from an iPhone silently failed to save** —
-  traced to the same iOS Safari session-cookie drop behind the September
-  avatar-upload fix (the browser sent an empty, cookie-less request, most
-  likely from backgrounding Safari to use the camera). The existing graceful
-  bounce-back already caught it, but nothing recorded that it happened; a
-  recurrence now shows up in the log instead of needing a raw access-log
-  search to confirm.
+  initially traced to the same iOS Safari session-cookie drop behind the
+  September avatar-upload fix (the browser sent an empty, cookie-less
+  request); see the entry above for the actual root cause, found once it
+  recurred with an existing photo. The existing graceful bounce-back already
+  caught it, but nothing recorded that it happened; a recurrence now shows up
+  in the log instead of needing a raw access-log search to confirm.
 
 ### Needs attention
 - None for members — this was a visibility/ops improvement. If the same
