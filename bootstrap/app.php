@@ -12,6 +12,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -52,6 +53,18 @@ return Application::configure(basePath: dirname(__DIR__))
             if (! $isCsrf || $request->expectsJson()) {
                 return null;
             }
+
+            // A request with no session cookie at all (vs. one carrying a stale
+            // token) points at the browser dropping it mid-visit — the iOS Safari
+            // pattern seen in ac64b76 — rather than someone just sitting on a page
+            // past the session lifetime. Logged so a recurrence shows up here
+            // instead of needing a raw access-log search to confirm.
+            Log::warning('CSRF/session mismatch bounced back to a fresh page', [
+                'path' => $request->path(),
+                'method' => $request->method(),
+                'had_session_cookie' => $request->hasCookie(config('session.cookie')),
+                'user_agent' => $request->userAgent(),
+            ]);
 
             $back = $request->headers->get('referer') ?: url('/');
 

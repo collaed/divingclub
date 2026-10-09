@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
@@ -18,6 +19,21 @@ class SessionExpiredHandlingTest extends TestCase
             ->get('/__csrf_expired_web')
             ->assertRedirect('/profile')
             ->assertSessionHas('error');
+    }
+
+    public function test_expired_csrf_token_logs_whether_the_session_cookie_was_present(): void
+    {
+        Route::middleware('web')->get('/__csrf_expired_logged', fn () => throw new TokenMismatchException);
+
+        Log::shouldReceive('warning')
+            ->once()
+            ->with('CSRF/session mismatch bounced back to a fresh page', \Mockery::on(function (array $context) {
+                return $context['path'] === '__csrf_expired_logged'
+                    && $context['method'] === 'GET'
+                    && $context['had_session_cookie'] === false;
+            }));
+
+        $this->from('/profile')->get('/__csrf_expired_logged');
     }
 
     public function test_expired_csrf_token_returns_419_json_for_api_clients(): void
