@@ -3,6 +3,23 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-10-09 — prod at 8b45a72
+
+### Fixed
+- **A medical-certificate upload from an iPhone silently failed to save** —
+  traced to the same iOS Safari session-cookie drop behind the September
+  avatar-upload fix (the browser sent an empty, cookie-less request, most
+  likely from backgrounding Safari to use the camera). The existing graceful
+  bounce-back already caught it, but nothing recorded that it happened; a
+  recurrence now shows up in the log instead of needing a raw access-log
+  search to confirm.
+
+### Needs attention
+- None for members — this was a visibility/ops improvement. If the same
+  "please try again" bounce is reported again, check `laravel.log` for
+  "CSRF/session mismatch bounced back to a fresh page" to confirm it's the
+  same pattern before digging further.
+
 ## 2026-10-09 — prod at 0b5e749
 
 ### Changed
