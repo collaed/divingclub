@@ -3,6 +3,13 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-10-09 — prod at 0b5e749
+
+### Changed
+- **Kanban board (Actions): moving a card, discarding it, adding a comment, or
+  adding a new card no longer reloads the page.** Every click now saves silently
+  in place — the board stays where it was, nothing flashes or resets.
+
 ## 2026-10-06 — prod at a155bb8
 
 ### Fixed
