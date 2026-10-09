@@ -191,4 +191,51 @@ class KanbanBoardTest extends TestCase
         $this->assertNotNull($card->fresh()->discarded_at);
         $this->assertDatabaseHas('kanban_cards', ['id' => $card->id]);
     }
+
+    public function test_moving_a_card_via_ajax_returns_rendered_card_html_without_a_redirect(): void
+    {
+        $card = KanbanCard::create(['title' => 'Buy tanks', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+
+        $response = $this->actingAs($this->createBureauUser())
+            ->postJson(route('kanban.status', $card), ['status' => 'doing']);
+
+        $response->assertOk()->assertJson(['ok' => true]);
+        $this->assertStringContainsString('Buy tanks', $response->json('html'));
+        $this->assertSame('doing', $card->fresh()->status);
+    }
+
+    public function test_discarding_a_card_via_ajax_returns_ok_without_a_redirect(): void
+    {
+        $card = KanbanCard::create(['title' => 'Stale action', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+
+        $this->actingAs($this->createBureauUser())
+            ->postJson(route('kanban.discard', $card))
+            ->assertOk()->assertJson(['ok' => true]);
+
+        $this->assertNotNull($card->fresh()->discarded_at);
+    }
+
+    public function test_adding_a_card_via_ajax_returns_rendered_card_html_without_a_redirect(): void
+    {
+        $response = $this->actingAs($this->createBureauUser())->postJson(route('kanban.store'), [
+            'title' => 'Book the venue for the AG',
+        ]);
+
+        $response->assertOk()->assertJson(['ok' => true]);
+        $this->assertStringContainsString('Book the venue for the AG', $response->json('html'));
+    }
+
+    public function test_adding_a_comment_via_ajax_returns_the_comment_without_a_redirect(): void
+    {
+        $bureau = $this->createBureauUser(); // first_name Admin, last_name Test -> "AT"
+        $card = KanbanCard::create(['title' => 'Buy tanks', 'status' => 'todo', 'source_document_name' => 'CR 1.pdf']);
+
+        $response = $this->actingAs($bureau)
+            ->postJson(route('kanban.comments.store', $card), ['body' => 'Quote requested from Nautica.']);
+
+        $response->assertOk()->assertJson([
+            'ok' => true,
+            'comment' => ['author_initials' => 'AT', 'body' => 'Quote requested from Nautica.'],
+        ]);
+    }
 }

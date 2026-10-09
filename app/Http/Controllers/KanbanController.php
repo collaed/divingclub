@@ -22,18 +22,21 @@ class KanbanController extends Controller
     {
         $cards = KanbanCard::active()->with('comments.user.detail')->orderByDesc('source_document_date')->get()->groupBy('status');
 
+        $columns = [
+            KanbanCard::STATUS_TODO => __('To do'),
+            KanbanCard::STATUS_DOING => __('In progress'),
+            KanbanCard::STATUS_DONE => __('Done'),
+        ];
+
         return view('kanban.index', [
-            'columns' => [
-                KanbanCard::STATUS_TODO => __('To do'),
-                KanbanCard::STATUS_DOING => __('In progress'),
-                KanbanCard::STATUS_DONE => __('Done'),
-            ],
+            'columns' => $columns,
             'cards' => $cards,
+            'todoStatus' => KanbanCard::STATUS_TODO,
         ]);
     }
 
     /** A card added by hand from the board — no source document, always starts in "To do". */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $v = $request->validate([
             'title' => 'required|string|max:255',
@@ -41,7 +44,11 @@ class KanbanController extends Controller
             'context' => 'nullable|string|max:2000',
         ]);
 
-        KanbanCard::create($v + ['status' => KanbanCard::STATUS_TODO]);
+        $card = KanbanCard::create($v + ['status' => KanbanCard::STATUS_TODO]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'html' => $this->renderCard($card)]);
+        }
 
         return back()->with('success', __('Card added.'));
     }
@@ -52,10 +59,24 @@ class KanbanController extends Controller
         $card->update(['status' => $v['status']]);
 
         if ($request->expectsJson()) {
-            return response()->json(['ok' => true]);
+            return response()->json(['ok' => true, 'html' => $this->renderCard($card)]);
         }
 
         return back();
+    }
+
+    private function renderCard(KanbanCard $card): string
+    {
+        $card->load('comments.user.detail');
+
+        return view('kanban._card', [
+            'card' => $card,
+            'columns' => [
+                KanbanCard::STATUS_TODO => __('To do'),
+                KanbanCard::STATUS_DOING => __('In progress'),
+                KanbanCard::STATUS_DONE => __('Done'),
+            ],
+        ])->render();
     }
 
     public function discard(Request $request, KanbanCard $card): RedirectResponse|JsonResponse
@@ -70,11 +91,19 @@ class KanbanController extends Controller
     }
 
     /** One line in the card's progress log — who and when read from the author, not typed. */
-    public function storeComment(Request $request, KanbanCard $card): RedirectResponse
+    public function storeComment(Request $request, KanbanCard $card): RedirectResponse|JsonResponse
     {
         $v = $request->validate(['body' => 'required|string|max:2000']);
 
-        $card->comments()->create(['user_id' => $request->user()->id, 'body' => $v['body']]);
+        $comment = $card->comments()->create(['user_id' => $request->user()->id, 'body' => $v['body']]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'comment' => [
+                'author_initials' => $request->user()->initials(),
+                'created_at' => $comment->created_at->format('d/m/Y H:i'),
+                'body' => e($comment->body),
+            ]]);
+        }
 
         return back()->with('success', __('Comment added.'));
     }
