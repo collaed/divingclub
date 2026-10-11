@@ -43,16 +43,27 @@ class ArticleTranslationService
     /**
      * Translate an article to the given locale.
      * Tracks source hash and word counts for quality validation.
+     *
+     * A translation a human has hand-edited (see ArticleController::updateTranslation())
+     * is marked auto_translated=false, stale=false and is never silently
+     * overwritten by this method — an automatic sweep (ProcessTranslations,
+     * the bulk "Generate translations" button, this article's own save event)
+     * must not clobber a bureau member's manual fix. Only $force=true (the
+     * per-locale "Regenerate with AI" action, which the UI gates behind an
+     * explicit confirmation) may replace it.
      */
-    public function translate(Article $article, string $targetLocale, string $sourceLocale = 'fr'): ArticleTranslation
+    public function translate(Article $article, string $targetLocale, string $sourceLocale = 'fr', bool $force = false): ArticleTranslation
     {
         $existing = $article->translations()->where('locale', $targetLocale)->first();
         $sourceHash = self::sourceHash($article);
         $sourceWords = self::wordCount($article->title.' '.$article->body);
 
-        // Skip if translation exists, is not stale, and source hasn't changed
-        if ($existing && ! $existing->stale && $existing->source_hash === $sourceHash) {
-            return $existing;
+        if (! $force && $existing && ! $existing->stale) {
+            $manuallyCurated = ! $existing->auto_translated;
+            $sourceUnchanged = $existing->source_hash === $sourceHash;
+            if ($manuallyCurated || $sourceUnchanged) {
+                return $existing;
+            }
         }
 
         $title = $this->translateText($article->title, $sourceLocale, $targetLocale);
@@ -60,26 +71,7 @@ class ArticleTranslationService
 
         // Validate: if API returned null for both, it's a failure
         if (! $title && ! $body) {
-            if ($existing) {
-                $existing->increment('retries');
-
-                return $existing;
-            }
-
-            // firstOrCreate keyed on (article_id, locale): a concurrent worker
-            // may have inserted this translation since the lookup above.
-            return $article->translations()->firstOrCreate(
-                ['locale' => $targetLocale],
-                [
-                    'title' => $article->title,
-                    'body' => $article->body,
-                    'auto_translated' => false,
-                    'stale' => true,
-                    'source_hash' => $sourceHash,
-                    'source_word_count' => $sourceWords,
-                    'retries' => 1,
-                ]
-            );
+            return $this->recordFailedTranslation($article, $existing, $targetLocale, $sourceHash, $sourceWords);
         }
 
         // A field that came back null failed to translate and falls back to
@@ -123,9 +115,37 @@ class ArticleTranslationService
     }
 
     /**
+     * Record a translation attempt where both provider calls returned null.
+     * Extracted out of translate() so it stays within Sonar's return-count limit.
+     */
+    protected function recordFailedTranslation(Article $article, ?ArticleTranslation $existing, string $targetLocale, string $sourceHash, int $sourceWords): ArticleTranslation
+    {
+        if ($existing) {
+            $existing->increment('retries');
+
+            return $existing;
+        }
+
+        // firstOrCreate keyed on (article_id, locale): a concurrent worker
+        // may have inserted this translation since the lookup above.
+        return $article->translations()->firstOrCreate(
+            ['locale' => $targetLocale],
+            [
+                'title' => $article->title,
+                'body' => $article->body,
+                'auto_translated' => false,
+                'stale' => true,
+                'source_hash' => $sourceHash,
+                'source_word_count' => $sourceWords,
+                'retries' => 1,
+            ]
+        );
+    }
+
+    /**
      * Translate all enabled locales for an article.
      */
-    public function translateAll(Article $article, array $locales, string $sourceLocale = 'fr'): void
+    public function translateAll(Article $article, array $locales, string $sourceLocale = 'fr', bool $force = false): void
     {
         foreach ($locales as $locale) {
             if ($locale === $sourceLocale) {
@@ -134,7 +154,7 @@ class ArticleTranslationService
             // One failing locale (a provider hiccup) must not abort the rest —
             // the gap-fill pass in ProcessTranslations retries it next run.
             try {
-                $this->translate($article, $locale, $sourceLocale);
+                $this->translate($article, $locale, $sourceLocale, $force);
             } catch (\Throwable $e) {
                 Log::warning("translateAll: {$locale} failed for '{$article->title}'", ['error' => $e->getMessage()]);
             }

@@ -60,15 +60,20 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane {{ !in_array($currentLocale, $translatedLocales ?? []) ? 'show active' : '' }}" id="tab-original">
+                            {{-- No edit link here — the H2 pencil above already edits this (original/French) content. --}}
                             <div class="article-body">{!! $article->renderedBody() !!}</div>
                             @if($article->hasInterestForm())@include('articles._interest_form', ['slug' => $article->slug])@endif
                         </div>
                         @foreach($article->translations as $tr)
                             <div class="tab-pane {{ $tr->locale === $currentLocale ? 'show active' : '' }}" id="tab-{{ $tr->locale }}">
+                                @if(auth()->user()?->isBureau())
+                                    <a href="{{ route('admin.articles.translations.edit', [$article, $tr->locale]) }}" class="btn btn-sm btn-outline-primary float-end" title="{{ __('Edit this translation') }}">✏️ {{ __('Edit') }}</a>
+                                @endif
                                 @if($tr->stale)
                                     <div class="alert alert-warning py-1 small">@icon('⚠️') {{ __('This translation may be outdated — the original article was modified.') }}</div>
                                 @endif
                                 @if($tr->auto_translated) <small class="text-muted fst-italic mb-2 d-block">@icon('🤖') {{ __('Auto-translated') }}</small> @endif
+                                @if(! $tr->auto_translated && ! $tr->stale) <small class="text-success fst-italic mb-2 d-block">@icon('✍️') {{ __('Manually edited') }}</small> @endif
                                 <div class="article-body">{!! (new \App\Models\Article(['body' => $tr->body]))->renderedBody() !!}</div>
                                 @if($article->hasInterestForm())@include('articles._interest_form', ['slug' => $article->slug])@endif
                             </div>
