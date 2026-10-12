@@ -27,6 +27,19 @@ overdue" badge alongside (not instead of) the main status badge, and folded
 into `isAvailable()` so an overdue unit can't be loaned even while
 `status === 'available'`.
 
+### Size (`size`)
+Free-text, e.g. `XXXS`…`XXL`, plus brand-specific oddities (`XLS`, `MD`, `ML`).
+Not an enum — BCD/jacket sizing isn't standardized enough across brands for a
+fixed list, unlike `location`. Shown as a badge next to the name on the index
+and show pages, same treatment as tank `volume`.
+
+### Child mouthpiece / child sizing (`is_child_sized`)
+One generic flag reused across equipment types rather than adding a
+regulator-specific column: for BCDs/wetsuits it means the item itself is
+child-sized; for a regulator it means a child-sized mouthpiece is currently
+fitted. Both cases answer the same practical question ("can a child use this
+as-is?"), surfaced with the same 👶 badge.
+
 ### Short Numbers
 Each equipment item has a unique short number (e.g., "B12" for BCD #12, "T07" for tank #7). Used for quick identification on dive boats.
 

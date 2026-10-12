@@ -39,6 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property bool $is_loanable
  * @property bool $is_child_sized
  * @property bool $is_cold_water
+ * @property string|null $size
  * @property Carbon|null $last_seen_at
  * @property string|null $notes
  * @property string|null $location
@@ -54,7 +55,7 @@ class Equipment extends Model
 
     protected $table = 'equipment';
 
-    protected $fillable = ['club_id', 'name', 'short_number', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_maintenance_date', 'maintenance_due_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'is_loanable', 'is_child_sized', 'is_cold_water', 'last_seen_at', 'notes', 'location'];
+    protected $fillable = ['club_id', 'name', 'short_number', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_maintenance_date', 'maintenance_due_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'is_loanable', 'is_child_sized', 'is_cold_water', 'size', 'last_seen_at', 'notes', 'location'];
 
     /** Locale-neutral location keys — labels are translated at render time via __(). */
     public const LOCATIONS = [

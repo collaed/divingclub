@@ -29,7 +29,7 @@ class EquipmentController extends Controller
             ->when($request->type, fn ($q, $t) => $q->where('type', $t))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->location, fn ($q, $l) => $q->where('location', $l))
-            ->when($request->size, fn ($q, $s) => $q->where('name', 'ILIKE', "%{$s}%"))
+            ->when($request->size, fn ($q, $s) => $q->where('size', 'ILIKE', "%{$s}%"))
             ->when($request->input('search'), fn ($q, $s) => $q->where(function ($w) use ($s): void {
                 $w->where('name', 'ILIKE', "%{$s}%")
                     ->orWhere('serial_number', 'ILIKE', "%{$s}%")
@@ -97,6 +97,7 @@ class EquipmentController extends Controller
             'last_maintenance_date' => 'nullable|date',
             'maintenance_due_date' => 'nullable|date',
             'short_number' => 'nullable|string|max:10',
+            'size' => 'nullable|string|max:20',
             'is_loanable' => 'boolean',
             'is_child_sized' => 'boolean',
             'is_cold_water' => 'boolean',

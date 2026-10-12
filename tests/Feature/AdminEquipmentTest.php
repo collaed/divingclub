@@ -133,6 +133,54 @@ class AdminEquipmentTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.equipment.show', $eq))->assertSee('12L');
     }
 
+    public function test_bureau_can_set_bcd_size(): void
+    {
+        $eq = Equipment::create(['name' => 'Gilet M #M1', 'type' => 'bcd', 'status' => 'available', 'condition' => 'good']);
+
+        $this->actingAs($this->admin)
+            ->put(route('admin.equipment.update', $eq), [
+                'name' => $eq->name,
+                'type' => $eq->type,
+                'condition' => 'good',
+                'status' => 'available',
+                'size' => 'ML',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame('ML', $eq->refresh()->size);
+    }
+
+    public function test_size_filter_searches_the_size_column_not_the_name(): void
+    {
+        if (config('database.default') === 'mysql') {
+            $this->markTestSkipped('ILIKE not supported on MySQL — uses PostgreSQL in CI.');
+        }
+
+        Equipment::create(['name' => 'Gilet M #M1', 'type' => 'bcd', 'status' => 'available', 'condition' => 'good', 'size' => 'M']);
+        Equipment::create(['name' => 'Gilet L #L5', 'type' => 'bcd', 'status' => 'available', 'condition' => 'good', 'size' => 'L']);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.equipment.index', ['size' => 'L']));
+
+        $response->assertSee('Gilet L #L5')->assertDontSee('Gilet M #M1');
+    }
+
+    public function test_regulator_can_be_flagged_as_child_mouthpiece_fitted(): void
+    {
+        $eq = Equipment::create(['name' => 'Mares Rover R2S #45', 'type' => 'regulator', 'status' => 'available', 'condition' => 'good']);
+
+        $this->actingAs($this->admin)
+            ->put(route('admin.equipment.update', $eq), [
+                'name' => $eq->name,
+                'type' => $eq->type,
+                'condition' => 'good',
+                'status' => 'available',
+                'is_child_sized' => '1',
+            ])
+            ->assertRedirect();
+
+        $this->assertTrue($eq->refresh()->is_child_sized);
+    }
+
     public function test_equipment_with_overdue_maintenance_cannot_be_loaned_even_if_available(): void
     {
         $eq = Equipment::create([

@@ -4,6 +4,9 @@
         @if($equipment->volume)
             <span class="badge bg-light text-dark border">{{ $equipment->volume }}</span>
         @endif
+        @if($equipment->size)
+            <span class="badge bg-light text-dark border">{{ $equipment->size }}</span>
+        @endif
         @if($equipment->isMaintenanceOverdue())
             <span class="badge bg-warning text-dark">{{ __('Maintenance overdue') }}</span>
         @endif
@@ -20,8 +23,9 @@
                             <div class="col-md-6"><label class="form-label">{{ __('Name') }}</label><input type="text" name="name" class="form-control form-control-sm" value="{{ $equipment->name }}" required></div>
                             <div class="col-md-3"><label class="form-label">{{ __('Short #') }}</label><input type="text" name="short_number" class="form-control form-control-sm" value="{{ $equipment->short_number }}" maxlength="10" placeholder="e.g. 12, M3"></div>
                             <div class="col-md-3"><label class="form-label">{{ __('Type') }}</label><input type="text" name="type" class="form-control form-control-sm" value="{{ $equipment->type }}" readonly></div>
-                            <div class="col-md-4"><label class="form-label">{{ __('Serial') }}</label><input type="text" name="serial_number" class="form-control form-control-sm" value="{{ $equipment->serial_number }}"></div>
-                            <div class="col-md-4"><label class="form-label">{{ __('Condition') }}</label>
+                            <div class="col-md-3"><label class="form-label">{{ __('Serial') }}</label><input type="text" name="serial_number" class="form-control form-control-sm" value="{{ $equipment->serial_number }}"></div>
+                            <div class="col-md-2"><label class="form-label">{{ __('Size') }}</label><input type="text" name="size" class="form-control form-control-sm" value="{{ $equipment->size }}" maxlength="20" placeholder="e.g. M, XXL, ML"></div>
+                            <div class="col-md-3"><label class="form-label">{{ __('Condition') }}</label>
                                 <select name="condition" class="form-select form-select-sm">@foreach(['new','good','fair','poor'] as $c) <option value="{{ $c }}" {{ $equipment->condition === $c ? 'selected' : '' }}>{{ ucfirst($c) }}</option> @endforeach</select>
                             </div>
                             <div class="col-md-4"><label class="form-label">{{ __('Status') }}</label>
