@@ -28,6 +28,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $working_pressure_bar
  * @property Carbon|null $last_retest_date
  * @property Carbon|null $next_retest_date
+ * @property Carbon|null $last_maintenance_date
+ * @property Carbon|null $maintenance_due_date
  * @property Carbon|null $last_inventory_date
  * @property string|null $type
  * @property string|null $serial_number
@@ -52,7 +54,14 @@ class Equipment extends Model
 
     protected $table = 'equipment';
 
-    protected $fillable = ['club_id', 'name', 'short_number', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'is_loanable', 'is_child_sized', 'is_cold_water', 'last_seen_at', 'notes', 'location'];
+    protected $fillable = ['club_id', 'name', 'short_number', 'brand', 'manufacturer', 'threading', 'manufacture_date', 'weight_kg', 'volume', 'material', 'test_pressure_bar', 'working_pressure_bar', 'last_retest_date', 'next_retest_date', 'last_maintenance_date', 'maintenance_due_date', 'last_inventory_date', 'type', 'serial_number', 'purchase_date', 'condition', 'status', 'is_loanable', 'is_child_sized', 'is_cold_water', 'last_seen_at', 'notes', 'location'];
+
+    /** Locale-neutral location keys — labels are translated at render time via __(). */
+    public const LOCATIONS = [
+        'pool' => 'Pool',
+        'local' => 'Local',
+        'other' => 'Other',
+    ];
 
     protected function casts(): array
     {
@@ -61,6 +70,8 @@ class Equipment extends Model
             'manufacture_date' => 'date',
             'last_retest_date' => 'date',
             'next_retest_date' => 'date',
+            'last_maintenance_date' => 'date',
+            'maintenance_due_date' => 'date',
             'last_inventory_date' => 'date',
             'last_seen_at' => 'date',
             'weight_kg' => 'decimal:1',
@@ -95,7 +106,12 @@ class Equipment extends Model
 
     public function isAvailable(): bool
     {
-        return $this->status === 'available';
+        return $this->status === 'available' && ! $this->isMaintenanceOverdue();
+    }
+
+    public function isMaintenanceOverdue(): bool
+    {
+        return $this->maintenance_due_date?->isPast() ?? false;
     }
 
     public function needsRetest(): bool

@@ -1,5 +1,10 @@
 <x-admin-layout :title="$equipment->name">
-    <h4 class="mb-4">{{ $equipment->name }} <span class="badge bg-{{ $equipment->status === 'available' ? 'success' : ($equipment->status === 'on_loan' ? 'info' : 'danger') }}">{{ ucfirst(str_replace('_', ' ', $equipment->status)) }}</span></h4>
+    <h4 class="mb-4">{{ $equipment->name }}
+        <span class="badge bg-{{ $equipment->status === 'available' ? 'success' : ($equipment->status === 'on_loan' ? 'info' : 'danger') }}">{{ __(ucfirst(str_replace('_', ' ', $equipment->status))) }}</span>
+        @if($equipment->isMaintenanceOverdue())
+            <span class="badge bg-warning text-dark">{{ __('Maintenance overdue') }}</span>
+        @endif
+    </h4>
 
     <div class="row">
         <div class="col-lg-6">
@@ -19,16 +24,15 @@
                             <div class="col-md-4"><label class="form-label">{{ __('Status') }}</label>
                                 <select name="status" class="form-select form-select-sm">@foreach(['available','on_loan','maintenance_required','retired'] as $s) <option value="{{ $s }}" {{ $equipment->status === $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option> @endforeach</select>
                             </div>
+                            <div class="col-md-4"><label class="form-label">{{ __('Last maintenance') }}</label><input type="date" name="last_maintenance_date" class="form-control form-control-sm" value="{{ $equipment->last_maintenance_date?->format('Y-m-d') }}"></div>
+                            <div class="col-md-4"><label class="form-label">{{ __('Maintenance due') }}</label><input type="date" name="maintenance_due_date" class="form-control form-control-sm" value="{{ $equipment->maintenance_due_date?->format('Y-m-d') }}"></div>
                             <div class="col-12"><textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="{{ __('Notes') }}">{{ $equipment->notes }}</textarea></div>
                             <div class="col-md-6"><label class="form-label">{{ __('Location') }}</label>
                                 <select name="location" class="form-select form-select-sm">
                                     <option value="">{{ __('— Select —') }}</option>
-                                    @foreach(['Entrepôt', 'Piscine Merl', 'Hors Service'] as $loc)
-                                        <option value="{{ $loc }}" {{ $equipment->location === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                    @foreach(\App\Models\Equipment::LOCATIONS as $key => $label)
+                                        <option value="{{ $key }}" {{ $equipment->location === $key ? 'selected' : '' }}>{{ __($label) }}</option>
                                     @endforeach
-                                    @if($equipment->location && !in_array($equipment->location, ['Entrepôt', 'Piscine Merl', 'Hors Service']))
-                                        <option value="{{ $equipment->location }}" selected>{{ $equipment->location }}</option>
-                                    @endif
                                 </select>
                             </div>
                             <div class="col-md-6 d-flex align-items-end gap-3">

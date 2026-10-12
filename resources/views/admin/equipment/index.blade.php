@@ -6,7 +6,6 @@
 
     @php
         $typeCounts = \App\Models\Equipment::query()->selectRaw('type, count(*) as cnt')->groupBy('type')->pluck('cnt', 'type');
-        $locations = \App\Models\Equipment::query()->whereNotNull('location')->where('location', '!=', '')->distinct()->pluck('location')->sort();
     @endphp
     <form method="GET" class="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <div style="min-width:140px;flex:1">
@@ -33,8 +32,8 @@
         <div>
             <select name="location" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">{{ __('All Locations') }}</option>
-                @foreach($locations as $loc)
-                    <option value="{{ $loc }}" {{ request('location') === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                @foreach(\App\Models\Equipment::LOCATIONS as $key => $label)
+                    <option value="{{ $key }}" {{ request('location') === $key ? 'selected' : '' }}>{{ __($label) }}</option>
                 @endforeach
             </select>
         </div>
@@ -70,8 +69,13 @@
                         @if($e->is_cold_water) <span class="badge bg-info" style="font-size:.6rem">❄️</span> @endif
                     </td>
                     <td><span class="badge bg-secondary">{{ ucfirst($e->type) }}</span></td>
-                    <td class="small">{{ $e->location ?? '—' }}</td>
-                    <td><span class="badge bg-{{ $e->status === 'available' ? 'success' : ($e->status === 'on_loan' ? 'info' : ($e->status === 'maintenance_required' ? 'danger' : 'secondary')) }}">{{ ucfirst(str_replace('_', ' ', $e->status)) }}</span></td>
+                    <td class="small">{{ $e->location ? __(\App\Models\Equipment::LOCATIONS[$e->location] ?? $e->location) : '—' }}</td>
+                    <td>
+                        <span class="badge bg-{{ $e->status === 'available' ? 'success' : ($e->status === 'on_loan' ? 'info' : ($e->status === 'maintenance_required' ? 'danger' : 'secondary')) }}">{{ __(ucfirst(str_replace('_', ' ', $e->status))) }}</span>
+                        @if($e->isMaintenanceOverdue())
+                            <span class="badge bg-warning text-dark" style="font-size:.65rem">{{ __('Overdue') }}</span>
+                        @endif
+                    </td>
                     <td>
                         @if($e->currentLoan)
                             {{ $e->currentLoan->user?->name ?? '—' }}

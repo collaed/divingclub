@@ -10,6 +10,23 @@
 ### Statuses
 `available`, `on_loan`, `maintenance_required`, `retired`
 
+### Locations (`Equipment::LOCATIONS`)
+`pool`, `local`, `other` — stored as locale-neutral keys, translated via `__()`
+at render time. Was previously free text with hardcoded French options
+(`'Entrepôt'`, `'Piscine Merl'`, `'Hors Service'`); `'Hors Service'` was really
+an out-of-service state, not a place — that's now covered by the maintenance
+substatus below instead.
+
+### Maintenance dates vs. the maintenance-rule engine
+`last_maintenance_date`/`maintenance_due_date` are simple, directly-editable
+columns on `equipment` for lightweight "last serviced / next due" tracking at
+the individual-unit level — independent of (not a replacement for) the
+per-type task engine under "Maintenance Scheduling" below. `maintenance_due_date`
+in the past drives `Equipment::isMaintenanceOverdue()`, shown as a "Maintenance
+overdue" badge alongside (not instead of) the main status badge, and folded
+into `isAvailable()` so an overdue unit can't be loaned even while
+`status === 'available'`.
+
 ### Short Numbers
 Each equipment item has a unique short number (e.g., "B12" for BCD #12, "T07" for tank #7). Used for quick identification on dive boats.
 
