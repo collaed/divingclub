@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MedicalReviewController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MemberExportController;
+use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\NewsletterController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RenewalController;
@@ -72,6 +73,10 @@ Route::resource('articles', ArticleController::class)->except('show');
 Route::post('articles/{article}/translate', [ArticleController::class, 'translate'])->name('articles.translate');
 Route::patch('articles/{article}/toggle-publish', [ArticleController::class, 'togglePublish'])->name('articles.toggle-publish');
 Route::resource('links', LinkController::class)->only(['index', 'store', 'destroy']);
+
+// Navigation (main navbar dropdowns) — create/edit/delete all happen
+// in-place on the index page via AJAX, so only these four actions exist.
+Route::resource('menu-items', MenuItemController::class)->only(['index', 'store', 'update', 'destroy']);
 
 // Newsletters
 Route::resource('newsletters', NewsletterController::class)->except('show');

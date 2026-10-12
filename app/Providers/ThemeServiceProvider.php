@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\MenuItem;
 use App\Services\ThemeService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -15,6 +16,7 @@ class ThemeServiceProvider extends ServiceProvider
         View::composer('components.layout', function ($view) {
             $view->with('themeCSS', ThemeService::css());
             $view->with('theme', ThemeService::settings());
+            $view->with('navItems', MenuItem::forNav());
         });
     }
 }

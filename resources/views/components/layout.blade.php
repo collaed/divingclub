@@ -131,20 +131,7 @@
                         <a class="nav-link {{ request()->is('/') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="/">{{ __('Home') }}</a>
                     </li>
 
-                    {{-- About — always visible --}}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('article.*') && !request()->routeIs('article.schedule') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('About') }}</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url('/article/values') }}">@icon('🤝') {{ __('Our Values') }}</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/article/history') }}">@icon('🏛️') {{ __('Club History') }}</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/article/bureau') }}">@icon('👥') {{ __('The Bureau') }}</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/article/instructors') }}">@icon('🎓') {{ __('Our Instructors') }}</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/article/member-figures') }}">@icon('📊') {{ __('Our Members') }}</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/article/contact-info') }}">@icon('📬') {{ __('Contact & Social') }}</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ route('dues.show') }}">@icon('💶') {{ __('Membership Fees') }}</a></li>
-                        </ul>
-                    </li>
+                    @include('components._nav_dynamic')
 
                     @if(!auth()->check() || !auth()->user()->detail?->certification_level)
                     <li class="nav-item">
@@ -153,51 +140,6 @@
                     @endif
 
                     @auth
-                        {{-- Calendar --}}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('events.*') || request()->routeIs('availability.*') || request()->is('article/horaire-regulier-*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Calendar') }}</a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('events.index') }}">@icon('📆') {{ __('Events') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ url('/article/horaire-regulier-uViG0') }}">@icon('🗓️') {{ __('Training Schedule') }}</a></li>
-                                @if(auth()->user()->isBureau() || auth()->user()->hasRole('instructor'))
-                                    <li><a class="dropdown-item" href="{{ route('availability.index') }}">@icon('📅') {{ __('Instructor Availability') }}</a></li>
-                                @endif
-                            </ul>
-                        </li>
-
-                        {{-- Members --}}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('members.*') || request()->routeIs('buddies.*') || request()->routeIs('classifieds.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Members') }}</a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('members.directory') }}">@icon('📇') {{ __('Directory') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('members.trombinoscope') }}">@icon('📸') {{ __('Trombinoscope') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('buddies.index') }}">@icon('🤝') {{ __('Buddies') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('classifieds.index') }}">@icon('🏷️') {{ __('Classifieds') }}</a></li>
-                            </ul>
-                        </li>
-
-                        {{-- Resources --}}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('gallery') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('Resources') }}</a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url('/article/first-certification') }}">@icon('🎓') {{ __('First Certification') }}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('documents.index') }}">@icon('📁') {{ __('Documents') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('gallery') }}">@icon('📸') {{ __('Photo Gallery') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ url('/article/local') }}">@icon('🏠') {{ __('Our Warehouse') }}</a></li>
-                            </ul>
-                        </li>
-
-                        {{-- My Account --}}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('profile.*') || request()->routeIs('gdpr.*') ? 'active fw-bold' : '' }}" {{ request()->is('/') ? 'aria-current=page' : '' }} href="#" data-bs-toggle="dropdown">{{ __('My Account') }}</a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('profile.show') }}">@icon('👤') {{ __('My Profile') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('gdpr.consents') }}">@icon('🔒') {{ __('Privacy') }}</a></li>
-                                <li><a class="dropdown-item" href="{{ route('contact') }}">@icon('📬') {{ __('Contact Us') }}</a></li>
-                            </ul>
-                        </li>
-
                         {{-- Administration --}}
                         @if(auth()->user()->isBureau())
                             <li class="nav-item dropdown">
@@ -241,6 +183,7 @@
                                             <h6 class="dropdown-header">{{ __('Content & comms') }}</h6>
                                             <a class="dropdown-item" href="{{ route('admin.articles.index') }}">@icon('📝') {{ __('Articles') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.links.index') }}">@icon('🔗') {{ __('Links') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.menu-items.index') }}">@icon('🧭') {{ __('Navigation') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.library.index') }}">@icon('📁') {{ __('Documents') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.email.index') }}">@icon('📧') {{ __('Email') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">@icon('📬') {{ __('Newsletters') }}</a>
