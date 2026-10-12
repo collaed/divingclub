@@ -125,6 +125,14 @@ class AdminEquipmentTest extends TestCase
             ->assertSessionHasErrors('location');
     }
 
+    public function test_tank_volume_displays_on_index_and_show_pages(): void
+    {
+        $eq = Equipment::create(['name' => 'Bloc Air #1', 'type' => 'tank', 'status' => 'available', 'condition' => 'good', 'volume' => '12L']);
+
+        $this->actingAs($this->admin)->get(route('admin.equipment.index'))->assertSee('12L');
+        $this->actingAs($this->admin)->get(route('admin.equipment.show', $eq))->assertSee('12L');
+    }
+
     public function test_equipment_with_overdue_maintenance_cannot_be_loaned_even_if_available(): void
     {
         $eq = Equipment::create([

@@ -1,6 +1,9 @@
 <x-admin-layout :title="$equipment->name">
     <h4 class="mb-4">{{ $equipment->name }}
         <span class="badge bg-{{ $equipment->status === 'available' ? 'success' : ($equipment->status === 'on_loan' ? 'info' : 'danger') }}">{{ __(ucfirst(str_replace('_', ' ', $equipment->status))) }}</span>
+        @if($equipment->volume)
+            <span class="badge bg-light text-dark border">{{ $equipment->volume }}</span>
+        @endif
         @if($equipment->isMaintenanceOverdue())
             <span class="badge bg-warning text-dark">{{ __('Maintenance overdue') }}</span>
         @endif

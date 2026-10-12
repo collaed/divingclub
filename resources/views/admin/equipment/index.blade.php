@@ -65,6 +65,7 @@
                     <td class="fw-bold">{{ $e->short_number ?? '—' }}</td>
                     <td>
                         {{ $e->name }}
+                        @if($e->volume) <span class="badge bg-light text-dark border" style="font-size:.6rem">{{ $e->volume }}</span> @endif
                         @if($e->is_child_sized) <span class="badge bg-warning text-dark" style="font-size:.6rem">👶</span> @endif
                         @if($e->is_cold_water) <span class="badge bg-info" style="font-size:.6rem">❄️</span> @endif
                     </td>
