@@ -72,6 +72,9 @@
                             $isActive = $folder === $f;
                             $isAncestor = str_starts_with($folder . '/', $f . '/');
                             $parentPath = dirname($f);
+                            // Open (▼) only along the path to the active folder — everything
+                            // else starts collapsed, matching what's actually shown below it.
+                            $isOpen = $isActive || $isAncestor;
                         @endphp
                         <a href="{{ route('documents.index', ['folder' => $f]) }}"
                            class="list-group-item list-group-item-action py-1 border-0 tree-item {{ $isActive ? 'active' : '' }}"
@@ -79,7 +82,7 @@
                            data-parent="{{ $parentPath }}"
                            data-path="{{ $f }}"
                            style="padding-left:{{ 8 + $depth * 16 }}px;font-size:13px;{{ $depth > 0 && !$isAncestor && !$isActive ? 'display:none' : '' }}">
-                            <span class="tree-arrow" style="display:inline-block;width:14px;font-size:10px;cursor:pointer">{{ $depth === 0 ? '▼' : '▶' }}</span>
+                            <span class="tree-arrow" style="display:inline-block;width:14px;font-size:10px;cursor:pointer">{{ $isOpen ? '▼' : '▶' }}</span>
                             {{ $isActive ? '📂' : '📁' }} {{ basename($f) }}
                         </a>
                         @endif
@@ -188,7 +191,7 @@
                                 <tr>
                                     <td>
                                         @if($f->hasThumb())
-                                            <img src="{{ route('documents.thumb', $f) }}" alt="Decoration" style="max-width:36px;max-height:36px;border-radius:3px" loading="lazy">
+                                            <img src="{{ route('documents.thumb', $f) }}" alt="{{ $f->original_name }}" style="max-width:36px;max-height:36px;border-radius:3px" loading="lazy">
                                         @else
                                             @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
                                             @if(in_array($ext, ['pdf'])) @icon('📄')                                             @elseif(in_array($ext, ['doc','docx'])) @icon('📝')                                             @elseif(in_array($ext, ['xls','xlsx'])) @icon('📊')                                             @elseif(in_array($ext, ['ppt','pptx'])) @icon('📊')                                             @elseif(in_array($ext, ['zip','rar','7z'])) @icon('📦')                                             @else @icon('📎')                                             @endif
@@ -207,13 +210,13 @@
                                                 <input type="hidden" name="folder" value="{{ $f->folder }}">
                                                 <select name="visibility" class="form-select form-select-sm py-0" style="font-size:0.75rem;width:auto;display:inline" onchange="this.form.submit()">
                                                     @foreach(['public' => '🌍', 'members' => '👥', 'instructors' => '🎓', 'bureau' => '🔒'] as $v => $icon)
-                                                        <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>{{ \App\Helpers\IconHelper::render($icon) }}{{ ucfirst($v) }}</option>
+                                                        <option value="{{ $v }}" {{ $f->visibility === $v ? 'selected' : '' }}>@icon($icon) {{ ucfirst($v) }}</option>
                                                     @endforeach
                                                 </select>
                                             </form>
                                         @else
                                             @php $icons = ['public' => '🌍', 'members' => '👥', 'instructors' => '🎓', 'bureau' => '🔒']; @endphp
-                                            <span class="small">{{ \App\Helpers\IconHelper::render($icons[$f->visibility] ?? '') }}{{ ucfirst($f->visibility) }}</span>
+                                            <span class="small">@icon($icons[$f->visibility] ?? '') {{ ucfirst($f->visibility) }}</span>
                                         @endif
                                     </td>
                                     <td class="text-nowrap small">

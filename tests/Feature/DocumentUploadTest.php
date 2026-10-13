@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Document;
+use App\Models\LibraryFile;
 use App\Models\MemberDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -77,6 +78,68 @@ class DocumentUploadTest extends TestCase
         $this->post('/profile/document', [
             'category' => 'medical',
         ])->assertRedirect('/login');
+    }
+
+    public function test_library_thumbnail_alt_text_is_the_file_name_not_a_placeholder(): void
+    {
+        $user = $this->createUser();
+        LibraryFile::create([
+            'filename' => 'photo.png',
+            'original_name' => 'VacancesPhoto.png',
+            'path' => 'library/photo.png',
+            'mime_type' => 'image/png',
+            'size' => 1024,
+            'folder' => '/',
+            'visibility' => 'members',
+            'uploaded_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get('/documents');
+
+        $response->assertSee('alt="VacancesPhoto.png"', false);
+        $response->assertDontSee('alt="Decoration"', false);
+    }
+
+    public function test_library_visibility_badge_renders_icon_as_html_not_escaped_text(): void
+    {
+        $user = $this->createUser();
+        LibraryFile::create([
+            'filename' => 'reglement.pdf',
+            'original_name' => 'Reglement.pdf',
+            'path' => 'library/reglement.pdf',
+            'mime_type' => 'application/pdf',
+            'size' => 2048,
+            'folder' => '/',
+            'visibility' => 'members',
+            'uploaded_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get('/documents');
+
+        $response->assertSee('<span aria-hidden="true">', false);
+        $response->assertDontSee('&lt;span aria-hidden', false);
+    }
+
+    public function test_folder_tree_only_marks_the_active_path_as_open(): void
+    {
+        $user = $this->createUser();
+        LibraryFile::create([
+            'filename' => 'cr.pdf', 'original_name' => 'CR.pdf', 'path' => 'library/cr.pdf',
+            'mime_type' => 'application/pdf', 'size' => 10, 'folder' => '/Bureau/Comptes-Rendus/2026',
+            'visibility' => 'members', 'uploaded_by' => $user->id,
+        ]);
+        LibraryFile::create([
+            'filename' => 'budget.pdf', 'original_name' => 'Budget.pdf', 'path' => 'library/budget.pdf',
+            'mime_type' => 'application/pdf', 'size' => 10, 'folder' => '/Compta',
+            'visibility' => 'members', 'uploaded_by' => $user->id,
+        ]);
+
+        $content = $this->actingAs($user)
+            ->get('/documents?folder='.urlencode('/Bureau/Comptes-Rendus/2026'))
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/data-path="\/Bureau".*?tree-arrow[^>]*>▼/s', $content, 'an ancestor of the active folder should render the open marker');
+        $this->assertMatchesRegularExpression('/data-path="\/Compta".*?tree-arrow[^>]*>▶/s', $content, 'a folder outside the active path should render the closed marker');
     }
 
     private function createUser(): User
