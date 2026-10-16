@@ -57,6 +57,16 @@ class MenuItemTest extends TestCase
         $this->assertSame('Horaire régulier', $item->resolvedLabel('fr'));
     }
 
+    public function test_resolved_label_override_on_an_article_link_still_follows_the_locale(): void
+    {
+        $article = Article::factory()->create(['title' => 'Le bureau du club']);
+        $item = MenuItem::create(['type' => 'link', 'link_type' => 'article', 'article_id' => $article->id, 'label' => 'The Bureau']);
+
+        app()->setLocale('fr');
+
+        $this->assertSame('Le bureau', $item->resolvedLabel());
+    }
+
     public function test_resolved_url_per_link_type(): void
     {
         $article = Article::factory()->create(['slug' => 'values']);

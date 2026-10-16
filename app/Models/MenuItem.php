@@ -75,7 +75,7 @@ class MenuItem extends Model
         }
 
         if ($this->link_type === 'article') {
-            return $this->label ?: $this->article?->translated($locale)['title'];
+            return $this->label !== null ? __($this->label) : $this->article?->translated($locale)['title'];
         }
 
         return $this->label === null ? null : __($this->label);
