@@ -150,7 +150,7 @@
                     <div class="table-responsive">
                         <table id="table-library" class="table table-sm table-hover mb-0">
                             <thead><tr>
-                                <th style="width:30px"><input type="checkbox" onchange="toggleAll(this.checked)" title="{{ __('Select all') }}"></th>
+                                <th style="width:30px"><input type="checkbox" autocomplete="off" onchange="toggleAll(this.checked)" title="{{ __('Select all') }}"></th>
                                 <th style="width:44px"></th>
                                 <th>{{ __('Name') }}</th>
                                 @if($search)<th>{{ __('Folder') }}</th>@endif
@@ -162,21 +162,30 @@
                             <tbody>
                             @foreach($files as $f)
                                 <tr>
-                                    <td><input type="checkbox" class="file-check" value="{{ $f->id }}" onchange="updateBulkBar()"></td>
+                                    <td><input type="checkbox" class="file-check" autocomplete="off" value="{{ $f->id }}" onchange="updateBulkBar()"></td>
                                     <td>
+                                        @php
+                                            $ext = pathinfo($f->original_name, PATHINFO_EXTENSION);
+                                            // Shown when there's no thumbnail to try, and reused as the
+                                            // onerror fallback below when a thumbnail exists but fails to
+                                            // generate (e.g. pdftoppm can't render a corrupt/odd PDF) —
+                                            // otherwise the browser falls back to the alt text, wrapping
+                                            // the full file name across several lines in this narrow cell.
+                                            $fallbackIcon = match (true) {
+                                                in_array($ext, ['pdf']) => '<a href="'.e(route('admin.library.download', $f)).'" class="preview-link text-decoration-none" data-type="application/pdf">📄</a>',
+                                                in_array($ext, ['doc', 'docx']) => '📝',
+                                                in_array($ext, ['xls', 'xlsx']) => '📊',
+                                                in_array($ext, ['pptx', 'ppt']) => '📊',
+                                                in_array($ext, ['mp4', 'mov']) => '🎬',
+                                                default => '📎',
+                                            };
+                                        @endphp
                                         @if($f->hasThumb())
                                             <a href="{{ route('admin.library.download', $f) }}" class="preview-link" data-type="{{ $f->mime_type }}" data-name="{{ $f->original_name }}">
-                                                <img src="{{ route('admin.library.thumb', $f) }}" alt="{{ $f->original_name }}" style="max-width:40px;max-height:40px;border-radius:3px;cursor:pointer" loading="lazy">
+                                                <img src="{{ route('admin.library.thumb', $f) }}" alt="{{ $f->original_name }}" style="max-width:40px;max-height:40px;border-radius:3px;cursor:pointer" loading="lazy" onerror="this.closest('a').outerHTML = {{ Illuminate\Support\Js::from($fallbackIcon) }}">
                                             </a>
                                         @else
-                                            @php $ext = pathinfo($f->original_name, PATHINFO_EXTENSION); @endphp
-                                            @if(in_array($ext, ['pdf'])) <a href="{{ route('admin.library.download', $f) }}" class="preview-link text-decoration-none" data-type="application/pdf">📄</a>
-                                            @elseif(in_array($ext, ['doc','docx'])) 📝
-                                            @elseif(in_array($ext, ['xls','xlsx'])) 📊
-                                            @elseif(in_array($ext, ['pptx','ppt'])) 📊
-                                            @elseif(in_array($ext, ['mp4','mov'])) 🎬
-                                            @else 📎
-                                            @endif
+                                            {!! $fallbackIcon !!}
                                         @endif
                                     </td>
                                     <td>
@@ -279,6 +288,11 @@ function updateBulkBar() {
     bar.style.setProperty('display', n > 0 ? 'flex' : 'none', 'important');
     document.getElementById('bulkCount').textContent = n;
 }
+// Some browsers restore checkbox .checked state on reload by DOM position,
+// independent of the freshly-rendered HTML — after bulk-deleting rows this
+// can leave different (remaining) rows looking checked with the bulk bar
+// still hidden, since nothing fired a change event. Sync once on load.
+updateBulkBar();
 function bulkDelete() {
     var ids = Array.from(document.querySelectorAll('.file-check:checked')).map(cb => cb.value);
     if (!ids.length) return;
@@ -314,20 +328,22 @@ function downloadSelected() {
     if (ids) window.location = '{{ route("admin.library.download-zip") }}?ids=' + ids;
 }
 
-// Image & PDF preview (inline lightbox)
-document.querySelectorAll('.preview-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:20px';
-        if (this.dataset.type?.startsWith('image/')) {
-            overlay.innerHTML = '<img src="' + this.href + '" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.5)">';
-        } else if (this.dataset.type === 'application/pdf') {
-            overlay.innerHTML = '<iframe src="' + this.href + '" style="width:90vw;height:90vh;border:none;border-radius:8px;background:white"></iframe>';
-        }
-        overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove(); });
-        document.body.appendChild(overlay);
-    });
+// Image & PDF preview (inline lightbox). Delegated on document rather than
+// bound per-element, so a fallback link swapped in later (thumbnail onerror)
+// still opens the lightbox without needing its own listener.
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('.preview-link');
+    if (!link) return;
+    e.preventDefault();
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:20px';
+    if (link.dataset.type?.startsWith('image/')) {
+        overlay.innerHTML = '<img src="' + link.href + '" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.5)">';
+    } else if (link.dataset.type === 'application/pdf') {
+        overlay.innerHTML = '<iframe src="' + link.href + '" style="width:90vw;height:90vh;border:none;border-radius:8px;background:white"></iframe>';
+    }
+    overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
 });
 
 // Rename file

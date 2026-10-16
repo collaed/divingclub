@@ -179,4 +179,28 @@ class LibraryFolderTest extends TestCase
         $this->assertSame('desc', $copy->description);
         Storage::disk('local')->assertExists($copy->path);
     }
+
+    public function test_file_checkboxes_opt_out_of_browser_reload_restoration(): void
+    {
+        // Browsers restore checkbox .checked state on reload by DOM position,
+        // independent of the freshly-rendered HTML — after a bulk delete
+        // (which reloads the page) this can leave different, remaining rows
+        // looking checked. autocomplete="off" is the standard opt-out.
+        $bureau = $this->createBureauUser();
+        LibraryFile::create(['filename' => 'a.pdf', 'original_name' => 'a.pdf', 'path' => 'library/a.pdf', 'mime_type' => 'application/pdf', 'size' => 8, 'folder' => '/', 'visibility' => 'members', 'uploaded_by' => $bureau->id]);
+
+        $response = $this->actingAs($bureau)->get(route('admin.library.index'));
+
+        $response->assertSee('class="file-check" autocomplete="off"', false);
+    }
+
+    public function test_thumbnail_falls_back_to_an_icon_instead_of_a_broken_image_with_wrapped_alt_text(): void
+    {
+        $bureau = $this->createBureauUser();
+        LibraryFile::create(['filename' => 'scan.pdf', 'original_name' => 'DUPONT Jean LS-0001.pdf', 'path' => 'library/scan.pdf', 'mime_type' => 'application/pdf', 'size' => 8, 'folder' => '/', 'visibility' => 'members', 'uploaded_by' => $bureau->id]);
+
+        $response = $this->actingAs($bureau)->get(route('admin.library.index'));
+
+        $response->assertSee('onerror="this.closest(\'a\').outerHTML', false);
+    }
 }
