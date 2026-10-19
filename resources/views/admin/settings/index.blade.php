@@ -873,7 +873,7 @@
                     @csrf
                     <div class="mb-3">
                         <textarea name="license_key" class="form-control font-monospace" rows="3" placeholder="{{ __('Paste your license key here...') }}" aria-label="{{ __('License Key') }}">{{ $themeSettings['license_key'] ?? '' }}</textarea>
-                        <small class="text-muted">{{ __('License keys are signed codes that unlock member registration beyond 100 members.') }}</small>
+                        <small class="text-muted">{{ __('License keys are signed codes that unlock member registration beyond 200 members.') }}</small>
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm">{{ __('Save License Key') }}</button>
                 </form>

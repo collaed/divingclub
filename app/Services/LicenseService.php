@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * License verification for installations exceeding the free tier (100 members).
+ * License verification for installations exceeding the free tier (200 members).
  *
  * Uses RSA-2048 asymmetric signatures: the private key is held offline by the
  * developer; the public key embedded here verifies license payloads containing
@@ -64,7 +64,7 @@ PEM;
     private const INTEGRITY_HASHES = [];
 
     /** Free tier limit, obfuscated to discourage casual patching. */
-    private const TIER_SEED = 'ZnJlZV8xMDA='; // base64('free_100')
+    private const TIER_SEED = 'ZnJlZV8yMDA='; // base64('free_200')
 
     /** Cache TTL for verification results (seconds). */
     private const CACHE_TTL = 900;

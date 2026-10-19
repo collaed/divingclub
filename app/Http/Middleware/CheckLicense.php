@@ -27,7 +27,7 @@ class CheckLicense
     {
         if (! LicenseService::isValid()) {
             return redirect()->route('home')
-                ->with('error', __('This installation has exceeded the free tier limit of 100 members. A valid license key is required. Please contact your administrator.'));
+                ->with('error', __('This installation has exceeded the free tier limit of 200 members. A valid license key is required. Please contact your administrator.'));
         }
 
         return $next($request);

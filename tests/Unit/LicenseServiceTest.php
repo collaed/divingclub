@@ -35,10 +35,10 @@ class LicenseServiceTest extends TestCase
         $this->assertFalse(LicenseService::verify($payload.'.'.base64_encode('fake-signature')));
     }
 
-    public function test_free_tier_limit_returns_100(): void
+    public function test_free_tier_limit_returns_200(): void
     {
         $method = new ReflectionMethod(LicenseService::class, 'freeTierLimit');
-        $this->assertSame(100, $method->invoke(null));
+        $this->assertSame(200, $method->invoke(null));
     }
 
     public function test_integrity_ok_returns_true_when_hashes_empty(): void

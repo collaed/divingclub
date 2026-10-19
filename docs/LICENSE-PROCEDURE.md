@@ -1,6 +1,6 @@
 # License Key Generation Procedure
 
-How to generate and install a license key for DivingClub-Manager instances exceeding the free tier (100 members).
+How to generate and install a license key for DivingClub-Manager instances exceeding the free tier (200 members).
 
 ---
 
@@ -40,7 +40,7 @@ Commit and deploy. This only needs to be done once.
 
 ### For a small club (≤20 members)
 
-No license needed — the free tier covers up to 100 members. Skip this entirely.
+No license needed — the free tier covers up to 200 members. Skip this entirely.
 
 ### For a club with up to 20 members (explicit license)
 
@@ -100,7 +100,7 @@ Returns:
 ```php
 [
     'member_count' => 142,
-    'free_tier_limit' => 100,
+    'free_tier_limit' => 200,
     'needs_license' => true,
     'is_valid' => true,
     'integrity_ok' => true,
