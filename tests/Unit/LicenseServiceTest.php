@@ -46,4 +46,12 @@ class LicenseServiceTest extends TestCase
         $method = new ReflectionMethod(LicenseService::class, 'integrityOk');
         $this->assertTrue($method->invoke(null));
     }
+
+    public function test_decode_signed_payload_rejects_a_tampered_signature(): void
+    {
+        $payload = base64_encode(json_encode(['domain' => 'test.com', 'max_members' => 500, 'expires' => '2030-01-01']));
+        $method = new ReflectionMethod(LicenseService::class, 'decodeSignedPayload');
+
+        $this->assertNull($method->invoke(null, $payload.'.'.base64_encode('fake-signature')));
+    }
 }

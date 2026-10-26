@@ -861,6 +861,11 @@
                     <span class="badge bg-danger fs-6">@icon('🔒') {{ __('License Required') }}</span>
                     <p class="text-danger mt-2">{{ __('New member registration is blocked. Enter a valid license key below.') }}</p>
                 @endif
+                @if($lic['license_details'])
+                    <p class="mb-0 mt-2 small text-muted">
+                        {{ __('Licensed for up to :max members, expires :date.', ['max' => $lic['license_details']['max_members'] ?? '—', 'date' => $lic['license_details']['expires'] ?? '—']) }}
+                    </p>
+                @endif
                 @if(!($lic['integrity_ok'] ?? true))
                     <div class="alert alert-danger mt-2 mb-0 py-1 small">@icon('⚠️') {{ __('Integrity check failed — license service may have been tampered with.') }}</div>
                 @endif

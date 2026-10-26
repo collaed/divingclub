@@ -35,6 +35,25 @@ class AdminSettingsTest extends TestCase
             ->assertOk();
     }
 
+    public function test_settings_page_omits_license_details_when_no_key_is_configured(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('admin.settings.index'))
+            ->assertOk()
+            ->assertDontSee('Licensed for up to');
+    }
+
+    public function test_settings_page_omits_license_details_for_a_tampered_key(): void
+    {
+        $payload = base64_encode(json_encode(['domain' => 'test.com', 'max_members' => 500, 'expires' => '2030-01-01']));
+        ThemeSetting::set('license_key', $payload.'.'.base64_encode('fake-signature'));
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.settings.index'))
+            ->assertOk()
+            ->assertDontSee('Licensed for up to');
+    }
+
     public function test_bureau_can_update_theme_colors(): void
     {
         $this->actingAs($this->admin)

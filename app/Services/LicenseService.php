@@ -154,29 +154,7 @@ PEM;
      */
     public static function verify(string $license): bool
     {
-        $parts = explode('.', $license);
-        if (count($parts) !== 2) {
-            return false;
-        }
-
-        [$payloadB64, $signatureB64] = $parts;
-        $payload = base64_decode($payloadB64, true);
-        $signature = base64_decode($signatureB64, true);
-
-        if (! $payload || ! $signature) {
-            return false;
-        }
-
-        $pubKey = openssl_pkey_get_public(self::PUBLIC_KEY);
-        if (! $pubKey) {
-            return false;
-        }
-
-        if (openssl_verify($payload, $signature, $pubKey, OPENSSL_ALGO_SHA256) !== 1) {
-            return false;
-        }
-
-        $data = json_decode($payload, true);
+        $data = static::decodeSignedPayload($license);
         if (! $data) {
             return false;
         }
@@ -194,6 +172,54 @@ PEM;
 
         // Expiry
         return ! (! empty($data['expires']) && now()->greaterThan($data['expires']));
+    }
+
+    /**
+     * Decode and signature-check a license string, without evaluating domain,
+     * member cap, or expiry. Returns the payload (domain/max_members/expires)
+     * or null if the string is malformed or the signature doesn't match.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected static function decodeSignedPayload(string $license): ?array
+    {
+        $parts = explode('.', $license);
+        if (count($parts) !== 2) {
+            return null;
+        }
+
+        [$payloadB64, $signatureB64] = $parts;
+        $payload = base64_decode($payloadB64, true);
+        $signature = base64_decode($signatureB64, true);
+
+        if (! $payload || ! $signature) {
+            return null;
+        }
+
+        $pubKey = openssl_pkey_get_public(self::PUBLIC_KEY);
+        if (! $pubKey) {
+            return null;
+        }
+
+        if (openssl_verify($payload, $signature, $pubKey, OPENSSL_ALGO_SHA256) !== 1) {
+            return null;
+        }
+
+        return json_decode($payload, true) ?: null;
+    }
+
+    /**
+     * The configured license's decoded payload (max_members, expires, domain),
+     * for display purposes — shown regardless of whether the license has since
+     * expired or no longer matches, so the admin can see why.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function licenseDetails(): ?array
+    {
+        $licenseKey = ThemeSetting::get('license_key', '');
+
+        return $licenseKey ? static::decodeSignedPayload($licenseKey) : null;
     }
 
     /**
@@ -226,6 +252,7 @@ PEM;
             'needs_license' => static::needsLicense(),
             'is_valid' => static::isValid(),
             'integrity_ok' => static::integrityOk(),
+            'license_details' => static::licenseDetails(),
         ];
     }
 }
