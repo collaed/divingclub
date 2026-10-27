@@ -47,6 +47,7 @@ use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
@@ -107,6 +108,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password', function (Request $request) {
         $request->validate(['email' => 'required|email']);
         Log::info('Password reset requested', ['email' => $request->email, 'ip' => $request->ip()]);
+        DB::table('password_reset_requests')->insert([
+            'email' => $request->email,
+            'ip_address' => $request->ip(),
+            'requested_at' => now(),
+        ]);
         Password::sendResetLink(['email' => $request->email]);
 
         return back()->with('success', __('Reset link sent if the email exists.'));
@@ -170,6 +176,12 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')-
 // Password reset request (works for both guests and authenticated users)
 Route::post('/request-password-reset', function (Request $request) {
     $request->validate(['email' => 'required|email']);
+    Log::info('Password reset requested', ['email' => $request->email, 'ip' => $request->ip()]);
+    DB::table('password_reset_requests')->insert([
+        'email' => $request->email,
+        'ip_address' => $request->ip(),
+        'requested_at' => now(),
+    ]);
     Password::sendResetLink(['email' => $request->email]);
 
     return back()->with('success', __('Reset link sent if the email exists.'));

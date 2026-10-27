@@ -136,6 +136,19 @@ class LoginHistoryTest extends TestCase
             ->assertOk()->assertSee('No page views in the retention window.');
     }
 
+    public function test_bureau_master_sees_failed_attempts_and_reset_requests(): void
+    {
+        $master = $this->user('bureau_master');
+        DB::table('failed_login_attempts')->insert(['email' => 'intruder@example.com', 'ip_address' => '198.51.100.1', 'attempted_at' => now()]);
+        DB::table('password_reset_requests')->insert(['email' => 'locked-out@example.com', 'ip_address' => '198.51.100.2', 'requested_at' => now()]);
+
+        $res = $this->actingAs($master)->get('/admin/logins');
+
+        $res->assertOk()
+            ->assertSee('intruder@example.com')
+            ->assertSee('locked-out@example.com');
+    }
+
     public function test_non_bureau_master_is_forbidden(): void
     {
         $this->actingAs($this->user('bureau_finance'))->get('/admin/logins')->assertForbidden();

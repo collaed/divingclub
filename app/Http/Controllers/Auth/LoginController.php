@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
@@ -56,6 +57,12 @@ class LoginController extends Controller
         }
 
         RateLimiter::hit($throttleKey, 600); // 10 minute decay
+
+        DB::table('failed_login_attempts')->insert([
+            'email' => mb_substr($identifier, 0, 255),
+            'ip_address' => $request->ip(),
+            'attempted_at' => now(),
+        ]);
 
         return back()->withErrors(['email' => __('Invalid credentials.')])->onlyInput('email');
     }

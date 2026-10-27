@@ -49,6 +49,12 @@ class LoginHistoryController extends Controller
             ->limit(30)
             ->get(['email', 'ip_address', 'attempted_at']);
 
+        $resetRequests = DB::table('password_reset_requests')
+            ->where('requested_at', '>=', $since)
+            ->orderByDesc('requested_at')
+            ->limit(30)
+            ->get(['email', 'ip_address', 'requested_at']);
+
         $members = User::query()
             ->with('detail')
             ->withMax('loginRecords as last_login_at', 'created_at')
@@ -111,7 +117,7 @@ class LoginHistoryController extends Controller
         }
 
         return view('admin.logins.index', compact(
-            'logins', 'stats', 'failed',
+            'logins', 'stats', 'failed', 'resetRequests',
             'members', 'neverSeen',
             'activityEnabled', 'retentionDays',
             'connections', 'connectionUsers', 'trail', 'trailUser', 'trailTitles', 'trailUsers', 'pathSearch',

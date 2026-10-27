@@ -80,6 +80,9 @@
                 @if($failed->isNotEmpty())
                     <span class="badge bg-warning text-dark fs-6">{{ $failed->count() }} {{ __('failed attempts (24h)') }}</span>
                 @endif
+                @if($resetRequests->isNotEmpty())
+                    <span class="badge bg-info text-dark fs-6">{{ $resetRequests->count() }} {{ __('password reset requests (24h)') }}</span>
+                @endif
             </div>
 
             <div class="table-responsive">
@@ -135,6 +138,24 @@
                                     <td class="cell-truncate" title="{{ $f->email }}">{{ $f->email }}</td>
                                     <td><code>{{ $f->ip_address ?? '—' }}</code></td>
                                     <td class="text-nowrap" data-sort-value="{{ \Illuminate\Support\Carbon::parse($f->attempted_at)->timestamp }}">{{ \Illuminate\Support\Carbon::parse($f->attempted_at)->diffForHumans() }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+
+            @if($resetRequests->isNotEmpty())
+                <h5 class="mt-4">@icon('🔑') {{ __('Password reset requests (last 24h)') }}</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th data-sort-col>{{ __('Email') }}</th><th data-sort-col>{{ __('IP') }}</th><th data-sort-col>{{ __('When') }}</th></tr></thead>
+                        <tbody>
+                            @foreach($resetRequests as $r)
+                                <tr>
+                                    <td class="cell-truncate" title="{{ $r->email }}">{{ $r->email }}</td>
+                                    <td><code>{{ $r->ip_address ?? '—' }}</code></td>
+                                    <td class="text-nowrap" data-sort-value="{{ \Illuminate\Support\Carbon::parse($r->requested_at)->timestamp }}">{{ \Illuminate\Support\Carbon::parse($r->requested_at)->diffForHumans() }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -152,4 +152,23 @@ class PasswordResetLinkTest extends TestCase
             'status' => 'sent',
         ]);
     }
+
+    public function test_forgot_password_form_submission_is_recorded_for_admin_visibility(): void
+    {
+        Notification::fake();
+        $this->member('erin@example.com');
+
+        $this->post('/forgot-password', ['email' => 'erin@example.com']);
+
+        $this->assertDatabaseHas('password_reset_requests', ['email' => 'erin@example.com']);
+    }
+
+    public function test_an_unknown_email_is_still_recorded(): void
+    {
+        Notification::fake();
+
+        $this->post('/forgot-password', ['email' => 'nobody@example.com']);
+
+        $this->assertDatabaseHas('password_reset_requests', ['email' => 'nobody@example.com']);
+    }
 }

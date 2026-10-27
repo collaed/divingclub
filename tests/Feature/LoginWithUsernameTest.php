@@ -99,6 +99,15 @@ class LoginWithUsernameTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_a_failed_login_is_recorded_for_admin_visibility(): void
+    {
+        $this->member(['username' => 'joe.bloggs']);
+
+        $this->post('/login', ['email' => 'joe.bloggs', 'password' => 'wrong']);
+
+        $this->assertDatabaseHas('failed_login_attempts', ['email' => 'joe.bloggs']);
+    }
+
     public function test_passwordless_user_cannot_login_by_username(): void
     {
         $user = $this->member(['username' => 'oauth.only']);
