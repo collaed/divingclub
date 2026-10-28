@@ -25,6 +25,7 @@
         @endforeach
     </div>
 
+    <div id="table-articles-results">
     @if(request('search'))
         <div class="alert alert-info py-2 mb-3">
             {{ __('Showing results for') }} "<strong>{{ request('search') }}</strong>" — {{ $articles->total() }} {{ __('found') }}
@@ -73,34 +74,37 @@
         </table>
     </div>
     {{ $articles->links() }}
+    </div>
 </x-admin-layout>
 
 @include("components.clickable-rows")
 
 @push('scripts')
 <script>
-document.querySelectorAll('.toggle-publish').forEach(function(el) {
-    el.addEventListener('change', function(e) {
-        e.stopPropagation();
-        const url = this.dataset.url;
-        fetch(url, {
-            method: 'PATCH',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        }).then(function(res) {
-            if (!res.ok) throw new Error('Failed');
-            return res.json();
-        }).then(function(data) {
-            if (typeof showToast === 'function') {
-                showToast(data.is_published ? '{{ __("Published") }}' : '{{ __("Unpublished") }}', 'success');
-            }
-        }).catch(function() {
-            el.checked = !el.checked;
-            if (typeof showToast === 'function') showToast('{{ __("Error") }}', 'danger');
-        });
+// Delegated on document (not bound per-checkbox) so rows swapped in by an
+// instant-search refresh are covered without rebinding.
+document.addEventListener('change', function(e) {
+    const el = e.target.closest('.toggle-publish');
+    if (!el) return;
+    e.stopPropagation();
+    const url = el.dataset.url;
+    fetch(url, {
+        method: 'PATCH',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }).then(function(res) {
+        if (!res.ok) throw new Error('Failed');
+        return res.json();
+    }).then(function(data) {
+        if (typeof showToast === 'function') {
+            showToast(data.is_published ? '{{ __("Published") }}' : '{{ __("Unpublished") }}', 'success');
+        }
+    }).catch(function() {
+        el.checked = !el.checked;
+        if (typeof showToast === 'function') showToast('{{ __("Error") }}', 'danger');
     });
 });
 </script>

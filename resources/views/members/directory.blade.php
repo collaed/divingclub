@@ -6,7 +6,7 @@
             <input type="text" name="search" data-instant-search="members-table" class="form-control form-control-sm" placeholder="{{ __('Search by name…') }}" value="{{ request('search') }}">
         </div>
         <div class="col-md-2">
-            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="status" class="form-select form-select-sm" data-autosubmit>
                 <option value="">{{ __('All Statuses') }}</option>
                 @foreach($statuses as $st)
                     <option value="{{ $st->id }}" {{ request('status') == $st->id ? 'selected' : '' }}>{{ $st->name }}</option>
@@ -14,14 +14,14 @@
             </select>
         </div>
         <div class="col-md-2">
-            <select name="instructor" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="instructor" class="form-select form-select-sm" data-autosubmit>
                 <option value="">{{ __('All Members') }}</option>
                 <option value="1" {{ request('instructor') === '1' ? 'selected' : '' }}>{{ __('Instructors') }}</option>
                 <option value="0" {{ request('instructor') === '0' ? 'selected' : '' }}>{{ __('Non-instructors') }}</option>
             </select>
         </div>
         <div class="col-md-2">
-            <select name="age" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="age" class="form-select form-select-sm" data-autosubmit>
                 <option value="">{{ __('All Ages') }}</option>
                 @foreach(['u12' => __('< 12'), 'u14' => __('< 14'), 'u16' => __('< 16'), 'u18' => __('< 18'), 'o18' => __('18 and over')] as $v => $l)
                     <option value="{{ $v }}" {{ request('age') === $v ? 'selected' : '' }}>{{ $l }}</option>
@@ -29,7 +29,7 @@
             </select>
         </div>
         <div class="col-md-2">
-            <select name="level" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="level" class="form-select form-select-sm" data-autosubmit>
                 <option value="">{{ __('All Levels') }}</option>
                 @foreach($levels as $l)
                     <option value="{{ $l }}" {{ request('level') === $l ? 'selected' : '' }}>{{ $l }}</option>
@@ -45,6 +45,7 @@
         </div>
     </form>
 
+    <div id="members-table-results">
     <x-table stack id="members-table" class="table-hover">
         <thead>
             <tr>
@@ -60,4 +61,5 @@
         </tbody>
     </x-table>
     <div id="memberPagination">{{ $members->links() }}</div>
+    </div>
 </x-layout>

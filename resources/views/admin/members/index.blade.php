@@ -70,6 +70,7 @@
         </div>
     </form>
 
+    <div id="table-members-results">
     @if($erased)
     <x-table id="table-members" class="table-hover">
             <thead>
@@ -177,6 +178,7 @@
         <x-per-page :current="request('per_page', 25)" />
         <div>{{ $members->links() }}</div>
     </div>
+    </div>
 </x-admin-layout>
 
 @include("components.clickable-rows")
@@ -186,11 +188,9 @@
 (function () {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    // Auto-submit any [data-autosubmit] checkbox in this filter form (historic,
-    // active-only, erased) — was previously only wired for #historicToggle.
-    document.querySelectorAll('[data-autosubmit]').forEach(function (el) {
-        el.addEventListener('change', function () { el.form.submit(); });
-    });
+    // [data-autosubmit] checkboxes in the filter form (historic, active-only,
+    // erased) are wired by components/instant-search.blade.php, alongside the
+    // search field, so neither steals focus/reloads the page.
 
     const table = document.getElementById('table-members');
     if (!table || !csrf) return;
@@ -225,7 +225,9 @@
         });
     }
 
-    table.addEventListener('change', function (e) {
+    // Delegated on document (not `table`) so rows swapped in by an instant-search
+    // refresh — a new #table-members node — are still covered without rebinding.
+    document.addEventListener('change', function (e) {
         const setSel = e.target.closest('.js-member-set');
         const statusSel = e.target.closest('.js-member-status');
         if (setSel) {
@@ -236,8 +238,11 @@
         }
     });
 
-    // Initial constrain of each row's status options to its set.
-    table.querySelectorAll('.js-member-set').forEach(filterStatusOptions);
+    function constrainAllRows() {
+        document.getElementById('table-members')?.querySelectorAll('.js-member-set').forEach(filterStatusOptions);
+    }
+    constrainAllRows();
+    document.addEventListener('instant-search:refreshed', constrainAllRows);
 })();
 </script>
 @endpush

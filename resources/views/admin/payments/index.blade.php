@@ -4,7 +4,7 @@
         <a href="{{ route('admin.payments.components') }}" class="btn btn-sm btn-outline-primary">{{ __('Fee Components') }}</a>
     </div>
 
-    <div class="row mb-4">
+    <div id="payments-stats-results" class="row mb-4">
         <div class="col-md-3"><div class="card dc-card text-center p-3"><h5 class="text-success">€{{ number_format($payments->where('status', 'paid')->sum('amount_paid'), 2) }}</h5><small class="text-muted">{{ __('Collected') }}</small></div></div>
         <div class="col-md-3"><div class="card dc-card text-center p-3"><h5 class="text-warning">€{{ number_format($payments->where('status', 'pending')->sum('amount_due'), 2) }}</h5><small class="text-muted">{{ __('Outstanding') }}</small></div></div>
         <div class="col-md-3"><div class="card dc-card text-center p-3"><h5>{{ $payments->where('status', 'paid')->count() }}</h5><small class="text-muted">{{ __('Paid') }}</small></div></div>
@@ -13,10 +13,10 @@
 
     <form method="GET" class="row g-2 mb-3">
         <div class="col-md-4">
-            <input type="text" name="search" data-instant-search="table-payments" class="form-control form-control-sm" placeholder="{{ __('Search member, communication…') }}" value="{{ request('search') }}">
+            <input type="text" name="search" data-instant-search="table-payments" data-instant-search-extra="payments-stats-results" class="form-control form-control-sm" placeholder="{{ __('Search member, communication…') }}" value="{{ request('search') }}">
         </div>
         <div class="col-md-3">
-            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="status" class="form-select form-select-sm" data-autosubmit>
                 <option value="">{{ __('All Statuses') }}</option>
                 @foreach(['pending','paid','partial','cancelled'] as $s)
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
@@ -31,6 +31,7 @@
         </div>
     </form>
 
+    <div id="table-payments-results">
     <div class="table-responsive">
         <table id="table-payments" class="table table-sm table-hover">
             <thead><tr>
@@ -56,6 +57,7 @@
         </table>
     </div>
     {{ $payments->links() }}
+    </div>
 
     <div class="mt-4">
         <a href="{{ route('admin.payments.renewals') }}" class="btn btn-success">{{ __('Membership renewals') }}</a>
