@@ -53,3 +53,4 @@ import './datepicker';
 import './dues-live';
 import './phone-input';
 import './renewals';
+import './nav-tabs-scroll';

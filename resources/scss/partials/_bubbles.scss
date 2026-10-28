@@ -16,12 +16,22 @@
   z-index: 1;
 }
 
-// Profile tabs responsive
+// Tabs responsive: horizontally scrollable on phones (profile, settings,
+// logins, reconciliation, article comments all use plain .nav-tabs, and
+// several have more tabs than fit a phone width). When nav-tabs.js detects
+// the bar actually overflows, it adds .is-scrollable, which masks the last
+// ~28px so a tab list that continues off-screen (e.g. Settings' License tab)
+// doesn't look like it simply ends there — otherwise nothing hints it scrolls.
 @media (max-width: 768px) {
   .nav-tabs {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+
+    &.is-scrollable {
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+      mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+    }
 
     .nav-link {
       white-space: nowrap;
