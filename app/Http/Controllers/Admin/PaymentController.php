@@ -231,4 +231,52 @@ class PaymentController extends Controller
 
         return back()->with('success', __('Transaction ignored.'));
     }
+
+    /**
+     * Full, untruncated view of one transaction — the list only shows the
+     * first 40 characters of its communication — plus a member search to
+     * link it to a different pending due than the one it was suggested
+     * against, or to one at all when nothing was suggested.
+     */
+    public function showTransaction(Request $request, BankTransaction $transaction): View
+    {
+        $transaction->load('matchedPayment.user.detail', 'confirmedByUser');
+
+        $search = trim((string) $request->get('q', ''));
+        $like = config('database.default') === 'pgsql' ? 'ilike' : 'like';
+
+        $candidates = PaymentExpected::whereIn('status', ['pending', 'partial'])
+            ->with('user.detail')
+            ->when($search !== '', function ($q) use ($search, $like): void {
+                $q->where(function ($q2) use ($search, $like): void {
+                    $q2->orWhere('communication', $like, "%{$search}%")
+                        ->orWhereHas('user.detail', function ($q3) use ($search, $like): void {
+                            $q3->where('first_name', $like, "%{$search}%")->orWhere('last_name', $like, "%{$search}%");
+                        });
+                });
+            })
+            ->orderByRaw('ABS(amount_due - ?) ASC', [$transaction->amount])
+            ->limit(20)
+            ->get();
+
+        return view('admin.payments.transaction-show', compact('transaction', 'candidates', 'search'));
+    }
+
+    public function manualMatchTransaction(Request $request, BankTransaction $transaction): RedirectResponse
+    {
+        if ($transaction->status === 'confirmed') {
+            return back()->with('error', __('This transaction is already confirmed and can no longer be relinked.'));
+        }
+
+        $request->validate(['payment_id' => 'required|exists:payment_expected,id']);
+
+        $transaction->update([
+            'matched_payment_id' => $request->integer('payment_id'),
+            'match_score' => null,
+            'match_reason' => __('Manually linked by :name.', ['name' => auth()->user()?->name]),
+            'status' => 'suggested',
+        ]);
+
+        return redirect()->route('admin.payments.transactions.show', $transaction)->with('success', __('Linked — review and confirm below.'));
+    }
 }

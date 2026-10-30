@@ -231,6 +231,8 @@ Route::post('/payments/import-statement', [PaymentController::class, 'importStat
 Route::post('/payments/suggest-matches', [PaymentController::class, 'suggestMatches'])->name('payments.suggest-matches');
 Route::post('/payments/confirm/{transaction}', [PaymentController::class, 'confirmMatch'])->name('payments.confirm-match');
 Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignoreTransaction'])->name('payments.ignore');
+Route::get('/payments/transactions/{transaction}', [PaymentController::class, 'showTransaction'])->name('payments.transactions.show');
+Route::post('/payments/transactions/{transaction}/match', [PaymentController::class, 'manualMatchTransaction'])->name('payments.transactions.match');
 
 // Ledger (bank movements): import, classify, tag, group — bureau_master only,
 // narrower than the bureau_master/bureau_finance/bureau_technical group this

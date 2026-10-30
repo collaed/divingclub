@@ -69,7 +69,7 @@
                 <tr>
                     <td class="small">{{ $tx->transaction_date->format('d/m/Y') }}</td>
                     <td class="small">€{{ number_format((float) $tx->amount, 2, ',', ' ') }}</td>
-                    <td class="small">{{ Str::limit($tx->communication, 50) }}</td>
+                    <td class="small"><a href="{{ route('admin.payments.transactions.show', $tx) }}">{{ Str::limit($tx->communication, 50) }}</a></td>
                     <td class="small">
                         <span @if($tx->match_reason) title="{{ $tx->match_reason }}" style="cursor:help" @endif>{{ $tx->match_score }}%{{ $tx->match_reason ? ' 🤖' : '' }}</span>
                     </td>

@@ -56,15 +56,18 @@
                 <tr class="{{ $tx->status === 'confirmed' ? 'table-success' : ($tx->status === 'suggested' ? 'table-warning' : '') }}">
                     <td>{{ $tx->transaction_date->format('d/m/Y') }}</td>
                     <td>€{{ number_format($tx->amount, 2) }}</td>
-                    <td class="small">{{ Str::limit($tx->communication, 40) }}</td>
+                    <td class="small"><a href="{{ route('admin.payments.transactions.show', $tx) }}">{{ Str::limit($tx->communication, 40) }}</a></td>
                     <td class="small">{{ $tx->matchedPayment?->user?->name }}</td>
                     <td>
                         @if($tx->match_score)
                             <span @if($tx->match_reason) title="{{ $tx->match_reason }}" style="cursor:help" @endif>{{ $tx->match_score }}%{{ $tx->match_reason ? ' 🤖' : '' }}</span>
+                        @elseif($tx->match_reason)
+                            <span title="{{ $tx->match_reason }}" style="cursor:help" class="text-muted">{{ __('Manual') }}</span>
                         @endif
                     </td>
                     <td><span class="badge bg-{{ $tx->status === 'confirmed' ? 'success' : ($tx->status === 'suggested' ? 'warning text-dark' : 'secondary') }}">{{ ucfirst($tx->status) }}</span></td>
-                    <td>
+                    <td class="text-nowrap">
+                        <a href="{{ route('admin.payments.transactions.show', $tx) }}" class="btn btn-sm btn-outline-primary">{{ __('Details') }}</a>
                         @if($tx->status === 'suggested')
                             <form method="POST" action="{{ route('admin.payments.confirm-match', $tx) }}" class="d-inline">@csrf <button class="btn btn-sm btn-success">✓</button></form>
                         @endif
