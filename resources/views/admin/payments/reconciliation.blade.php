@@ -15,11 +15,17 @@
                     <form method="POST" action="{{ route('admin.payments.import-statement') }}" enctype="multipart/form-data">
                         @csrf
                         <ul class="nav nav-tabs mb-2" role="tablist">
-                            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#importPdf">{{ __('PDF Upload') }}</a></li>
+                            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#importXlsx">{{ __('Excel Upload') }}</a></li>
+                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#importPdf">{{ __('PDF Upload') }}</a></li>
                             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#importText">{{ __('Paste Text') }}</a></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane active" id="importPdf">
+                            <div class="tab-pane active" id="importXlsx">
+                                <input type="file" name="statement_xlsx" class="form-control form-control-sm mb-2" accept=".xlsx">
+                                <input type="text" name="statement_ref" class="form-control form-control-sm mb-2" placeholder="{{ __('Statement number (optional)') }}">
+                                <p class="small text-muted">{{ __('Upload the bank\'s XLSX account-history export. Preferred over PDF: real dates/amounts and a real IBAN for matching, not OCR text.') }}</p>
+                            </div>
+                            <div class="tab-pane" id="importPdf">
                                 <input type="file" name="statement_pdf" class="form-control form-control-sm mb-2" accept=".pdf">
                                 <input type="text" name="statement_ref" class="form-control form-control-sm mb-2" placeholder="{{ __('Statement number (optional)') }}">
                                 <p class="small text-muted">{{ __('Upload a bank statement PDF. Text-based PDFs are parsed directly; scanned PDFs go through OCR (requires Tesseract).') }}</p>

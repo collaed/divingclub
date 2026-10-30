@@ -170,12 +170,22 @@ class PaymentController extends Controller
     public function importStatement(Request $request): RedirectResponse
     {
         $request->validate([
-            'statement' => 'required_without:statement_pdf|nullable|string|max:200000',
-            'statement_pdf' => 'required_without:statement|nullable|file|mimes:pdf|max:10240',
+            'statement' => 'required_without_all:statement_pdf,statement_xlsx|nullable|string|max:200000',
+            'statement_pdf' => 'required_without_all:statement,statement_xlsx|nullable|file|mimes:pdf|max:10240',
+            'statement_xlsx' => 'required_without_all:statement,statement_pdf|nullable|file|mimes:xlsx|max:10240',
             'statement_ref' => 'nullable|string|max:100',
         ]);
 
         $svc = app(BankReconciliationService::class);
+
+        if ($request->hasFile('statement_xlsx')) {
+            $path = $request->file('statement_xlsx')->store('bank-statements', 'local');
+            $result = $svc->parseXlsxStatement(storage_path('app/'.$path), $request->statement_ref);
+
+            return back()->with('success', __(':count transactions imported from Excel.', [
+                'count' => count($result['transactions']),
+            ]));
+        }
 
         if ($request->hasFile('statement_pdf')) {
             $path = $request->file('statement_pdf')->store('bank-statements', 'local');

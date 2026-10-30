@@ -7,12 +7,85 @@ namespace App\Services;
 use App\Models\BankTransaction;
 use App\Models\ExternalRegistration;
 use App\Models\PaymentExpected;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class BankReconciliationService
 {
+    /**
+     * Same 15-column bank export LedgerStatementImportService expects.
+     * An unrecognised header aborts the import rather than guessing
+     * column positions.
+     */
+    private const EXPECTED_HEADER = [
+        'Date transaction', 'Description', 'Date valeur', 'Montant en EUR', 'Extrait', 'Solde journalier',
+        'Opération', 'Communication 1', 'Communication 2', 'Communication 3', 'Communication 4',
+        'Compte bénéficiaire', 'Nom de la contrepartie', 'Adresse de la contrepartie', 'Localité de la contrepartie',
+    ];
+
+    /**
+     * Parse the bank's own XLSX account-history export — chosen over PDF
+     * for the same reason LedgerStatementImportService chose it over CSV:
+     * typed dates/amounts and clean Unicode, no OCR or layout guessing.
+     * The PDF export only carries date/description/amount/balance; this
+     * format also gives a real IBAN (`Compte bénéficiaire`) for the
+     * existing IBAN sub-score in matchScore(), and the four communication
+     * lines plus counterparty name for the text/name sub-scores.
+     *
+     * @return array{transactions: BankTransaction[], page_count: int}
+     */
+    public function parseXlsxStatement(string $path, ?string $statementRef = null): array
+    {
+        $sheet = IOFactory::load($path)->getActiveSheet();
+        // formatData=false: same reasoning as LedgerStatementImportService —
+        // raw Excel serial dates, converted explicitly below.
+        $rows = $sheet->toArray(null, true, false, false);
+
+        if ($rows === [] || array_slice($rows[0], 0, 15) !== self::EXPECTED_HEADER) {
+            throw new \RuntimeException('Unrecognised statement format: the column headers don\'t match the expected export.');
+        }
+
+        $transactions = [];
+        foreach (array_slice($rows, 1) as $row) {
+            if (($row[0] ?? null) === null || $row[0] === '') {
+                continue; // blank separator row
+            }
+
+            $amount = round((float) ($row[3] ?? 0), 2);
+            if ($amount <= 0) {
+                continue; // reconciliation only ever matches incoming transfers
+            }
+
+            $communication = trim(implode(' ', array_filter([
+                $row[7] ?? null, $row[8] ?? null, $row[9] ?? null, $row[10] ?? null, $row[12] ?? null,
+            ], fn ($v) => $v !== null && $v !== '')));
+
+            $transactions[] = BankTransaction::create([
+                'transaction_date' => $this->asDate($row[0]),
+                'amount' => $amount,
+                'communication' => $communication,
+                'counterparty' => trim((string) ($row[11] ?? '')),
+                'statement_ref' => $statementRef,
+            ]);
+        }
+
+        return ['transactions' => $transactions, 'page_count' => 1];
+    }
+
+    /** @param  mixed  $value  the raw cell value: an Excel date serial number, or empty */
+    private function asDate(mixed $value): ?Carbon
+    {
+        if (! is_numeric($value)) {
+            return null;
+        }
+
+        return Carbon::instance(ExcelDate::excelToDateTimeObject((float) $value))->startOfDay();
+    }
+
     /**
      * Parse bank statement text into transactions.
      *
