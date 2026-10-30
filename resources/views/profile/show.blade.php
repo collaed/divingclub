@@ -184,7 +184,7 @@
         </div>
         @endif
         <div class="tab-pane fade {{ $activeTab === 'registrations' ? 'show active' : '' }}" id="tab-registrations" role="tabpanel">
-            @include('profile.tabs.registrations', ['target' => $target])
+            @include('profile.tabs.registrations', ['target' => $target, 'viewer' => $viewer])
         </div>
         @if(isset($tabs['equipment']))
         <div class="tab-pane fade {{ $activeTab === 'equipment' ? 'show active' : '' }}" id="tab-equipment" role="tabpanel">

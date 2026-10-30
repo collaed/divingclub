@@ -323,9 +323,25 @@ class FeeCalculationService
     public function breakdown(User $user, string $seasonYear, array $selectedOptionalSlugs = [], ?MemberStatus $statusOverride = null): array
     {
         $calc = $this->calculate($user, $seasonYear, $selectedOptionalSlugs, $statusOverride);
-        $components = $calc['components'];
+
+        return $this->labelComponents($calc['components'], (float) $calc['amount_due']);
+    }
+
+    /**
+     * Turn a `components` array (freshly computed, or read back from a stored
+     * `PaymentExpected->components`) into human-readable line items. Standalone
+     * from `breakdown()` so a past payment's stored components can be labelled
+     * without recomputing `calculate()` — which could reflect fee config
+     * changed since the payment was made.
+     *
+     * @return array<int, array{label: string, amount: float, bold?: bool, muted?: bool}>
+     */
+    public function labelComponents(array $components, ?float $total = null): array
+    {
         $lines = [];
-        $lines[] = ['label' => __('Membership').' ('.($components['status'] ?? '').')', 'amount' => (float) $components['membership']];
+        if (array_key_exists('membership', $components)) {
+            $lines[] = ['label' => __('Membership').' ('.($components['status'] ?? '').')', 'amount' => (float) $components['membership']];
+        }
         if (isset($components['minor_pct'])) {
             $lines[] = [
                 'label' => __('Under 18 (:pct% of the :nominal€ nominal)', [
@@ -370,14 +386,18 @@ class FeeCalculationService
             }
         }
 
-        // Assurance lines — only present when a licence allows cover.
-        foreach (MembershipFeeComponent::where('is_optional', true)->whereIn('slug', $selectedOptionalSlugs)->get() as $opt) {
+        // Assurance lines — only those actually present in the components map
+        // (i.e. selected at calculation time), never the full optional catalogue.
+        foreach (MembershipFeeComponent::where('is_optional', true)->get() as $opt) {
             if (! array_key_exists($opt->slug, $components)) {
                 continue;
             }
             $lines[] = ['label' => $opt->name, 'amount' => (float) $components[$opt->slug]];
         }
-        $lines[] = ['label' => __('Total'), 'amount' => (float) $calc['amount_due'], 'bold' => true];
+
+        if ($total !== null) {
+            $lines[] = ['label' => __('Total'), 'amount' => $total, 'bold' => true];
+        }
 
         return $lines;
     }

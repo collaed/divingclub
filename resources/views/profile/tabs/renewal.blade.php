@@ -177,6 +177,11 @@
     <p class="text-muted">{{ __('No licence records yet.') }}</p>
 @endif
 
+@if($viewer->isBureau())
+<hr class="my-4">
+@include('profile.partials.member-transactions')
+@endif
+
 @if($viewer->hasRole('bureau_master'))
 <hr class="my-4">
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">

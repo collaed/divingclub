@@ -10,6 +10,7 @@ use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateProfileDivingRequest;
 use App\Http\Requests\UpdateProfileInfoRequest;
 use App\Http\Requests\UpdateProfileLanguageRequest;
+use App\Models\BankTransaction;
 use App\Models\Document;
 use App\Models\LedgerCounterparty;
 use App\Models\LedgerTransaction;
@@ -92,9 +93,28 @@ class ProfileController extends Controller
             }
         }
 
+        // Bank-reconciliation view of this member's payments — same access
+        // level as Payments → Membership renewals → Reconciliation itself.
+        $identifiedTransactions = collect();
+        $suspectedTransactions = collect();
+        if ($isBureau) {
+            $identifiedTransactions = BankTransaction::with('matchedPayment')
+                ->whereHas('matchedPayment', fn ($q) => $q->where('user_id', $target->id))
+                ->where('status', 'confirmed')
+                ->orderByDesc('transaction_date')
+                ->limit(10)->get();
+
+            $suspectedTransactions = BankTransaction::with('matchedPayment')
+                ->whereHas('matchedPayment', fn ($q) => $q->where('user_id', $target->id))
+                ->where('status', 'suggested')
+                ->orderByDesc('match_score')
+                ->limit(10)->get();
+        }
+
         return view('profile.show', compact(
             'target', 'viewer', 'statuses', 'statusSets', 'tab', 'medicalStatus', 'canEdit', 'tierVault', 'tierSensitive', 'tierManifest',
             'cotisationCandidates', 'cotisationDerived', 'showIdentified', 'cotSearch',
+            'identifiedTransactions', 'suspectedTransactions',
         ));
     }
 

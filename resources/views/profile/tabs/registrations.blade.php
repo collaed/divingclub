@@ -42,3 +42,8 @@
     </div>
     <p class="small text-muted">{{ $regs->count() }} {{ __('registrations') }} · <span class="text-warning">■</span> {{ __('Today') }} · <span class="text-info">■</span> {{ __('Tomorrow') }}</p>
 @endif
+
+@if($viewer->isBureau())
+<hr class="my-4">
+@include('profile.partials.member-transactions')
+@endif
