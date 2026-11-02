@@ -6,7 +6,9 @@ namespace App\Services;
 
 use App\Models\BankTransaction;
 use App\Models\ExternalRegistration;
+use App\Models\LedgerCounterparty;
 use App\Models\PaymentExpected;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
@@ -420,6 +422,36 @@ class BankReconciliationService
         app(MembershipRenewalService::class)->recordSeasonPaid($payment->fresh());
 
         $tx->update(['status' => 'confirmed', 'confirmed_by' => auth()->id()]);
+
+        $this->learnCounterparty($tx, $payment->user);
+    }
+
+    /**
+     * A human just confirmed this transaction's bank account/name belongs to
+     * this member — remember it in ledger_counterparties (shared with the
+     * Ledger's own matcher, see LedgerClassificationService::matchCounterparty())
+     * so the next transaction from the same account scores a match on its own.
+     */
+    private function learnCounterparty(BankTransaction $tx, ?User $user): void
+    {
+        if (! $user || ! $tx->counterparty) {
+            return;
+        }
+
+        $normalizedIban = $this->normalizeIban($tx->counterparty);
+        $looksLikeIban = (bool) preg_match('/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/', $normalizedIban);
+
+        $counterparty = $looksLikeIban
+            ? LedgerCounterparty::whereRaw('UPPER(REPLACE(iban, \' \', \'\')) = ?', [$normalizedIban])->first()
+            : LedgerCounterparty::whereRaw('LOWER(name) = ?', [mb_strtolower($tx->counterparty)])->first();
+        $counterparty ??= LedgerCounterparty::firstOrNew(['member_id' => $user->id, 'kind' => LedgerCounterparty::KIND_MEMBER]);
+
+        $counterparty->fill([
+            'name' => $looksLikeIban ? ($counterparty->name ?: $user->name) : $tx->counterparty,
+            'iban' => $looksLikeIban ? $normalizedIban : $counterparty->iban,
+            'kind' => LedgerCounterparty::KIND_MEMBER,
+            'member_id' => $user->id,
+        ])->save();
     }
 
     private function matchScore(BankTransaction $tx, PaymentExpected $pe): int
@@ -459,6 +491,19 @@ class BankReconciliationService
         }
         if ($iban && $tx->counterparty && $this->normalizeIban($iban) === $this->normalizeIban($tx->counterparty)) {
             $score += 50;
+        }
+
+        // Known account: a previously confirmed transaction from this same
+        // IBAN or name was linked to this member (see learnCounterparty()).
+        if ($tx->counterparty && $pe->user_id) {
+            $normalizedCounterparty = $this->normalizeIban($tx->counterparty);
+            $known = LedgerCounterparty::where('member_id', $pe->user_id)
+                ->where(fn ($q) => $q->whereRaw('UPPER(REPLACE(iban, \' \', \'\')) = ?', [$normalizedCounterparty])
+                    ->orWhereRaw('LOWER(name) = ?', [mb_strtolower($tx->counterparty)]))
+                ->exists();
+            if ($known) {
+                $score += 50;
+            }
         }
 
         return min($score, 100);
