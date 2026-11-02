@@ -66,6 +66,13 @@
     @foreach($labels as $state => [$label, $class])
         <a href="{{ route('admin.ledger.index', ['state' => $state, ...$reviewedParam]) }}" class="lg-pill {{ $class }} {{ request('state') === $state ? 'border border-dark' : '' }}">{{ $label }} · <span data-state-pill="{{ $state }}">{{ $stateCounts[$state] ?? 0 }}</span></a>
     @endforeach
+    @if($filterCounterparty)
+        <span class="lg-pill lg-chip border border-primary">
+            {{ __('Counterparty: :name', ['name' => $filterCounterparty->name]) }}
+            <a href="{{ route('admin.ledger.index', ['state' => request('state'), ...$reviewedParam]) }}" class="text-decoration-none ms-1" title="{{ __('Clear') }}">✕</a>
+        </span>
+        <a href="{{ route('admin.ledger.review', ['counterparty_id' => $filterCounterparty->id]) }}" class="small">{{ __('Sum this counterparty →') }}</a>
+    @endif
 </div>
 
 {{-- Not wrapped around the table: each row below has its own <form> for
@@ -107,7 +114,10 @@
         @else
             <span></span>
         @endunless
-        {{ $transactions->links() }}
+        <div class="d-flex align-items-center gap-3">
+            <x-per-page :options="[50, 100, 200, 'all']" :current="request('per_page', 50)" />
+            {{ $transactions->links() }}
+        </div>
     </div>
 </div>
 

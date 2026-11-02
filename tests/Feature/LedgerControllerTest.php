@@ -95,6 +95,39 @@ class LedgerControllerTest extends TestCase
         }
     }
 
+    /**
+     * Clicking a counterparty's name filters the SAME paginated inbox in
+     * place (not a jump to the Review screen) — so the filter survives
+     * moving to the next page via the normal paginator links, which already
+     * carry the whole query string (withQueryString()).
+     */
+    public function test_filtering_the_inbox_by_counterparty_persists_across_pagination_links(): void
+    {
+        $counterparty = LedgerCounterparty::create(['name' => 'Garage Plongee', 'kind' => 'supplier']);
+        $matching = $this->tx(['counterparty_id' => $counterparty->id]);
+        $other = $this->tx(['counterparty_name' => 'Someone Else']);
+
+        $response = $this->actingAs($this->createBureauUser())
+            ->get(route('admin.ledger.index', ['counterparty_id' => $counterparty->id, 'per_page' => 50]));
+
+        $response->assertOk();
+        $shown = $response->viewData('transactions');
+        $this->assertTrue($shown->contains('id', $matching->id));
+        $this->assertFalse($shown->contains('id', $other->id));
+        $response->assertSee('counterparty_id='.$counterparty->id, false);
+    }
+
+    public function test_the_inbox_per_page_selector_changes_the_page_size(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->tx();
+        }
+
+        $response = $this->actingAs($this->createBureauUser())->get(route('admin.ledger.index', ['per_page' => 200]));
+
+        $this->assertSame(200, $response->viewData('transactions')->perPage());
+    }
+
     public function test_a_confirmed_transaction_drops_out_of_the_inbox(): void
     {
         $this->tx(['counterparty_name' => 'Already Done', 'confirmed_at' => now()]);
@@ -646,5 +679,27 @@ class LedgerControllerTest extends TestCase
 
         $response->assertOk();
         $this->assertCount(0, $response->viewData('transactions'));
+    }
+
+    public function test_the_review_screen_filters_by_counterparty_and_date_range_to_check_a_commitment_is_reimbursed(): void
+    {
+        $supplier = LedgerCounterparty::create(['name' => 'Garage Plongee', 'kind' => 'supplier']);
+        $other = LedgerCounterparty::create(['name' => 'Someone Else', 'kind' => 'other']);
+
+        $advance = $this->tx(['counterparty_id' => $supplier->id, 'amount' => -300, 'transaction_date' => '2026-01-05']);
+        $repayment = $this->tx(['counterparty_id' => $supplier->id, 'amount' => 300, 'transaction_date' => '2026-02-10']);
+        $tooLate = $this->tx(['counterparty_id' => $supplier->id, 'amount' => 50, 'transaction_date' => '2026-06-01']);
+        $unrelated = $this->tx(['counterparty_id' => $other->id, 'amount' => -300]);
+
+        $response = $this->actingAs($this->createBureauUser())->get(route('admin.ledger.review', [
+            'counterparty_id' => $supplier->id, 'date_from' => '2026-01-01', 'date_to' => '2026-03-01',
+        ]));
+
+        $shown = $response->viewData('transactions');
+        $this->assertTrue($shown->contains('id', $advance->id));
+        $this->assertTrue($shown->contains('id', $repayment->id));
+        $this->assertFalse($shown->contains('id', $tooLate->id));
+        $this->assertFalse($shown->contains('id', $unrelated->id));
+        $this->assertEqualsWithDelta(0.0, $response->viewData('net'), 0.001);
     }
 }

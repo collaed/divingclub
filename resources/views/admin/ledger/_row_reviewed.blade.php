@@ -9,7 +9,13 @@
 <tr class="lg-row {{ $class }}" data-ledger-row data-ledger-id="{{ $tx->id }}">
     <td class="small">{{ $tx->transaction_date->format('d/m/Y') }}</td>
     <td style="min-width:14rem">
-        <strong>{{ $tx->counterparty?->name ?? $tx->counterparty_name ?? __('Unknown') }}</strong>
+        <strong>
+            @if($tx->counterparty)
+                <a href="{{ route('admin.ledger.index', array_filter(['counterparty_id' => $tx->counterparty_id, 'state' => request('state'), 'reviewed' => request('reviewed')])) }}" title="{{ __('Filter the list to this counterparty') }}">{{ $tx->counterparty->name }}</a>
+            @else
+                {{ $tx->counterparty_name ?? __('Unknown') }}
+            @endif
+        </strong>
         <div class="small text-muted">{{ $tx->communication() ?: '—' }}</div>
     </td>
     <td class="lg-num {{ $tx->amount >= 0 ? 'lg-in' : 'lg-out' }}">{{ $tx->amount >= 0 ? '+' : '−' }}{{ number_format(abs((float) $tx->amount), 2, ',', ' ') }}</td>

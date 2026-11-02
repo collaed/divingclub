@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportLedgerStatementRequest;
+use App\Models\LedgerCounterparty;
 use App\Models\LedgerOperation;
 use App\Models\LedgerTag;
 use App\Models\LedgerTransaction;
@@ -19,6 +21,8 @@ use Illuminate\Support\Str;
 
 class LedgerController extends Controller
 {
+    use PaginatesFromRequest;
+
     public function __construct(
         private LedgerStatementImportService $importer,
         private LedgerClassificationService $classifier,
@@ -31,13 +35,15 @@ class LedgerController extends Controller
         // mode on the same screen rather than a second page, so every other
         // filter (state, pagination) still works the same way in both.
         $reviewed = $request->boolean('reviewed');
+        $counterpartyId = $request->filled('counterparty_id') ? $request->integer('counterparty_id') : null;
 
         $transactions = LedgerTransaction::with(['counterparty', 'operations', 'tags', 'confirmedBy'])
             ->when($reviewed, fn ($q) => $q->confirmed(), fn ($q) => $q->unconfirmed())
             ->when($request->filled('state'), fn ($q) => $q->where('state', $request->string('state')))
+            ->when($counterpartyId, fn ($q) => $q->where('counterparty_id', $counterpartyId))
             ->when($reviewed, fn ($q) => $q->orderByDesc('confirmed_at'), fn ($q) => $q->orderByDesc('transaction_date'))
             ->orderByDesc('id')
-            ->paginate(30)->withQueryString();
+            ->paginate($this->perPage(50))->withQueryString();
 
         // Grouped by (source_file, statement_no), not statement_no alone — two different
         // imports both number their statements 1, 2, 3..., so grouping on the number alone
@@ -48,6 +54,7 @@ class LedgerController extends Controller
         return view('admin.ledger.index', [
             'transactions' => $transactions,
             'reviewed' => $reviewed,
+            'filterCounterparty' => $counterpartyId ? LedgerCounterparty::find($counterpartyId) : null,
             'confirmedCount' => LedgerTransaction::confirmed()->count(),
             'stateCounts' => $this->stateCounts($reviewed),
             'statements' => $statements,
@@ -66,28 +73,40 @@ class LedgerController extends Controller
     }
 
     /**
-     * Pick any number of tags and/or groups from the cloud below and see every
-     * matching transaction (a line matches if it carries any selected tag OR
-     * belongs to any selected group) with a running +/− sum — the way to check
-     * whether a group of expenses balances out, or add up everything under one
-     * tag across the whole ledger, confirmed or not.
+     * Pick any number of tags and/or groups from the cloud below, and/or a
+     * counterparty and date range, to see every matching transaction (a line
+     * matches if it carries any selected tag OR belongs to any selected
+     * group, AND falls within the counterparty/date filters) with a running
+     * +/− sum — the way to check whether a group of expenses balances out,
+     * add up everything under one tag, or see every movement with one
+     * counterparty to tell whether a commitment has been fully reimbursed.
      */
     public function review(Request $request): View
     {
         $tagIds = array_filter(array_map('intval', (array) $request->input('tags', [])));
         $operationIds = array_filter(array_map('intval', (array) $request->input('operations', [])));
+        $counterpartyId = $request->filled('counterparty_id') ? $request->integer('counterparty_id') : null;
+        $dateFrom = $request->filled('date_from') ? $request->string('date_from')->toString() : null;
+        $dateTo = $request->filled('date_to') ? $request->string('date_to')->toString() : null;
+
+        $hasFilter = $tagIds !== [] || $operationIds !== [] || $counterpartyId || $dateFrom || $dateTo;
 
         $transactions = collect();
-        if ($tagIds !== [] || $operationIds !== []) {
+        if ($hasFilter) {
             $transactions = LedgerTransaction::with(['counterparty', 'operations', 'tags'])
-                ->where(function ($q) use ($tagIds, $operationIds): void {
-                    if ($tagIds !== []) {
-                        $q->orWhereHas('tags', fn ($t) => $t->whereIn('ledger_tags.id', $tagIds));
-                    }
-                    if ($operationIds !== []) {
-                        $q->orWhereHas('operations', fn ($o) => $o->whereIn('ledger_operations.id', $operationIds));
-                    }
+                ->when($tagIds !== [] || $operationIds !== [], function ($q) use ($tagIds, $operationIds): void {
+                    $q->where(function ($q2) use ($tagIds, $operationIds): void {
+                        if ($tagIds !== []) {
+                            $q2->orWhereHas('tags', fn ($t) => $t->whereIn('ledger_tags.id', $tagIds));
+                        }
+                        if ($operationIds !== []) {
+                            $q2->orWhereHas('operations', fn ($o) => $o->whereIn('ledger_operations.id', $operationIds));
+                        }
+                    });
                 })
+                ->when($counterpartyId, fn ($q) => $q->where('counterparty_id', $counterpartyId))
+                ->when($dateFrom, fn ($q) => $q->whereDate('transaction_date', '>=', $dateFrom))
+                ->when($dateTo, fn ($q) => $q->whereDate('transaction_date', '<=', $dateTo))
                 ->orderByDesc('transaction_date')->get();
         }
 
@@ -97,8 +116,13 @@ class LedgerController extends Controller
         return view('admin.ledger.review', [
             'tags' => LedgerTag::withCount('transactions')->orderByDesc('transactions_count')->orderBy('label')->get(),
             'operations' => LedgerOperation::withCount('transactions')->orderBy('name')->get(),
+            'counterparties' => LedgerCounterparty::orderBy('name')->get(),
             'selectedTagIds' => $tagIds,
             'selectedOperationIds' => $operationIds,
+            'selectedCounterpartyId' => $counterpartyId,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'hasFilter' => $hasFilter,
             'transactions' => $transactions,
             'totalIn' => $totalIn,
             'totalOut' => $totalOut,

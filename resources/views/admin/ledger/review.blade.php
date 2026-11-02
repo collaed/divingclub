@@ -14,7 +14,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h4 class="mb-0">{{ __('Review by tag / group') }}</h4>
-        <small class="text-muted">{{ __('Pick any number of tags or groups below to see every matching line and whether they balance out — a line matches if it carries any picked tag, or belongs to any picked group.') }}</small>
+        <small class="text-muted">{{ __('Pick any number of tags or groups, and/or a counterparty and date range, to see every matching line and whether they balance out — e.g. every movement with one counterparty, to check a commitment has been fully reimbursed.') }}</small>
     </div>
     <a href="{{ route('admin.ledger.index') }}" class="btn btn-sm btn-outline-secondary">{{ __('Back to the ledger') }}</a>
 </div>
@@ -48,9 +48,35 @@
             @endforelse
         </div>
     </div>
+
+    <div class="card dc-card mb-3">
+        <div class="card-header">{{ __('Counterparty / date') }}</div>
+        <div class="card-body row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small mb-1">{{ __('Counterparty') }}</label>
+                <select name="counterparty_id" class="form-select form-select-sm" onchange="document.getElementById('lg-review-form').submit()">
+                    <option value="">{{ __('Any') }}</option>
+                    @foreach($counterparties as $cp)
+                        <option value="{{ $cp->id }}" {{ (int) $selectedCounterpartyId === $cp->id ? 'selected' : '' }}>{{ $cp->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">{{ __('From') }}</label>
+                <input type="date" name="date_from" value="{{ $dateFrom }}" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">{{ __('To') }}</label>
+                <input type="date" name="date_to" value="{{ $dateTo }}" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-sm btn-outline-primary w-100">{{ __('Apply') }}</button>
+            </div>
+        </div>
+    </div>
 </form>
 
-@if($selectedTagIds || $selectedOperationIds)
+@if($hasFilter)
     <div class="row g-2 mb-3">
         <div class="col-4"><div class="card dc-card text-center p-3"><div class="small text-muted">{{ __('In') }}</div><div class="h5 mb-0 lg-in">+{{ number_format($totalIn, 2, ',', ' ') }}</div></div></div>
         <div class="col-4"><div class="card dc-card text-center p-3"><div class="small text-muted">{{ __('Out') }}</div><div class="h5 mb-0 lg-out">{{ number_format($totalOut, 2, ',', ' ') }}</div></div></div>
@@ -80,6 +106,6 @@
         <div class="card-footer small text-muted">{{ __(':count line(s).', ['count' => $transactions->count()]) }}</div>
     </div>
 @else
-    <p class="text-muted">{{ __('Pick at least one tag or group above.') }}</p>
+    <p class="text-muted">{{ __('Pick at least one tag, group, counterparty, or date above.') }}</p>
 @endif
 </x-admin-layout>
