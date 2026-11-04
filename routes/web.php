@@ -339,6 +339,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/register', [EventController::class, 'register'])->middleware('throttle:10,1')->name('events.register');
     Route::post('/events/{event}/cancel-registration', [EventController::class, 'cancelRegistration'])->middleware('throttle:10,1')->name('events.cancel-registration');
     Route::post('/events/{event}/update-comment', [EventController::class, 'updateComment'])->name('events.update-comment');
+    Route::post('/events/{event}/recheck-licence', [EventController::class, 'recheckLicence'])->name('events.recheck-licence');
     Route::post('/events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
     Route::post('/events/{event}/uncancel', [EventController::class, 'uncancel'])->name('events.uncancel');
     Route::post('/events/{event}/photos', [EventController::class, 'uploadPhoto'])->name('events.photo.upload');

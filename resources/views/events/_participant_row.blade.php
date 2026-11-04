@@ -8,6 +8,7 @@
     $med = $isNonMember ? ['status' => 'n/a', 'badge' => 'secondary', 'label' => 'N/A'] : app(\App\Services\MedicalComplianceService::class)->getStatus($reg->user, $event->event_date);
     $isCancelled = $reg->status === 'cancelled';
     $medInvalid = !$isCancelled && !$isNonMember && in_array($med['status'], ['missing', 'expired']);
+    $pendingLicence = $reg->status === 'pending_licence';
 @endphp
 <li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid rgba(var(--bs-emphasis-color-rgb), 0.15);">
     <div class="d-flex justify-content-between align-items-start">
@@ -32,13 +33,16 @@
             @if($medInvalid && !$isPrivileged)
                 <span class="text-danger" style="font-size:0.7rem">⚠ {{ __('Medical cert invalid at event date') }}</span>
             @endif
+            @if($pendingLicence)
+                <span class="{{ $isPrivileged ? 'badge bg-danger' : 'text-danger' }}" style="font-size:0.7rem">⚠ {{ __('Needs an active :federation licence', ['federation' => $event->requiredFederation->acronym]) }}</span>
+            @endif
             @if(isset($showPosition) && $reg->waiting_list_position)
                 <span class="badge bg-warning text-dark">#{{ $reg->waiting_list_position }}</span>
             @endif
         </div>
         <div class="text-end text-nowrap">
             @if(!$isCancelled)
-                <span class="badge bg-{{ $reg->status === 'confirmed' ? 'success' : 'warning text-dark' }}">{{ ucfirst($reg->status) }}</span>
+                <span class="badge bg-{{ $reg->status === 'confirmed' ? 'success' : 'warning text-dark' }}">{{ \Illuminate\Support\Str::headline($reg->status) }}</span>
             @endif
         </div>
     </div>
@@ -60,6 +64,13 @@
                     <input type="text" name="comment" class="form-control" value="{{ $reg->comment }}" placeholder="{{ __('Comment') }}" style="font-size:0.7rem">
                     <button class="btn btn-primary btn-sm" style="font-size:0.7rem">💾</button>
                 </div>
+            </form>
+        @endif
+        @if($pendingLicence && $isPrivileged)
+            <form method="POST" action="{{ route('events.recheck-licence', $event) }}" class="d-inline ms-1">
+                @csrf
+                <input type="hidden" name="registration_id" value="{{ $reg->id }}">
+                <button class="btn btn-outline-secondary btn-sm" style="font-size:0.65rem">{{ __('Recheck licence') }}</button>
             </form>
         @endif
     </div>

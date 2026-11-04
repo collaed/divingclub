@@ -204,9 +204,12 @@
                     <div class="card-header">{{ __('Registration') }}</div>
                     <div class="card-body">
                         @if($userReg && $userReg->status !== 'cancelled')
-                            <p>{{ __('Your status') }}: <span class="badge bg-{{ $userReg->status === 'confirmed' ? 'success' : 'warning text-dark' }}">{{ ucfirst($userReg->status) }}</span></p>
+                            <p>{{ __('Your status') }}: <span class="badge bg-{{ $userReg->status === 'confirmed' ? 'success' : 'warning text-dark' }}">{{ \Illuminate\Support\Str::headline($userReg->status) }}</span></p>
                             @if($userReg->status === 'waiting')
                                 <p class="small text-muted">{{ __('Position') }}: #{{ $userReg->waiting_list_position }}</p>
+                            @endif
+                            @if($userReg->status === 'pending_licence')
+                                <p class="small text-muted">{{ __('Held until an active :federation licence is on file.', ['federation' => $event->requiredFederation->acronym]) }}</p>
                             @endif
                             <form method="POST" action="{{ route('events.cancel-registration', $event) }}" data-confirm="{{ __('Unregister :name?', ['name' => auth()->user()->name]) }}" data-confirm-style="warning" data-confirm-btn="{{ __('Confirm') }}">
                                 @csrf
@@ -222,6 +225,11 @@
                                 <div class="alert alert-warning small py-2 mb-2">
                                     @icon('⚠️') {{ __('A valid medical certificate is required for this event.') }}
                                     <a href="{{ route('profile.show', ['tab' => 'medical']) }}">{{ __('Upload now') }}</a>
+                                </div>
+                            @endif
+                            @if($event->required_federation_id)
+                                <div class="alert alert-info small py-2 mb-2">
+                                    @icon('ℹ️') {{ __('This event requires an active :federation licence. Your registration will be held pending one if you don\'t have it yet.', ['federation' => $event->requiredFederation->acronym]) }}
                                 </div>
                             @endif
                             <form method="POST" action="{{ route('events.register', $event) }}">

@@ -51,6 +51,7 @@ class StoreEventRequest extends FormRequest
             'status' => 'nullable|in:scheduled,published,cancelled,completed',
             'season_id' => 'nullable|exists:seasons,id',
             'dive_site_id' => 'nullable|exists:dive_sites,id',
+            'required_federation_id' => 'nullable|exists:federations,id',
         ];
     }
 }

@@ -26,6 +26,7 @@ use App\Models\DiveSite;
 use App\Models\EmailLog;
 use App\Models\Event;
 use App\Models\EventPhoto;
+use App\Models\Federation;
 use App\Models\GdprConsent;
 use App\Models\Season;
 use App\Models\User;
@@ -110,8 +111,9 @@ class EventController extends Controller
         $instructors = User::role(['instructor', 'instructor_apnea', 'bureau_master'])->with('detail')->get();
         $diveSites = DiveSite::active()->orderBy('name')->get();
         $locationSuggestions = $this->topLocations();
+        $federations = Federation::orderBy('acronym')->get();
 
-        return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites, 'locationSuggestions' => $locationSuggestions]);
+        return view('events.form', ['event' => new Event, 'seasons' => $seasons, 'instructors' => $instructors, 'diveSites' => $diveSites, 'locationSuggestions' => $locationSuggestions, 'federations' => $federations]);
     }
 
     public function store(StoreEventRequest $request): RedirectResponse|View
@@ -147,8 +149,9 @@ class EventController extends Controller
         $instructors = User::role(['instructor', 'instructor_apnea', 'bureau_master'])->with('detail')->get();
         $diveSites = DiveSite::active()->orderBy('name')->get();
         $locationSuggestions = $this->topLocations();
+        $federations = Federation::orderBy('acronym')->get();
 
-        return view('events.form', compact('event', 'seasons', 'instructors', 'diveSites', 'locationSuggestions'));
+        return view('events.form', compact('event', 'seasons', 'instructors', 'diveSites', 'locationSuggestions', 'federations'));
     }
 
     public function update(StoreEventRequest $request, Event $event): RedirectResponse
@@ -206,13 +209,24 @@ class EventController extends Controller
         $service = app(EventRegistrationService::class);
 
         if ($request->filled('registration_id')) {
-            $reg = $event->registrations()->where('id', $request->input('registration_id'))->whereIn('status', ['confirmed', 'waiting'])->firstOrFail();
+            $reg = $event->registrations()->where('id', $request->input('registration_id'))->whereIn('status', ['confirmed', 'waiting', 'pending_licence'])->firstOrFail();
         } else {
             $targetUserId = $request->input('user_id', $actor->id);
-            $reg = $event->registrations()->where('user_id', $targetUserId)->whereIn('status', ['confirmed', 'waiting'])->firstOrFail();
+            $reg = $event->registrations()->where('user_id', $targetUserId)->whereIn('status', ['confirmed', 'waiting', 'pending_licence'])->firstOrFail();
         }
 
         $result = $service->cancel($event, $reg, $actor, $request->input('cancel_comment'));
+
+        return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+    }
+
+    public function recheckLicence(Event $event, Request $request): RedirectResponse
+    {
+        $this->authorizeBureau();
+        $request->validate(['registration_id' => 'required|integer']);
+        $reg = $event->registrations()->where('status', 'pending_licence')->findOrFail($request->registration_id);
+
+        $result = app(EventRegistrationService::class)->recheckLicence($reg);
 
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);
     }

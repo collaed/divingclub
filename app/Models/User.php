@@ -405,4 +405,25 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     {
         return $this->hasMany(PushSubscription::class);
     }
+
+    /**
+     * Whether this member holds a current licence for the given federation
+     * as of the given date (defaults to today). A licence's `season` column
+     * is already the calendar year it's recorded as covering (FFESSM/FLASSA
+     * licences run through 31 December of that year — a licence taken from
+     * 1 September is recorded for the *following* year via
+     * Season::currentDuesYear(), which is where the early-renewal bonus
+     * shows up), so it's active as long as that year hasn't passed yet.
+     */
+    public function hasActiveLicence(Federation $federation, ?Carbon $atDate = null): bool
+    {
+        $year = ($atDate ?? Carbon::today())->year;
+
+        return $this->licences()
+            ->where('federation_id', $federation->id)
+            ->where('licence_request_pending', false)
+            ->whereNotNull('season')
+            ->get()
+            ->contains(fn (MemberLicence $l): bool => (int) $l->season >= $year);
+    }
 }

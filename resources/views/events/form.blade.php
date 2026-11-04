@@ -154,6 +154,17 @@
                 <label class="form-label">{{ __('Registration closes') }}</label>
                 <input type="datetime-local" name="inscription_close_at" class="form-control" value="{{ old('inscription_close_at', $event->inscription_close_at?->clone()->setTimezone(config('club.timezone'))->format('Y-m-d\TH:i')) }}">
             </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label" for="requiredFederationId">{{ __('Requires licence from') }}</label>
+                @php $requiredFederationId = old('required_federation_id', $event->required_federation_id); @endphp
+                <select name="required_federation_id" id="requiredFederationId" class="form-select">
+                    <option value="">{{ __('— none —') }}</option>
+                    @foreach($federations as $federation)
+                        <option value="{{ $federation->id }}" @selected((int) $requiredFederationId === $federation->id)>{{ $federation->acronym }}</option>
+                    @endforeach
+                </select>
+                <small class="text-muted">{{ __('Registrations are held pending an active licence from this federation.') }}</small>
+            </div>
         </div>
 
         {{-- Deposits --}}

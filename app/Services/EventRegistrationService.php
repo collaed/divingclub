@@ -68,7 +68,7 @@ class EventRegistrationService
             return ['success' => false, 'message' => __('Registration is not open for this event.'), 'warning' => null];
         }
 
-        if ($event->registrations()->where('user_id', $target->id)->whereIn('status', ['confirmed', 'waiting'])->exists()) {
+        if ($event->registrations()->where('user_id', $target->id)->whereIn('status', ['confirmed', 'waiting', 'pending_licence'])->exists()) {
             return ['success' => false, 'message' => __(':name is already registered.', ['name' => $target->name]), 'warning' => null];
         }
 
@@ -95,6 +95,28 @@ class EventRegistrationService
             }
         }
 
+        // Federation licence gate: held back as "pending_licence" (not confirmed
+        // or waitlisted) until an active licence is on file — the bureau can
+        // still see the member intends to come and recheck once it's sorted.
+        if ($event->required_federation_id && ! $target->hasActiveLicence($event->requiredFederation, $event->event_date)) {
+            $registeredBy = $target->id !== $actor->id ? $actor->id : null;
+
+            EventRegistration::create([
+                'event_id' => $event->id,
+                'user_id' => $target->id,
+                'status' => 'pending_licence',
+                'comment' => $comment,
+                'transit_mode' => $transitMode,
+                'registered_by' => $registeredBy,
+            ]);
+
+            $message = $target->id === $actor->id
+                ? __('Registered, but held pending an active :federation licence — it will not be confirmed until one is on file.', ['federation' => $event->requiredFederation->acronym])
+                : __(':name was registered, but held pending an active :federation licence.', ['name' => $target->name, 'federation' => $event->requiredFederation->acronym]);
+
+            return ['success' => true, 'message' => $message, 'warning' => $warning];
+        }
+
         // Check capacity
         if ($event->isFull() && ! $event->waiting_list_enabled) {
             return ['success' => false, 'message' => __('Event is full.'), 'warning' => null];
@@ -102,41 +124,81 @@ class EventRegistrationService
 
         DB::transaction(function () use ($event, $target, $actor, $comment, $transitMode): void {
             $registeredBy = $target->id !== $actor->id ? $actor->id : null;
-
-            if ($event->isFull()) {
-                $pos = ($event->waitingRegistrations()->max('waiting_list_position') ?? 0) + 1;
-                EventRegistration::create([
-                    'event_id' => $event->id,
-                    'user_id' => $target->id,
-                    'status' => 'waiting',
-                    'waiting_list_position' => $pos,
-                    'comment' => $comment,
-                    'transit_mode' => $transitMode,
-                    'registered_by' => $registeredBy,
-                ]);
-            } else {
-                EventRegistration::create([
-                    'event_id' => $event->id,
-                    'user_id' => $target->id,
-                    'status' => 'confirmed',
-                    'comment' => $comment,
-                    'transit_mode' => $transitMode,
-                    'registered_by' => $registeredBy,
-                ]);
-
-                $this->generateDepositPayment($event, $target);
-            }
-
-            if ($event->hasTripSettlement()) {
-                TripParticipant::firstOrCreate(
-                    ['event_id' => $event->id, 'user_id' => $target->id]
-                );
-            }
+            $this->finalizeRegistration($event, $target, $registeredBy, $comment, $transitMode);
         });
 
         $who = $target->id !== $actor->id ? $target->name : __('You');
 
         return ['success' => true, 'message' => __(':who registered successfully.', ['who' => $who]), 'warning' => $warning];
+    }
+
+    /**
+     * Re-run the federation-licence check for a held `pending_licence`
+     * registration and, if it now passes, finalize it as confirmed/waiting.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function recheckLicence(EventRegistration $reg): array
+    {
+        $event = $reg->event;
+
+        if ($reg->status !== 'pending_licence' || ! $event->required_federation_id) {
+            return ['success' => false, 'message' => __('Nothing to recheck.')];
+        }
+
+        if (! $reg->user->hasActiveLicence($event->requiredFederation, $event->event_date)) {
+            return ['success' => false, 'message' => __('Still no active :federation licence on file.', ['federation' => $event->requiredFederation->acronym])];
+        }
+
+        if ($event->isFull() && ! $event->waiting_list_enabled) {
+            return ['success' => false, 'message' => __('Event is full.')];
+        }
+
+        DB::transaction(function () use ($reg, $event): void {
+            $target = $reg->user;
+            $registeredBy = $reg->registered_by !== null ? (int) $reg->registered_by : null;
+            $comment = $reg->comment;
+            $transitMode = $reg->transit_mode;
+
+            $reg->delete();
+            $this->finalizeRegistration($event, $target, $registeredBy, $comment, $transitMode);
+        });
+
+        return ['success' => true, 'message' => __('Registration confirmed.')];
+    }
+
+    /** Create the confirmed/waiting registration row, deposit payment, and trip participant link. */
+    private function finalizeRegistration(Event $event, User $target, ?int $registeredBy, ?string $comment, ?string $transitMode): void
+    {
+        if ($event->isFull()) {
+            $pos = ($event->waitingRegistrations()->max('waiting_list_position') ?? 0) + 1;
+            EventRegistration::create([
+                'event_id' => $event->id,
+                'user_id' => $target->id,
+                'status' => 'waiting',
+                'waiting_list_position' => $pos,
+                'comment' => $comment,
+                'transit_mode' => $transitMode,
+                'registered_by' => $registeredBy,
+            ]);
+        } else {
+            EventRegistration::create([
+                'event_id' => $event->id,
+                'user_id' => $target->id,
+                'status' => 'confirmed',
+                'comment' => $comment,
+                'transit_mode' => $transitMode,
+                'registered_by' => $registeredBy,
+            ]);
+
+            $this->generateDepositPayment($event, $target);
+        }
+
+        if ($event->hasTripSettlement()) {
+            TripParticipant::firstOrCreate(
+                ['event_id' => $event->id, 'user_id' => $target->id]
+            );
+        }
     }
 
     /**
