@@ -244,6 +244,37 @@ class MembershipRenewalTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.payments.insurance'))->assertOk()->assertSee('Assurance Loisir 1 Top');
     }
 
+    public function test_preselected_insurance_defaults_to_the_recommended_tier_with_nothing_on_record(): void
+    {
+        $user = $this->member('externe');
+
+        $slug = app(MembershipRenewalService::class)->preselectedInsuranceSlug($user, '2027');
+
+        $this->assertSame('ass_loisir1top', $slug);
+    }
+
+    public function test_preselected_insurance_respects_an_explicit_past_decline(): void
+    {
+        $user = $this->member('externe');
+        $federation = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'Fédération', 'visibility' => 'active']);
+        $user->licences()->create(['federation_id' => $federation->id, 'insurance_type' => 'Aucune', 'season' => '2025-2026']);
+
+        $slug = app(MembershipRenewalService::class)->preselectedInsuranceSlug($user->fresh('licences'), '2027');
+
+        $this->assertNull($slug);
+    }
+
+    public function test_preselected_insurance_uses_last_seasons_tier_when_known(): void
+    {
+        $user = $this->member('externe');
+        $federation = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'Fédération', 'visibility' => 'active']);
+        $user->licences()->create(['federation_id' => $federation->id, 'insurance_type' => 'Loisir 2', 'season' => '2025-2026']);
+
+        $slug = app(MembershipRenewalService::class)->preselectedInsuranceSlug($user->fresh('licences'), '2027');
+
+        $this->assertSame('ass_loisir2', $slug);
+    }
+
     public function test_next_seasons_proposal_starts_from_the_insurance_paid_last_season(): void
     {
         $user = $this->member('externe');

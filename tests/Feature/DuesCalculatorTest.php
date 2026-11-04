@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Federation;
 use App\Models\MemberDetail;
 use App\Models\MembershipFee;
 use App\Models\MembershipFeeComponent;
@@ -128,6 +129,57 @@ class DuesCalculatorTest extends TestCase
 
         // Base 55 (under 18: half of 110) + FLASSA tapered to 0 = 55.
         $res->assertSee('€55.00');
+    }
+
+    public function test_a_member_with_no_insurance_history_gets_the_recommended_tier_preselected(): void
+    {
+        MembershipFeeComponent::create([
+            'name' => 'Assurance Loisir 1 Top', 'slug' => 'ass_loisir1top', 'kind' => MembershipFeeComponent::KIND_ASSURANCE,
+            'amount' => 48, 'is_optional' => true,
+        ]);
+        $ext = $this->makeStatus('externe');
+        $member = $this->member(null, $ext);
+
+        $html = $this->actingAs($member)->get(route('dues.show', ['season_year' => 2027]))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/id="opt_ass_loisir1top"[^>]*checked/', $html);
+    }
+
+    public function test_a_member_with_last_seasons_insurance_on_file_gets_that_tier_preselected(): void
+    {
+        MembershipFeeComponent::create([
+            'name' => 'Assurance Loisir 2', 'slug' => 'ass_loisir2', 'kind' => MembershipFeeComponent::KIND_ASSURANCE,
+            'amount' => 30, 'is_optional' => true,
+        ]);
+        MembershipFeeComponent::create([
+            'name' => 'Assurance Loisir 1 Top', 'slug' => 'ass_loisir1top', 'kind' => MembershipFeeComponent::KIND_ASSURANCE,
+            'amount' => 48, 'is_optional' => true,
+        ]);
+        $ext = $this->makeStatus('externe');
+        $member = $this->member(null, $ext);
+        $federation = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'Fédération', 'visibility' => 'active']);
+        $member->licences()->create(['federation_id' => $federation->id, 'insurance_type' => 'Loisir 2', 'season' => '2025-2026']);
+
+        $html = $this->actingAs($member->fresh('licences'))->get(route('dues.show', ['season_year' => 2027]))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/id="opt_ass_loisir2"[^>]*checked/', $html);
+        $this->assertDoesNotMatchRegularExpression('/id="opt_ass_loisir1top"[^>]*checked/', $html);
+    }
+
+    public function test_a_member_who_explicitly_had_no_insurance_last_season_gets_nothing_preselected(): void
+    {
+        MembershipFeeComponent::create([
+            'name' => 'Assurance Loisir 1 Top', 'slug' => 'ass_loisir1top', 'kind' => MembershipFeeComponent::KIND_ASSURANCE,
+            'amount' => 48, 'is_optional' => true,
+        ]);
+        $ext = $this->makeStatus('externe');
+        $member = $this->member(null, $ext);
+        $federation = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'Fédération', 'visibility' => 'active']);
+        $member->licences()->create(['federation_id' => $federation->id, 'insurance_type' => 'Aucune', 'season' => '2025-2026']);
+
+        $html = $this->actingAs($member->fresh('licences'))->get(route('dues.show', ['season_year' => 2027]))->assertOk()->getContent();
+
+        $this->assertDoesNotMatchRegularExpression('/id="opt_ass_loisir1top"[^>]*checked/', $html);
     }
 
     public function test_guest_cannot_commit(): void

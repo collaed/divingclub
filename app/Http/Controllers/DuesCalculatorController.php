@@ -13,6 +13,7 @@ use App\Models\Season;
 use App\Models\StatusSet;
 use App\Models\User;
 use App\Services\FeeCalculationService;
+use App\Services\MembershipRenewalService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,13 +21,22 @@ use Illuminate\Support\Collection;
 
 class DuesCalculatorController extends Controller
 {
-    public function __construct(private FeeCalculationService $fees) {}
+    public function __construct(private FeeCalculationService $fees, private MembershipRenewalService $renewals) {}
 
     public function show(Request $request): View
     {
         $year = (string) $request->input('season_year', Season::currentDuesYear());
+        $data = $this->viewData($year);
 
-        return view('dues-calculator', $this->viewData($year));
+        // Pre-check the member's own insurance choice so they don't have to
+        // remember it: last season's tier when known, else the recommended one.
+        $user = auth()->user();
+        if ($user instanceof User) {
+            $slug = $this->renewals->preselectedInsuranceSlug($user, $year);
+            $data['selectedOptionals'] = $slug ? [$slug] : [];
+        }
+
+        return view('dues-calculator', $data);
     }
 
     public function calculate(CalculateDuesRequest $request): View

@@ -88,14 +88,16 @@ class ComponentAgeTaperTest extends TestCase
         $this->assertSame(40.0, $this->service->componentAmount($c, $user->fresh()));
     }
 
-    public function test_anchor_falls_back_to_season_start_when_null(): void
+    public function test_anchor_falls_back_to_jan_1_of_season_year_when_null(): void
     {
+        // The club's season starts 2026-09-01, but the licence/taper anchor must
+        // ignore that and use 2027-01-01 — this member turns 18 on 2026-10-01,
+        // so they're still 17 at season start but already 18 at Jan 1.
         $season = Season::factory()->create(['year' => '2027', 'start_date' => '2026-09-01']);
         $c = $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0]);
-        // 17 at 2026-09-01 season start.
-        $u = $this->member('2009-06-15');
+        $u = $this->member('2008-10-01');
 
-        $this->assertSame(0.0, $this->service->componentAmount($c, $u, $season));
+        $this->assertSame(40.0, $this->service->componentAmount($c, $u, $season));
     }
 
     public function test_calculate_includes_tapered_component_in_total(): void

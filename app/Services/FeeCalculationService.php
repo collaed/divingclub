@@ -178,14 +178,17 @@ class FeeCalculationService
 
     /**
      * The shared prise-de-licence anchor: the FLASSA component's configured
-     * anchor when present, else the season start, else Jan 1 of the season year.
+     * anchor when present, else Jan 1 of the season year. FFESSM/FLASSA
+     * licences run the calendar year regardless of when the club's own
+     * (Sept-start) season begins, so the season's start_date is never used
+     * here — this also keeps a bulk pre-enrollment run before year-end
+     * correct, since the next season's year hasn't actually started yet.
      */
     private function licenceAnchor(?Season $season): Carbon
     {
         $flassa = MembershipFeeComponent::where('kind', MembershipFeeComponent::KIND_FLASSA)->first();
 
         return $flassa?->age_anchor_date
-            ?? $season?->start_date
             ?? Carbon::createFromDate((int) ($season?->year ?? Carbon::today()->year), 1, 1);
     }
 
@@ -251,10 +254,11 @@ class FeeCalculationService
     /**
      * Resolve the effective amount for a component, applying any per-component
      * age taper. When the member is younger than `taper_below_age` at the
-     * anchor date (the component's `age_anchor_date`, falling back to the
-     * season start date, then Jan 1 of the season year), the amount is
-     * multiplied by `taper_ratio` (0 = free, 0.5 = half). Members with no known
-     * date of birth are always charged the full amount.
+     * anchor date (the component's `age_anchor_date`, falling back to Jan 1 of
+     * the season year — never the club's own season start, since this is a
+     * calendar-year federation rule), the amount is multiplied by
+     * `taper_ratio` (0 = free, 0.5 = half). Members with no known date of
+     * birth are always charged the full amount.
      */
     public function componentAmount(MembershipFeeComponent $component, User $user, ?Season $season = null): float
     {
@@ -270,7 +274,6 @@ class FeeCalculationService
         }
 
         $anchor = $component->age_anchor_date
-            ?? $season?->start_date
             ?? Carbon::createFromDate((int) ($season?->year ?? Carbon::today()->year), 1, 1);
 
         $ageAtAnchor = $dob->diffInYears($anchor);

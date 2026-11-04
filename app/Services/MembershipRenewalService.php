@@ -25,6 +25,9 @@ class MembershipRenewalService
     /** Honoraire members count as paid from 1 October of the season's start year. */
     private const HONORAIRE_PAID_MONTH = 10;
 
+    /** The club's recommended assurance tier, offered to a member with nothing on record. */
+    private const DEFAULT_INSURANCE_SLUG = 'ass_loisir1top';
+
     public function __construct(private FeeCalculationService $fees) {}
 
     public function hasPaid(User $user, string $year): bool
@@ -244,9 +247,11 @@ class MembershipRenewalService
     /**
      * The insurance a member had last time: the tier on their latest paid
      * membership before this season, else the one on their latest licence
-     * ("Loisir 1 Top" → ass_loisir1top).
+     * ("Loisir 1 Top" → ass_loisir1top). An explicit past "Aucune" (no
+     * insurance) is always respected and never defaulted, even when
+     * $recommendDefault is set.
      */
-    private function lastInsuranceSlug(User $user, string $year): ?string
+    private function lastInsuranceSlug(User $user, string $year, bool $recommendDefault = false): ?string
     {
         $previous = PaymentExpected::where('user_id', $user->id)->where('type', 'membership')
             ->where('status', 'paid')->where('season_year', '<', $year)->orderByDesc('season_year')->first();
@@ -257,10 +262,29 @@ class MembershipRenewalService
 
         $type = $user->licences->sortByDesc('season')->pluck('insurance_type')->first(fn ($t): bool => is_string($t) && $t !== '');
         if (! $type) {
+            return $recommendDefault ? self::DEFAULT_INSURANCE_SLUG : null;
+        }
+        if (strtolower(trim($type)) === 'aucune') {
             return null;
         }
         $slug = 'ass_'.strtolower((string) preg_replace('/\s+/', '', $type));
+        if ($this->insuranceTiers()->contains('slug', $slug)) {
+            return $slug;
+        }
 
-        return $this->insuranceTiers()->contains('slug', $slug) ? $slug : null;
+        return $recommendDefault ? self::DEFAULT_INSURANCE_SLUG : null;
+    }
+
+    /**
+     * The insurance slug to preselect for a member filling in the calculator
+     * themselves: their actual last-season tier when known, else the club's
+     * recommended tier when nothing at all is on record. Unlike
+     * lastInsuranceSlug() (used to price what a member probably owes, where
+     * guessing must never silently add a charge), this is just a UI
+     * suggestion the member can still change or decline.
+     */
+    public function preselectedInsuranceSlug(User $user, string $year): ?string
+    {
+        return $this->lastInsuranceSlug($user, $year, recommendDefault: true);
     }
 }
