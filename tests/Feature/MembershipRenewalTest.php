@@ -288,4 +288,87 @@ class MembershipRenewalTest extends TestCase
         $this->assertSame('ass_loisir2', $proposal['insurance']);
         $this->assertEqualsWithDelta(220.0, $proposal['amount'], 0.001); // 190 + 30
     }
+
+    private function federation(string $acronym): Federation
+    {
+        return Federation::create(['acronym' => $acronym, 'full_name' => $acronym, 'visibility' => 'active']);
+    }
+
+    public function test_licence_renewals_page_lists_only_members_with_a_pending_federation_licence(): void
+    {
+        Carbon::setTestNow('2026-11-05');
+        $ffessm = $this->federation('FFESSM');
+        $flassa = $this->federation('FLASSA');
+
+        $pending = $this->member('externe', dob: '1990-01-01', last: 'Pending');
+        $pending->licences()->create(['federation_id' => $ffessm->id, 'season' => '2027', 'insurance_type' => 'Loisir 1', 'licence_request_pending' => true]);
+        $pending->licences()->create(['federation_id' => $flassa->id, 'season' => '2027', 'licence_request_pending' => false]);
+
+        $upToDate = $this->member('externe', dob: '1990-01-01', last: 'UpToDate');
+        $upToDate->licences()->create(['federation_id' => $ffessm->id, 'season' => '2027', 'licence_request_pending' => false]);
+
+        $res = $this->actingAs($this->admin)->get(route('admin.payments.licence-renewals'))->assertOk();
+
+        $res->assertSee('Pending');
+        $res->assertSee('36'); // age at the frozen test date
+        $res->assertSee('Loisir 1');
+        $res->assertSee('FFESSM');
+        $res->assertDontSee('UpToDate');
+        Carbon::setTestNow();
+    }
+
+    public function test_clearing_one_federations_pending_flag_leaves_the_other_untouched(): void
+    {
+        $ffessm = $this->federation('FFESSM');
+        $flassa = $this->federation('FLASSA');
+        $user = $this->member('externe');
+        $ffessmLicence = $user->licences()->create(['federation_id' => $ffessm->id, 'season' => '2027', 'licence_request_pending' => true]);
+        $flassaLicence = $user->licences()->create(['federation_id' => $flassa->id, 'season' => '2027', 'licence_request_pending' => true]);
+
+        $this->actingAs($this->admin)->postJson(route('admin.payments.licence-renewals.clear'), [
+            'user_ids' => [$user->id],
+            'federation' => 'FFESSM',
+        ])->assertOk()->assertJson(['ok' => true, 'cleared' => 1]);
+
+        $this->assertFalse($ffessmLicence->fresh()->licence_request_pending);
+        $this->assertTrue($flassaLicence->fresh()->licence_request_pending);
+    }
+
+    public function test_clearing_pending_applies_to_several_selected_members_at_once(): void
+    {
+        $ffessm = $this->federation('FFESSM');
+        $a = $this->member('externe', last: 'A');
+        $b = $this->member('externe', last: 'B');
+        $licA = $a->licences()->create(['federation_id' => $ffessm->id, 'season' => '2027', 'licence_request_pending' => true]);
+        $licB = $b->licences()->create(['federation_id' => $ffessm->id, 'season' => '2027', 'licence_request_pending' => true]);
+
+        $this->actingAs($this->admin)->postJson(route('admin.payments.licence-renewals.clear'), [
+            'user_ids' => [$a->id, $b->id],
+            'federation' => 'FFESSM',
+        ])->assertOk()->assertJson(['ok' => true, 'cleared' => 2]);
+
+        $this->assertFalse($licA->fresh()->licence_request_pending);
+        $this->assertFalse($licB->fresh()->licence_request_pending);
+    }
+
+    public function test_clearing_pending_rejects_an_unknown_federation(): void
+    {
+        $user = $this->member('externe');
+
+        $this->actingAs($this->admin)->postJson(route('admin.payments.licence-renewals.clear'), [
+            'user_ids' => [$user->id],
+            'federation' => 'PADI',
+        ])->assertStatus(422);
+    }
+
+    public function test_dashboard_worklist_shows_members_awaiting_licence_renewal(): void
+    {
+        $ffessm = $this->federation('FFESSM');
+        $user = $this->member('externe');
+        $user->licences()->create(['federation_id' => $ffessm->id, 'season' => '2027', 'licence_request_pending' => true]);
+
+        $this->actingAs($this->admin)->get(route('admin.dashboard.index'))
+            ->assertOk()
+            ->assertSee('Members awaiting licence renewal');
+    }
 }

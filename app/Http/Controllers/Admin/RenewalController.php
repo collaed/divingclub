@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ClearLicencePendingRequest;
 use App\Http\Requests\OverrideRenewalRequest;
 use App\Http\Requests\ReceiveRenewalRequest;
 use App\Models\PaymentExpected;
 use App\Models\Season;
 use App\Models\User;
+use App\Services\MedicalComplianceService;
 use App\Services\MembershipRenewalService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +19,7 @@ use Illuminate\Http\Request;
 
 class RenewalController extends Controller
 {
-    public function __construct(private MembershipRenewalService $renewals) {}
+    public function __construct(private MembershipRenewalService $renewals, private MedicalComplianceService $medical) {}
 
     public function index(Request $request): View
     {
@@ -115,6 +117,42 @@ class RenewalController extends Controller
         );
 
         return $this->paid($received);
+    }
+
+    /**
+     * Members whose FFESSM and/or FLASSA licence is still flagged "request
+     * pending" — a queue so the bureau can clear several at once instead of
+     * saving one profile's licence form at a time.
+     */
+    public function licences(): View
+    {
+        $year = Season::currentDuesYear();
+
+        $rows = $this->renewals->pendingLicenceMembers()->map(function (User $u) use ($year): array {
+            $insurance = $u->licences->pluck('insurance_type')->first(fn ($t): bool => is_string($t) && $t !== '');
+            $payment = PaymentExpected::where('user_id', $u->id)->where('type', 'membership')->where('season_year', $year)->first();
+
+            return [
+                'user' => $u,
+                'age' => $u->detail?->date_of_birth?->age,
+                'cert' => $this->medical->getStatus($u),
+                'insurance' => $insurance,
+                'amountDue' => $payment?->amount_due,
+                'paymentStatus' => $payment?->status,
+                'pendingFfessm' => $u->licences->contains(fn ($l): bool => $l->federation?->acronym === 'FFESSM' && $l->licence_request_pending),
+                'pendingFlassa' => $u->licences->contains(fn ($l): bool => $l->federation?->acronym === 'FLASSA' && $l->licence_request_pending),
+            ];
+        });
+
+        return view('admin.payments.licence-renewals', ['year' => $year, 'rows' => $rows]);
+    }
+
+    /** Clear the pending flag for one federation across several selected members in one go. */
+    public function clearLicencePending(ClearLicencePendingRequest $request): JsonResponse
+    {
+        $cleared = $this->renewals->clearLicencePending($request->validated('user_ids'), $request->validated('federation'));
+
+        return response()->json(['ok' => true, 'cleared' => $cleared]);
     }
 
     private function paid(float $amount): JsonResponse

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\MemberLicence;
 use App\Models\MembershipFeeComponent;
 use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
@@ -229,6 +230,38 @@ class MembershipRenewalService
             sort($years);
             $user->detail->update(['cotisation_years' => $years]);
         }
+    }
+
+    /**
+     * Members with at least one federation licence still marked "request
+     * pending" — the bureau asked for a new licence/card and is waiting on
+     * the federation to confirm it.
+     *
+     * @return Collection<int, User>
+     */
+    public function pendingLicenceMembers(): Collection
+    {
+        return User::with(['detail', 'licences.federation'])
+            ->whereHas('licences', fn ($q) => $q->where('licence_request_pending', true))
+            ->get()
+            ->sortBy(fn (User $u): string => mb_strtolower(($u->detail?->last_name ?? '').' '.($u->detail?->first_name ?? '')))
+            ->values();
+    }
+
+    /**
+     * Clear the pending flag for one federation across several members at
+     * once — e.g. the FLASSA cards arrived but FFESSM confirmation is still
+     * outstanding. A no-op for a member who has no pending licence for that
+     * federation.
+     *
+     * @param  int[]  $userIds
+     */
+    public function clearLicencePending(array $userIds, string $federationAcronym): int
+    {
+        return MemberLicence::whereIn('user_id', $userIds)
+            ->where('licence_request_pending', true)
+            ->whereHas('federation', fn ($q) => $q->where('acronym', $federationAcronym))
+            ->update(['licence_request_pending' => false]);
     }
 
     /** @return Collection<int, MembershipFeeComponent> */

@@ -33,42 +33,45 @@
         <div class="card-header bg-warning bg-opacity-10">@icon('📋') {{ __('Bureau Worklist') }}</div>
         <div class="list-group list-group-flush">
             @if($worklist['unverified_certs'] > 0)
-                <a href="{{ route('admin.medical-review.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Medical certificates to verify') }} <span class="badge bg-danger">{{ $worklist['unverified_certs'] }}</span></a>
+                <a href="{{ route('admin.medical-review.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('🩺') {{ __('Medical certificates to verify') }} <span class="badge bg-danger">{{ $worklist['unverified_certs'] }}</span></a>
             @endif
             @if($worklist['expiring_certs'] > 0)
-                <a href="{{ route('admin.members.index') }}?filter=expiring_cert" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Certificates expiring within 30 days') }} <span class="badge bg-warning text-dark">{{ $worklist['expiring_certs'] }}</span></a>
+                <a href="{{ route('admin.members.index') }}?filter=expiring_cert" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('⏳') {{ __('Certificates expiring within 30 days') }} <span class="badge bg-warning text-dark">{{ $worklist['expiring_certs'] }}</span></a>
             @endif
             @if($worklist['missing_medical'] > 0)
-                <a href="{{ route('admin.members.index') }}?filter=no_medical" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Active members without medical cert') }} <span class="badge bg-danger">{{ $worklist['missing_medical'] }}</span></a>
+                <a href="{{ route('admin.members.index') }}?filter=no_medical" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('⚕️') {{ __('Active members without medical cert') }} <span class="badge bg-danger">{{ $worklist['missing_medical'] }}</span></a>
             @endif
             @if($worklist['pending_payments'] > 0)
-                <a href="{{ route('admin.payments.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Pending payments') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_payments'] }}</span></a>
+                <a href="{{ route('admin.payments.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('💳') {{ __('Pending payments') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_payments'] }}</span></a>
             @endif
             @can('manage partnerships')
                 @if($worklist['pending_external_regs'] > 0)
-                    <a href="{{ route('admin.partnerships.registrations') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('External registrations to review') }} <span class="badge bg-info">{{ $worklist['pending_external_regs'] }}</span></a>
+                    <a href="{{ route('admin.partnerships.registrations') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('🔗') {{ __('External registrations to review') }} <span class="badge bg-info">{{ $worklist['pending_external_regs'] }}</span></a>
                 @endif
             @endcan
             @if($worklist['unverified_emails'] > 0)
-                <span class="list-group-item d-flex justify-content-between">{{ __('Members with unverified email') }} <span class="badge bg-secondary">{{ $worklist['unverified_emails'] }}</span></span>
+                <span class="list-group-item d-flex justify-content-between">@icon('✉️') {{ __('Members with unverified email') }} <span class="badge bg-secondary">{{ $worklist['unverified_emails'] }}</span></span>
             @endif
             @if($worklist['missing_iban'] > 0)
-                <span class="list-group-item d-flex justify-content-between">{{ __('Active members without IBAN') }} <span class="badge bg-secondary">{{ $worklist['missing_iban'] }}</span></span>
+                <span class="list-group-item d-flex justify-content-between">@icon('🏦') {{ __('Active members without IBAN') }} <span class="badge bg-secondary">{{ $worklist['missing_iban'] }}</span></span>
             @endif
             @if($worklist['new_members_unconfirmed'] > 0)
-                <a href="{{ route('admin.members.index') }}?filter=no_status" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('New members to confirm (no status)') }} <span class="badge bg-info">{{ $worklist['new_members_unconfirmed'] }}</span></a>
+                <a href="{{ route('admin.members.index') }}?filter=no_status" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('🆕') {{ __('New members to confirm (no status)') }} <span class="badge bg-info">{{ $worklist['new_members_unconfirmed'] }}</span></a>
             @endif
             @if($worklist['unmatched_transactions'] > 0)
-                <a href="{{ route('admin.payments.reconciliation') }}" class="list-group-item list-group-item-action d-flex justify-content-between">{{ __('Unmatched bank transactions') }} <span class="badge bg-warning text-dark">{{ $worklist['unmatched_transactions'] }}</span></a>
+                <a href="{{ route('admin.payments.reconciliation') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('💰') {{ __('Unmatched bank transactions') }} <span class="badge bg-warning text-dark">{{ $worklist['unmatched_transactions'] }}</span></a>
             @endif
             @if($worklist['minors_no_guardian'] > 0)
                 <a href="{{ route('admin.guardians.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('👨‍👧') {{ __('Minors without guardian') }} <span class="badge bg-danger">{{ $worklist['minors_no_guardian'] }}</span></a>
             @endif
             @if($worklist['pending_flassa'] > 0)
-                <a href="{{ route('admin.worklist-browse', 'flassa') }}" class="list-group-item list-group-item-action d-flex justify-content-between">🏊 {{ __('Members pending FLASSA enrolment') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_flassa'] }}</span></a>
+                <a href="{{ route('admin.worklist-browse', 'flassa') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('🏊') {{ __('Members pending FLASSA enrolment') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_flassa'] }}</span></a>
+            @endif
+            @if($worklist['pending_licence_renewals'] > 0)
+                <a href="{{ route('admin.payments.licence-renewals') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('📄') {{ __('Members awaiting licence renewal') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_licence_renewals'] }}</span></a>
             @endif
             @if($worklist['pending_comms'] > 0)
-                <a href="{{ route('admin.email.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">📧 {{ __('Event communications pending review') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_comms'] }}</span></a>
+                <a href="{{ route('admin.email.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between">@icon('📧') {{ __('Event communications pending review') }} <span class="badge bg-warning text-dark">{{ $worklist['pending_comms'] }}</span></a>
             @endif
         </div>
     </div>

@@ -216,6 +216,8 @@ Route::get('/payments', [PaymentController::class, 'index'])->name('payments.ind
 Route::get('/payments/renewals', [RenewalController::class, 'index'])->name('payments.renewals');
 Route::get('/payments/insurance', [RenewalController::class, 'insurance'])->name('payments.insurance');
 Route::post('/payments/insurance/{payment}/registered', [RenewalController::class, 'insuranceRegistered'])->name('payments.insurance.registered');
+Route::get('/payments/licence-renewals', [RenewalController::class, 'licences'])->name('payments.licence-renewals');
+Route::post('/payments/licence-renewals/clear', [RenewalController::class, 'clearLicencePending'])->name('payments.licence-renewals.clear');
 Route::post('/payments/renewals/{user}/received', [RenewalController::class, 'received'])->name('payments.renewals.received');
 Route::post('/payments/renewals/{user}/override', [RenewalController::class, 'override'])->name('payments.renewals.override');
 Route::get('/payments/components', [PaymentController::class, 'components'])->name('payments.components');

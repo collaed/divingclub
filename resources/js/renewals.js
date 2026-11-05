@@ -113,6 +113,106 @@
 })();
 
 /**
+ * Licence renewal queue: select several members at once and clear one
+ * federation's "request pending" flag for all of them in a single request.
+ */
+(function () {
+    'use strict';
+
+    const table = document.getElementById('table-licence-renewals');
+    if (!table) {
+        return;
+    }
+
+    const selectAll = document.querySelector('[data-licence-select-all]');
+    const clearButtons = document.querySelectorAll('[data-licence-clear]');
+    const countLabel = document.querySelector('[data-licence-selected-count]');
+
+    function checkboxes() {
+        return Array.from(table.querySelectorAll('[data-licence-select]'));
+    }
+
+    function refreshToolbar() {
+        const checked = checkboxes().filter((c) => c.checked);
+        clearButtons.forEach((btn) => (btn.disabled = checked.length === 0));
+        if (countLabel) {
+            countLabel.textContent = checked.length === 0
+                ? countLabel.dataset.emptyLabel || countLabel.textContent
+                : checked.length + ' selected';
+        }
+        if (selectAll) {
+            const all = checkboxes();
+            selectAll.checked = all.length > 0 && checked.length === all.length;
+        }
+    }
+
+    if (countLabel) {
+        countLabel.dataset.emptyLabel = countLabel.textContent;
+    }
+
+    table.addEventListener('change', (e) => {
+        if (e.target.matches('[data-licence-select]')) {
+            refreshToolbar();
+        }
+    });
+
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
+            checkboxes().forEach((c) => (c.checked = selectAll.checked));
+            refreshToolbar();
+        });
+    }
+
+    clearButtons.forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const federation = btn.dataset.licenceClear;
+            const userIds = checkboxes().filter((c) => c.checked).map((c) => c.value);
+            if (userIds.length === 0) {
+                return;
+            }
+
+            clearButtons.forEach((b) => (b.disabled = true));
+            const body = new FormData();
+            userIds.forEach((id) => body.append('user_ids[]', id));
+            body.append('federation', federation);
+
+            try {
+                const res = await fetch(btn.dataset.clearUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body,
+                });
+                if (!res.ok) {
+                    throw new Error('failed');
+                }
+            } catch (e) {
+                window.showToast?.('Network error — nothing was cleared.', 'error');
+                refreshToolbar();
+                return;
+            }
+
+            userIds.forEach((id) => {
+                const row = table.querySelector('[data-licence-row][data-user-id="' + id + '"]');
+                if (!row) {
+                    return;
+                }
+                const badge = row.querySelector('[data-pending-fed="' + federation + '"]');
+                badge?.remove();
+                if (!row.querySelector('[data-pending-fed]')) {
+                    row.remove();
+                }
+            });
+            window.showToast?.(federation + ' marked done.', 'success');
+            refreshToolbar();
+        });
+    });
+})();
+
+/**
  * Insurance backlog: tick a payment once its insurance is registered.
  */
 (function () {

@@ -87,6 +87,7 @@ class DashboardController extends Controller
                 ->whereDoesntHave('licences', fn ($q) => $q->whereHas('federation', fn ($f) => $f->where('acronym', 'FLASSA')))
                 ->count(),
             'pending_comms' => EmailLog::where('status', 'pending_review')->where('direction', 'inbound')->count(),
+            'pending_licence_renewals' => User::whereHas('licences', fn ($q) => $q->where('licence_request_pending', true))->count(),
         ];
 
         $heartbeats = ScheduleHeartbeat::all();
