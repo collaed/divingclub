@@ -90,7 +90,7 @@ class FeeCalculationService
         return [
             'amount_due' => $total,
             'components' => $components,
-            'communication' => $this->buildCommunication($user, $seasonYear, $selectedOptionalSlugs),
+            'communication' => $this->buildCommunication($user, $seasonYear, $selectedOptionalSlugs, $status),
         ];
     }
 
@@ -308,13 +308,36 @@ class FeeCalculationService
         );
     }
 
-    public function buildCommunication(User $user, string $seasonYear, array $optionals): string
+    /**
+     * Build the bank-transfer communication the member is asked to copy, in
+     * plain words — e.g. "DUPONT JEAN Cotisation 2027 Externe Loisir 1 Top" —
+     * instead of a machine slug. This is also, deliberately, the wording
+     * LedgerClassificationService::deriveCotisationDetails() already parses
+     * back out of a bank statement, since members mostly type it back almost
+     * verbatim.
+     */
+    public function buildCommunication(User $user, string $seasonYear, array $optionals, ?MemberStatus $statusOverride = null): string
     {
         $name = strtoupper(trim(($user->detail?->last_name ?? '').' '.($user->detail?->first_name ?? '')));
-        $opts = $optionals ? '+'.implode('+', $optionals) : '';
-        $prefix = ThemeSetting::get('club_short_code', config('club.id', 'CLUB'));
+        $status = $statusOverride ?? $user->status;
 
-        return "{$prefix}-{$seasonYear}-{$user->id}-{$name}{$opts}";
+        return trim(collect([$name, 'Cotisation', $seasonYear, $status?->name, $this->insuranceWords($optionals)])
+            ->filter(fn ($part) => (bool) $part)
+            ->implode(' '));
+    }
+
+    /** The selected assurance tiers' names with the "Assurance " prefix dropped, e.g. "Loisir 1 Top". */
+    private function insuranceWords(array $optionals): ?string
+    {
+        if ($optionals === []) {
+            return null;
+        }
+
+        $words = MembershipFeeComponent::whereIn('slug', $optionals)->orderBy('sort_order')->get()
+            ->map(fn (MembershipFeeComponent $c): string => (string) preg_replace('/^Assurance\s+/i', '', (string) $c->name))
+            ->implode(' ');
+
+        return $words !== '' ? $words : null;
     }
 
     /**
