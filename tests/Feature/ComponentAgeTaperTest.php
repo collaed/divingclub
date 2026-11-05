@@ -55,28 +55,31 @@ class ComponentAgeTaperTest extends TestCase
 
     public function test_minor_at_anchor_gets_free_when_ratio_zero(): void
     {
-        $c = $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0, 'age_anchor_date' => '2027-01-01']);
+        $season = Season::factory()->create(['year' => '2027']);
+        $c = $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0]);
         // Turns 18 during 2027 but is still 17 at the Jan 1 anchor -> free.
         $u = $this->member('2009-06-15');
 
-        $this->assertSame(0.0, $this->service->componentAmount($c, $u));
+        $this->assertSame(0.0, $this->service->componentAmount($c, $u, $season));
     }
 
     public function test_adult_at_anchor_pays_full(): void
     {
-        $c = $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0, 'age_anchor_date' => '2027-01-01']);
+        $season = Season::factory()->create(['year' => '2027']);
+        $c = $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0]);
         // Already 18 at the anchor.
         $u = $this->member('2008-12-31');
 
-        $this->assertSame(40.0, $this->service->componentAmount($c, $u));
+        $this->assertSame(40.0, $this->service->componentAmount($c, $u, $season));
     }
 
     public function test_ratio_half_applies_discount(): void
     {
-        $c = $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0.5, 'age_anchor_date' => '2027-01-01']);
+        $season = Season::factory()->create(['year' => '2027']);
+        $c = $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0.5]);
         $u = $this->member('2015-01-01');
 
-        $this->assertSame(20.0, $this->service->componentAmount($c, $u));
+        $this->assertSame(20.0, $this->service->componentAmount($c, $u, $season));
     }
 
     public function test_null_dob_charged_full(): void
@@ -100,10 +103,22 @@ class ComponentAgeTaperTest extends TestCase
         $this->assertSame(40.0, $this->service->componentAmount($c, $u, $season));
     }
 
+    public function test_a_stale_component_level_anchor_is_ignored_in_favour_of_jan_1(): void
+    {
+        // Regression: a component's own age_anchor_date (e.g. left over from an
+        // old "anchor = 1 November" policy) must never win over Jan 1 of the
+        // season year — this member is 15 on 2026-11-01 but 16 on 2027-01-01.
+        $season = Season::factory()->create(['year' => '2027']);
+        $c = $this->makeComponent(['taper_below_age' => 16, 'taper_ratio' => 0, 'age_anchor_date' => '2026-11-01']);
+        $u = $this->member('2010-11-15');
+
+        $this->assertSame(40.0, $this->service->componentAmount($c, $u, $season));
+    }
+
     public function test_calculate_includes_tapered_component_in_total(): void
     {
         Season::factory()->create(['year' => '2027', 'start_date' => '2026-09-01']);
-        $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0, 'age_anchor_date' => '2027-01-01']);
+        $this->makeComponent(['taper_below_age' => 18, 'taper_ratio' => 0]);
         $u = $this->member('2012-05-05');
 
         $calc = $this->service->calculate($u, '2027', ['flassa']);

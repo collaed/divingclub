@@ -9,7 +9,6 @@ use App\Models\MembershipFeeComponent;
 use App\Models\MemberStatus;
 use App\Models\Season;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 
 /**
  * Seeds the season-2027 membership dues data:
@@ -62,12 +61,10 @@ class Fee2027Seeder extends Seeder
     public function run(): void
     {
         $season = $this->resolveSeason();
-        // Licences are ordered from November: ages are measured on 1 November.
-        $anchor = Carbon::createFromDate((int) self::SEASON_YEAR - 1, 11, 1);
 
         $this->seedCotisations($season);
         $this->seedFfessmLicences($season);
-        $this->seedFlassa($season, $anchor);
+        $this->seedFlassa($season);
         $this->seedAssurances($season);
     }
 
@@ -124,8 +121,11 @@ class Fee2027Seeder extends Seeder
         }
     }
 
-    private function seedFlassa(Season $season, Carbon $anchor): void
+    private function seedFlassa(Season $season): void
     {
+        // Age is measured at Jan 1 of the season year (FeeCalculationService::
+        // licenceAnchor()) — never set age_anchor_date here, it would silently
+        // override that calendar-year rule with a stale fixed date.
         MembershipFeeComponent::updateOrCreate(
             ['slug' => 'flassa'],
             [
@@ -138,7 +138,6 @@ class Fee2027Seeder extends Seeder
                 'prorata_eligible' => false,
                 'taper_below_age' => 18,
                 'taper_ratio' => 0,
-                'age_anchor_date' => $anchor->toDateString(),
                 'sort_order' => 14,
             ]
         );
