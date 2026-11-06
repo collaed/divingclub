@@ -41,7 +41,27 @@
                                 <a href="{{ $event->mapsUrl() }}" target="_blank" class="ms-2 small">@icon('📍') {{ __('Map') }}</a>
                             </td></tr>
                         @endif
-                        @if($event->instructor)<tr><th>{{ __('Instructor') }}</th><td>{{ $event->instructor->name }}</td></tr>@endif
+                        @if($event->instructor)
+                            @php $instructorLicenceInvalid = $event->required_federation_id && ! $event->instructor->hasActiveLicence($event->requiredFederation, $event->event_date); @endphp
+                            <tr><th>{{ __('Instructor') }}</th><td>
+                                {{ $event->instructor->name }}
+                                @if($instructorLicenceInvalid)
+                                    <span class="badge bg-danger" style="font-size:0.65rem">⚠ {{ __('No active :federation licence', ['federation' => $event->requiredFederation->acronym]) }}</span>
+                                @endif
+                            </td></tr>
+                        @endif
+                        @if($event->assistant_ids && count($event->assistant_ids))
+                            @php $assistants = \App\Models\User::whereIn('id', $event->assistant_ids)->get(); @endphp
+                            <tr><th>{{ __('Assistants') }}</th><td>
+                                @foreach($assistants as $assistant)
+                                    {{ $assistant->name }}
+                                    @if($event->required_federation_id && ! $assistant->hasActiveLicence($event->requiredFederation, $event->event_date))
+                                        <span class="badge bg-danger" style="font-size:0.65rem">⚠ {{ __('No active :federation licence', ['federation' => $event->requiredFederation->acronym]) }}</span>
+                                    @endif
+                                    @if(! $loop->last)<br>@endif
+                                @endforeach
+                            </td></tr>
+                        @endif
                         @if($event->responsible)<tr><th>{{ __('Responsible') }}</th><td>{{ $event->responsible->name }}</td></tr>@endif
                         @if($event->estimated_cost)<tr><th>{{ __('Est. Cost') }}</th><td>€{{ number_format($event->estimated_cost, 2) }}</td></tr>@endif
                         <tr><th>{{ __('Participants') }}</th><td>{{ $event->confirmedRegistrations->count() }}{{ $event->max_participants ? ' / ' . $event->max_participants : '' }}</td></tr>

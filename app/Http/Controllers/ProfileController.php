@@ -156,7 +156,6 @@ class ProfileController extends Controller
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
             $rules['is_lifeguard'] = 'nullable|boolean';
-            $rules['ffessm_handled_externally'] = 'nullable|boolean';
             $rules['adhesion_year'] = 'nullable|integer|min:1900|max:'.date('Y');
             $rules['cotisation_years'] = 'nullable|array';
             $rules['cotisation_years.*'] = 'integer|min:1900|max:'.(date('Y') + 1);
@@ -177,7 +176,7 @@ class ProfileController extends Controller
             }
         }
 
-        if (! $viewer->isBureau() && ($request->has('bureau_member') || $request->has('active_instructor') || $request->has('is_lifeguard') || $request->has('ffessm_handled_externally'))) {
+        if (! $viewer->isBureau() && ($request->has('bureau_member') || $request->has('active_instructor') || $request->has('is_lifeguard'))) {
             abort(403);
         }
 
@@ -200,7 +199,6 @@ class ProfileController extends Controller
                 $detailData['bureau_member'] = $validated['bureau_member'] ?? false;
                 $detailData['active_instructor'] = $validated['active_instructor'] ?? false;
                 $detailData['is_lifeguard'] = $validated['is_lifeguard'] ?? false;
-                $detailData['ffessm_handled_externally'] = $validated['ffessm_handled_externally'] ?? false;
                 $detailData['adhesion_year'] = $validated['adhesion_year'] ?? null;
                 if (isset($validated['cotisation_years'])) {
                     $detailData['cotisation_years'] = array_map('strval', $validated['cotisation_years']);
@@ -302,13 +300,22 @@ class ProfileController extends Controller
     {
         abort_unless(auth()->user()->can('manage members'), 403);
 
-        $licence->update($request->validate([
+        $validated = $request->validate([
             'licence_number' => 'nullable|string|max:50',
             'licence_request_date' => 'nullable|date',
             'licence_request_pending' => 'boolean',
             'season' => 'nullable|string|max:20',
             'insurance_type' => 'nullable|string|max:50',
-        ]));
+            'ffessm_handled_externally' => 'nullable|boolean',
+        ]);
+
+        $licence->update(collect($validated)->except('ffessm_handled_externally')->toArray());
+
+        // Lives on MemberDetail, not MemberLicence, but only ever edited from
+        // this FFESSM licence row — see resources/views/profile/tabs/renewal.blade.php.
+        if ($request->has('ffessm_handled_externally') && $licence->user?->detail) {
+            $licence->user->detail->update(['ffessm_handled_externally' => (bool) $validated['ffessm_handled_externally']]);
+        }
 
         return back()->with('success', __('Licence updated.'))->withInput(['tab' => 'renewal']);
     }

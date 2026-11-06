@@ -9,8 +9,15 @@
     $isCancelled = $reg->status === 'cancelled';
     $medInvalid = !$isCancelled && !$isNonMember && in_array($med['status'], ['missing', 'expired']);
     $pendingLicence = $reg->status === 'pending_licence';
+    // A registration confirmed earlier never gets re-checked once finalized
+    // (only a still-pending_licence row does, via "Recheck licence") — this
+    // flags an already-confirmed/waiting member whose licence has since
+    // lapsed, purely for display, without touching their registration status.
+    $licenceNowInvalid = !$isCancelled && !$isNonMember && !$pendingLicence
+        && $event->required_federation_id
+        && ! $reg->user->hasActiveLicence($event->requiredFederation, $event->event_date);
 @endphp
-<li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : ($medInvalid ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid rgba(var(--bs-emphasis-color-rgb), 0.15);">
+<li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : (($medInvalid || $licenceNowInvalid) ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid rgba(var(--bs-emphasis-color-rgb), 0.15);">
     <div class="d-flex justify-content-between align-items-start">
         <div>
             @if($isNonMember)
@@ -35,6 +42,9 @@
             @endif
             @if($pendingLicence)
                 <span class="{{ $isPrivileged ? 'badge bg-danger' : 'text-danger' }}" style="font-size:0.7rem">⚠ {{ __('Needs an active :federation licence', ['federation' => $event->requiredFederation->acronym]) }}</span>
+            @endif
+            @if($licenceNowInvalid)
+                <span class="{{ $isPrivileged ? 'badge bg-danger' : 'text-danger' }}" style="font-size:0.7rem">⚠ {{ __('No longer has an active :federation licence', ['federation' => $event->requiredFederation->acronym]) }}</span>
             @endif
             @if(isset($showPosition) && $reg->waiting_list_position)
                 <span class="badge bg-warning text-dark">#{{ $reg->waiting_list_position }}</span>

@@ -102,6 +102,13 @@
                 </div>
                 <div class="col-auto">@csrf <button type="submit" class="btn btn-sm btn-primary">{{ __('Save') }}</button></div>
             </div>
+            @if($lic->federation->acronym === 'FFESSM')
+                <div class="form-check mt-2">
+                    <input type="hidden" name="ffessm_handled_externally" value="0">
+                    <input type="checkbox" name="ffessm_handled_externally" value="1" class="form-check-input" id="ffessmExternal{{ $lic->id }}" {{ $target->detail?->ffessm_handled_externally ? 'checked' : '' }}>
+                    <label class="form-check-label small" for="ffessmExternal{{ $lic->id }}">{{ __('Holds FFESSM licence directly with the federation (not through the club)') }}</label>
+                </div>
+            @endif
         </div>
     </form>
 @endforeach

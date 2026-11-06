@@ -175,13 +175,6 @@
                     <label class="form-check-label">{{ __('Lifeguard-qualified') }}</label>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
-                <div class="form-check">
-                    <input type="hidden" name="ffessm_handled_externally" value="0">
-                    <input type="checkbox" name="ffessm_handled_externally" value="1" class="form-check-input" {{ old('ffessm_handled_externally', $d?->ffessm_handled_externally) ? 'checked' : '' }}>
-                    <label class="form-check-label">{{ __('Holds FFESSM licence directly with the federation (not through the club)') }}</label>
-                </div>
-            </div>
         </div>
     @else
         {{-- Show read-only for members --}}

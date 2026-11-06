@@ -12,6 +12,7 @@ use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
 
@@ -190,5 +191,88 @@ class EventFederationLicenceTest extends TestCase
         $this->actingAs($u)->post("/events/{$event->id}/register")->assertSessionHas('success');
 
         $this->assertDatabaseHas('event_registrations', ['event_id' => $event->id, 'user_id' => $u->id, 'status' => 'confirmed']);
+    }
+
+    public function test_an_already_confirmed_member_whose_licence_has_since_lapsed_is_flagged_on_the_event_page(): void
+    {
+        $fed = $this->federation();
+        $event = $this->event(['required_federation_id' => $fed->id, 'event_date' => Carbon::parse('2026-06-15')]);
+        $u = $this->member();
+        $this->licence($u, $fed, ['season' => '2026']);
+        $this->actingAs($u)->post("/events/{$event->id}/register")->assertSessionHas('success');
+
+        // Licence has since expired relative to the event date (frozen "now" irrelevant — the check uses event_date).
+        MemberLicence::where('user_id', $u->id)->update(['season' => '2025']);
+
+        $this->actingAs($this->bureau())->get("/events/{$event->id}")
+            ->assertOk()
+            ->assertSee('No longer has an active');
+    }
+
+    public function test_a_still_compliant_confirmed_member_is_not_flagged(): void
+    {
+        $fed = $this->federation();
+        $event = $this->event(['required_federation_id' => $fed->id, 'event_date' => Carbon::parse('2026-06-15')]);
+        $u = $this->member();
+        $this->licence($u, $fed, ['season' => '2026']);
+        $this->actingAs($u)->post("/events/{$event->id}/register")->assertSessionHas('success');
+
+        $this->actingAs($this->bureau())->get("/events/{$event->id}")
+            ->assertOk()
+            ->assertDontSee('No longer has an active');
+    }
+
+    public function test_an_assigned_instructor_without_an_active_licence_is_flagged(): void
+    {
+        $fed = $this->federation();
+        $instructor = $this->member();
+        $event = $this->event(['required_federation_id' => $fed->id, 'event_date' => Carbon::parse('2026-06-15'), 'instructor_id' => $instructor->id]);
+
+        $this->actingAs($this->bureau())->get("/events/{$event->id}")
+            ->assertOk()
+            ->assertSee('No active')
+            ->assertSee($instructor->name);
+    }
+
+    public function test_an_assigned_instructor_with_an_active_licence_is_not_flagged(): void
+    {
+        $fed = $this->federation();
+        $instructor = $this->member();
+        $this->licence($instructor, $fed, ['season' => '2026']);
+        $event = $this->event(['required_federation_id' => $fed->id, 'event_date' => Carbon::parse('2026-06-15'), 'instructor_id' => $instructor->id]);
+
+        $this->actingAs($this->bureau())->get("/events/{$event->id}")
+            ->assertOk()
+            ->assertDontSee('No active');
+    }
+
+    public function test_an_assistant_without_an_active_licence_is_flagged(): void
+    {
+        $fed = $this->federation();
+        $assistant = $this->member();
+        $event = $this->event(['required_federation_id' => $fed->id, 'event_date' => Carbon::parse('2026-06-15'), 'assistant_ids' => [$assistant->id]]);
+
+        $this->actingAs($this->bureau())->get("/events/{$event->id}")
+            ->assertOk()
+            ->assertSee('No active')
+            ->assertSee($assistant->name);
+    }
+
+    public function test_bureau_can_flag_a_member_as_handling_ffessm_externally_from_the_licence_row(): void
+    {
+        $fed = $this->federation('FFESSM');
+        $u = $this->member();
+        $lic = $this->licence($u, $fed, ['season' => '2026']);
+        $bureau = $this->bureau();
+        Permission::findOrCreate('manage members', 'web');
+        $bureau->givePermissionTo('manage members');
+
+        $this->actingAs($bureau)->post(route('profile.update.licence', $lic), [
+            'season' => '2026',
+            'licence_request_pending' => '0',
+            'ffessm_handled_externally' => '1',
+        ])->assertSessionHas('success');
+
+        $this->assertTrue($u->fresh()->detail->fresh()->ffessm_handled_externally);
     }
 }
