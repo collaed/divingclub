@@ -371,4 +371,68 @@ class MembershipRenewalTest extends TestCase
             ->assertOk()
             ->assertSee('Members awaiting licence renewal');
     }
+
+    private function paidMembershipPayment(User $user, array $components): PaymentExpected
+    {
+        return PaymentExpected::create([
+            'user_id' => $user->id, 'type' => 'membership', 'season_year' => '2027',
+            'amount_due' => 100, 'amount_paid' => 100, 'status' => 'paid',
+            'components' => $components,
+        ]);
+    }
+
+    public function test_paying_flags_both_federations_pending_when_both_apply(): void
+    {
+        $this->federation('FFESSM');
+        $this->federation('FLASSA');
+        $user = $this->member('externe');
+
+        $payment = $this->paidMembershipPayment($user, ['ffessm_licence' => 'lic_adulte', 'flassa_state' => 'required']);
+        app(MembershipRenewalService::class)->recordSeasonPaid($payment);
+
+        $this->assertTrue($user->licences()->whereHas('federation', fn ($q) => $q->where('acronym', 'FFESSM'))->first()?->licence_request_pending);
+        $this->assertTrue($user->licences()->whereHas('federation', fn ($q) => $q->where('acronym', 'FLASSA'))->first()?->licence_request_pending);
+    }
+
+    public function test_paying_does_not_flag_ffessm_for_a_member_who_handles_it_externally(): void
+    {
+        $this->federation('FFESSM');
+        $this->federation('FLASSA');
+        $user = $this->member('externe');
+        $user->detail->update(['ffessm_handled_externally' => true]);
+
+        $payment = $this->paidMembershipPayment($user, ['ffessm_licence' => 'lic_adulte', 'flassa_state' => 'required']);
+        app(MembershipRenewalService::class)->recordSeasonPaid($payment);
+
+        $this->assertNull($user->licences()->whereHas('federation', fn ($q) => $q->where('acronym', 'FFESSM'))->first());
+        $this->assertTrue($user->licences()->whereHas('federation', fn ($q) => $q->where('acronym', 'FLASSA'))->first()?->licence_request_pending);
+    }
+
+    public function test_paying_skips_ffessm_when_the_order_had_no_licence(): void
+    {
+        $this->federation('FFESSM');
+        $this->federation('FLASSA');
+        $user = $this->member('sympathisant');
+
+        $payment = $this->paidMembershipPayment($user, ['ffessm_licence' => 'lic_aucune', 'flassa_state' => 'not_applicable']);
+        app(MembershipRenewalService::class)->recordSeasonPaid($payment);
+
+        $this->assertSame(0, $user->licences()->count());
+    }
+
+    public function test_paying_updates_an_existing_licence_row_rather_than_duplicating_it(): void
+    {
+        $ffessm = $this->federation('FFESSM');
+        $this->federation('FLASSA');
+        $user = $this->member('externe');
+        $existing = $user->licences()->create(['federation_id' => $ffessm->id, 'season' => '2026', 'licence_number' => 'ABC123', 'licence_request_pending' => false]);
+
+        $payment = $this->paidMembershipPayment($user, ['ffessm_licence' => 'lic_adulte', 'flassa_state' => 'required']);
+        app(MembershipRenewalService::class)->recordSeasonPaid($payment);
+
+        $this->assertSame(1, $user->licences()->whereHas('federation', fn ($q) => $q->where('acronym', 'FFESSM'))->count());
+        $this->assertSame('2027', $existing->fresh()->season);
+        $this->assertTrue($existing->fresh()->licence_request_pending);
+        $this->assertSame('ABC123', $existing->fresh()->licence_number);
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Federation;
 use App\Models\MemberLicence;
 use App\Models\MembershipFeeComponent;
 use App\Models\MemberStatus;
@@ -197,7 +198,43 @@ class MembershipRenewalService
         $user = User::with('detail')->find($payment->user_id);
         if ($user?->detail) {
             $this->addSeasonLabel($user, (string) $payment->season_year);
+            $this->flagLicenceRenewal($user, $payment);
         }
+    }
+
+    /**
+     * Paying confirms the cotisation but the bureau still has to go renew
+     * the member's federation licence(s) for the season — flag whichever
+     * ones this payment's own fee breakdown says apply, so they surface on
+     * the licence-renewal queue. FFESSM is skipped entirely for a member
+     * who holds that licence directly with the federation rather than
+     * through the club (MemberDetail::ffessm_handled_externally).
+     */
+    private function flagLicenceRenewal(User $user, PaymentExpected $payment): void
+    {
+        $components = $payment->components ?? [];
+        $season = (string) $payment->season_year;
+
+        $ffessmSlug = $components['ffessm_licence'] ?? null;
+        if ($ffessmSlug && $ffessmSlug !== 'lic_aucune' && ! $user->detail?->ffessm_handled_externally) {
+            $this->markLicencePending($user, 'FFESSM', $season);
+        }
+
+        $flassaState = $components['flassa_state'] ?? null;
+        if ($flassaState && $flassaState !== 'not_applicable') {
+            $this->markLicencePending($user, 'FLASSA', $season);
+        }
+    }
+
+    private function markLicencePending(User $user, string $federationAcronym, string $season): void
+    {
+        $federation = Federation::where('acronym', $federationAcronym)->first();
+        if (! $federation) {
+            return;
+        }
+
+        MemberLicence::firstOrCreate(['user_id' => $user->id, 'federation_id' => $federation->id])
+            ->update(['season' => $season, 'licence_request_pending' => true]);
     }
 
     /** Mark every honoraire as paid once the season's 1 October has passed. */

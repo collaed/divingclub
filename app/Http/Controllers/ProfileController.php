@@ -156,6 +156,7 @@ class ProfileController extends Controller
             $rules['bureau_member'] = 'nullable|boolean';
             $rules['active_instructor'] = 'nullable|boolean';
             $rules['is_lifeguard'] = 'nullable|boolean';
+            $rules['ffessm_handled_externally'] = 'nullable|boolean';
             $rules['adhesion_year'] = 'nullable|integer|min:1900|max:'.date('Y');
             $rules['cotisation_years'] = 'nullable|array';
             $rules['cotisation_years.*'] = 'integer|min:1900|max:'.(date('Y') + 1);
@@ -176,7 +177,7 @@ class ProfileController extends Controller
             }
         }
 
-        if (! $viewer->isBureau() && ($request->has('bureau_member') || $request->has('active_instructor') || $request->has('is_lifeguard'))) {
+        if (! $viewer->isBureau() && ($request->has('bureau_member') || $request->has('active_instructor') || $request->has('is_lifeguard') || $request->has('ffessm_handled_externally'))) {
             abort(403);
         }
 
@@ -199,6 +200,7 @@ class ProfileController extends Controller
                 $detailData['bureau_member'] = $validated['bureau_member'] ?? false;
                 $detailData['active_instructor'] = $validated['active_instructor'] ?? false;
                 $detailData['is_lifeguard'] = $validated['is_lifeguard'] ?? false;
+                $detailData['ffessm_handled_externally'] = $validated['ffessm_handled_externally'] ?? false;
                 $detailData['adhesion_year'] = $validated['adhesion_year'] ?? null;
                 if (isset($validated['cotisation_years'])) {
                     $detailData['cotisation_years'] = array_map('strval', $validated['cotisation_years']);
