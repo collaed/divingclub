@@ -3,6 +3,31 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-11-06 — prod at b8eca46
+
+### New
+- Bank Reconciliation: a member who paid their cotisation without first
+  clicking "I commit" on the renewal flow no longer dead-ends — the
+  transaction page now offers a one-click "Create & confirm" when the paid
+  amount cleanly matches their status + insurance pricing, or a clear
+  mismatch warning instead of silently trusting the paid amount.
+- Confirming a membership payment now flags the relevant federation
+  licence(s) as pending renewal, so the member shows up on the licence
+  renewals queue — this never happened automatically before. A new
+  "Holds FFESSM licence directly with the federation" checkbox (profile
+  Info tab) excludes members who don't go through the club for FFESSM.
+
+### Fixed
+- Cotisation communication parsing (category/insurance) silently dropped
+  the insurance line whenever the bank text wrapped mid-word (e.g. "lois
+  ir1top" for "loisir1top") — seen live, under-computing a due amount by
+  exactly the insurance tier's price.
+
+### Needs attention
+- The two members who hold FFESSM directly with the federation need the
+  new "Holds FFESSM licence directly" checkbox ticked on their profile so
+  they don't get wrongly added to the FFESSM renewal queue going forward.
+
 ## 2026-11-06 — prod at 5d3dfd4
 
 ### New
