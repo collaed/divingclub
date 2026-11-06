@@ -3,6 +3,19 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-11-06 — prod at e3577f6
+
+### New
+- A federation-gated event now flags licence non-compliance for
+  already-confirmed/waiting participants too (previously only checked at
+  the moment of registering), and for the event's assigned
+  instructor/assistants, who bypassed the check entirely before — purely
+  a visual warning, no registration status changes.
+
+### Changed
+- The "holds FFESSM licence directly with the federation" checkbox moved
+  from the profile Info tab to the Licence Overview tab's FFESSM row.
+
 ## 2026-11-06 — prod at b8eca46
 
 ### New
