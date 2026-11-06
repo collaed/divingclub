@@ -340,6 +340,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::post('/events/{event}/cancel-registration', [EventController::class, 'cancelRegistration'])->middleware('throttle:10,1')->name('events.cancel-registration');
     Route::post('/events/{event}/update-comment', [EventController::class, 'updateComment'])->name('events.update-comment');
     Route::post('/events/{event}/recheck-licence', [EventController::class, 'recheckLicence'])->name('events.recheck-licence');
+    Route::post('/events/{event}/gear', [EventController::class, 'updateGear'])->name('events.gear');
     Route::post('/events/{event}/cancel', [EventController::class, 'cancel'])->name('events.cancel');
     Route::post('/events/{event}/uncancel', [EventController::class, 'uncancel'])->name('events.uncancel');
     Route::post('/events/{event}/photos', [EventController::class, 'uploadPhoto'])->name('events.photo.upload');
@@ -414,6 +415,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::post('/equipment/{equipment}/loan', [EquipmentController::class, 'loan'])->name('equipment.loan');
         Route::post('/equipment/quick-loan', [EquipmentController::class, 'quickLoan'])->name('equipment.quick-loan');
         Route::post('/equipment/return/{loan}', [EquipmentController::class, 'returnLoan'])->name('equipment.return');
+        Route::post('/equipment/batch-return', [EquipmentController::class, 'batchReturn'])->name('equipment.batch-return');
         Route::post('/equipment/maintenance/{maintenance}/complete', [EquipmentController::class, 'completeMaintenance'])->name('equipment.maintenance.complete');
     });
 

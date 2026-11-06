@@ -6,11 +6,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BatchReturnEquipmentRequest;
 use App\Models\Equipment;
 use App\Models\EquipmentLoan;
 use App\Models\EquipmentMaintenance;
 use App\Models\EquipmentMaintenanceRule;
 use App\Models\User;
+use App\Services\EquipmentReturnService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -158,6 +160,21 @@ class EquipmentController extends Controller
         }
 
         return back()->with('success', __(':count item(s) loaned.', ['count' => $loaned]));
+    }
+
+    /** Return several items (and/or weights) at once from the quick-entry shorthand — all or nothing on a bad code. */
+    public function batchReturn(BatchReturnEquipmentRequest $request): RedirectResponse
+    {
+        $service = app(EquipmentReturnService::class);
+        $preview = $service->preview($request->string('text')->toString());
+
+        if (! $preview['ok']) {
+            return back()->withErrors(['text' => implode(' ', $preview['errors'])])->withInput();
+        }
+
+        $service->apply($preview);
+
+        return back()->with('success', __('Equipment returned.'));
     }
 
     public function completeMaintenance(EquipmentMaintenance $maintenance): RedirectResponse

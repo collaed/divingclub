@@ -26,6 +26,13 @@ class EventFederationLicenceTest extends TestCase
         Role::upsert([['id' => 2, 'name' => 'Member', 'slug' => 'member'], ['id' => 6, 'name' => 'Bureau Master', 'slug' => 'bureau_master']], ['id']);
         SpatieRole::findOrCreate('member', 'web');
         SpatieRole::findOrCreate('bureau_master', 'web');
+        // events/show.blade.php checks hasAnyRole(['instructor', 'instructor_apnea', 'assistant'])
+        // on every render (unrelated to federation licences) — Spatie throws
+        // RoleDoesNotExist if the role was never created at all, so these
+        // need to exist even though this test file never assigns them.
+        SpatieRole::findOrCreate('instructor', 'web');
+        SpatieRole::findOrCreate('instructor_apnea', 'web');
+        SpatieRole::findOrCreate('assistant', 'web');
         MemberStatus::upsert([['id' => 1, 'name' => 'Active', 'slug' => 'active']], ['id']);
     }
 

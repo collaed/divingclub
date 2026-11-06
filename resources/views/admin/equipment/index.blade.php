@@ -4,6 +4,20 @@
         <a href="{{ route('admin.equipment.create') }}" class="btn btn-sm btn-primary">{{ __('Add Equipment') }}</a>
     </div>
 
+    <form method="POST" action="{{ route('admin.equipment.batch-return') }}" class="card dc-card mb-3">
+        @csrf
+        <div class="card-body py-2">
+            <div class="input-group input-group-sm" style="max-width:420px">
+                <span class="input-group-text">{{ __('Return by code') }}</span>
+                <input type="text" name="text" class="form-control @error('text') is-invalid @enderror" value="{{ old('text') }}" placeholder="t01 t07 r21 j36 7w">
+                <button class="btn btn-outline-primary">{{ __('Return') }}</button>
+            </div>
+            @error('text')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+            @enderror
+        </div>
+    </form>
+
     @php
         $typeCounts = \App\Models\Equipment::query()->selectRaw('type, count(*) as cnt')->groupBy('type')->pluck('cnt', 'type');
     @endphp

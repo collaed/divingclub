@@ -84,6 +84,25 @@
             </form>
         @endif
     </div>
+    {{-- Gear lending: tank/regulator/BCD/weights, bureau-only, quick-entry shorthand ("t14 r22 j36 2w") --}}
+    @if($isPrivileged && !$isCancelled && !$isNonMember)
+        @php $gear = app(\App\Services\EventGearLoanService::class)->currentGear($reg); @endphp
+        <div class="mt-1" data-gear-row data-registration-id="{{ $reg->id }}">
+            <div data-gear-current>
+                @foreach($gear['items'] as $item)
+                    <span class="badge bg-info text-dark" style="font-size:0.65rem">{{ $item['short_number'] ? $item['short_number'].' ' : '' }}{{ $item['name'] }}</span>
+                @endforeach
+                @if($gear['weightQuantity'])
+                    <span class="badge bg-info text-dark" style="font-size:0.65rem">{{ $gear['weightQuantity'] }} {{ __('weight(s)') }}</span>
+                @endif
+            </div>
+            <div class="input-group input-group-sm mt-1" style="max-width:260px">
+                <input type="text" class="form-control" style="font-size:0.7rem" placeholder="t14 r22 j36 2w" data-gear-input aria-label="{{ __('Lend gear') }}">
+                <button type="button" class="btn btn-outline-primary" style="font-size:0.7rem" data-gear-submit>{{ __('Lend') }}</button>
+            </div>
+            <div class="small text-danger mt-1 d-none" data-gear-error></div>
+        </div>
+    @endif
     {{-- Cancellation info --}}
     @if(isset($showCancel) && $isCancelled)
         <div class="text-danger" style="font-size:0.7rem">

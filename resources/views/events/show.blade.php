@@ -680,4 +680,61 @@
         </script>
         @endif
     @endif
+
+    <script>
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-gear-submit]');
+        if (!btn) return;
+
+        const row = btn.closest('[data-gear-row]');
+        const input = row.querySelector('[data-gear-input]');
+        const errorBox = row.querySelector('[data-gear-error]');
+        const text = input.value.trim();
+        if (!text) return;
+
+        btn.disabled = true;
+        errorBox.classList.add('d-none');
+
+        fetch(@json(route('events.gear', $event)), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                Accept: 'application/json',
+            },
+            body: JSON.stringify({ registration_id: row.dataset.registrationId, text: text }),
+        })
+            .then((r) => r.json().then((d) => ({ ok: r.ok, d: d })))
+            .then(({ ok, d }) => {
+                btn.disabled = false;
+                if (!ok) {
+                    errorBox.textContent = (d.errors || []).join(' ') || @json(__('Something went wrong.'));
+                    errorBox.classList.remove('d-none');
+                    return;
+                }
+                input.value = '';
+                const current = row.querySelector('[data-gear-current]');
+                current.innerHTML = '';
+                (d.items || []).forEach(function (item) {
+                    const span = document.createElement('span');
+                    span.className = 'badge bg-info text-dark me-1';
+                    span.style.fontSize = '0.65rem';
+                    span.textContent = (item.short_number ? item.short_number + ' ' : '') + item.name;
+                    current.appendChild(span);
+                });
+                if (d.weightQuantity) {
+                    const span = document.createElement('span');
+                    span.className = 'badge bg-info text-dark me-1';
+                    span.style.fontSize = '0.65rem';
+                    span.textContent = d.weightQuantity + ' ' + @json(__('weight(s)'));
+                    current.appendChild(span);
+                }
+            })
+            .catch(function () {
+                btn.disabled = false;
+                errorBox.textContent = @json(__('Network error.'));
+                errorBox.classList.remove('d-none');
+            });
+    });
+    </script>
 </x-layout>

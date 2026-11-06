@@ -20,13 +20,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon|null $reminder_sent_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property int|null $event_registration_id
  * @property-read Equipment $equipment
  * @property-read User $user
- * @property-read Event|null $event
+ * @property-read EventRegistration|null $eventRegistration
  */
 class EquipmentLoan extends Model
 {
-    protected $fillable = ['equipment_id', 'user_id', 'loaned_at', 'expected_return_date', 'returned_at', 'loaned_by', 'returned_by', 'reminder_sent_at'];
+    protected $fillable = ['equipment_id', 'user_id', 'event_registration_id', 'loaned_at', 'expected_return_date', 'returned_at', 'loaned_by', 'returned_by', 'reminder_sent_at'];
 
     protected function casts(): array
     {
@@ -43,5 +44,11 @@ class EquipmentLoan extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** @return BelongsTo<EventRegistration, $this> */
+    public function eventRegistration(): BelongsTo
+    {
+        return $this->belongsTo(EventRegistration::class);
     }
 }

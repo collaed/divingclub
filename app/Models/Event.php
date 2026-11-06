@@ -136,6 +136,12 @@ class Event extends Model
         return $this->hasMany(EventRegistration::class);
     }
 
+    /** The event-wide weight pool — not attributed to one borrower. @return HasMany<EventWeightLoan, $this> */
+    public function weightLoans(): HasMany
+    {
+        return $this->hasMany(EventWeightLoan::class);
+    }
+
     /** @return HasMany<EventPhoto, $this> */
     public function photos(): HasMany
     {

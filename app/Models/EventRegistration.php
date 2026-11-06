@@ -21,6 +21,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -104,5 +105,17 @@ class EventRegistration extends Model
     public function cancelledByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    /** Tank/regulator/BCD items lent for this registration. @return HasMany<EquipmentLoan, $this> */
+    public function equipmentLoans(): HasMany
+    {
+        return $this->hasMany(EquipmentLoan::class);
+    }
+
+    /** Weights lent on behalf of this registration (tracked against the event, not this row, once lent). @return HasMany<EventWeightLoan, $this> */
+    public function weightLoans(): HasMany
+    {
+        return $this->hasMany(EventWeightLoan::class);
     }
 }

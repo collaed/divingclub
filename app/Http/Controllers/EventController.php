@@ -21,6 +21,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\HtmlSanitizer;
 use App\Http\Requests\StoreEventRequest;
+use App\Http\Requests\UpdateEventGearRequest;
 use App\Http\Requests\UploadEventPhotoRequest;
 use App\Models\DiveSite;
 use App\Models\EmailLog;
@@ -30,6 +31,7 @@ use App\Models\Federation;
 use App\Models\GdprConsent;
 use App\Models\Season;
 use App\Models\User;
+use App\Services\EventGearLoanService;
 use App\Services\EventRegistrationService;
 use App\Services\FaceDetectionService;
 use App\Services\ImageQualityService;
@@ -37,6 +39,7 @@ use App\Services\PushNotificationService;
 use App\Services\SocialPublishService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -229,6 +232,20 @@ class EventController extends Controller
         $result = app(EventRegistrationService::class)->recheckLicence($reg);
 
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+    }
+
+    /** Lend gear to one registration from the bureau's quick-entry shorthand ("t14 r22 j36 2w"). */
+    public function updateGear(UpdateEventGearRequest $request, Event $event): JsonResponse
+    {
+        $this->authorizeBureau();
+        $reg = $event->registrations()->whereNotNull('user_id')->findOrFail($request->integer('registration_id'));
+
+        $service = app(EventGearLoanService::class);
+        $preview = $service->preview($request->string('text')->toString(), $reg);
+
+        return $preview['ok']
+            ? response()->json($service->apply($reg, $preview))
+            : response()->json($preview, 422);
     }
 
     public function updateComment(Event $event, Request $request): RedirectResponse
