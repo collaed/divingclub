@@ -59,7 +59,14 @@ document.addEventListener('DOMContentLoaded', function() {
             inFlight = controller;
 
             var qs = new URLSearchParams(new FormData(form)).toString();
-            var url = form.action + (qs ? '?' + qs : '');
+            // Not form.action: on a <form> with no action attribute it
+            // defaults to location.href, which already carries the PREVIOUS
+            // search's query string once history.replaceState() below has
+            // run once — appending another "?qs" then produces a
+            // double-"?" URL whose real query string the server never sees,
+            // so every search after the first one is stuck on the first.
+            var base = form.getAttribute('action') || location.pathname;
+            var url = base + (qs ? '?' + qs : '');
 
             // Deliberately no X-Requested-With header: some index() actions
             // branch on $request->ajax() to return an incompatible partial
