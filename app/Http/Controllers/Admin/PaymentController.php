@@ -20,6 +20,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
@@ -182,7 +183,7 @@ class PaymentController extends Controller
         if ($request->hasFile('statement_xlsx')) {
             $path = $request->file('statement_xlsx')->store('bank-statements', 'local');
             Log::info('Bank reconciliation import started (Excel)', ['original_name' => $request->file('statement_xlsx')->getClientOriginalName(), 'statement_ref' => $request->statement_ref]);
-            $result = $svc->parseXlsxStatement(storage_path('app/'.$path), $request->statement_ref);
+            $result = $svc->parseXlsxStatement(Storage::disk('local')->path($path), $request->statement_ref);
             Log::info('Bank reconciliation import finished (Excel)', ['count' => count($result['transactions'])]);
 
             return back()->with('success', __(':count transactions imported from Excel.', [
@@ -193,7 +194,7 @@ class PaymentController extends Controller
         if ($request->hasFile('statement_pdf')) {
             $path = $request->file('statement_pdf')->store('bank-statements', 'local');
             Log::info('Bank reconciliation import started (PDF)', ['original_name' => $request->file('statement_pdf')->getClientOriginalName(), 'statement_ref' => $request->statement_ref]);
-            $result = $svc->parsePdfStatement(storage_path('app/'.$path), $request->statement_ref);
+            $result = $svc->parsePdfStatement(Storage::disk('local')->path($path), $request->statement_ref);
             Log::info('Bank reconciliation import finished (PDF)', ['count' => count($result['transactions']), 'pages' => $result['page_count']]);
 
             return back()->with('success', __(':count transactions imported from PDF (:pages pages).', [
