@@ -7,17 +7,27 @@
     </div>
 
     <div class="card dc-card">
-        <div class="d-flex align-items-center gap-2 p-2 border-bottom flex-wrap" data-licence-toolbar>
+        <div class="d-flex align-items-center gap-2 p-2 border-bottom flex-wrap bg-white sticky-top" style="top:0;z-index:5" data-licence-toolbar>
             <div class="form-check form-check-inline mb-0">
                 <input type="checkbox" class="form-check-input" data-licence-select-all="FFESSM" id="licenceSelectAllFfessm">
                 <label class="form-check-label small" for="licenceSelectAllFfessm">{{ __('All') }}</label>
             </div>
-            <button type="button" class="btn btn-sm btn-success" data-licence-clear="FFESSM" data-clear-url="{{ route('admin.payments.licence-renewals.clear') }}" disabled>@icon('✅') {{ __('FFESSM done') }}</button>
+            <button type="button" class="btn btn-sm btn-success" data-licence-clear="FFESSM"
+                data-clear-url="{{ route('admin.payments.licence-renewals.clear') }}"
+                data-saving-label="{{ __('Saving…') }}"
+                data-error-label="{{ __('Network error — nothing was cleared.') }}"
+                data-done-label="{{ __(':count done for :federation') }}"
+                disabled>@icon('✅') {{ __('FFESSM done') }}</button>
             <div class="form-check form-check-inline mb-0 ms-3">
                 <input type="checkbox" class="form-check-input" data-licence-select-all="FLASSA" id="licenceSelectAllFlassa">
                 <label class="form-check-label small" for="licenceSelectAllFlassa">{{ __('All') }}</label>
             </div>
-            <button type="button" class="btn btn-sm btn-success" data-licence-clear="FLASSA" data-clear-url="{{ route('admin.payments.licence-renewals.clear') }}" disabled>@icon('✅') {{ __('FLASSA done') }}</button>
+            <button type="button" class="btn btn-sm btn-success" data-licence-clear="FLASSA"
+                data-clear-url="{{ route('admin.payments.licence-renewals.clear') }}"
+                data-saving-label="{{ __('Saving…') }}"
+                data-error-label="{{ __('Network error — nothing was cleared.') }}"
+                data-done-label="{{ __(':count done for :federation') }}"
+                disabled>@icon('✅') {{ __('FLASSA done') }}</button>
             <span class="text-muted small ms-auto" data-licence-selected-count>{{ __('No rows selected') }}</span>
         </div>
         <div class="table-responsive">

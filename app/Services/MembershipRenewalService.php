@@ -298,7 +298,7 @@ class MembershipRenewalService
         return MemberLicence::whereIn('user_id', $userIds)
             ->where('licence_request_pending', true)
             ->whereHas('federation', fn ($q) => $q->where('acronym', $federationAcronym))
-            ->update(['licence_request_pending' => false]);
+            ->update(['licence_request_pending' => false, 'licence_request_date' => now()]);
     }
 
     /** @return Collection<int, MembershipFeeComponent> */

@@ -172,6 +172,8 @@
     });
 
     clearButtons.forEach((btn) => {
+        const originalLabel = btn.innerHTML;
+
         btn.addEventListener('click', async () => {
             const federation = btn.dataset.licenceClear;
             const userIds = checkboxesFor(federation).filter((c) => c.checked).map((c) => c.value);
@@ -180,6 +182,7 @@
             }
 
             btn.disabled = true;
+            btn.innerHTML = '⏳ ' + (btn.dataset.savingLabel || 'Saving…');
             const body = new FormData();
             userIds.forEach((id) => body.append('user_ids[]', id));
             body.append('federation', federation);
@@ -198,7 +201,8 @@
                     throw new Error('failed');
                 }
             } catch (e) {
-                window.showToast?.('Network error — nothing was cleared.', 'error');
+                btn.innerHTML = originalLabel;
+                window.showToast?.(btn.dataset.errorLabel || 'Network error — nothing was cleared.', 'error');
                 refreshToolbar();
                 return;
             }
@@ -209,12 +213,23 @@
                     return;
                 }
                 const badge = row.querySelector('[data-pending-fed="' + federation + '"]');
-                badge?.remove();
-                if (!row.querySelector('[data-pending-fed]')) {
-                    row.remove();
+                if (badge) {
+                    badge.classList.add('bg-success');
+                    badge.classList.remove('bg-warning', 'text-dark');
                 }
+                setTimeout(function () {
+                    badge?.remove();
+                    if (!row.querySelector('[data-pending-fed]')) {
+                        row.remove();
+                    }
+                }, 400);
             });
-            window.showToast?.(federation + ' marked done.', 'success');
+            btn.innerHTML = originalLabel;
+            const count = userIds.length;
+            const message = (btn.dataset.doneLabel || ':count done for :federation')
+                .replace(':count', String(count))
+                .replace(':federation', federation);
+            window.showToast?.(message, 'success');
             refreshToolbar();
         });
     });

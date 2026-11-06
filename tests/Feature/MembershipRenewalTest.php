@@ -332,6 +332,8 @@ class MembershipRenewalTest extends TestCase
 
         $this->assertFalse($ffessmLicence->fresh()->licence_request_pending);
         $this->assertTrue($flassaLicence->fresh()->licence_request_pending);
+        $this->assertTrue($ffessmLicence->fresh()->licence_request_date?->isToday());
+        $this->assertNull($flassaLicence->fresh()->licence_request_date);
     }
 
     public function test_clearing_pending_applies_to_several_selected_members_at_once(): void
