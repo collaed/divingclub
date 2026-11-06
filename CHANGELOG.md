@@ -3,6 +3,48 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-11-06 — prod at 5d3dfd4
+
+### New
+- Licence renewal queue: a bureau page listing members with a pending
+  FFESSM/FLASSA licence request, showing their last medical certificate
+  (including whether it was validated with a reviewer comment), age, amount
+  due, and insurance level — with independent per-federation bulk "done"
+  actions instead of saving one member at a time.
+- Events can now require an active federation licence to confirm a
+  registration; without one, the registration is held as "pending licence"
+  until a bureau member rechecks it.
+- Ledger inbox: clicking a counterparty now filters the list in place (with
+  a page-size choice that persists); the Review screen gained its own
+  counterparty/date filter.
+- Confirming a bank-reconciliation match now remembers that account, so the
+  next transaction from the same person matches automatically.
+
+### Changed
+- The bank-transfer communication shown to members for their dues is now
+  plain words (e.g. "DUPONT Jean Cotisation 2027 Actif Loisir 2") instead of
+  a machine-style code.
+
+### Fixed
+- Federation licence/age-based pricing (FFESSM band, FLASSA minor discount)
+  is now always measured on 1 January of the season, regardless of a
+  leftover per-item override from an old policy — a member turning 16 just
+  after New Year was incorrectly still priced as a minor.
+- Searching the admin Members list (and the member Directory) would get
+  stuck on the first search term typed in a session — every search after
+  the first one silently reused the original query. Typing a new search now
+  always searches for what's actually in the box.
+
+### Data changes
+- Restored a Season (2027) row that had been accidentally soft-deleted — no
+  visible symptom other than season-specific settings (minor-fee rules, the
+  Jan-1 pricing anchor) silently falling back to defaults for that season.
+  If Season 2027 behaves oddly again, check `Season::withTrashed()`.
+
+### Needs attention
+- If any event was flagged to require a federation licence before today,
+  double check a real registration against it once on prod.
+
 ## 2026-10-09 — prod at 7ac9a67
 
 ### Fixed
