@@ -292,28 +292,36 @@ class LedgerClassificationService
      * so callers with a single communication field (e.g. BankTransaction)
      * can reuse it, not just LedgerTransaction's 4 communication columns.
      *
+     * Real bank communications wrap/space words irregularly mid-word (seen
+     * live: "ass-lois ir1top" for "loisir1top", splitting "loisir" itself)
+     * — whitespace is stripped before matching, and the patterns below
+     * assume that, so any such mid-word gap is tolerated rather than
+     * silently losing the insurance tier (and its amount).
+     *
      * @return array{category: string|null, insurance: string|null}
      */
     public function parseCotisationText(string $text): array
     {
-        $category = $this->matchFirst($text, [
+        $compact = preg_replace('/\s+/', '', $text) ?? '';
+
+        $category = $this->matchFirst($compact, [
             'fonctionnaire' => '/fonctionn?aire/i',
-            'jeune16' => '/jeune\s*16/i',
+            'jeune16' => '/jeune16/i',
             'jeune' => '/jeune/i',
-            'enfant' => '/enf\s*ant/i',
+            'enfant' => '/enfant/i',
             'externe' => '/externe/i',
             'sympathisant' => '/sympathisant/i',
         ]);
 
         // Checked most-specific (Top) first — "Loisir 1" is a substring of "Loisir 1 Top".
-        $insurance = $this->matchFirst($text, [
-            'loisir1top' => '/loisir\s*1\s*top/i',
-            'loisir2top' => '/loisir\s*2\s*top/i',
-            'loisir3top' => '/loisir\s*3\s*top/i',
-            'loisir1' => '/loisir\s*1\b/i',
-            'loisir2' => '/loisir\s*2\b/i',
-            'loisir3' => '/loisir\s*3\b/i',
-            'none' => '/(sans|pas d\').{0,15}assurance/i',
+        $insurance = $this->matchFirst($compact, [
+            'loisir1top' => '/loisir1top/i',
+            'loisir2top' => '/loisir2top/i',
+            'loisir3top' => '/loisir3top/i',
+            'loisir1' => '/loisir1(?!top)/i',
+            'loisir2' => '/loisir2(?!top)/i',
+            'loisir3' => '/loisir3(?!top)/i',
+            'none' => '/(sans|pasd\').{0,15}assurance/i',
         ]);
 
         return ['category' => $category, 'insurance' => $insurance];
