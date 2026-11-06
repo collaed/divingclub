@@ -8,7 +8,15 @@
 
     <div class="card dc-card">
         <div class="d-flex align-items-center gap-2 p-2 border-bottom flex-wrap" data-licence-toolbar>
+            <div class="form-check form-check-inline mb-0">
+                <input type="checkbox" class="form-check-input" data-licence-select-all="FFESSM" id="licenceSelectAllFfessm">
+                <label class="form-check-label small" for="licenceSelectAllFfessm">{{ __('All') }}</label>
+            </div>
             <button type="button" class="btn btn-sm btn-success" data-licence-clear="FFESSM" data-clear-url="{{ route('admin.payments.licence-renewals.clear') }}" disabled>@icon('✅') {{ __('FFESSM done') }}</button>
+            <div class="form-check form-check-inline mb-0 ms-3">
+                <input type="checkbox" class="form-check-input" data-licence-select-all="FLASSA" id="licenceSelectAllFlassa">
+                <label class="form-check-label small" for="licenceSelectAllFlassa">{{ __('All') }}</label>
+            </div>
             <button type="button" class="btn btn-sm btn-success" data-licence-clear="FLASSA" data-clear-url="{{ route('admin.payments.licence-renewals.clear') }}" disabled>@icon('✅') {{ __('FLASSA done') }}</button>
             <span class="text-muted small ms-auto" data-licence-selected-count>{{ __('No rows selected') }}</span>
         </div>
@@ -16,26 +24,34 @@
             <table class="table table-sm align-middle mb-0" id="table-licence-renewals">
                 <thead>
                     <tr>
-                        <th style="width:2rem"><input type="checkbox" class="form-check-input" data-licence-select-all aria-label="{{ __('Select all') }}"></th>
                         <th>{{ __('Member') }}</th>
                         <th>{{ __('Age') }}</th>
                         <th>{{ __('Last medical cert') }}</th>
                         <th class="text-end">{{ __('Amount due') }} {{ $year }}</th>
                         <th>{{ __('Insurance') }}</th>
-                        <th>{{ __('Pending') }}</th>
+                        <th>{{ __('Pending — select to clear') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                 @forelse($rows as $row)
-                    @php $u = $row['user']; $cert = $row['cert']; @endphp
+                    @php
+                        $u = $row['user'];
+                        $cert = $row['cert'];
+                        $reviewComment = $cert['cert']?->review_comment;
+                        $validatedWithComment = in_array($cert['status'], ['compliant', 'expiring'], true) && $reviewComment;
+                    @endphp
                     <tr data-licence-row data-user-id="{{ $u->id }}">
-                        <td><input type="checkbox" class="form-check-input" data-licence-select value="{{ $u->id }}"></td>
                         <td><a href="{{ route('admin.profile.show', $u) }}">{{ $u->detail?->last_name }} {{ $u->detail?->first_name }}</a></td>
                         <td>{{ $row['age'] ?? '—' }}</td>
                         <td>
                             @if($cert['cert'])
                                 {{ $cert['cert']->date_established?->format('d/m/Y') ?? $cert['cert']->created_at->format('d/m/Y') }}
-                                <span class="badge bg-{{ $cert['badge'] }} ms-1">{{ __($cert['label']) }}</span>
+                                @if($validatedWithComment)
+                                    <span class="badge bg-warning text-dark ms-1">{{ __('Validated (comment)') }}</span>
+                                    <div class="small text-muted">{{ $reviewComment }}</div>
+                                @else
+                                    <span class="badge bg-{{ $cert['badge'] }} ms-1">{{ __($cert['label']) }}</span>
+                                @endif
                             @else
                                 <span class="badge bg-danger">{{ __('No Certificate') }}</span>
                             @endif
@@ -50,12 +66,20 @@
                         </td>
                         <td>{{ $row['insurance'] ?? '—' }}</td>
                         <td data-licence-pending-cell>
-                            @if($row['pendingFfessm'])<span class="badge bg-warning text-dark" data-pending-fed="FFESSM">FFESSM</span>@endif
-                            @if($row['pendingFlassa'])<span class="badge bg-warning text-dark" data-pending-fed="FLASSA">FLASSA</span>@endif
+                            @if($row['pendingFfessm'])
+                                <label class="badge bg-warning text-dark" data-pending-fed="FFESSM" style="cursor:pointer">
+                                    <input type="checkbox" class="form-check-input me-1" style="vertical-align:text-bottom" data-licence-select="FFESSM" value="{{ $u->id }}">FFESSM
+                                </label>
+                            @endif
+                            @if($row['pendingFlassa'])
+                                <label class="badge bg-warning text-dark ms-1" data-pending-fed="FLASSA" style="cursor:pointer">
+                                    <input type="checkbox" class="form-check-input me-1" style="vertical-align:text-bottom" data-licence-select="FLASSA" value="{{ $u->id }}">FLASSA
+                                </label>
+                            @endif
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">{{ __('No licence renewal is pending.') }}</td></tr>
+                    <tr><td colspan="6" class="text-center text-muted py-4">{{ __('No licence renewal is pending.') }}</td></tr>
                 @endforelse
                 </tbody>
             </table>
