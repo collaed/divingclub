@@ -1,5 +1,9 @@
 <x-admin-layout :title="__('Transaction details')">
-    @php $fees = app(\App\Services\FeeCalculationService::class); $pe = $transaction->matchedPayment; @endphp
+    @php
+        $fees = app(\App\Services\FeeCalculationService::class);
+        $pe = $transaction->matchedPayment;
+        $backfill = $pe ? null : app(\App\Services\BankReconciliationService::class)->proposeBackfill($transaction);
+    @endphp
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <h4 class="mb-0">{{ __('Transaction details') }}</h4>
@@ -40,7 +44,12 @@
     <div class="card dc-card mb-4">
         <div class="card-header">{{ __('Currently linked to') }}</div>
         <div class="card-body">
-            @if(! $pe)
+            @if(! $pe && $backfill && $backfill['clean_match'])
+                <p class="mb-2">{{ __('No payment on file, but this matches :name\'s cotisation: :communication (€:amount).', ['name' => $backfill['user']->name, 'communication' => $backfill['communication'], 'amount' => number_format($backfill['amount_due'], 2, ',', ' ')]) }}</p>
+                <form method="POST" action="{{ route('admin.payments.backfill-match', $transaction) }}">@csrf <button class="btn btn-sm btn-success">{{ __('Create & confirm') }}</button></form>
+            @elseif(! $pe && $backfill)
+                <p class="text-warning mb-0">{{ __('Looks like :name, but paid €:paid instead of the expected €:due — review manually.', ['name' => $backfill['user']->name, 'paid' => number_format((float) $transaction->amount, 2, ',', ' '), 'due' => number_format($backfill['amount_due'], 2, ',', ' ')]) }}</p>
+            @elseif(! $pe)
                 <p class="text-muted mb-0">{{ __('Nothing linked yet — search below.') }}</p>
             @else
                 <p>

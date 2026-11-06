@@ -174,7 +174,7 @@ class LedgerClassificationService
     }
 
     /** Same two-words-in-common heuristic used to match bank payees to members for the IBAN fill. */
-    private function matchMember(string $name): ?MemberDetail
+    public function matchMember(string $name): ?MemberDetail
     {
         $norm = fn (string $s): string => preg_replace('/[^a-z ]/', '', mb_strtolower(Str::ascii($s))) ?? '';
         $words = array_filter(explode(' ', $norm($name)), fn (string $w): bool => mb_strlen($w) > 2);
@@ -277,6 +277,25 @@ class LedgerClassificationService
     {
         $text = $tx->communication_1.' '.$tx->communication_2.' '.$tx->communication_3.' '.$tx->communication_4;
 
+        ['category' => $category, 'insurance' => $insurance] = $this->parseCotisationText($text);
+
+        return [
+            'category' => $category,
+            'categoryLabel' => $category ? config("cotisation.cep.{$category}.label") : null,
+            'insurance' => $insurance,
+            'insuranceLabel' => $insurance ? config("cotisation.insurance.{$insurance}.label") : null,
+        ];
+    }
+
+    /**
+     * The same category/insurance text parsing, against any plain string —
+     * so callers with a single communication field (e.g. BankTransaction)
+     * can reuse it, not just LedgerTransaction's 4 communication columns.
+     *
+     * @return array{category: string|null, insurance: string|null}
+     */
+    public function parseCotisationText(string $text): array
+    {
         $category = $this->matchFirst($text, [
             'fonctionnaire' => '/fonctionn?aire/i',
             'jeune16' => '/jeune\s*16/i',
@@ -297,12 +316,7 @@ class LedgerClassificationService
             'none' => '/(sans|pas d\').{0,15}assurance/i',
         ]);
 
-        return [
-            'category' => $category,
-            'categoryLabel' => $category ? config("cotisation.cep.{$category}.label") : null,
-            'insurance' => $insurance,
-            'insuranceLabel' => $insurance ? config("cotisation.insurance.{$insurance}.label") : null,
-        ];
+        return ['category' => $category, 'insurance' => $insurance];
     }
 
     /** @param  array<string, string>  $patterns  key => regex, checked in order, first match wins */

@@ -239,6 +239,21 @@ class PaymentController extends Controller
         return back()->with('success', __('Transaction ignored.'));
     }
 
+    /** Create the missing PaymentExpected for a member who paid without committing first, and confirm it — only when the derived price cleanly matches what they paid. */
+    public function backfillFromTransaction(BankTransaction $transaction): RedirectResponse
+    {
+        $svc = app(BankReconciliationService::class);
+        $proposal = $svc->proposeBackfill($transaction);
+
+        if (! $proposal || ! $proposal['clean_match']) {
+            return back()->with('error', __('No clean match for this payment — resolve it manually.'));
+        }
+
+        $svc->createAndConfirmBackfill($transaction, $proposal);
+
+        return back()->with('success', __('Payment recorded and confirmed.'));
+    }
+
     /**
      * Full, untruncated view of one transaction — the list only shows the
      * first 40 characters of its communication — plus a member search to

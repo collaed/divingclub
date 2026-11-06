@@ -7,7 +7,9 @@ namespace App\Services;
 use App\Models\BankTransaction;
 use App\Models\ExternalRegistration;
 use App\Models\LedgerCounterparty;
+use App\Models\MemberStatus;
 use App\Models\PaymentExpected;
+use App\Models\Season;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -446,6 +448,85 @@ class BankReconciliationService
         $this->learnCounterparty($tx, $payment->user);
 
         Log::info('Bank reconciliation match confirmed', [
+            'bank_transaction_id' => $tx->id,
+            'payment_expected_id' => $payment->id,
+            'user_id' => $payment->user_id,
+            'amount' => $tx->amount,
+            'new_status' => $payment->status,
+            'amount_paid' => $payment->amount_paid,
+            'amount_due' => $payment->amount_due,
+        ]);
+    }
+
+    /**
+     * For a transaction that matches no PaymentExpected at all — the member
+     * paid without ever clicking "I commit" on the renewal flow. Derives
+     * what they should actually owe from the real price list (never just
+     * trusts the paid amount), so the bureau gets a one-click fix only when
+     * that derivation matches what was actually paid.
+     *
+     * @return array{user: User, amount_due: float, components: array<string, mixed>, communication: string, clean_match: bool, matched_by: string}|null
+     */
+    public function proposeBackfill(BankTransaction $tx): ?array
+    {
+        $user = null;
+        $matchedBy = null;
+
+        if (preg_match('/CEP-\d{4}-(\d+)-/i', (string) $tx->communication, $m) === 1 && (int) $m[1] > 0) {
+            $user = User::find((int) $m[1]);
+            $matchedBy = $user ? 'reference' : null;
+        }
+
+        if (! $user) {
+            $detail = app(LedgerClassificationService::class)->matchMember((string) $tx->communication);
+            $user = $detail?->user;
+            $matchedBy = $user ? 'name' : null;
+        }
+
+        if (! $user) {
+            return null;
+        }
+
+        ['category' => $category, 'insurance' => $insurance] = app(LedgerClassificationService::class)->parseCotisationText((string) $tx->communication);
+        $statusOverride = $category ? MemberStatus::where('slug', $category)->first() : null;
+        $optionalSlugs = ($insurance && $insurance !== 'none') ? ["ass_{$insurance}"] : [];
+
+        $calc = app(FeeCalculationService::class)->calculate($user, (string) Season::currentDuesYear(), $optionalSlugs, $statusOverride);
+
+        return [
+            'user' => $user,
+            'amount_due' => $calc['amount_due'],
+            'components' => $calc['components'],
+            'communication' => $calc['communication'],
+            'clean_match' => abs($calc['amount_due'] - (float) $tx->amount) < 0.005,
+            'matched_by' => $matchedBy,
+        ];
+    }
+
+    /**
+     * Only ever called right after a fresh server-side proposeBackfill()
+     * confirms clean_match — never trusts a client-submitted amount.
+     *
+     * @param  array{user: User, amount_due: float, components: array<string, mixed>, communication: string, clean_match: bool, matched_by: string}  $proposal
+     */
+    public function createAndConfirmBackfill(BankTransaction $tx, array $proposal): void
+    {
+        $payment = PaymentExpected::create([
+            'user_id' => $proposal['user']->id,
+            'type' => 'membership',
+            'season_year' => Season::currentDuesYear(),
+            'amount_due' => $proposal['amount_due'],
+            'amount_paid' => 0,
+            'status' => 'pending',
+            'components' => $proposal['components'],
+            'note' => "Backfilled from bank transaction #{$tx->id} — paid without a prior commit.",
+        ]);
+
+        $tx->update(['matched_payment_id' => $payment->id]);
+
+        $this->confirmMatch($tx->refresh());
+
+        Log::info('Bank reconciliation backfill created', [
             'bank_transaction_id' => $tx->id,
             'payment_expected_id' => $payment->id,
             'user_id' => $payment->user_id,
