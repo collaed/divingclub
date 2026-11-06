@@ -277,6 +277,17 @@ class BankReconciliationService
             if ($bestMatch) {
                 $tx->update(['matched_payment_id' => $bestMatch->id, 'match_score' => $bestScore, 'status' => 'suggested']);
                 $matches[] = ['transaction' => $tx, 'payment' => $bestMatch, 'score' => $bestScore];
+                Log::info('Bank reconciliation match suggested (rule-based)', [
+                    'bank_transaction_id' => $tx->id,
+                    'amount' => $tx->amount,
+                    'communication' => $tx->communication,
+                    'payment_expected_id' => $bestMatch->id,
+                    'user_id' => $bestMatch->user_id,
+                    'amount_due' => $bestMatch->amount_due,
+                    'score' => $bestScore,
+                ]);
+            } else {
+                Log::info('Bank reconciliation: no rule-based match', ['bank_transaction_id' => $tx->id, 'amount' => $tx->amount, 'communication' => $tx->communication]);
             }
         }
 
@@ -324,6 +335,15 @@ class BankReconciliationService
             $tx->update(['matched_payment_id' => $pe->id, 'match_score' => $confidence, 'match_reason' => $reason, 'status' => 'suggested']);
             $usedPaymentIds[] = $pe->id;
             $matches[] = ['transaction' => $tx, 'payment' => $pe, 'score' => $confidence, 'reason' => $reason];
+            Log::info('Bank reconciliation match suggested (AI)', [
+                'bank_transaction_id' => $tx->id,
+                'amount' => $tx->amount,
+                'communication' => $tx->communication,
+                'payment_expected_id' => $pe->id,
+                'user_id' => $pe->user_id,
+                'confidence' => $confidence,
+                'reason' => $reason,
+            ]);
         }
 
         return $matches;
@@ -424,6 +444,16 @@ class BankReconciliationService
         $tx->update(['status' => 'confirmed', 'confirmed_by' => auth()->id()]);
 
         $this->learnCounterparty($tx, $payment->user);
+
+        Log::info('Bank reconciliation match confirmed', [
+            'bank_transaction_id' => $tx->id,
+            'payment_expected_id' => $payment->id,
+            'user_id' => $payment->user_id,
+            'amount' => $tx->amount,
+            'new_status' => $payment->status,
+            'amount_paid' => $payment->amount_paid,
+            'amount_due' => $payment->amount_due,
+        ]);
     }
 
     /**

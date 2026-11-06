@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\LedgerTransaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
@@ -49,6 +50,8 @@ class LedgerStatementImportService
             throw new \RuntimeException('Unrecognised statement format: the column headers don\'t match the expected export.');
         }
 
+        Log::info('Ledger import started', ['file' => $originalName, 'uploader_id' => $uploader->id, 'row_count' => count($rows) - 1]);
+
         $imported = 0;
         $duplicates = 0;
         $byStatement = [];
@@ -67,6 +70,7 @@ class LedgerStatementImportService
             if (LedgerTransaction::where('dedup_hash', $hash)->exists()) {
                 $duplicates++;
                 $byStatement[$statementNo]['lines'] = ($byStatement[$statementNo]['lines'] ?? 0);
+                Log::info('Ledger import skipped duplicate line', ['amount' => $amount, 'date' => $date?->toDateString(), 'statement_no' => $statementNo]);
 
                 continue;
             }
@@ -97,11 +101,14 @@ class LedgerStatementImportService
             $byStatement[$statementNo]['amounts'][] = ['amount' => $amount, 'balance' => $balance];
         }
 
-        return [
+        $result = [
             'imported' => $imported,
             'duplicates' => $duplicates,
             'statements' => $this->checkStatements($byStatement),
         ];
+        Log::info('Ledger import finished', $result);
+
+        return $result;
     }
 
     /**

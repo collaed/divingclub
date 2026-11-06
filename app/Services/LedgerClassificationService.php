@@ -11,6 +11,7 @@ use App\Models\LedgerTransaction;
 use App\Models\MemberDetail;
 use App\Models\PaymentExpected;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -37,6 +38,24 @@ class LedgerClassificationService
         $tx->state = $state;
         $tx->state_reason = $reason;
         $tx->save();
+
+        // The cosmetic text-only guess isn't used for $state (see
+        // deriveCotisationDetails()'s own docblock), but it's logged here
+        // alongside the amount-based state so a human watching an import
+        // can cross-check the two signals against each other at a glance.
+        $cotisationGuess = $tx->amount > 0 ? $this->deriveCotisationDetails($tx) : null;
+        Log::info('Ledger transaction classified', [
+            'ledger_transaction_id' => $tx->id,
+            'amount' => $tx->amount,
+            'communication' => $tx->communication(),
+            'counterparty' => $counterparty?->name,
+            'member_id' => $counterparty?->member_id,
+            'rule_tag' => $rule['tag'] ?? null,
+            'state' => $state,
+            'state_reason' => $reason,
+            'communication_category' => $cotisationGuess['categoryLabel'] ?? null,
+            'communication_insurance' => $cotisationGuess['insuranceLabel'] ?? null,
+        ]);
 
         if ($rule !== null) {
             $tag = LedgerTag::where('slug', $rule['tag'])->first();
