@@ -3,6 +3,55 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-11-07 — prod at 9d20406
+
+### New
+- Equipment loan quick-entry on the event page now supports gear shorthand
+  for tanks, regulators, BCDs, and weights (e.g. `t14 r22 j36m 2w`), with
+  alphanumeric tank/regulator codes (e.g. `tM4`) matched exactly — a tank
+  numbered `7` and one numbered `M7` are treated as different items. BCD
+  sizes are optional and matched against the equipment's recorded size
+  when given.
+- Admin equipment import from the club's spreadsheet inventory (regulators
+  and BCDs), plus a one-time backfill of `short_number` from existing tank
+  names, run on both staging and production data.
+- The event page's venue/dive-site details now fold to a one-line header
+  once you've already seen that event or attended another event at the
+  same location, giving registrations more room — most useful on mobile,
+  where it skips the full dive-site card entirely.
+- Per-locale translation editing, HTML source access, and safe inline
+  images for article translations.
+
+### Changed
+- Event page layout rebalanced (registrations get equal or more width
+  than the venue/dive-site column) and the deposit schedule moved below
+  registrations instead of under the venue details.
+- Gear quick-entry now submits on Enter, not just on click.
+- German translations filled in for all the same member-facing strings as
+  the earlier French pass, plus the site-wide navigation/footer chrome
+  (About, My Account, Resources, Classifieds, Terms, dark-mode toggle,
+  etc.) that was missing in every non-French language.
+
+### Fixed
+- The language switcher silently failed for Greek, Estonian, and Romanian
+  — it checked a stale hardcoded locale list instead of the site's actual
+  enabled-locales setting, so clicking those languages did nothing.
+- Several German/Spanish/Portuguese strings were flatly wrong from a past
+  machine-translation pass (e.g. "To" translated as a conjugated "to
+  have" — HAT/TIENE/TEM — instead of the preposition; Portuguese "ID" read
+  as nonsense). Also corrected a few Brazilian-Portuguese terms to
+  European Portuguese.
+- The admin equipment list's single-item "return" action never notified
+  the member by email, unlike the newer "return by code" flow — now it
+  does.
+- Licence-renewals "done" action now sets the Request Date and gives
+  real success/error feedback instead of a silent no-op.
+- A crash on stale remember-me cookies (Laravel bumped to 12.71.0).
+
+### Dependency updates
+- laravel/framework, symfony/http-foundation, symfony/yaml, vite, axios,
+  source-map-js, follow-redirects — routine security/maintenance bumps.
+
 ## 2026-11-06 — prod at e3577f6
 
 ### New
