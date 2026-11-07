@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendGearReturnedEmail;
 use App\Models\Equipment;
 use App\Models\EquipmentLoan;
 use App\Models\MemberDetail;
@@ -9,6 +10,7 @@ use App\Models\MemberStatus;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use PHPUnit\Framework\Attributes\Group;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
@@ -81,5 +83,18 @@ class EquipmentLoanTest extends TestCase
         $loan->refresh();
         $this->assertNotNull($loan->returned_at);
         $this->assertEquals('available', $eq->status);
+    }
+
+    public function test_return_notifies_the_member_by_email(): void
+    {
+        Bus::fake();
+        $admin = $this->admin();
+        $member = $this->member();
+        $eq = Equipment::create(['name' => 'BCD', 'type' => 'bcd', 'short_number' => 'B03', 'status' => 'on_loan']);
+        $loan = EquipmentLoan::create(['equipment_id' => $eq->id, 'user_id' => $member->id, 'loaned_at' => now(), 'loaned_by' => $admin->id]);
+
+        $this->actingAs($admin)->post("/admin/equipment/return/{$loan->id}");
+
+        Bus::assertDispatched(SendGearReturnedEmail::class, fn ($job) => $job->userId === $member->id);
     }
 }

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BatchReturnEquipmentRequest;
+use App\Jobs\SendGearReturnedEmail;
 use App\Models\Equipment;
 use App\Models\EquipmentLoan;
 use App\Models\EquipmentMaintenance;
@@ -133,8 +134,13 @@ class EquipmentController extends Controller
     {
         $loan->update(['returned_at' => now(), 'returned_by' => auth()->id()]);
 
-        $status = ($loan->equipment instanceof Equipment && $loan->equipment->hasOverdueMaintenance()) ? 'maintenance_required' : 'available';
-        $loan->equipment->update(['status' => $status, 'last_seen_at' => now()]);
+        $equipment = $loan->equipment;
+        $status = ($equipment instanceof Equipment && $equipment->hasOverdueMaintenance()) ? 'maintenance_required' : 'available';
+        $equipment->update(['status' => $status, 'last_seen_at' => now()]);
+
+        if ($loan->user_id !== null) {
+            SendGearReturnedEmail::dispatch($loan->user_id, [['short_number' => $equipment->short_number, 'name' => $equipment->name]], null);
+        }
 
         return back()->with('success', __('Equipment returned.'));
     }
