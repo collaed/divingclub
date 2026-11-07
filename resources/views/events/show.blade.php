@@ -194,25 +194,6 @@
                 </div>
             </div>
 
-            {{-- Deposits --}}
-            @if($event->deposit_1_amount || $event->deposit_2_amount || $event->deposit_3_amount)
-                <div class="card dc-card mb-4">
-                    <div class="card-header">{{ __('Deposit Schedule') }}</div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <thead><tr><th>#</th><th>{{ __('Date') }}</th><th>{{ __('Amount') }}</th></tr></thead>
-                            <tbody>
-                            @foreach([1,2,3] as $i)
-                                @if($event->{'deposit_'.$i.'_amount'})
-                                    <tr><td>{{ $i }}</td><td>{{ $event->{'deposit_'.$i.'_date'}?->format('d/m/Y') ?? '—' }}</td><td>€{{ number_format($event->{'deposit_'.$i.'_amount'}, 2) }}</td></tr>
-                                @endif
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            @endif
-
             {{-- Trip Settlement link --}}
             @if($event->trip_settlement_enabled)
                 @php $isPrivileged ??= auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? [])); @endphp
@@ -359,6 +340,25 @@
                     </div>
                 </div>
             @endauth
+
+            {{-- Deposits --}}
+            @if($event->deposit_1_amount || $event->deposit_2_amount || $event->deposit_3_amount)
+                <div class="card dc-card mb-4">
+                    <div class="card-header">{{ __('Deposit Schedule') }}</div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <thead><tr><th>#</th><th>{{ __('Date') }}</th><th>{{ __('Amount') }}</th></tr></thead>
+                            <tbody>
+                            @foreach([1,2,3] as $i)
+                                @if($event->{'deposit_'.$i.'_amount'})
+                                    <tr><td>{{ $i }}</td><td>{{ $event->{'deposit_'.$i.'_date'}?->format('d/m/Y') ?? '—' }}</td><td>€{{ number_format($event->{'deposit_'.$i.'_amount'}, 2) }}</td></tr>
+                                @endif
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
 
             {{-- Participant list --}}
             @php
