@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\LocaleHelper;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\FederationController;
@@ -54,7 +55,7 @@ use Illuminate\Support\Facades\Route;
 
 // Locale switch
 Route::get('/locale/{locale}', function (string $locale) {
-    if (in_array($locale, config('app.available_locales', ['en', 'fr', 'de', 'lb', 'pt', 'it', 'nl', 'es', 'pl', 'hu', 'ro', 'sk']))) {
+    if (in_array($locale, LocaleHelper::enabledLocales())) {
         session(['locale' => $locale]);
         if (auth()->check()) {
             auth()->user()->update(['preferred_locale' => $locale]);
