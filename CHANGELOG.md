@@ -3,7 +3,7 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
-## 2026-11-07 — prod at 9d20406
+## 2026-11-07 — prod at 72d48db
 
 ### Data changes
 - Ran the regulator/BCD spreadsheet import on production: 21 regulators
@@ -33,10 +33,12 @@ What reached production, newest first. Conventions are in
   than the venue/dive-site column) and the deposit schedule moved below
   registrations instead of under the venue details.
 - Gear quick-entry now submits on Enter, not just on click.
-- German translations filled in for all the same member-facing strings as
-  the earlier French pass, plus the site-wide navigation/footer chrome
-  (About, My Account, Resources, Classifieds, Terms, dark-mode toggle,
-  etc.) that was missing in every non-French language.
+- All 15 supported languages (DE, ES, PT, EL, ET, LB, IT, NL, PL, HU, RO,
+  SK, FI) now have full member-facing translation coverage — navigation,
+  footer, event registration, equipment loan, payments, dive groups,
+  photo uploads, and the dive-site details — instead of falling back to
+  English on most of the app outside French. Each went from 674 to 1230
+  translated keys.
 
 ### Fixed
 - The language switcher silently failed for Greek, Estonian, and Romanian
@@ -47,6 +49,11 @@ What reached production, newest first. Conventions are in
   have" — HAT/TIENE/TEM — instead of the preposition; Portuguese "ID" read
   as nonsense). Also corrected a few Brazilian-Portuguese terms to
   European Portuguese.
+- Estonian and Finnish had severely corrupted base translations from
+  before this session — values shifted onto the wrong key, with leaked
+  HTML fragments rendering literally in the UI (e.g. the Estonian
+  "Unregister" button read "Log out", the deposit schedule heading read
+  "Diving/Pool/Training"). Both fully re-translated from scratch.
 - The admin equipment list's single-item "return" action never notified
   the member by email, unlike the newer "return by code" flow — now it
   does.
