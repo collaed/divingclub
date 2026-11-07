@@ -3,16 +3,21 @@
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('events.index') }}">{{ __('Calendar') }}</a></li><li class="breadcrumb-item active">{{ $event->title }}</li></ol></nav>
 
     <div class="row">
-        <div class="col-lg-6">
-            {{-- Event details: type, status, date/time, location, dive site, weather --}}
+        <div class="col-lg-{{ $isRoutine ? 4 : 6 }}">
+            {{-- Event details: type, status, date/time, location, dive site, weather. Folded to a one-line
+                 header when this is routine for the visitor (seen before, or a familiar location), so
+                 registrations get more room. --}}
             <div class="card dc-card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
                         <span class="badge" style="background:{{ $event->typeColor() }}">{{ ucfirst($event->event_type) }}</span>
                         <span class="badge bg-{{ $event->status === 'cancelled' ? 'danger' : ($event->status === 'completed' ? 'secondary' : 'success') }}">{{ __(ucfirst($event->status)) }}</span>
+                        @if($isRoutine)
+                            <span class="small text-muted">{{ $event->event_date->format('d/m/Y') }}@if($event->location) · {{ $event->location }}@endif</span>
+                        @endif
                     </div>
-                    @if(auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id()))
-                        <div class="d-flex gap-1">
+                    <div class="d-flex gap-1 align-items-center">
+                        @if(auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id()))
                             <a href="{{ route('events.edit', $event) }}" class="btn btn-sm btn-outline-primary">{{ __('Edit') }}</a>
                             @if(auth()->user()->isBureau())
                                 @if($event->status === 'cancelled')
@@ -27,9 +32,11 @@
                                     </form>
                                 @endif
                             @endif
-                        </div>
-                    @endif
+                        @endif
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#eventDetailsBody" aria-expanded="{{ $isRoutine ? 'false' : 'true' }}" aria-controls="eventDetailsBody" title="{{ __('Show/hide venue details') }}">▾</button>
+                    </div>
                 </div>
+                <div class="collapse {{ $isRoutine ? '' : 'show' }}" id="eventDetailsBody">
                 <div class="card-body">
                     <h4>{{ $event->title }}</h4>
                     <table class="table table-sm table-borderless">
@@ -184,6 +191,7 @@
                         </div>
                     @endif
                 </div>
+                </div>
             </div>
 
             {{-- Deposits --}}
@@ -221,7 +229,7 @@
         </div>
 
         {{-- Sidebar: registration form, participant list, payments, communications --}}
-        <div class="col-lg-6">
+        <div class="col-lg-{{ $isRoutine ? 8 : 6 }}">
             @php $isPrivileged = auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? [])); @endphp
             {{-- Registration --}}
             @auth

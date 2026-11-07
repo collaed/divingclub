@@ -101,8 +101,35 @@ class EventController extends Controller
                 ->orWhere('alias', 'like', "event-{$event->id}@%");
         })->orderByDesc('created_at')->get();
         $members = auth()->check() ? User::with('detail')->role(['member', 'instructor', 'instructor_apnea', 'bureau_finance', 'bureau_technical', 'bureau_master'])->orderBy('username')->get() : collect();
+        $isRoutine = $this->isRoutineForCurrentUser($event);
 
-        return view('events.show', compact('event', 'userReg', 'emailHistory', 'members'));
+        return view('events.show', compact('event', 'userReg', 'emailHistory', 'members', 'isRoutine'));
+    }
+
+    /**
+     * An event is "routine" for this visitor — and so has its venue details
+     * folded away to give registrations more room — once they've already
+     * seen this exact event page, or they've attended another event at the
+     * same location before. Session-tracked, not persisted.
+     */
+    private function isRoutineForCurrentUser(Event $event): bool
+    {
+        if (! auth()->check()) {
+            return false;
+        }
+
+        $seenEventIds = session('viewed_event_ids', []);
+        $alreadySeen = in_array($event->id, $seenEventIds, true);
+
+        $seenLocationBefore = $event->location !== null && Event::query()
+            ->where('location', $event->location)
+            ->where('id', '!=', $event->id)
+            ->whereHas('registrations', fn ($q) => $q->where('user_id', auth()->id())->whereIn('status', ['confirmed', 'waiting']))
+            ->exists();
+
+        session(['viewed_event_ids' => array_slice(array_unique([...$seenEventIds, $event->id]), -50)]);
+
+        return $alreadySeen || $seenLocationBefore;
     }
 
     // ─── Event CRUD ──────────────────────────────────────────
