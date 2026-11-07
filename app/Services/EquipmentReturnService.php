@@ -23,7 +23,7 @@ final class EquipmentReturnService
     private const QUANTITY_TYPES = ['w' => 'weight'];
 
     /** BCD size prefixes a code may optionally start with (longest first, so "xxs" isn't cut short at "xs"). */
-    private const BCD_SIZES = ['xxs', 'xxl', 'xs', 'xl', 's', 'm', 'l'];
+    private const BCD_SIZES = ['xxxs', 'xxs', 'xxl', 'xs', 'xl', 's', 'm', 'l'];
 
     public function __construct(private GearShorthandParser $parser) {}
 
