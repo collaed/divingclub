@@ -40,12 +40,13 @@ final class EquipmentReturnService
         foreach ($this->parser->tokenize($text) as $token) {
             if ($token['kind'] === 'item' && isset(self::ITEM_TYPES[$token['letter']])) {
                 $type = self::ITEM_TYPES[$token['letter']];
-                $code = $token['code'];
+                $rawCode = $token['code'];
                 $size = null;
+                $digits = $rawCode;
                 if ($type === 'bcd') {
-                    [$size, $code] = $this->splitBcdSize($code);
+                    [$size, $digits] = $this->splitBcdSize($rawCode);
                 }
-                $loan = $this->findOpenLoan($type, $code, $size, $claimedLoanIds);
+                $loan = $this->findOpenLoan($type, $rawCode, $size, $digits, $claimedLoanIds);
                 if ($loan === null) {
                     $errors[] = __(':code: no :type matching :value is currently on loan', ['code' => $token['raw'], 'type' => $type, 'value' => $token['code']]);
                 } else {
@@ -67,24 +68,46 @@ final class EquipmentReturnService
         return ['ok' => $errors === [], 'loans' => $loans, 'weightReturns' => $weightReturns, 'errors' => $errors];
     }
 
-    private function findOpenLoan(string $type, string $code, ?string $size, array $excludeIds): ?EquipmentLoan
+    /**
+     * See EventGearLoanService::findAvailableItem() for why this tries an exact
+     * code match first: a real BCD's short_number is usually the whole code as
+     * printed, size letter included (e.g. "M7").
+     */
+    private function findOpenLoan(string $type, string $rawCode, ?string $size, string $digits, array $excludeIds): ?EquipmentLoan
     {
-        return EquipmentLoan::whereNull('returned_at')
-            ->whereHas('equipment', function ($q) use ($type, $size) {
-                $q->where('type', $type);
-                if ($size !== null) {
-                    $q->whereRaw('LOWER(size) = ?', [$size]);
-                }
-            })
+        $pool = EquipmentLoan::whereNull('returned_at')
+            ->whereHas('equipment', fn ($q) => $q->where('type', $type))
             ->when($excludeIds !== [], fn ($q) => $q->whereNotIn('id', $excludeIds))
             ->with('equipment')
-            ->get()
-            ->first(fn (EquipmentLoan $l): bool => $this->codeMatches($l->equipment->short_number, $code));
+            ->get();
+
+        $exact = $pool->first(fn (EquipmentLoan $l): bool => $this->codeMatches($l->equipment->short_number, $rawCode));
+        if ($exact !== null || $type !== 'bcd') {
+            return $exact;
+        }
+
+        if ($size !== null) {
+            return $pool->first(fn (EquipmentLoan $l): bool => $this->digitsMatch($l->equipment->short_number, $digits)
+                && $l->equipment->size !== null && strcasecmp(trim($l->equipment->size), $size) === 0);
+        }
+
+        return $pool->first(fn (EquipmentLoan $l): bool => $this->digitsMatch($l->equipment->short_number, $digits));
     }
 
     private function codeMatches(?string $shortNumber, string $code): bool
     {
         return $shortNumber !== null && strcasecmp(trim($shortNumber), $code) === 0;
+    }
+
+    private function digitsMatch(?string $shortNumber, string $digits): bool
+    {
+        if ($shortNumber === null) {
+            return false;
+        }
+
+        $stored = preg_replace('/\D/', '', $shortNumber);
+
+        return $stored !== '' && $stored === $digits;
     }
 
     /**

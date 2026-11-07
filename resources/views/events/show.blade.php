@@ -687,11 +687,8 @@
     @endif
 
     <script>
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('[data-gear-submit]');
-        if (!btn) return;
-
-        const row = btn.closest('[data-gear-row]');
+    function submitGear(row) {
+        const btn = row.querySelector('[data-gear-submit]');
         const input = row.querySelector('[data-gear-input]');
         const errorBox = row.querySelector('[data-gear-error]');
         const text = input.value.trim();
@@ -740,6 +737,20 @@
                 errorBox.textContent = @json(__('Network error.'));
                 errorBox.classList.remove('d-none');
             });
+    }
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-gear-submit]');
+        if (!btn) return;
+        submitGear(btn.closest('[data-gear-row]'));
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        const input = e.target.closest('[data-gear-input]');
+        if (!input) return;
+        e.preventDefault();
+        submitGear(input.closest('[data-gear-row]'));
     });
     </script>
 </x-layout>

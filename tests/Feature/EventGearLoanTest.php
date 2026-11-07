@@ -227,6 +227,23 @@ class EventGearLoanTest extends TestCase
         $this->assertSame('available', $plain->fresh()->status);
     }
 
+    public function test_bcd_whose_short_number_already_bakes_in_the_size_letter_matches_directly(): void
+    {
+        // Real inventory: a BCD's short_number is the whole code as printed on the
+        // item, e.g. "M7" — the size column may not even be set. "jm7" must match
+        // "M7" directly, not get split into size "m" + code "7" and fail to find it.
+        $bureau = $this->createBureauUser();
+        $reg = $this->registration();
+        $bcd = Equipment::factory()->create(['type' => 'bcd', 'short_number' => 'M7', 'size' => null, 'is_loanable' => true, 'status' => 'available']);
+
+        $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
+            'registration_id' => $reg->id,
+            'text' => 'jm7',
+        ])->assertOk();
+
+        $this->assertSame('on_loan', $bcd->fresh()->status);
+    }
+
     public function test_bcd_size_prefix_must_match_the_items_actual_size(): void
     {
         $bureau = $this->createBureauUser();

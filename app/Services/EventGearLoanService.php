@@ -44,12 +44,13 @@ final class EventGearLoanService
         foreach ($this->parser->tokenize($text) as $token) {
             if ($token['kind'] === 'item' && isset(self::ITEM_TYPES[$token['letter']])) {
                 $type = self::ITEM_TYPES[$token['letter']];
-                $code = $token['code'];
+                $rawCode = $token['code'];
                 $size = null;
+                $digits = $rawCode;
                 if ($type === 'bcd') {
-                    [$size, $code] = $this->splitBcdSize($code);
+                    [$size, $digits] = $this->splitBcdSize($rawCode);
                 }
-                $equipment = $this->findAvailableItem($type, $code, $size, $claimedIds);
+                $equipment = $this->findAvailableItem($type, $rawCode, $size, $digits, $claimedIds);
                 if ($equipment === null) {
                     $errors[] = __(':code: no available :type matching :value', ['code' => $token['raw'], 'type' => $type, 'value' => $token['code']]);
                 } else {
@@ -66,19 +67,49 @@ final class EventGearLoanService
         return ['ok' => $errors === [], 'items' => $items, 'weightQuantity' => $weightQuantity, 'errors' => $errors];
     }
 
-    private function findAvailableItem(string $type, string $code, ?string $size, array $excludeIds): ?Equipment
+    /**
+     * A real BCD's short_number is usually the whole code as printed, size letter
+     * included (e.g. "M7") — so "jm7" is tried as an exact code match first, same
+     * as tanks/regulators. Only when that fails, and only for BCDs, does a size
+     * prefix fall back to matching a bare-digit short_number plus the equipment's
+     * own `size` column; with no size prefix typed, any available item with that
+     * number matches regardless of size.
+     */
+    private function findAvailableItem(string $type, string $rawCode, ?string $size, string $digits, array $excludeIds): ?Equipment
     {
-        return Equipment::where('type', $type)
+        $pool = Equipment::where('type', $type)
             ->where('is_loanable', true)
-            ->when($size !== null, fn ($q) => $q->whereRaw('LOWER(size) = ?', [$size]))
             ->when($excludeIds !== [], fn ($q) => $q->whereNotIn('id', $excludeIds))
-            ->get()
-            ->first(fn (Equipment $e): bool => $this->codeMatches($e->short_number, $code) && $e->isAvailable());
+            ->get();
+
+        $exact = $pool->first(fn (Equipment $e): bool => $this->codeMatches($e->short_number, $rawCode) && $e->isAvailable());
+        if ($exact !== null || $type !== 'bcd') {
+            return $exact;
+        }
+
+        if ($size !== null) {
+            return $pool->first(fn (Equipment $e): bool => $this->digitsMatch($e->short_number, $digits)
+                && $e->size !== null && strcasecmp(trim($e->size), $size) === 0
+                && $e->isAvailable());
+        }
+
+        return $pool->first(fn (Equipment $e): bool => $this->digitsMatch($e->short_number, $digits) && $e->isAvailable());
     }
 
     private function codeMatches(?string $shortNumber, string $code): bool
     {
         return $shortNumber !== null && strcasecmp(trim($shortNumber), $code) === 0;
+    }
+
+    private function digitsMatch(?string $shortNumber, string $digits): bool
+    {
+        if ($shortNumber === null) {
+            return false;
+        }
+
+        $stored = preg_replace('/\D/', '', $shortNumber);
+
+        return $stored !== '' && $stored === $digits;
     }
 
     /**
