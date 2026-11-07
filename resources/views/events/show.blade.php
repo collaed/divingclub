@@ -3,7 +3,7 @@
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('events.index') }}">{{ __('Calendar') }}</a></li><li class="breadcrumb-item active">{{ $event->title }}</li></ol></nav>
 
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-6">
             {{-- Event details: type, status, date/time, location, dive site, weather --}}
             <div class="card dc-card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -221,7 +221,7 @@
         </div>
 
         {{-- Sidebar: registration form, participant list, payments, communications --}}
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             @php $isPrivileged = auth()->check() && (auth()->user()->isBureau() || $event->instructor_id === auth()->id() || in_array(auth()->id(), $event->assistant_ids ?? [])); @endphp
             {{-- Registration --}}
             @auth
