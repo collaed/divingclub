@@ -23,9 +23,13 @@ final class GearShorthandParser
                 continue;
             }
 
-            if (preg_match('/^([a-z])(\d+)$/i', $raw, $m)) {
-                // Letter then digits: a specific numbered item (t14 = tank #14).
-                $tokens[] = ['raw' => $raw, 'kind' => 'item', 'letter' => strtolower($m[1]), 'number' => (int) $m[2]];
+            if (preg_match('/^([a-z])([a-z0-9]*\d[a-z0-9]*)$/i', $raw, $m)) {
+                // Letter then an alphanumeric code containing at least one digit: a specific
+                // numbered item. The code's letters are decorative (the tank etched "M4", or a
+                // BCD's size prefix like "xs36") — only the digits identify the item, so "tM4"
+                // and "jxs36" resolve the same way as "t4" and "j36" would.
+                $number = (int) preg_replace('/\D/', '', $m[2]);
+                $tokens[] = ['raw' => $raw, 'kind' => 'item', 'letter' => strtolower($m[1]), 'number' => $number];
             } elseif (preg_match('/^(\d+)([a-z])$/i', $raw, $m)) {
                 // Digits then letter: a quantity, not a specific item (2w = 2 weights).
                 $tokens[] = ['raw' => $raw, 'kind' => 'quantity', 'letter' => strtolower($m[2]), 'number' => (int) $m[1]];

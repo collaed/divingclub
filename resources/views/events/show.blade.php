@@ -82,10 +82,14 @@
                         <div class="article-body">{!! $event->description !!}</div>
                     @endif
 
-                    {{-- Dive Site info --}}
+                    {{-- Dive Site info — collapsed by default so registrations aren't pushed far down the page --}}
                     @if($event->diveSite)
                         <hr>
-                        <h5>@icon('🤿') {{ __('Dive Site') }}: {{ $event->diveSite->name }}</h5>
+                        <button class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#diveSiteDetails" aria-expanded="false" aria-controls="diveSiteDetails">
+                            <span>@icon('🤿') {{ __('Dive Site') }}: {{ $event->diveSite->name }}</span>
+                            <span>▾</span>
+                        </button>
+                        <div class="collapse mt-3" id="diveSiteDetails">
                         <div class="row">
                             @if($event->diveSite->image_path)
                                 <div class="col-md-4 mb-2">
@@ -176,6 +180,7 @@
                                   .catch(() => { document.getElementById('weather-data').textContent = '{{ __("Weather unavailable") }}'; });
                                 </script>
                             @endif
+                        </div>
                         </div>
                     @endif
                 </div>
