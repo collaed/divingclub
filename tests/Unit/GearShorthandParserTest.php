@@ -14,28 +14,30 @@ class GearShorthandParserTest extends TestCase
         $tokens = (new GearShorthandParser)->tokenize('t14');
 
         $this->assertSame([
-            ['raw' => 't14', 'kind' => 'item', 'letter' => 't', 'number' => 14],
+            ['raw' => 't14', 'kind' => 'item', 'letter' => 't', 'code' => '14', 'number' => 0],
         ], $tokens);
     }
 
-    public function test_alphanumeric_tank_code_resolves_to_its_digits(): void
+    public function test_alphanumeric_item_code_is_preserved_verbatim(): void
     {
+        // The parser never strips letters from the code — "M4" and "4" must stay
+        // distinguishable, since a club's inventory can hold both as separate items.
         $tokens = (new GearShorthandParser)->tokenize('tM4');
 
         $this->assertSame([
-            ['raw' => 'tM4', 'kind' => 'item', 'letter' => 't', 'number' => 4],
+            ['raw' => 'tM4', 'kind' => 'item', 'letter' => 't', 'code' => 'm4', 'number' => 0],
         ], $tokens);
     }
 
-    public function test_bcd_size_prefix_is_equivalent_to_the_bare_number(): void
+    public function test_bcd_size_prefixed_code_is_preserved_verbatim(): void
     {
-        $withSize = (new GearShorthandParser)->tokenize('jxs36')[0];
-        $bare = (new GearShorthandParser)->tokenize('j36')[0];
+        // Splitting the size prefix off a BCD code is the calling service's job
+        // (only it knows a BCD's code may carry a size); the parser just tokenizes.
+        $tokens = (new GearShorthandParser)->tokenize('jxs36');
 
-        $this->assertSame($bare['kind'], $withSize['kind']);
-        $this->assertSame($bare['letter'], $withSize['letter']);
-        $this->assertSame($bare['number'], $withSize['number']);
-        $this->assertSame(36, $withSize['number']);
+        $this->assertSame([
+            ['raw' => 'jxs36', 'kind' => 'item', 'letter' => 'j', 'code' => 'xs36', 'number' => 0],
+        ], $tokens);
     }
 
     public function test_quantity_shorthand_is_unaffected(): void
@@ -43,7 +45,7 @@ class GearShorthandParserTest extends TestCase
         $tokens = (new GearShorthandParser)->tokenize('2w');
 
         $this->assertSame([
-            ['raw' => '2w', 'kind' => 'quantity', 'letter' => 'w', 'number' => 2],
+            ['raw' => '2w', 'kind' => 'quantity', 'letter' => 'w', 'code' => '', 'number' => 2],
         ], $tokens);
     }
 

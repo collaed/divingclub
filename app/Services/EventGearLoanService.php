@@ -26,6 +26,9 @@ final class EventGearLoanService
     /** Shorthand letter => quantity kind (weights aren't numbered Equipment rows). */
     private const QUANTITY_TYPES = ['w' => 'weight'];
 
+    /** BCD size prefixes a code may optionally start with (longest first, so "xxs" isn't cut short at "xs"). */
+    private const BCD_SIZES = ['xxs', 'xxl', 'xs', 'xl', 's', 'm', 'l'];
+
     public function __construct(private GearShorthandParser $parser) {}
 
     /**
@@ -41,9 +44,14 @@ final class EventGearLoanService
         foreach ($this->parser->tokenize($text) as $token) {
             if ($token['kind'] === 'item' && isset(self::ITEM_TYPES[$token['letter']])) {
                 $type = self::ITEM_TYPES[$token['letter']];
-                $equipment = $this->findAvailableItem($type, $token['number'], $claimedIds);
+                $code = $token['code'];
+                $size = null;
+                if ($type === 'bcd') {
+                    [$size, $code] = $this->splitBcdSize($code);
+                }
+                $equipment = $this->findAvailableItem($type, $code, $size, $claimedIds);
                 if ($equipment === null) {
-                    $errors[] = __(':code: no available :type numbered :number', ['code' => $token['raw'], 'type' => $type, 'number' => $token['number']]);
+                    $errors[] = __(':code: no available :type matching :value', ['code' => $token['raw'], 'type' => $type, 'value' => $token['code']]);
                 } else {
                     $items[] = ['type' => $type, 'equipment' => $equipment];
                     $claimedIds[] = $equipment->id;
@@ -58,24 +66,37 @@ final class EventGearLoanService
         return ['ok' => $errors === [], 'items' => $items, 'weightQuantity' => $weightQuantity, 'errors' => $errors];
     }
 
-    private function findAvailableItem(string $type, int $number, array $excludeIds): ?Equipment
+    private function findAvailableItem(string $type, string $code, ?string $size, array $excludeIds): ?Equipment
     {
         return Equipment::where('type', $type)
             ->where('is_loanable', true)
+            ->when($size !== null, fn ($q) => $q->whereRaw('LOWER(size) = ?', [$size]))
             ->when($excludeIds !== [], fn ($q) => $q->whereNotIn('id', $excludeIds))
             ->get()
-            ->first(fn (Equipment $e): bool => $this->numberMatches($e->short_number, $number) && $e->isAvailable());
+            ->first(fn (Equipment $e): bool => $this->codeMatches($e->short_number, $code) && $e->isAvailable());
     }
 
-    private function numberMatches(?string $shortNumber, int $number): bool
+    private function codeMatches(?string $shortNumber, string $code): bool
     {
-        if ($shortNumber === null) {
-            return false;
+        return $shortNumber !== null && strcasecmp(trim($shortNumber), $code) === 0;
+    }
+
+    /**
+     * Splits an optional leading size prefix off a BCD code, e.g. "xs36" => ['xs', '36'].
+     * Without a recognised size prefix, the code is returned unchanged and any available
+     * BCD matching the number is accepted regardless of its size.
+     *
+     * @return array{0: string|null, 1: string}
+     */
+    private function splitBcdSize(string $code): array
+    {
+        foreach (self::BCD_SIZES as $size) {
+            if (str_starts_with($code, $size) && $code !== $size && ctype_digit(substr($code, strlen($size)))) {
+                return [$size, substr($code, strlen($size))];
+            }
         }
 
-        $digits = preg_replace('/\D/', '', $shortNumber);
-
-        return $digits !== '' && (int) $digits === $number;
+        return [null, $code];
     }
 
     /**

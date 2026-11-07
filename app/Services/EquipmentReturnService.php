@@ -22,6 +22,9 @@ final class EquipmentReturnService
 
     private const QUANTITY_TYPES = ['w' => 'weight'];
 
+    /** BCD size prefixes a code may optionally start with (longest first, so "xxs" isn't cut short at "xs"). */
+    private const BCD_SIZES = ['xxs', 'xxl', 'xs', 'xl', 's', 'm', 'l'];
+
     public function __construct(private GearShorthandParser $parser) {}
 
     /**
@@ -37,9 +40,14 @@ final class EquipmentReturnService
         foreach ($this->parser->tokenize($text) as $token) {
             if ($token['kind'] === 'item' && isset(self::ITEM_TYPES[$token['letter']])) {
                 $type = self::ITEM_TYPES[$token['letter']];
-                $loan = $this->findOpenLoan($type, $token['number'], $claimedLoanIds);
+                $code = $token['code'];
+                $size = null;
+                if ($type === 'bcd') {
+                    [$size, $code] = $this->splitBcdSize($code);
+                }
+                $loan = $this->findOpenLoan($type, $code, $size, $claimedLoanIds);
                 if ($loan === null) {
-                    $errors[] = __(':code: no :type numbered :number is currently on loan', ['code' => $token['raw'], 'type' => $type, 'number' => $token['number']]);
+                    $errors[] = __(':code: no :type matching :value is currently on loan', ['code' => $token['raw'], 'type' => $type, 'value' => $token['code']]);
                 } else {
                     $loans[] = $loan;
                     $claimedLoanIds[] = $loan->id;
@@ -59,25 +67,40 @@ final class EquipmentReturnService
         return ['ok' => $errors === [], 'loans' => $loans, 'weightReturns' => $weightReturns, 'errors' => $errors];
     }
 
-    private function findOpenLoan(string $type, int $number, array $excludeIds): ?EquipmentLoan
+    private function findOpenLoan(string $type, string $code, ?string $size, array $excludeIds): ?EquipmentLoan
     {
         return EquipmentLoan::whereNull('returned_at')
-            ->whereHas('equipment', fn ($q) => $q->where('type', $type))
+            ->whereHas('equipment', function ($q) use ($type, $size) {
+                $q->where('type', $type);
+                if ($size !== null) {
+                    $q->whereRaw('LOWER(size) = ?', [$size]);
+                }
+            })
             ->when($excludeIds !== [], fn ($q) => $q->whereNotIn('id', $excludeIds))
             ->with('equipment')
             ->get()
-            ->first(fn (EquipmentLoan $l): bool => $this->numberMatches($l->equipment->short_number, $number));
+            ->first(fn (EquipmentLoan $l): bool => $this->codeMatches($l->equipment->short_number, $code));
     }
 
-    private function numberMatches(?string $shortNumber, int $number): bool
+    private function codeMatches(?string $shortNumber, string $code): bool
     {
-        if ($shortNumber === null) {
-            return false;
+        return $shortNumber !== null && strcasecmp(trim($shortNumber), $code) === 0;
+    }
+
+    /**
+     * Splits an optional leading size prefix off a BCD code, e.g. "xs36" => ['xs', '36'].
+     *
+     * @return array{0: string|null, 1: string}
+     */
+    private function splitBcdSize(string $code): array
+    {
+        foreach (self::BCD_SIZES as $size) {
+            if (str_starts_with($code, $size) && $code !== $size && ctype_digit(substr($code, strlen($size)))) {
+                return [$size, substr($code, strlen($size))];
+            }
         }
 
-        $digits = preg_replace('/\D/', '', $shortNumber);
-
-        return $digits !== '' && (int) $digits === $number;
+        return [null, $code];
     }
 
     /** @return array{event: Event, quantity: int}|null */

@@ -45,9 +45,9 @@ class EventGearLoanTest extends TestCase
     {
         $bureau = $this->createBureauUser();
         $reg = $this->registration();
-        $tank = $this->item('tank', 'T14');
-        $regulator = $this->item('regulator', 'R22');
-        $bcd = $this->item('bcd', 'J36');
+        $tank = $this->item('tank', '14');
+        $regulator = $this->item('regulator', '22');
+        $bcd = $this->item('bcd', '36');
 
         $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
             'registration_id' => $reg->id,
@@ -66,8 +66,8 @@ class EventGearLoanTest extends TestCase
     {
         $bureau = $this->createBureauUser();
         $reg = $this->registration();
-        $this->item('tank', 'T14');
-        $this->item('tank', 'T09');
+        $this->item('tank', '14');
+        $this->item('tank', '09');
 
         $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
             'registration_id' => $reg->id,
@@ -81,7 +81,7 @@ class EventGearLoanTest extends TestCase
     {
         $bureau = $this->createBureauUser();
         $reg = $this->registration();
-        $tank = $this->item('tank', 'T14');
+        $tank = $this->item('tank', '14');
 
         $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
             'registration_id' => $reg->id,
@@ -97,8 +97,8 @@ class EventGearLoanTest extends TestCase
         $bureau = $this->createBureauUser();
         $reg = $this->registration();
         $otherReg = $this->registration();
-        $tank = $this->item('tank', 'T14');
-        $regulator = $this->item('regulator', 'R22');
+        $tank = $this->item('tank', '14');
+        $regulator = $this->item('regulator', '22');
         EquipmentLoan::create(['equipment_id' => $regulator->id, 'user_id' => $otherReg->user_id, 'event_registration_id' => $otherReg->id, 'loaned_at' => now()]);
         $regulator->update(['status' => 'on_loan']);
 
@@ -116,7 +116,7 @@ class EventGearLoanTest extends TestCase
         Bus::fake();
         $bureau = $this->createBureauUser();
         $reg = $this->registration();
-        $this->item('tank', 'T14');
+        $this->item('tank', '14');
 
         $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
             'registration_id' => $reg->id,
@@ -142,8 +142,8 @@ class EventGearLoanTest extends TestCase
         Bus::fake();
         $bureau = $this->createBureauUser();
         $reg = $this->registration();
-        $tank = $this->item('tank', 'T01');
-        $regulator = $this->item('regulator', 'R21');
+        $tank = $this->item('tank', '01');
+        $regulator = $this->item('regulator', '21');
         EquipmentLoan::create(['equipment_id' => $tank->id, 'user_id' => $reg->user_id, 'event_registration_id' => $reg->id, 'loaned_at' => now()]);
         EquipmentLoan::create(['equipment_id' => $regulator->id, 'user_id' => $reg->user_id, 'event_registration_id' => $reg->id, 'loaned_at' => now()]);
         $tank->update(['status' => 'on_loan']);
@@ -192,7 +192,7 @@ class EventGearLoanTest extends TestCase
     {
         $bureau = $this->createBureauUser();
         $reg = $this->registration();
-        $tank = $this->item('tank', 'T01');
+        $tank = $this->item('tank', '01');
         EquipmentLoan::create(['equipment_id' => $tank->id, 'user_id' => $reg->user_id, 'event_registration_id' => $reg->id, 'loaned_at' => now()]);
         $tank->update(['status' => 'on_loan']);
 
@@ -211,11 +211,69 @@ class EventGearLoanTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_a_tank_whose_code_includes_a_letter_is_distinct_from_its_plain_number(): void
+    {
+        $bureau = $this->createBureauUser();
+        $reg = $this->registration();
+        $plain = $this->item('tank', '7');
+        $lettered = $this->item('tank', 'M7');
+
+        $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
+            'registration_id' => $reg->id,
+            'text' => 'tm7',
+        ])->assertOk();
+
+        $this->assertSame('on_loan', $lettered->fresh()->status);
+        $this->assertSame('available', $plain->fresh()->status);
+    }
+
+    public function test_bcd_size_prefix_must_match_the_items_actual_size(): void
+    {
+        $bureau = $this->createBureauUser();
+        $reg = $this->registration();
+        Equipment::factory()->create(['type' => 'bcd', 'short_number' => '36', 'size' => 'L', 'is_loanable' => true, 'status' => 'available']);
+
+        $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
+            'registration_id' => $reg->id,
+            'text' => 'jxs36',
+        ])->assertStatus(422);
+
+        $this->assertSame(0, EquipmentLoan::count());
+    }
+
+    public function test_bcd_code_without_a_size_matches_any_available_size(): void
+    {
+        $bureau = $this->createBureauUser();
+        $reg = $this->registration();
+        $bcd = Equipment::factory()->create(['type' => 'bcd', 'short_number' => '36', 'size' => 'L', 'is_loanable' => true, 'status' => 'available']);
+
+        $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
+            'registration_id' => $reg->id,
+            'text' => 'j36',
+        ])->assertOk();
+
+        $this->assertSame('on_loan', $bcd->fresh()->status);
+    }
+
+    public function test_bcd_size_prefix_matching_the_items_size_succeeds(): void
+    {
+        $bureau = $this->createBureauUser();
+        $reg = $this->registration();
+        $bcd = Equipment::factory()->create(['type' => 'bcd', 'short_number' => '36', 'size' => 'xs', 'is_loanable' => true, 'status' => 'available']);
+
+        $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
+            'registration_id' => $reg->id,
+            'text' => 'jxs36',
+        ])->assertOk();
+
+        $this->assertSame('on_loan', $bcd->fresh()->status);
+    }
+
     public function test_cancelling_a_registration_does_not_auto_return_its_gear(): void
     {
         $bureau = $this->createBureauUser();
         $reg = $this->registration();
-        $tank = $this->item('tank', 'T14');
+        $tank = $this->item('tank', '14');
         EquipmentLoan::create(['equipment_id' => $tank->id, 'user_id' => $reg->user_id, 'event_registration_id' => $reg->id, 'loaned_at' => now()]);
         $tank->update(['status' => 'on_loan']);
 
