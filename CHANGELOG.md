@@ -5,6 +5,12 @@ What reached production, newest first. Conventions are in
 
 ## 2026-11-07 — prod at 9d20406
 
+### Data changes
+- Ran the regulator/BCD spreadsheet import on production: 21 regulators
+  and 25 BCDs created in Equipment (previously only tanks existed), each
+  with `short_number` set so gear-lending shorthand (e.g. `jm7`) resolves
+  immediately. Matches what was imported on staging.
+
 ### New
 - Equipment loan quick-entry on the event page now supports gear shorthand
   for tanks, regulators, BCDs, and weights (e.g. `t14 r22 j36m 2w`), with
