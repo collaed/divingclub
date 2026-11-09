@@ -12,11 +12,11 @@ Merge order doesn't matter much except #19 should land before you do the Redis
 split (§2.3). All are green on lint/test/build; the only red check is the
 Copilot `github-advanced-security` "model not supported" — ignore it.
 
-- [ ] **#18** — `.env.example`: document AI/LLM + `REDIS_DB` vars (docs only)
-- [ ] **#19** — harden `ProcessTranslations` / `SendEquipmentReminders` queue jobs
-- [ ] **#20** — hide cancelled events from splash / `home2` (see B3 for the rest)
-- [ ] **#21** — correct stale deployment/queue/backup docs
-- [ ] **#22** — avatar upload no longer dead-ends on a 419
+- [x] **#18** — ✅ DONE (2026-11-09) — `.env.example`: document AI/LLM + `REDIS_DB` vars (docs only). Confirmed: `GROQ_API_KEY`/`CLOUDFLARE_*`/`REDIS_DB` all present in `.env.example` (commit `b8dbe73`).
+- [x] **#19** — ✅ DONE (2026-11-09) — harden `ProcessTranslations` / `SendEquipmentReminders` queue jobs (commit `e1d94ee`).
+- [x] **#20** — ✅ DONE (2026-11-09) — hide cancelled events from splash / `home2` (commits `276f0b0`, `9426f47`; see B3 below for the rest, also done).
+- [x] **#21** — ✅ DONE (2026-11-09) — correct stale deployment/queue/backup docs (commits `234199d`, `4196186` at the time; note some of these counts have drifted again since and were re-fixed in a separate docs/ pass this session).
+- [x] **#22** — ✅ DONE (2026-11-09) — avatar upload no longer dead-ends on a 419 (commit `ac64b76`).
 - [ ] After merging: `ssh prod.clubcep.eu /opt/deploy/auto-deploy.sh` (or wait for 01:00), then verify.
 - [ ] Deploy to **staging** too — its auto-deploy is suspended; it's currently
       on `main` again after this session but will drift. Re-enable the staging
@@ -105,32 +105,43 @@ prod `failed_jobs` with ~335 rows and keeps `/health` "degraded").
 ## 3. Bugs found while screenshotting every screen (need code)
 
 - [ ] **B0** — avatar/logout 419s: PR #22 (code) + §2.1 (`.env`).
-- [ ] **B1** — `GET /admin/medical-certificates` → **HTTP 500**:
+- [x] **B1** — ✅ DONE (2026-11-09) — `GET /admin/medical-certificates` → **HTTP 500**:
       `ZipArchive::close(): Read error: Is a directory` at
       `MedicalExportController.php:164`. The ZIP builder feeds a directory to
       `addFile()` (a member with no cert file, or a path that resolves to a
       dir). Guard `is_file()` before `addFile()`. **Federation-critical.**
+      Confirmed: `is_file()` guards now present at `MedicalExportController.php:121,175`.
 - [ ] **B2** — `/storage/event-photos/**/*.jpg` → **403** (dozens): files/dirs
       under `storage/app/public/event-photos/` aren't world-readable → broken
       images on the splash, gallery, event pages, home4 "recent articles".
       `ssh prod.clubcep.eu 'chmod -R a+rX /opt/deploy/apps/divingclub-prod/storage/app/public/event-photos'`
       and fix the upload path's umask/perms in code (`Storage::disk('public')->put`
       then `chmod 0644`).
-- [ ] **B3** — cancelled events still show in `/availability` and the
+- [x] **B3** — ✅ DONE (2026-11-09) — cancelled events still show in `/availability` and the
       `/admin/dashboard` "Prochains événements" widget (PR #20 only fixed the two
       public landing methods). Add `->where('status', '!=', 'cancelled')` there
       too — and to `HomeController::index4()` `$nextEvents` (line ~187).
-- [ ] **B4** — mobile pagination renders literal **`pagination.previous` /
+      Confirmed: `HomeController.php:81,219` now filter `status != cancelled`, and
+      `index4()`'s `$nextEvents` (line 250) uses a `notCancelled()` scope.
+- [x] **B4** — ✅ DONE (2026-11-09) — mobile pagination renders literal **`pagination.previous` /
       `pagination.next`** — missing keys in `lang/*/pagination.php` (publish
-      Laravel's pagination lang file, or add the keys).
-- [ ] **B5** — `/admin/members` "Show 30" selector but page size is 25
-      (`x-per-page` value ignored by the controller's `->paginate()`).
-- [ ] **B6** — `/admin/dashboard` "TOTAL DES MEMBRES" and "NOUVEAUX CETTE ANNÉE"
+      Laravel's pagination lang file, or add the keys). Confirmed: `lang/en/pagination.php`
+      and `lang/fr/pagination.php` both exist.
+- [x] **B5** — ✅ DONE (2026-11-09) — `/admin/members` "Show 30" selector but page size is 25
+      (`x-per-page` value ignored by the controller's `->paginate()`). Confirmed: a shared
+      `PaginatesFromRequest::perPage()` trait is now used in `Admin\MemberController`.
+- [x] **B6** — ✅ DONE (2026-11-09) — `/admin/dashboard` "TOTAL DES MEMBRES" and "NOUVEAUX CETTE ANNÉE"
       both show 199 — the "new this year" count isn't filtered by join/adhesion year.
+      Confirmed: `DashboardController.php:43` now computes it as
+      `MemberDetail::where('adhesion_year', $season)->count()`, with a comment
+      explicitly citing this bug as the reason.
 - [ ] **B7** — `/home2` article body hot-links `upload.wikimedia.org` images →
       CSP-blocked → broken images. Fix the article content to use local assets.
-- [ ] **B8** — `/home4` "Articles récents" surfaces `SystemContent` shells
+      Still open (2026-11-09) — the 3 hardcoded `upload.wikimedia.org` URLs are
+      still in `resources/views/home2.blade.php:175,179,183`.
+- [x] **B8** — ✅ DONE (2026-11-09) — `/home4` "Articles récents" surfaces `SystemContent` shells
       ("Dues — footer note", "Bienvenue au CEP"). Exclude system slugs from the feed.
+      Confirmed: `HomeController.php:251` now calls `Article::...->excludingSystem()->...`.
 
 ---
 
@@ -143,19 +154,26 @@ Storage, naming and access control are documented in `devdocs/medical.md` +
 - [ ] **`is_current` never demoted** — `ProfileDocumentController::upload()`
       creates each new medical doc with `is_current = true` but never sets the
       previous one to `false` / `superseded_by`. Multiple "current" medical docs
-      accumulate; compliance + export pick an arbitrary `->first()`.
-- [ ] **B1 (also §3)** — `Admin\MedicalExportController::downloadCertificates`
+      accumulate; compliance + export pick an arbitrary `->first()`. Still open
+      (2026-11-09) — confirmed `ProfileDocumentController.php:62` still sets
+      `is_current => true` with no corresponding demotion.
+- [x] **B1 (also §3)** — ✅ DONE (2026-11-09) — `Admin\MedicalExportController::downloadCertificates`
       500s: `glob(private/medical/*)` returns the legacy per-member sub-dirs and
-      `ZipArchive::addFile()` on a directory throws. Add `is_file()`.
+      `ZipArchive::addFile()` on a directory throws. Add `is_file()`. Same fix as
+      B1 above, confirmed at `MedicalExportController.php:121,175`.
 - [ ] **Health data unencrypted at rest**, world-readable at the FS level
       (mode ~0664/0775) on a shared box. Not web-reachable, but any local
       process can read it. Consider `chmod 0640` + dedicated group, or
-      app-level encryption.
-- [ ] **GDPR erasure gap** — `confirmErasure()` only deletes files that have a
+      app-level encryption. Still open (2026-11-09) — no app-level encryption
+      found in `Document`/`ProfileDocumentController`; FS permissions are a
+      server-side state this review can't check.
+- [x] **GDPR erasure gap** — ✅ DONE (2026-11-09) — `confirmErasure()` only deletes files that have a
       `documents` row; legacy certs in `storage/app/private/medical/` with no
-      row survive an erasure request.
-- [ ] Deterministic filenames (`Str::slug(name type date)`) silently overwrite a
-      previous upload for the same person/type/date.
+      row survive an erasure request. Confirmed: `GdprController.php:95` now calls
+      `deleteLegacyMedicalFiles()`, explicitly added to cover this exact gap.
+- [x] Deterministic filenames (`Str::slug(name type date)`) silently overwrite a
+      previous upload for the same person/type/date. ✅ DONE (2026-11-09) — a
+      suffix-loop guard now exists in `ProfileDocumentController.php` (~lines 47-50).
 - [ ] Minor: medical-upload notification is `Mail::raw` to bureau with member
       name + cert type + date in plaintext email.
 
@@ -186,20 +204,26 @@ endpoint is behind your SSO.
 
 ## 5. Test suite
 
-- [ ] **e2e credentials**: `tests/e2e/*.py` hardcode `eddy.collart@gmail.com` and
+- [x] **e2e credentials**: ✅ DONE (2026-11-09) — `tests/e2e/*.py` hardcode `eddy.collart@gmail.com` and
       three *different wrong* passwords. Parametrise via env
-      (`E2E_BASE` / `E2E_USER` / `E2E_PASS`).
-- [ ] **e2e throttle**: `test_journeys.py` + `test_adversarial.py` can't run
+      (`E2E_BASE` / `E2E_USER` / `E2E_PASS`). Confirmed: `tests/e2e/_e2e_config.py`
+      now reads all three from the environment, `E2E_PASS` with no default.
+- [x] **e2e throttle**: ✅ DONE (2026-11-09) — `test_journeys.py` + `test_adversarial.py` can't run
       back-to-back (or `pytest tests/e2e/` in one shot) — the shared login
       trips the rate limiter and every `auth_page` test then lands on `/login`.
       Add a 429 backoff to the `login()` helpers, or make the fixtures
-      session-scoped and shared.
-- [ ] **stale test**: `test_journeys.py::test_nationality_grouped_dropdown` looks
+      session-scoped and shared. Confirmed: `_e2e_config.py` now has a shared
+      `_LOGIN_BACKOFF` schedule and `submit_login()` retry helper for exactly this.
+- [x] **stale test**: ✅ DONE (2026-11-09) — `test_journeys.py::test_nationality_grouped_dropdown` looks
       for `<select name=nationality>` with `<optgroup>`s — PR #16 replaced that
       with the `<x-country-select>` datalist. It currently passes vacuously.
-- [ ] **doc counts**: `docs/TESTING-GUIDE.md` ("35 + 49 tests, 233 PHPUnit,
+      Confirmed: that test is gone, replaced by `test_nationality_combobox`, which
+      explicitly tests the current `input[list]`/`<datalist>` markup.
+- [x] **doc counts**: ✅ DONE (2026-11-09) — `docs/TESTING-GUIDE.md` ("35 + 49 tests, 233 PHPUnit,
       updated April 8") is stale — PHPUnit is now ~442, e2e is 35 + 51 + 38
-      (`test_journeys.py` isn't listed at all).
+      (`test_journeys.py` isn't listed at all). Confirmed: `docs/TESTING-GUIDE.md`
+      was corrected in a separate docs/ pass this session (187 test files /
+      ~1,120 test methods, 4 mail providers).
 - [ ] **new crawlers** (cheap, high value) over every route:
       - no visible text matching `/pagination\.|^[a-z_]+\.[a-z_.]+$/` (catches B4)
       - every `<img>` has `naturalWidth > 0` (catches B2 / B7)
@@ -218,13 +242,18 @@ endpoint is behind your SSO.
 ## 6. UX / design — prioritised (full detail in the session transcript)
 
 ### P1 — broad or club-facing
-- [ ] **Finish the French locale** — ~⅓ of strings fall back to English on FR:
+- [x] **Finish the French locale** — ✅ DONE (2026-11-09) for the strings cited here —
+      ~⅓ of strings fall back to English on FR:
       nav (`About`, `Resources`, `My Account`), admin sidebar (`Minors`, `Trials`,
       `Partners`, `Roles`, `Backups`), table headers (`VISIBILITY`, `DÉFINIR`),
       calendar + instructor-planning legends, profile (`Status Set (base
       category)` + helptext, `Membership Status`), dashboard (`BUREAU WORKLIST`,
       `Medical certificates to verify`, `SCHEDULED TASKS`, `EMAIL SENDING QUOTA`).
-      Add a CI lint for untranslated visible strings.
+      Add a CI lint for untranslated visible strings. Confirmed: every string
+      named above now has a French entry in `lang/fr.json` (e.g. "About" →
+      "À propos", "Email Sending Quota" → "Quota d'envoi d'emails"). Not
+      re-verified: the "~⅓ of strings" estimate as a whole, or whether the CI
+      lint was ever added — only the specifically-named strings were checked.
 - [ ] **Fix the public splash** — hero image (B2), the four stat counters render
       **0** until you scroll (render the real value, animate as enhancement),
       empty coloured bands when there's no media, FR text vs EN buttons.

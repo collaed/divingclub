@@ -170,7 +170,7 @@ Limite : 30 requêtes par minute par partenaire.
 
 - Les secrets sont **hachés** (bcrypt) — jamais stockés en clair
 - Les secrets sortants sont **chiffrés** (AES-256) au repos
-- Chaque partenariat peut être **désactivé** ou **supprimé** instantanément
+- Chaque partenariat peut être **supprimé** instantanément (un indicateur `is_active` existe sur l'enregistrement, mais aucune action de l'interface d'admin ne permet de le basculer — seules la création et la suppression sont possibles)
 - L'API est **limitée en débit** (30 req/min)
 - Seuls les événements explicitement marqués comme **fédérés** sont visibles
 - Les inscriptions externes nécessitent une **approbation manuelle**

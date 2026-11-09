@@ -19,11 +19,11 @@ Guide for members, instructors, and visitors of clubs running DivingClub-Manager
 2. Fill in: first name, last name, email, password
 3. Or click a social login button (Google, Facebook, Microsoft, X, Amazon)
 4. Check your inbox for a verification email → click the link
-5. You're in! Your account starts with the "pending" role — the bureau will activate it
+5. You're in! Your account starts with the "member" role right away — there's no pending/approval step
 
 ### 1.2 Switching Language
 
-Click the language flag in the top navigation bar. 11 languages are available: English, French, German, Luxembourgish, Portuguese, Italian, Dutch, Spanish, Polish, Hungarian, Romanian. Your choice is saved for future visits. For logged-in users, the preference is stored in your profile. For guests, it's stored in the session.
+Click the language flag in the top navigation bar. Up to 15 languages are available (the bureau picks which ones to enable at install time): English, French, German, Luxembourgish, Portuguese, Italian, Dutch, Spanish, Polish, Hungarian, Romanian, Greek, Estonian, Slovak, Finnish. Your choice is saved for future visits. For logged-in users, the preference is stored in your profile. For guests, it's stored in the session.
 
 ### 1.3 Installing as a Phone App (PWA)
 

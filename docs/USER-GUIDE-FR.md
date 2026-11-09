@@ -19,11 +19,11 @@ Guide pour les membres, instructeurs et visiteurs des clubs utilisant DivingClub
 2. Remplissez : prénom, nom, email, mot de passe
 3. Ou cliquez sur un bouton de connexion sociale (Google, Facebook, Microsoft, X, Amazon)
 4. Vérifiez votre boîte mail → cliquez sur le lien de vérification
-5. C'est fait ! Votre compte démarre avec le rôle « en attente » — le bureau l'activera
+5. C'est fait ! Votre compte démarre directement avec le rôle `member` — il n'y a pas de palier d'approbation
 
 ### 1.2 Changer de langue
 
-Cliquez sur le drapeau dans la barre de navigation. 11 langues disponibles : anglais, français, allemand, luxembourgeois, portugais, italien, néerlandais, espagnol, polonais, hongrois, roumain. Votre choix est mémorisé. Pour les utilisateurs connectés, la préférence est sauvée dans le profil. Pour les invités, elle est stockée en session.
+Cliquez sur le drapeau dans la barre de navigation. Jusqu'à 15 langues sont disponibles (le bureau choisit lesquelles activer à l'installation) : anglais, français, allemand, luxembourgeois, portugais, italien, néerlandais, espagnol, polonais, hongrois, roumain, grec, estonien, slovaque, finnois. Votre choix est mémorisé. Pour les utilisateurs connectés, la préférence est sauvée dans le profil. Pour les invités, elle est stockée en session.
 
 ### 1.3 Installer comme application (PWA)
 

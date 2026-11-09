@@ -47,7 +47,7 @@ Plus-addressing supported: `cep+event.42@clubcep.eu`, `cep+bureau@clubcep.eu`.
 | `sas.etienne@` → ? | Not yet mapped | ⚠️ Same |
 | `sas.mariejo@` → ? | Not yet mapped | ⚠️ Same |
 | `sas.pascale@` → ? | Not yet mapped | ⚠️ Same |
-| `mail1-10@` → outbound | Load-balanced SMTP in new system | ✅ Built (3 providers) |
+| `mail1-10@` → outbound | Load-balanced SMTP in new system | ✅ Built (4 providers: Resend primary, Resend secondary, Mailjet via local relay, Brevo) |
 | `all-sas@` → archive | EmailLog table | ✅ Built (all forwarded mail logged) |
 | `vote@` → vote notifications | Vote system sends directly | ✅ Built |
 | Event dynamic addresses | `event-{id}@` + `members.s{id}@` | ✅ Built |
@@ -60,9 +60,9 @@ Plus-addressing supported: `cep+event.42@clubcep.eu`, `cep+bureau@clubcep.eu`.
 
 1. ~~**What are the `sas.*` aliases?**~~ **Resolved**: Vanity/functional aliases so bureau members don't expose personal addresses. All also CC to the club's Gmail functional mailbox (`all-sas@clubcep.eu`), which uses Gmail rules to forward to relevant bureau members.
 
-2. **Is `mailerDA.php` still actively used?** Or has all mail already been migrated to the new system's `PollInboundMail`? The script lives at `/home/clubcepe/mailForward/mailerDA.php` (not in the backup — need FTP to retrieve).
+2. ~~**Is `mailerDA.php` still actively used?**~~ **Resolved, and this plan's core assumption was wrong**: the legacy Vesta/cPanel-era system is confirmed completely gone. There is no `mailerDA.php` to migrate away from any more.
 
-3. **MX records**: Where do MX records for `clubcep.eu` currently point? The legacy shared host? If so, we need to route inbound mail to the VPS.
+3. ~~**MX records**: Where do MX records for `clubcep.eu` currently point?~~ **Resolved, and also not what this plan assumed**: they do not point at the legacy shared host, and they do not point at the Laravel app's Hetzner VPS either. `clubcep.eu`'s mail hosting is a separate box at Great-Heberg, running DirectAdmin (branded "vfront" in their panel), reachable only via FTP — no SSH, no API. Mail addressed to `info@clubcep.eu` (the club's public contact address) was confirmed to be silently dropped there: no catch-all, no forward, nothing — see "Current Reality" below.
 
 ---
 
@@ -98,7 +98,43 @@ Plus-addressing supported: `cep+event.42@clubcep.eu`, `cep+bureau@clubcep.eu`.
 
 ---
 
-## Technical Requirements for Cutover
+## Current Reality (as of this session) — supersedes the plan below
+
+This plan's "Technical Requirements for Cutover" section (next) was written
+assuming the cutover target was this Laravel app's own Hetzner VPS. That
+assumption is wrong: `clubcep.eu` has never been MXed at the app server, and
+there is no "install Postfix on our VPS and repoint MX" path available to
+this app at all. The actual mail-hosting server for `clubcep.eu` is a
+separate box at Great-Heberg, administered through DirectAdmin
+("vfront"), with **FTP-only access — no SSH, no API**. Any MTA-level
+routing, alias, or catch-all change for `clubcep.eu` has to happen inside
+that DirectAdmin panel directly, by someone with its login, and is
+entirely outside what this Laravel app (or Claude Code acting on this
+repo) can reach or automate.
+
+What *is* fixed, inside the Laravel app, as of this session:
+`PollInboundMail` (`app/Jobs/PollInboundMail.php`) now has a
+`contact_redirect` short-circuit — mail addressed to the club's public
+contact address (`config('club.contact_email')`, e.g. `info@clubcep.eu`)
+bypasses `MailAliasService` resolution and the bureau/instructor
+sender-authorization check entirely, and is forwarded unconditionally to
+`config('services.inbound_mail.contact_redirect')`
+(`INBOUND_MAIL_CONTACT_REDIRECT` env var) when that's set. This closes the
+gap where mail from the public (not a club-internal alias, and not from a
+`users` row) was being rejected and dropped by the sender check.
+
+This fix is real but currently **inert in production**, because
+`services.inbound_mail.enabled` (`INBOUND_MAIL_ENABLED` env var, default
+`false`) was confirmed `false` on prod earlier this session — meaning
+`PollInboundMail` isn't being scheduled/run there at all yet, independent
+of the DirectAdmin-side routing problem. Turning that flag on is a
+separate decision (it activates all inbound-alias processing, not just
+the contact-redirect case) and has not been made. Fixing the actual
+`info@clubcep.eu` → DirectAdmin routing/forwarding — the thing that would
+make mail reach the VPS at all — remains a distinct, not-yet-resolved
+action item that needs someone with DirectAdmin access, not a code change.
+
+## Technical Requirements for Cutover (original plan, now known to target the wrong server — kept for history)
 
 ### On the VPS (204.168.168.60)
 
@@ -114,6 +150,11 @@ Plus-addressing supported: `cep+event.42@clubcep.eu`, `cep+bureau@clubcep.eu`.
 clubcep.eu.  MX  10  mail.clubcep.eu.
 mail.clubcep.eu.  A  204.168.168.60
 ```
+
+These DNS requirements assumed MX for `clubcep.eu` could be pointed at
+this app's VPS. Per "Current Reality" above, the actual mail host is a
+separate DirectAdmin box this app has no access to — any MX/DNS change
+would have to happen there, by whoever controls that panel/domain's DNS.
 
 ### Laravel Config
 

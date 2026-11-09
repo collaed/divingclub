@@ -55,43 +55,43 @@ app/                          # Application code
 ├── Enums/                    # PHP 8.1 enums
 ├── Helpers/                  # HtmlSanitizer, etc.
 ├── Http/
-│   ├── Controllers/          # 65 controllers
-│   │   ├── Admin/            # 28 admin controllers
+│   ├── Controllers/          # 80 controllers
+│   │   ├── Admin/            # 40 admin controllers
 │   │   ├── Auth/             # 4 auth controllers (Login, Register, Social, EuLogin)
-│   │   ├── Api/              # 1 API controller (FederationApi)
+│   │   ├── Api/              # 2 API controllers (FederationApi)
 │   │   └── Concerns/         # Traits (PaginatesFromRequest)
-│   └── Middleware/           # 7 middleware classes
-├── Jobs/                     # 10 queued/scheduled jobs
-├── Models/                   # 61 Eloquent models
+│   └── Middleware/           # 8 middleware classes
+├── Jobs/                     # 20 queued/scheduled jobs
+├── Models/                   # 81 Eloquent models
 ├── Providers/                # Service providers
-├── Services/                 # 34 service classes (incl. Homogeneity/)
+├── Services/                 # 48 service classes (incl. Homogeneity/)
 └── Traits/                   # Auditable, etc.
 bootstrap/
 ├── app.php                   # Middleware, routing, exception config
 └── providers.php             # Service provider registration
-config/                       # 21 config files
+config/                       # 25 config files
 database/
-├── migrations/               # 103 migration files
+├── migrations/               # 155 migration files
 ├── seeders/                  # DatabaseSeeder, SampleDataSeeder, CertificationSeeder, EquipmentSeeder
 └── factories/                # Model factories
 lang/                         # 15 locale directories + JSON files
 resources/
-├── views/                    # 166 Blade templates
-├── scss/                     # 11 SCSS partials + app.scss
+├── views/                    # 229 Blade templates
+├── scss/                     # 14 SCSS partials + app.scss
 ├── js/                       # app.js, table-utils.js, etc.
 └── css/                      # Base CSS (Vite entry)
 routes/
-├── web.php                   # Public + authenticated routes (~180 routes)
-├── admin.php                 # Bureau admin routes (~160 routes)
-├── api.php                   # API routes (federation endpoints)
+├── web.php                   # Public + authenticated routes (~203 routes)
+├── admin.php                 # Bureau admin routes (~205 routes)
+├── api.php                   # API routes (federation endpoints, 6 routes)
 └── console.php               # Scheduled tasks
 tests/
-├── Feature/                  # 55 feature test files
-├── Unit/                     # 17 unit test files
+├── Feature/                  # 157 feature test files
+├── Unit/                     # 30 unit test files
 └── e2e/                      # Playwright: test_ui / test_adversarial / test_journeys
 ```
 
-**Totals** (approx., 2026-09): 379 routes, 61 models, 166 Blade templates, 34 services, 103 migrations, 72 PHPUnit test files (~440 tests, ~1115 assertions).
+**Totals** (approx., 2026-11): ~414 routes, 81 models, 229 Blade templates, 48 services, 155 migrations, 187 PHPUnit test files (~1,120 test methods).
 
 ---
 
@@ -246,13 +246,14 @@ Bureau can impersonate any member via `POST /admin/members/{user}/impersonate`. 
 
 ### Outbound — Load-Balanced Sending
 
-The `MailBalancer` service distributes email across 3 providers:
+The `MailBalancer` service distributes email across 4 providers:
 
 | Provider | Daily Limit | Transport |
 |----------|-------------|-----------|
 | Resend (primary) | 98/day | Resend API |
 | Resend (secondary) | 98/day | Resend API (second key) |
 | Mailjet | 200/day (6000/month) | Sendmail/Postfix relay |
+| Brevo | 300/day | Brevo API |
 
 `MailBalancer::nextProvider()` picks the provider with remaining quota. `MailBalancer::configureForNext()` switches the active mailer config before each send.
 
@@ -314,14 +315,22 @@ All jobs report via `ScheduleHeartbeat` to the `schedule_heartbeats` table for m
 
 ## 8. Deployment Topology
 
-### Production Server
-- **Host**: Hetzner VPS at `204.168.168.60`
+One Hetzner host runs both the staging and production apps as user
+`clubcep`.
+
+### Staging — `test.clubcep.eu`
 - **App path**: `/opt/deploy/apps/divingclub`
-- **User**: `deploy`
+- **User**: `clubcep`
 - **Database**: PostgreSQL 14+
 - **Web server**: Caddy (automatic HTTPS)
-- **Queue**: `php artisan queue:work` (systemd service)
-- **Cron**: Standard Laravel scheduler
+- **Queue**: Redis + Horizon (`supervisorctl restart horizon`)
+
+### Production — `prod.clubcep.eu`
+- **App path**: `/opt/deploy/apps/divingclub-prod`
+- **User**: `clubcep`
+- **Database**: PostgreSQL 14+
+- **Web server**: Caddy (automatic HTTPS)
+- **Queue**: Redis + Horizon (`supervisorctl restart horizon-prod`)
 
 ### Local Development
 - **Database**: MySQL 8+
@@ -333,15 +342,17 @@ All jobs report via `ScheduleHeartbeat` to the `schedule_heartbeats` table for m
 # Local
 vendor/bin/pint --dirty          # Format
 php artisan test --compact       # Run tests
-git push                         # Push to GitHub
+git push                         # Push to GitHub, merge to main
 
-# Remote (Hetzner)
+# Staging — ssh test.clubcep.eu
 cd /opt/deploy/apps/divingclub
-git pull
-composer install --no-dev
-npm ci && npm run build
-php artisan migrate --force
+sudo -u clubcep git merge --ff-only
 php artisan optimize:clear
+
+# Production — ssh prod.clubcep.eu /opt/deploy/auto-deploy.sh
+# (or wait for the 01:00 cron) — fetches, `reset --hard`s, migrates,
+# health-checks, and auto-rolls-back on failure. Full ops detail in
+# .kiro/steering/deployment.md.
 ```
 
 ### Backup Strategy
@@ -365,9 +376,9 @@ php artisan optimize:clear
 | `MailAliasService` | Inbound alias resolution (plus-addressing) |
 | `InboundMailFilter` | Strip signatures, quoted replies, AI content moderation |
 | `BackupService` | Full backup (Spatie), offsite SFTP upload |
-| `ArticleTranslationService` | Auto-translate articles via Google Translate API |
+| `ArticleTranslationService` | Auto-translate articles: Cloudflare Workers AI (M2M-100) primary, DeepL fallback |
 | `LicenseService` | RSA-signed license verification |
-| `ThemeService` | Dynamic theme management (6 presets + custom) |
+| `ThemeService` | Dynamic theme management (7 presets + custom) |
 | `DiveGroupProposalService` | Auto-generate dive buddy groups |
 | `SwapSuggestionService` | Suggest member swaps between dive groups |
 | `HomogeneityAssessmentService` | Assess dive group homogeneity (14 rules) |
@@ -379,7 +390,7 @@ php artisan optimize:clear
 | `DanExportService` | Export dive data in DAN DL7 format |
 | `EmailStatsService` | Email sending statistics and quota tracking |
 | `UpdateService` | In-app system updates |
-| `NewsletterStencilSlicer` | Process newsletter template stencils |
+| `NewsletterStencilSlicer` | Unused — newsletter backgrounds are a direct upload or a preset theme match, no slicing |
 | `ScheduleHeartbeat` | Track scheduled task execution health |
 
 ---
@@ -387,7 +398,7 @@ php artisan optimize:clear
 ## 10. Frontend Architecture
 
 - **Build**: Vite with `laravel-vite-plugin` and `sass`
-- **CSS**: Bootstrap 5 + 11 custom SCSS partials (`_base`, `_dark-mode`, `_header`, `_cards`, `_tabs`, `_footer`, `_bubbles`, `_tables`, `_components`, `_ux`, `_planning`)
+- **CSS**: Bootstrap 5 + 14 custom SCSS partials (`_base`, `_dark-mode`, `_header`, `_cards`, `_tabs`, `_footer`, `_bubbles`, `_tables`, `_components`, `_ux`, `_planning`, `_layouts`, `_responsive`, `_social`)
 - **JS**: Vanilla JavaScript with `table-utils.js` providing shared utilities (search, sort, clickable rows)
 - **Dark mode**: CSS class `.dark-mode` toggled via JS (not `prefers-color-scheme`)
 - **Charts**: Chart.js for dashboard statistics

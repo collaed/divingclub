@@ -39,22 +39,39 @@ Bienvenue dans le système d'administration DivingClub — la plateforme de gest
 | Rôle | Slug | Accès |
 |------|------|-------|
 | Bureau Master | `bureau_master` | Admin complet — tous les paramètres, membres, finances, équipement, communications |
-| Bureau | `bureau_member` | Accès bureau en lecture |
-| Instructeur | `instructor` | Gérer les événements qu'il encadre, voir les participants |
-| Assistant | `assistant` | Assister aux événements |
+| Bureau Technique | `bureau_technical` | Membres, événements, équipement, articles, sites de plongée, votes, email, newsletters, documents, saisons, partenariats |
+| Bureau Finance | `bureau_finance` | Membres, paiements, email, statistiques email, logs d'audit, vérification de documents |
+| Directeur technique | `technical_dir` | Gestion des fédérations et niveaux de certification (permission déléguée) |
+| Instructeur | `instructor` | Gérer les événements qu'il encadre, voir les participants, vérifier les documents |
+| Instructeur (apnée) | `instructor_apnea` | Même accès qu'Instructeur, pour la spécialité apnée |
+| Assistant | `assistant` | Accès instructeur limité (disponibilités, groupes de plongée) |
 | Membre | `member` | Standard — profil, événements, documents |
-| En attente | `pending` | En attente d'approbation après inscription |
+| Public | `public` | Visiteur non authentifié |
+
+Il n'existe pas de rôle « en attente » : à l'inscription (classique ou via
+réseau social), le compte reçoit directement le rôle `member` — il n'y a pas
+de palier d'approbation (voir §3.6). « Bureau » (accès bureau en lecture)
+n'est pas non plus un rôle séparé : c'est un indicateur booléen
+(`detail.bureau_member`) utilisé pour le ciblage des envois d'email, distinct
+des rôles ci-dessus.
 
 ### Statuts des membres (slugs français)
 
-| Statut | Slug | Multiplicateur | Notes |
-|--------|------|---------------|-------|
-| Actif | `actif` | 1.00 | Membre actif standard |
-| Fonctionnaire | `fonctionnaire` | 1.00 | Fonctionnaire |
-| Honoraire | `honoraire` | 0.00 | Toujours gratuit |
-| Junior | `junior` | 0.50 | Moins de 18 ans |
-| Famille | `famille` | 0.75 | Adhésion familiale |
-| Membre de droit | `membre_de_droit` | 0.00 | Membre de droit |
+| Statut | Slug |
+|--------|------|
+| Membre de droit | `membre_de_droit` |
+| Actif | `actif` |
+| Externe | `externe` |
+| Fonctionnaire | `fonctionnaire` |
+| Associé | `associe` |
+| Assimilé | `assimile` |
+| Honoraire | `honoraire` |
+| Sympathisant | `sympathisant` |
+| Famille | `famille` |
+| Ancien membre | `former` |
+
+Il n'existe pas de statut « Junior ». Le calcul réel de la cotisation par
+statut ne repose pas sur un simple multiplicateur — voir §7 Paiements.
 
 ### Fédérations supportées
 
@@ -489,10 +506,13 @@ Administration → Newsletters. Créer et envoyer des newsletters HTML riches.
 3. Cliquer « Envoyer pour commentaires » pour envoyer au bureau via mailto
 4. Cliquer « Envoyer » pour distribuer à tous les membres
 
-L'envoi utilise le MailBalancer (3 fournisseurs, rotation automatique).
+L'envoi utilise le MailBalancer (4 fournisseurs, rotation automatique — voir §14.6).
 
 **Images :**
-Les images d'en-tête et de pied de page peuvent être générées par IA (Gemini, DALL-E). Fichiers attendus dans `public/images/newsletter/{theme}/` :
+Pas de génération par IA : chaque thème (`bulles`, `abyss`, `coral`, `arctic`)
+a son propre jeu d'images statiques, ou un administrateur peut téléverser
+une image de fond personnalisée (`background_image`). Fichiers attendus dans
+`public/images/newsletter/{theme}/` :
 - `header.jpg` (1200×400px) — bannière avec titre du club
 - `footer.jpg` (1200×400px) — scène sous-marine
 - `left.jpg` (90×1000px) — bordure gauche
@@ -582,7 +602,9 @@ Pour les événements de plongée, le planificateur aide à organiser les plonge
 
 ### 12.2 Moteur de règles
 
-Le système inclut 39 règles sur 5 fédérations (LIFRAS, FFESSM, BSAC, PADI, CMAS). Les règles couvrent :
+Le système inclut 39 règles réparties sur 5 portées : des règles génériques
+(`global`, équivalences CMAS), plus FFESSM, LIFRAS, BSAC et PADI. Les règles
+couvrent :
 
 - **Taille du groupe** — min/max plongeurs par groupe
 - **Exigences de chef de palanquée** — niveau minimum pour le chef
@@ -657,14 +679,17 @@ Sans clé, les lieux d'événement renvoient vers une recherche Google Maps au l
 
 ### 14.3 API de traduction (optionnel)
 
-Pour la traduction automatique du contenu vers les 11 langues supportées.
+Pour la traduction automatique du contenu vers les 15 langues supportées
+(`config/languages.php`). Il n'y a pas de pilote configurable — le
+mécanisme est câblé en dur sur deux services, dans cet ordre :
 
-| Service | Coût | Variables env | Notes |
+| Service | Rôle | Variables env | Notes |
 |---------|------|--------------|-------|
-| **LibreTranslate** (recommandé) | 🆓 Gratuit — auto-hébergé | `TRANSLATION_DRIVER=libretranslate`, `LIBRETRANSLATE_URL=http://localhost:5000` | Docker : `docker run -p 5000:5000 libretranslate/libretranslate` |
-| **Argos Translate** | 🆓 Gratuit — auto-hébergé | `TRANSLATION_DRIVER=argos`, `ARGOS_URL=http://localhost:5100` | Python, hors ligne. Bon pour la confidentialité. |
-| DeepL | Gratuit : 500K car/mois | `TRANSLATION_DRIVER=deepl`, `DEEPL_API_KEY=votre_clé` | Meilleure qualité pour les langues européennes |
-| Google Translate | $20/million car | `TRANSLATION_DRIVER=google`, `GOOGLE_TRANSLATE_KEY=votre_clé` | Cloud Translation API |
+| **Cloudflare Workers AI** (M2M-100) | Essayé en premier (quota gratuit quotidien) | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` dans `.env` | Seul service supportant le luxembourgeois (`lb`) |
+| **DeepL** | Repli si Cloudflare échoue (quota mensuel) | `DEEPL_API_KEY` dans `.env` | Ne supporte pas le luxembourgeois |
+
+LibreTranslate, Argos Translate et Google Translate ne sont pas utilisés —
+aucun de ces fournisseurs n'a de code dans `ArticleTranslationService`.
 
 ### 14.4 API OCR (optionnel)
 
@@ -690,15 +715,19 @@ Pour l'analyse intelligente de documents, la catégorisation automatique et les 
 
 ### 14.6 SMTP / Email
 
-Le système utilise un **load-balancer** (`MailBalancer`) qui répartit automatiquement les envois sur 3 fournisseurs :
+Le système utilise un **load-balancer** (`MailBalancer`) qui répartit automatiquement les envois sur 4 fournisseurs :
 
 | Fournisseur | Capacité | Configuration |
 |-------------|----------|---------------|
-| **Resend** (primaire) | 100/jour | `RESEND_KEY` dans `.env` |
-| **Resend** (secondaire) | 100/jour | `RESEND_KEY_SECONDARY` dans `.env` |
+| **Resend** (primaire) | 98/jour | `RESEND_KEY` dans `.env` |
+| **Resend** (secondaire) | 98/jour | `RESEND_KEY_SECONDARY` dans `.env` |
 | **Mailjet** (via Postfix) | 6 000/mois (~200/jour) | `MAILJET_KEY` + `MAILJET_SECRET` dans `.env` |
+| **Brevo** | 300/jour | `BREVO_API_KEY` dans `.env` |
 
-**Total : ~380 emails/jour**, rotation automatique quand un fournisseur atteint sa limite.
+**Total : ~696 emails/jour**, rotation automatique vers le fournisseur le
+moins utilisé qui a encore de la capacité ; si tous sont épuisés ou non
+configurés, Mailjet est utilisé par défaut (relais local, pas de clé API
+requise).
 
 Le tableau de bord affiche en temps réel :
 - Barres de progression par fournisseur (quota journalier)

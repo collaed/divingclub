@@ -55,7 +55,7 @@ php artisan db:seed --class=SampleDataSeeder
 - [ ] Dive sites populated
 
 ### 1.4 Roles & Permissions (Admin → Roles & Permissions)
-- [ ] Matrix shows 8 roles × 20 permissions
+- [ ] Matrix shows 9 roles × 19 permissions
 - [ ] Check a permission on instructor → Save → verify it sticks
 - [ ] Uncheck it → Save → verify removed
 
@@ -220,7 +220,7 @@ php artisan db:seed --class=SampleDataSeeder
 - [ ] Admin → Articles → Create news article with TinyMCE
 - [ ] Add featured image
 - [ ] Publish → appears on homepage
-- [ ] Trigger auto-translation (if Google Translate API configured)
+- [ ] Trigger auto-translation (Cloudflare Workers AI primary, DeepL fallback — no config needed beyond the API keys)
 
 ---
 
@@ -283,13 +283,13 @@ php artisan db:seed --class=SampleDataSeeder
 
 ### 9.1 Backup
 - [ ] Admin → Backups → Create Backup
-- [ ] Download → tar.gz contains DB dump + files + manifest
+- [ ] Download → .zip contains DB dump + files + manifest (only the SFTP offsite copy is renamed to `dcms-bkp-{domain}-{date}.tar.gz`)
 - [ ] Offsite upload → check SFTP server for `dcms-bkp-{domain}-{date}.tar.gz`
 - [ ] Delete old backup → removed from list
 
 ### 9.2 Dashboard Monitoring
 - [ ] Scheduled Tasks → all show frequency + last run + OK/Overdue
-- [ ] Email Sending Quota → 3 providers with progress bars
+- [ ] Email Sending Quota → 4 providers with progress bars
 - [ ] System → version, commit, update check
 - [ ] Worklist → all pending items with counts
 
@@ -321,7 +321,7 @@ The optimal path minimizes login/logout:
 ## Automated Test Coverage
 
 ```bash
-# PHPUnit backend tests (~440 tests)
+# PHPUnit backend tests (187 test files, ~1,120 test methods)
 php artisan test --compact
 
 # Playwright E2E — connection details come from the environment:

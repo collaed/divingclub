@@ -160,7 +160,7 @@ The email system allows the bureau to send targeted messages to member groups or
 - **Send Email** — select a template and target group (all members, instructors, bureau, etc.)
 - **Email Log** — full history of all sent emails with status (sent/failed)
 
-Event reminder emails appear in the log with the event name and recipient. All emails are load-balanced across 3 providers (Resend × 2 + Mailjet).
+Event reminder emails appear in the log with the event name and recipient. All emails are load-balanced across 4 providers (Resend × 2 + Mailjet + Brevo).
 
 ---
 
@@ -177,7 +177,7 @@ Each group has:
 - **Divers** paired by certification level
 - Planned depth, duration, gas mix, and entry time
 
-The planner validates groups against 14 configurable rules (max depth per level, group size, leader requirements).
+The planner validates groups against 40 configurable rules across 5 scopes — global plus FFESSM, LIFRAS, BSAC, and PADI federation-specific rules (max depth per level, group size, leader requirements).
 
 ---
 
@@ -192,7 +192,7 @@ The bureau dashboard provides a complete overview of club operations.
 Key sections:
 - **Statistics** — total members, events, attendance, revenue
 - **Bureau Worklist** — pending actions (unverified certs, expired medical, missing IBAN, external registrations, upcoming birthdays)
-- **Email Sending Quota** — live usage across Resend (×2) + Mailjet with progress bars
+- **Email Sending Quota** — live usage across Resend (×2) + Mailjet + Brevo with progress bars
 - **System** — version, last commit, update check
 - **Scheduled Tasks** — heartbeat monitoring for all background jobs
 
@@ -378,7 +378,7 @@ Bureau members can impersonate any member to troubleshoot their experience. Clic
 
 ### 19.1 Theme Settings
 
-**Admin → Settings → Theme** offers 6 presets (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic) plus custom colors, logo upload, and dark mode.
+**Admin → Settings → Theme** offers 7 presets (Ocean, Europe, Coral, Lagoon, Abyss, Tropical, Arctic) plus custom colors, logo upload, and dark mode.
 
 ![Theme Settings](ch19_01_theme_settings.png)
 
@@ -472,7 +472,7 @@ A 24-page in-app guide accessible at **Admin → Guide** covers all setup and op
 
 ### 27.1 Free Tier
 
-The system works for free up to **100 members**. Beyond that, a license key is required. Without a valid key:
+The system works for free up to **200 members**. Beyond that, a license key is required. Without a valid key:
 - New member registrations are blocked
 - An "Unlicensed" warning appears on the dashboard
 - PDF exports carry a watermark
@@ -526,5 +526,5 @@ Retention policy: logs older than the configured period are automatically cleane
 
 ---
 
-*Complete manual — 27 chapters, 46 screenshots.*
+*Complete manual — 28 chapters, 42 screenshots.*
 *Screenshots captured from test.clubcep.eu on April 6, 2026.*

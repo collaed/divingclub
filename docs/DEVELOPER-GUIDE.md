@@ -74,30 +74,31 @@ This is a **server-rendered monolith** — no SPA, no React/Vue. Pages are rende
 ```
 app/
 ├── Http/Controllers/          # Route handlers (one method per action)
-│   ├── Admin/                 # 26 bureau-only controllers
+│   ├── Admin/                 # 40 bureau-only controllers
 │   ├── Auth/                  # Login, register, OAuth, EU Login
 │   └── *.php                  # Member-facing controllers
-├── Models/                    # 56 Eloquent models (database entities)
-├── Services/                  # 27 business logic services
+├── Models/                    # 81 Eloquent models (database entities)
+├── Services/                  # 48 business logic services
 ├── Jobs/                      # Background tasks (queued)
 ├── Helpers/                   # Utility classes (HtmlSanitizer, IconHelper)
 ├── Http/Middleware/           # Request filters (auth, locale, CSRF)
 ├── Http/Requests/             # Form validation classes
 database/
-├── migrations/                # 74 schema changes (run in order)
+├── migrations/                # 155 schema changes (run in order)
 ├── seeders/                   # Sample data generators
 ├── factories/                 # Test data blueprints
 resources/
-├── views/                     # 155 Blade templates (HTML)
+├── views/                     # 229 Blade templates (HTML)
 │   ├── components/            # Reusable UI pieces (x-layout, x-breadcrumb)
 │   ├── admin/                 # Bureau pages
 │   └── *.blade.php            # Member pages
-├── scss/                      # 11 SCSS partials → compiled to CSS
+├── scss/                      # 14 SCSS partials → compiled to CSS
 ├── js/                        # Vanilla JS modules
 lang/                          # 15 language directories (en, fr, de, lb, pt...)
 routes/
-├── web.php                    # All 331 HTTP routes
-├── api.php                    # API routes
+├── web.php                    # ~203 member-facing routes
+├── admin.php                  # ~205 bureau/admin routes
+├── api.php                    # 6 API routes
 ├── console.php                # Scheduled tasks
 tests/
 ├── Feature/                   # Integration tests (HTTP requests)
@@ -203,16 +204,23 @@ $roleTable = Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
 
 ## Member Statuses
 
-Six statuses affecting fee calculation and access:
+Ten statuses affecting fee calculation and access:
 
 | Status | Description |
 |--------|-------------|
 | `membre_de_droit` | Full rights member |
-| `actif` | Active member |
-| `fonctionnaire` | Civil servant |
-| `honoraire` | Honorary (no fees) |
-| `junior` | Under 18 |
-| `famille` | Family member (discounted) |
+| `actif` | Active member (external) |
+| `externe` | External member |
+| `fonctionnaire` | Civil servant member |
+| `associe` | Associate member |
+| `assimile` | Assimilated member |
+| `honoraire` | Honorary member (active, no fee) |
+| `sympathisant` | Supporter (lighter membership) |
+| `famille` | Family member |
+| `former` | Former / lapsed member (inactive) |
+
+There is no `junior` status — it was removed (along with `enfant`) by
+`database/migrations/2026_09_20_105214_remove_junior_and_enfant_statuses.php`.
 
 ---
 
@@ -342,15 +350,22 @@ CI runs on push: lint (Pint), tests (PHPUnit), build (npm).
 
 ## Deployment (Staging)
 
-Staging server: `test.clubcep.eu` (Hetzner VPS at 204.168.168.60)
+Staging server: `test.clubcep.eu` (one Hetzner host runs both apps as user
+`clubcep`: staging at `/opt/deploy/apps/divingclub`, production at
+`/opt/deploy/apps/divingclub-prod`)
 
 ```bash
 # After pushing to main:
-ssh root@204.168.168.60
+ssh test.clubcep.eu
 cd /opt/deploy/apps/divingclub
-sudo -u clubcep git pull
+sudo -u clubcep git merge --ff-only
 php artisan optimize:clear
 ```
+
+Production deploys via `ssh prod.clubcep.eu /opt/deploy/auto-deploy.sh`
+(or the 01:00 cron) — a hardened script that fetches, `reset --hard`s,
+migrates, health-checks, and auto-rolls-back on failure. Full ops detail in
+`.kiro/steering/deployment.md`.
 
 ---
 
@@ -363,7 +378,7 @@ php artisan optimize:clear
 | `.env` | Environment variables (DB, mail, keys) |
 | `phpunit.xml` | Test configuration |
 | `vite.config.js` | Asset bundling (SCSS, JS) |
-| `resources/scss/_base.scss` | Global styles, CSS variables |
+| `resources/scss/partials/_base.scss` | Global styles, CSS variables |
 | `resources/js/table-utils.js` | Shared table functionality (search, sort, clickable rows) |
 | `config/app.php` | App name, timezone, locale |
 | `database/seeders/DatabaseSeeder.php` | Default data (roles, statuses, certifications) |

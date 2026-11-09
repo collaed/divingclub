@@ -170,7 +170,7 @@ Rate limit: 30 requests per minute per partner.
 
 - Secrets are **hashed** (bcrypt) — never stored in plain text
 - Outbound secrets are **encrypted** (AES-256) at rest
-- Each partnership can be **deactivated** or **removed** instantly
+- Each partnership can be **removed** instantly (an `is_active` flag exists on the record, but there's no admin UI action to toggle it — only create and delete)
 - API is **rate-limited** (30 req/min)
 - Only events explicitly marked as **federated** are visible
 - External registrations require **manual approval**

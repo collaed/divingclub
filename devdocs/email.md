@@ -4,12 +4,15 @@
 
 ### Architecture
 
-Three SMTP providers load-balanced via `MailBalancer`:
-1. Mailjet (primary, 6000/day free tier)
-2. Amazon SES (secondary)
-3. Generic SMTP (tertiary/fallback)
+Four providers load-balanced via `MailBalancer`, picked by lowest usage-today among those still under their daily cap (ties broken in this order):
+1. Resend (primary) — `RESEND_KEY`, 98/day
+2. Resend (secondary) — `RESEND_KEY_SECONDARY`, a second Resend account/key, 98/day
+3. Mailjet — via local Postfix/sendmail relay (`MAILJET_KEY`/`MAILJET_SECRET` used only for its stats API, not sending), 200/day (≈6000/month free tier)
+4. Brevo — `BREVO_API_KEY`, 300/day
 
-`MailBalancer::configureForNext()` selects the provider with remaining quota and configures Laravel's mailer dynamically before each send.
+A provider is only picked if it has credentials configured (`MailBalancer::isConfigured()`); if every provider is unconfigured or over its cap, Mailjet is used anyway since it's a local relay needing no API key. Daily counts are tracked in `MailSendStat` (not cache), so `optimize:clear` on deploy never resets rotation.
+
+`MailBalancer::configureForNext()` selects the next provider and configures Laravel's mailer dynamically before each send. Amazon SES is still registered as a mail transport (`config/mail.php`, `AWS_*` credentials) but is not part of the `MailBalancer` rotation — currently unused.
 
 ### Target Groups (6)
 
@@ -66,11 +69,22 @@ All sent/received emails stored in `email_log`:
 | `cep+{tag}@clubcep.eu` | Plus-addressing (any of above) | Per-alias |
 | `sas.{name}@clubcep.eu` | Vanity alias → bureau member's personal email + CC club Gmail | Bureau |
 
+### Public Contact Address Redirect
+
+Mail to the club's public contact address (`config('club.contact_email')`,
+e.g. `info@clubcep.eu`) isn't a club-internal alias — it comes from the
+public, who aren't `users` rows and would otherwise be rejected by the
+sender-authorization check below. If `config('services.inbound_mail.contact_redirect')`
+is set and the message's `to` matches `club.contact_email`, `PollInboundMail`
+forwards it there unconditionally, bypassing alias resolution and the
+bureau/instructor sender check entirely, before any of the steps below run.
+
 ### Processing Pipeline
 
 ```
 PollInboundMail fetches message
   → Extract from, to, subject, body (handles MIME multipart, base64, QP)
+  → (contact-redirect check — see above — short-circuits here if it matches)
   → Check subject for (recipients: ...) directive override
   → MailAliasService::resolve(to) → get recipient list
   → Auth check: sender must be bureau or instructor (else → rejected, logged)
@@ -105,6 +119,6 @@ Subject contains `(recipients: simulate, bureau)` → sends back a preview of wh
 Separate from the email system. Rich HTML newsletters with themed templates:
 - `newsletters` table: title, month, status (draft/approved/sent), slots (JSON)
 - Approval workflow: `newsletter_approvals` table
-- Themes: bulles (decorative backgrounds), clean (simple)
-- AI-generated artwork stored in `storage/app/public/newsletters/`
-- Published HTML in `storage/app/public/newsletters/published/`
+- Themes: `bulles`, `abyss`, `coral`, `arctic` — named stencil-image sets, matched from `background_image` (`NewsletterController::buildEmailData()`), default `bulles`
+- `background_image` is either a direct custom-image upload (`storage('newsletters')`) or one of the 4 preset theme names, matched via `str_contains()` in `NewsletterController::buildEmailData()` — no slicing/cropping and no AI image generation involved (`App\Services\NewsletterStencilSlicer` exists in the codebase but has zero callers — dead code)
+- Rendered HTML is stored directly on the `newsletters.published_html` column, not as a file on disk

@@ -55,7 +55,7 @@ federations as PHP constants: FFESSM's three age-band slugs
 `KIND_FLASSA` name them again as the fee-line "kind" enum.
 `FeeCalculationService` calls `LicenceResolver` directly and reads those two
 kinds by name in half a dozen places (`app/Services/FeeCalculationService.php`
-lines ~57, 96–128, 288–303).
+lines 21, 137, 167, 399).
 
 This isn't a lookup-table problem — FFESSM's rule (age → one of 3 discrete
 tiers) and FLASSA's rule (age → free-or-full) aren't the same *shape* of

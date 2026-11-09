@@ -98,14 +98,24 @@ Each certification grants specific **aptitudes** — rights to dive at certain d
 
 ## Application to Club CEP Dive Groups
 
-For the club's dive group planner, a valid palanquée requires:
+This table is reference material for configuring the club's dive-group
+rules — it is not something the engine looks up directly. `DiveGroupRule`
+(`app/Models/DiveGroupRule.php`) is a generic, bureau-configurable rule
+table (`scope`, `diver_condition`, `min_leader_rank`, `leader_category`,
+`max_depth`, `max_group_size`), edited via the admin UI at
+`resources/views/admin/dive-group-rules/`. A palanquée pattern like the
+examples below (1 guide + 1-4 divers at depth X, 2-3 autonomous adults at
+depth Y, …) is expressed as one or more `DiveGroupRule` rows a bureau
+member creates/edits — the PE/PA/encadrement mapping above is what a
+bureau member consults when deciding what to type into those fields, not
+a table the code reads from directly:
 1. **Supervised**: 1 qualified guide (≥ N4/GP) + 1-4 divers with PE-X ≥ planned depth
 2. **Autonomous**: 2-3 adult divers with PA-X ≥ planned depth
 3. **Training**: 1 qualified instructor (E-level appropriate) + students
 4. **Pool (≤6m)**: E1 sufficient as DP, PE-12 divers can be autonomous
 
-The dive group rules engine should validate:
-- Each diver's aptitude covers the planned depth
-- Group composition matches one of the valid patterns
+A dive-group rule, once configured, validates:
+- Each diver's aptitude (rank) covers the planned depth
+- Group composition matches one of the configured patterns
 - Minor restrictions are enforced
 - Instructor/guide qualification matches the group type

@@ -88,7 +88,7 @@ Valid for: clubcep.eu, up to 500 members, expires 2027-12-31
 The license is verified at three independent checkpoints:
 - **Middleware** — blocks member registration when invalid
 - **Boot provider** — shares watermark status with all views
-- **PDF output** — stamps "UNLICENSED" on fiche de sécurité and exports if invalid
+- **PDF output** — stamps "UNLICENSED" on the fiche de sécurité PDF if invalid (the only view that calls `LicenseService::watermark()`)
 
 To check status programmatically:
 
@@ -104,6 +104,12 @@ Returns:
     'needs_license' => true,
     'is_valid' => true,
     'integrity_ok' => true,
+    'license_details' => [
+        'domain' => 'clubcep.eu',
+        'max_members' => 500,
+        'expires' => '2027-12-31',
+        'issued_at' => '2026-03-20 10:00:00',
+    ], // null if no license key is installed
 ]
 ```
 

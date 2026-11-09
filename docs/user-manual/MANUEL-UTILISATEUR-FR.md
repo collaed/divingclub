@@ -158,7 +158,7 @@ Le système d'email permet au bureau d'envoyer des messages ciblés aux groupes 
 - **Envoi** — sélectionner un template et un groupe cible
 - **Journal** — historique complet de tous les emails envoyés
 
-Les emails sont répartis automatiquement sur 3 fournisseurs (Resend × 2 + Mailjet).
+Les emails sont répartis automatiquement sur 4 fournisseurs (Resend × 2 + Mailjet + Brevo).
 
 ---
 
@@ -185,7 +185,7 @@ Le tableau de bord du bureau offre une vue complète des opérations du club.
 Sections clés :
 - **Statistiques** — membres, événements, fréquentation, revenus
 - **Liste de tâches** — actions en attente (certificats non vérifiés, médicaux expirés, IBAN manquants, inscriptions externes, anniversaires)
-- **Quota d'envoi email** — utilisation en temps réel sur les 3 fournisseurs
+- **Quota d'envoi email** — utilisation en temps réel sur les 4 fournisseurs
 - **Tâches planifiées** — surveillance des jobs en arrière-plan
 
 ---
@@ -346,7 +346,7 @@ Les membres du bureau peuvent se connecter en tant que n'importe quel membre pou
 
 ### 19.1 Paramètres du thème
 
-**Admin → Paramètres → Thème** offre 6 préréglages (Ocean, Coral, Lagoon, Abyss, Tropical, Arctic) plus des couleurs personnalisées, le téléchargement du logo et le mode sombre.
+**Admin → Paramètres → Thème** offre 7 préréglages (Ocean, Europe, Coral, Lagoon, Abyss, Tropical, Arctic) plus des couleurs personnalisées, le téléchargement du logo et le mode sombre.
 
 ![Paramètres thème](ch19_01_theme_settings.png)
 
@@ -436,7 +436,7 @@ Un guide intégré de 24 pages accessible dans **Admin → Guide** couvre toutes
 
 ### 27.1 Palier gratuit
 
-Le système fonctionne gratuitement jusqu'à **100 membres**. Au-delà, une clé de licence est nécessaire. Sans clé valide :
+Le système fonctionne gratuitement jusqu'à **200 membres**. Au-delà, une clé de licence est nécessaire. Sans clé valide :
 - Les nouvelles inscriptions sont bloquées
 - Un avertissement « Unlicensed » apparaît sur le tableau de bord
 - Les exports PDF portent un filigrane
@@ -485,6 +485,6 @@ Le tableau de bord affiche un avertissement 30 jours avant l'expiration. Le main
 
 ---
 
-*Manuel complet — 27 chapitres, 46 captures d'écran.*
+*Manuel complet — 28 chapitres, 42 captures d'écran.*
 *Captures réalisées sur test.clubcep.eu le 6 avril 2026.*
 *Généré par DivingClub-Manager v1.1.0.*
