@@ -138,6 +138,7 @@
                         <div class="dc-result-region">
                         <hr>
                         <h5>{{ __('Your Membership Dues') }}</h5>
+                        <div class="table-responsive">
                         <table class="table table-sm" data-dues-result>
                             <tbody>
                             @foreach($breakdown as $line)
@@ -148,6 +149,7 @@
                             @endforeach
                             </tbody>
                         </table>
+                        </div>
 
                         <div class="alert alert-info">
                             <strong>{{ __('Payment Communication') }}:</strong><br>

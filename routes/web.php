@@ -83,6 +83,10 @@ Route::get('/trial', [TrialController::class, 'show'])->name('trial.show');
 Route::post('/trial', [TrialController::class, 'store'])->middleware('throttle:3,1')->name('trial.store');
 Route::get('/dues', [DuesCalculatorController::class, 'show'])->name('dues.show');
 Route::post('/dues/calculate', [DuesCalculatorController::class, 'calculate'])->name('dues.calculate');
+// The calculate view renders directly on POST (no redirect), so the browser
+// stays on this URL; a GET here (back() from the locale switcher, a refresh,
+// a bookmark) would otherwise 405 — send it to the calculator instead.
+Route::get('/dues/calculate', fn () => redirect()->route('dues.show'));
 Route::post('/dues/commit', [DuesCalculatorController::class, 'commit'])->middleware('auth')->name('dues.commit');
 Route::get('/cotisation', fn () => redirect()->route('dues.show'))->name('cotisation');
 Route::get('/calendar.ics', [CalendarFeedController::class, 'ical'])->name('calendar.ics');

@@ -196,4 +196,12 @@ class DuesCalculatorControllerTest extends TestCase
         $this->actingAs($user)->post(route('dues.commit'), ['season_year' => '2027', 'status_id' => $actif->id])
             ->assertSessionHasErrors('status_id');
     }
+
+    public function test_get_on_the_calculate_url_redirects_instead_of_405ing(): void
+    {
+        // calculate() renders the view directly on POST, so the browser stays
+        // on this URL; the locale switcher's back() then issues a GET here.
+        $this->get('/dues/calculate')
+            ->assertRedirect(route('dues.show'));
+    }
 }
