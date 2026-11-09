@@ -174,9 +174,20 @@
 }
 
 // Breakdown table: dotted leader between label and amount, tidy alignment.
+//
+// table-layout: fixed is required, not just a nicety: under the default
+// auto layout, the browser sizes the label column from the dot leader's
+// *unshrunk* max-content width before flex-shrinking is ever considered,
+// so the column (and table) balloon regardless of min-width: 0 below. With
+// a fixed layout, only the amount column gets an explicit width and the
+// label column is forced to the remainder, giving the flex item an actual
+// bound to shrink against.
 table[data-dues-result] {
+  table-layout: fixed;
+  width: 100%;
+
   td:first-child {
-    width: 100%;
+    width: auto;
   }
 
   // Draw a dotted leader on normal rows only (skip the bold Total row and any
@@ -200,6 +211,9 @@ table[data-dues-result] {
   }
 
   td.text-end {
+    // table-layout: fixed assigns exactly this width regardless of content
+    // (unlike auto layout, it won't grow to fit) — wide enough for "€1,234.56".
+    width: 80px;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
