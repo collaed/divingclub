@@ -6,9 +6,11 @@ use App\Models\Event;
 use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\User;
+use App\Notifications\NewMemberRegisteredNotification;
 use App\Services\MedicalComplianceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Group;
@@ -78,6 +80,28 @@ class CriticalPathsTest extends TestCase
         ])->assertRedirect();
 
         $this->assertDatabaseHas('users', ['primary_email' => 'jean@example.com']);
+    }
+
+    public function test_registration_notifies_bureau_by_email(): void
+    {
+        Notification::fake();
+
+        $bureau = $this->createUser('bureau_master');
+
+        $this->post('/register', [
+            'first_name' => 'Jean',
+            'last_name' => 'Dupont',
+            'email' => 'jean2@example.com',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
+            'website' => '',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'M',
+            'phone_mobile' => '+352691000000',
+            '_ts' => time() - 5,
+        ])->assertRedirect();
+
+        Notification::assertSentTo($bureau, NewMemberRegisteredNotification::class);
     }
 
     public function test_register_validates_email(): void

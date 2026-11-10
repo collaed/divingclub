@@ -13,6 +13,7 @@ use App\Models\MemberStatus;
 use App\Models\StatusSet;
 use App\Models\User;
 use App\Models\UserEmail;
+use App\Notifications\ProfileApprovedNotification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -179,6 +180,7 @@ class MemberController extends Controller
             'status_set_id' => 'sometimes|nullable|integer|exists:status_sets,id',
         ]);
 
+        $wasUnclassified = $user->status_set_id === null;
         $targetSetId = array_key_exists('status_set_id', $v) ? $v['status_set_id'] : $user->status_set_id;
         $targetStatusId = array_key_exists('status_id', $v) ? $v['status_id'] : $user->status_id;
 
@@ -204,6 +206,12 @@ class MemberController extends Controller
         }
         if ($updates !== []) {
             $user->update($updates);
+        }
+
+        // First time a status set is assigned — the bureau's "approval" of a
+        // new member's profile, not a later re-classification.
+        if ($wasUnclassified && $targetSetId !== null) {
+            $user->notify(new ProfileApprovedNotification);
         }
 
         if ($request->expectsJson()) {

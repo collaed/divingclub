@@ -18,6 +18,7 @@ use App\Models\MemberLicence;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
 use App\Models\User;
+use App\Notifications\ProfileApprovedNotification;
 use App\Services\LedgerClassificationService;
 use App\Services\MedicalComplianceService;
 use Illuminate\Contracts\View\View;
@@ -180,6 +181,13 @@ class ProfileController extends Controller
             abort(403);
         }
 
+        // First time a status set is assigned — the bureau's "approval" of a
+        // new member's profile, not a later re-classification.
+        $wasUnclassified = $target->status_set_id === null;
+        $targetSetId = ($viewer->isBureau() && array_key_exists('status_set_id', $validated))
+            ? $validated['status_set_id']
+            : $target->status_set_id;
+
         DB::transaction(function () use ($target, $validated, $viewer): void {
             $target->update(array_filter([
                 'username' => $validated['username'] ?? null,
@@ -207,6 +215,10 @@ class ProfileController extends Controller
 
             $target->detail()->updateOrCreate(['user_id' => $target->id], $detailData);
         });
+
+        if ($wasUnclassified && $targetSetId !== null) {
+            $target->notify(new ProfileApprovedNotification);
+        }
 
         return back()->with('success', __('Profile updated.'))->withInput(['tab' => 'info']);
     }

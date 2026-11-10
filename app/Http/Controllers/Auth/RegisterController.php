@@ -9,12 +9,14 @@ use App\Http\Requests\RegisterUserRequest;
 use App\Models\MemberDetail;
 use App\Models\User;
 use App\Models\UserEmail;
+use App\Notifications\NewMemberRegisteredNotification;
 use App\Services\PushNotificationService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 
 class RegisterController extends Controller
@@ -78,6 +80,11 @@ class RegisterController extends Controller
             __('New Member'),
             $validated['first_name'].' '.$validated['last_name'],
             '/admin/members'
+        );
+
+        Notification::send(
+            User::role(['bureau_master', 'bureau_finance', 'bureau_technical'])->get(),
+            new NewMemberRegisteredNotification($user)
         );
 
         return redirect()->route('verification.notice');

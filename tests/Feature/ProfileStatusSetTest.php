@@ -8,7 +8,9 @@ use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
 use App\Models\User;
+use App\Notifications\ProfileApprovedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
 
@@ -63,6 +65,24 @@ class ProfileStatusSetTest extends TestCase
         $member->refresh();
         $this->assertSame($set->id, $member->status_set_id);
         $this->assertSame($actifId, $member->status_id);
+    }
+
+    public function test_first_status_set_assignment_via_profile_form_notifies_the_member(): void
+    {
+        Notification::fake();
+
+        $set = $this->setWithStatuses('externe', ['actif']);
+        $actifId = MemberStatus::where('slug', 'actif')->value('id');
+        $member = $this->member();
+        $this->assertNull($member->status_set_id);
+
+        $this->actingAs($this->admin)->post(route('admin.profile.update.info', $member), [
+            'first_name' => 'M', 'last_name' => 'N', 'sex' => 'M',
+            'status_set_id' => $set->id,
+            'status_id' => $actifId,
+        ])->assertRedirect();
+
+        Notification::assertSentTo($member, ProfileApprovedNotification::class);
     }
 
     public function test_saving_an_unconfirmed_members_info_without_picking_a_status_does_not_approve_them(): void

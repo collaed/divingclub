@@ -8,7 +8,9 @@ use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
 use App\Models\User;
+use App\Notifications\ProfileApprovedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
 
@@ -72,6 +74,42 @@ class AdminMemberRosterTest extends TestCase
         $member->refresh();
         $this->assertSame($set->id, $member->status_set_id);
         $this->assertSame($actif->id, $member->status_id);
+    }
+
+    public function test_first_status_set_assignment_notifies_the_member_of_approval(): void
+    {
+        Notification::fake();
+
+        $set = StatusSet::create(['name' => 'Externe', 'slug' => 'externe']);
+        $actif = MemberStatus::firstOrCreate(['slug' => 'actif'], ['name' => 'Actif']);
+        $set->statuses()->attach($actif->id);
+        $member = $this->memberWithStatus('actif');
+        $this->assertNull($member->status_set_id);
+
+        $this->actingAs($this->admin)
+            ->patchJson(route('admin.members.status.update', $member), ['status_set_id' => $set->id, 'status_id' => $actif->id])
+            ->assertOk();
+
+        Notification::assertSentTo($member, ProfileApprovedNotification::class);
+    }
+
+    public function test_reclassifying_an_already_classified_member_does_not_resend_approval(): void
+    {
+        $set = StatusSet::create(['name' => 'Externe', 'slug' => 'externe']);
+        $otherSet = StatusSet::create(['name' => 'Famille', 'slug' => 'famille']);
+        $actif = MemberStatus::firstOrCreate(['slug' => 'actif'], ['name' => 'Actif']);
+        $set->statuses()->attach($actif->id);
+        $otherSet->statuses()->attach($actif->id);
+        $member = $this->memberWithStatus('actif');
+        $member->update(['status_set_id' => $set->id]);
+
+        Notification::fake();
+
+        $this->actingAs($this->admin)
+            ->patchJson(route('admin.members.status.update', $member), ['status_set_id' => $otherSet->id, 'status_id' => $actif->id])
+            ->assertOk();
+
+        Notification::assertNothingSent();
     }
 
     public function test_ajax_status_out_of_set_is_rejected(): void
