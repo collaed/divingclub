@@ -552,15 +552,29 @@
         // The member-select component's type-to-search input has no known
         // id until the browser fills it in from the datalist — sync the
         // paired hidden input (the actual form value) whenever that happens.
-        document.addEventListener('input', function(e){
-            var input = e.target.closest('[data-member-select-input]');
-            if (!input) return;
+        // Matched loosely (trimmed, case/diacritic-insensitive) since the
+        // browser's own datalist suggestions are themselves a loose
+        // substring match — an exact match here would silently leave the
+        // hidden id empty for a suggestion the user clearly picked.
+        function normalize(s) {
+            return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        }
+        function sync(input) {
             var hidden = document.getElementById(input.dataset.memberSelectInput);
             var list = document.getElementById(input.getAttribute('list'));
             if (!hidden || !list) return;
-            var opt = Array.prototype.find.call(list.options, function(o){ return o.value === input.value; });
+            var needle = normalize(input.value);
+            var opt = Array.prototype.find.call(list.options, function(o){ return normalize(o.value) === needle; });
             hidden.value = opt ? opt.dataset.id : '';
+        }
+        document.addEventListener('input', function(e){
+            var input = e.target.closest('[data-member-select-input]');
+            if (input) sync(input);
         });
+        document.addEventListener('blur', function(e){
+            var input = e.target.closest && e.target.closest('[data-member-select-input]');
+            if (input) sync(input);
+        }, true);
     })();
     </script>
     @stack('scripts')
