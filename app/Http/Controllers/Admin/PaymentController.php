@@ -281,7 +281,42 @@ class PaymentController extends Controller
             ->limit(20)
             ->get();
 
-        return view('admin.payments.transaction-show', compact('transaction', 'candidates', 'search'));
+        // For when the member is recognized by sight but has no pending due
+        // to search above against (first season payment, already paid some
+        // other way, ...) — covers the whole membership, not just candidates.
+        $allMembers = User::with('detail')->whereHas('detail')->get()->sortBy(fn (User $u): string => mb_strtolower(($u->detail?->last_name ?? '').' '.($u->detail?->first_name ?? '')))->values();
+
+        return view('admin.payments.transaction-show', compact('transaction', 'candidates', 'search', 'allMembers'));
+    }
+
+    /**
+     * The bureau recognizes who this is even though no reference/name match
+     * or pending due was found. Remembers the account/name for next time
+     * regardless of outcome, and — only when the derived season fee cleanly
+     * matches what was paid — creates and confirms the payment outright.
+     */
+    public function identifyCounterparty(Request $request, BankTransaction $transaction): RedirectResponse
+    {
+        if ($transaction->status === 'confirmed') {
+            return back()->with('error', __('This transaction is already confirmed and can no longer be relinked.'));
+        }
+
+        $request->validate(['user_id' => 'required|exists:users,id']);
+        $user = User::findOrFail($request->integer('user_id'));
+
+        $svc = app(BankReconciliationService::class);
+        $svc->learnCounterparty($transaction, $user);
+        $proposal = $svc->proposeBackfillForUser($transaction, $user);
+
+        if ($proposal['clean_match']) {
+            $svc->createAndConfirmBackfill($transaction, $proposal);
+
+            return redirect()->route('admin.payments.transactions.show', $transaction)
+                ->with('success', __('Linked to :name — created and confirmed.', ['name' => $user->name]));
+        }
+
+        return redirect()->route('admin.payments.transactions.show', $transaction)
+            ->with('success', __('Remembered — this account/name is now linked to :name for next time. The amount doesn\'t match a season fee though, so link it to a specific due below or resolve it manually.', ['name' => $user->name]));
     }
 
     public function manualMatchTransaction(Request $request, BankTransaction $transaction): RedirectResponse

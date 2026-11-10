@@ -125,5 +125,19 @@
                 @endif
             </div>
         </div>
+
+        <div class="card dc-card mt-3">
+            <div class="card-header">{{ __('Recognize this person') }}</div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">{{ __('Not in the list above? Pick the member yourself. The account/name is remembered for next time either way; if the amount matches a season fee it\'s linked and confirmed automatically.') }}</p>
+                <form method="POST" action="{{ route('admin.payments.transactions.identify', $transaction) }}" class="d-flex gap-2 flex-wrap align-items-start">
+                    @csrf
+                    <div style="min-width:18rem">
+                        <x-member-select name="user_id" :members="$allMembers" class="form-control-sm" placeholder="{{ __('Type member name…') }}" required />
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary">{{ __('Link this person') }}</button>
+                </form>
+            </div>
+        </div>
     @endif
 </x-admin-layout>

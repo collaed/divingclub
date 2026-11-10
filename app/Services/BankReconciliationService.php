@@ -487,6 +487,25 @@ class BankReconciliationService
             return null;
         }
 
+        return $this->buildBackfillProposal($tx, $user, (string) $matchedBy);
+    }
+
+    /**
+     * Same derivation as proposeBackfill(), but for a member the bureau
+     * identified by hand instead of one found by reference/name matching —
+     * used when a transaction's counterparty is recognized visually but
+     * matches no regex pattern and no PaymentExpected.
+     *
+     * @return array{user: User, amount_due: float, components: array<string, mixed>, communication: string, clean_match: bool, matched_by: string}
+     */
+    public function proposeBackfillForUser(BankTransaction $tx, User $user): array
+    {
+        return $this->buildBackfillProposal($tx, $user, 'manual');
+    }
+
+    /** @return array{user: User, amount_due: float, components: array<string, mixed>, communication: string, clean_match: bool, matched_by: string} */
+    private function buildBackfillProposal(BankTransaction $tx, User $user, string $matchedBy): array
+    {
         ['category' => $category, 'insurance' => $insurance] = app(LedgerClassificationService::class)->parseCotisationText((string) $tx->communication);
         $statusOverride = $category ? MemberStatus::where('slug', $category)->first() : null;
         $optionalSlugs = ($insurance && $insurance !== 'none') ? ["ass_{$insurance}"] : [];
@@ -543,7 +562,7 @@ class BankReconciliationService
      * Ledger's own matcher, see LedgerClassificationService::matchCounterparty())
      * so the next transaction from the same account scores a match on its own.
      */
-    private function learnCounterparty(BankTransaction $tx, ?User $user): void
+    public function learnCounterparty(BankTransaction $tx, ?User $user): void
     {
         if (! $user || ! $tx->counterparty) {
             return;

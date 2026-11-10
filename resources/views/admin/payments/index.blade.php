@@ -62,6 +62,7 @@
     <div class="mt-4">
         <a href="{{ route('admin.payments.renewals') }}" class="btn btn-success">{{ __('Membership renewals') }}</a>
         <a href="{{ route('admin.payments.reconciliation') }}" class="btn btn-primary">{{ __('Bank Reconciliation') }}</a>
+        <a href="{{ route('admin.payments.checklist') }}" class="btn btn-outline-primary">{{ __('Action Checklist') }}</a>
     </div>
 </x-admin-layout>
 

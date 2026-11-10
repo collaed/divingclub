@@ -1,5 +1,8 @@
 <x-admin-layout :title="__('Bank Reconciliation')">
-    <h4 class="mb-4">{{ __('Bank Reconciliation') }}</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h4 class="mb-0">{{ __('Bank Reconciliation') }}</h4>
+        <a href="{{ route('admin.payments.checklist') }}" class="btn btn-sm btn-outline-primary">{{ __('Action Checklist') }}</a>
+    </div>
 
     <div class="row mb-4">
         <div class="col-md-4"><div class="card dc-card text-center p-3"><h5>{{ $summary['unmatched'] }}</h5><small class="text-muted">{{ __('Unmatched') }}</small></div></div>

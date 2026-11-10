@@ -6,6 +6,7 @@
         </div>
         <a href="{{ route('admin.payments.insurance', ['season_year' => $year]) }}" class="btn btn-sm btn-outline-primary">{{ __('Insurance to register') }}</a>
         <a href="{{ route('admin.payments.licence-renewals') }}" class="btn btn-sm btn-outline-primary">{{ __('Licence renewals pending') }}</a>
+        <a href="{{ route('admin.payments.checklist', ['season_year' => $year]) }}" class="btn btn-sm btn-outline-primary">{{ __('Action Checklist') }}</a>
         <form method="GET" class="d-flex gap-2 align-items-center">
             <label for="season_year" class="form-label mb-0 small">{{ __('Season') }}</label>
             <input type="number" id="season_year" name="season_year" value="{{ $year }}" class="form-control form-control-sm" style="width:6rem" data-autosubmit>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ClearLicencePendingRequest;
 use App\Http\Requests\OverrideRenewalRequest;
 use App\Http\Requests\ReceiveRenewalRequest;
+use App\Models\MembershipFeeComponent;
 use App\Models\PaymentExpected;
 use App\Models\Season;
 use App\Models\User;
@@ -153,6 +154,51 @@ class RenewalController extends Controller
         $cleared = $this->renewals->clearLicencePending($request->validated('user_ids'), $request->validated('federation'));
 
         return response()->json(['ok' => true, 'cleared' => $cleared]);
+    }
+
+    /**
+     * One row per paid membership this season: who paid, how much, and
+     * what's still outstanding on their file (medical cert, FFESSM/FLASSA
+     * licence renewal, insurance registration) — the bureau's "money
+     * received, what do I still need to do about it" view.
+     */
+    public function checklist(Request $request): View
+    {
+        $year = (string) $request->input('season_year', Season::currentDuesYear());
+        $showResolved = $request->boolean('all');
+
+        $tiers = MembershipFeeComponent::where('is_optional', true)
+            ->where('kind', MembershipFeeComponent::KIND_ASSURANCE)->get()->keyBy('slug');
+
+        $rows = PaymentExpected::with('user.detail', 'user.licences.federation')
+            ->where('type', 'membership')->where('season_year', $year)->where('status', 'paid')
+            ->orderByDesc('paid_at')->orderByDesc('id')
+            ->get()
+            ->filter(fn (PaymentExpected $p): bool => $p->user !== null)
+            ->map(function (PaymentExpected $p) use ($tiers): array {
+                $u = $p->user;
+                $insuranceSlug = $this->renewals->insuranceIn($p->components ?? []);
+
+                $row = [
+                    'payment' => $p,
+                    'user' => $u,
+                    'cert' => $this->medical->getStatus($u),
+                    'pendingFfessm' => $u->licences->contains(fn ($l): bool => $l->federation?->acronym === 'FFESSM' && $l->licence_request_pending),
+                    'pendingFlassa' => $u->licences->contains(fn ($l): bool => $l->federation?->acronym === 'FLASSA' && $l->licence_request_pending),
+                    'insuranceTier' => $insuranceSlug ? $tiers->get($insuranceSlug) : null,
+                ];
+                $row['allDone'] = in_array($row['cert']['status'], ['compliant', 'expiring'], true)
+                    && ! $row['pendingFfessm'] && ! $row['pendingFlassa']
+                    && (! $row['insuranceTier'] || $p->insurance_registered_at !== null);
+
+                return $row;
+            });
+
+        if (! $showResolved) {
+            $rows = $rows->reject(fn (array $r): bool => $r['allDone']);
+        }
+
+        return view('admin.payments.checklist', ['year' => $year, 'showResolved' => $showResolved, 'rows' => $rows->values()]);
     }
 
     private function paid(float $amount): JsonResponse

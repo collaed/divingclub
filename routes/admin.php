@@ -248,6 +248,8 @@ Route::post('/payments/ignore/{transaction}', [PaymentController::class, 'ignore
 Route::get('/payments/transactions/{transaction}', [PaymentController::class, 'showTransaction'])->name('payments.transactions.show');
 Route::post('/payments/transactions/{transaction}/match', [PaymentController::class, 'manualMatchTransaction'])->name('payments.transactions.match');
 Route::post('/payments/transactions/{transaction}/backfill', [PaymentController::class, 'backfillFromTransaction'])->name('payments.backfill-match');
+Route::post('/payments/transactions/{transaction}/identify', [PaymentController::class, 'identifyCounterparty'])->name('payments.transactions.identify');
+Route::get('/payments/checklist', [RenewalController::class, 'checklist'])->name('payments.checklist');
 
 // Ledger (bank movements): import, classify, tag, group — bureau_master only,
 // narrower than the bureau_master/bureau_finance/bureau_technical group this

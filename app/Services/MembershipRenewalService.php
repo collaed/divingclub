@@ -309,7 +309,7 @@ class MembershipRenewalService
     }
 
     /** @param  array<string, mixed>  $components */
-    private function insuranceIn(array $components): ?string
+    public function insuranceIn(array $components): ?string
     {
         return $this->insuranceTiers()->pluck('slug')->first(fn (string $slug): bool => array_key_exists($slug, $components));
     }

@@ -236,6 +236,55 @@
 })();
 
 /**
+ * Payment action checklist: clear one member's FFESSM/FLASSA pending badge
+ * right from this row, instead of going to the licence renewals queue.
+ * Reuses the same bulk-clear endpoint with a single id.
+ */
+(function () {
+    'use strict';
+
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-checklist-clear-fed]');
+        const row = btn?.closest('[data-checklist-row]');
+        if (!row) {
+            return;
+        }
+
+        const federation = btn.dataset.checklistClearFed;
+        const body = new FormData();
+        body.append('user_ids[]', btn.dataset.userId);
+        body.append('federation', federation);
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(btn.dataset.clearUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body,
+            });
+            if (!res.ok) {
+                throw new Error('failed');
+            }
+        } catch (err) {
+            btn.disabled = false;
+            window.showToast?.('Network error — nothing was cleared.', 'error');
+            return;
+        }
+
+        row.querySelector('[data-checklist-fed="' + federation + '"]')?.remove();
+        btn.remove();
+        const cell = row.querySelector('[data-checklist-licence-cell]');
+        if (cell && !cell.querySelector('[data-checklist-fed]')) {
+            cell.innerHTML = '<span class="text-muted small">—</span>';
+        }
+    });
+})();
+
+/**
  * Insurance backlog: tick a payment once its insurance is registered.
  */
 (function () {
