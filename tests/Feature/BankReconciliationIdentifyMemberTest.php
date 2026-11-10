@@ -100,6 +100,24 @@ class BankReconciliationIdentifyMemberTest extends TestCase
         $this->assertSame('Account of J. Schmid', $counterparty->name);
     }
 
+    public function test_a_transaction_with_no_counterparty_on_file_is_honest_about_not_remembering_anything(): void
+    {
+        $bureau = $this->createBureauUser();
+        $user = $this->member('fonctionnaire', 45);
+        $tx = BankTransaction::create([
+            'transaction_date' => now(), 'amount' => 999.00,
+            'communication' => 'no pattern here at all', 'counterparty' => null,
+            'status' => 'unmatched',
+        ]);
+
+        $response = $this->actingAs($bureau)->post(route('admin.payments.transactions.identify', $tx), [
+            'user_id' => $user->id,
+        ])->assertRedirect();
+
+        $this->assertNull(LedgerCounterparty::where('member_id', $user->id)->first());
+        $this->assertStringContainsString('nothing to remember', (string) $response->getSession()->get('success'));
+    }
+
     public function test_a_confirmed_transaction_cannot_be_identified_after_the_fact(): void
     {
         $bureau = $this->createBureauUser();

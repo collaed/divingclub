@@ -315,8 +315,11 @@ class PaymentController extends Controller
                 ->with('success', __('Linked to :name — created and confirmed.', ['name' => $user->name]));
         }
 
-        return redirect()->route('admin.payments.transactions.show', $transaction)
-            ->with('success', __('Remembered — this account/name is now linked to :name for next time. The amount doesn\'t match a season fee though, so link it to a specific due below or resolve it manually.', ['name' => $user->name]));
+        $message = $transaction->counterparty
+            ? __('Remembered — this account/name is now linked to :name for next time. The amount doesn\'t match a season fee though, so link it to a specific due below or resolve it manually.', ['name' => $user->name])
+            : __('Looks like :name, but this transaction has no counterparty account/name on file — there\'s nothing to remember for next time. The amount also doesn\'t match a season fee, so link it to a specific due below or resolve it manually.', ['name' => $user->name]);
+
+        return redirect()->route('admin.payments.transactions.show', $transaction)->with('success', $message);
     }
 
     public function manualMatchTransaction(Request $request, BankTransaction $transaction): RedirectResponse
