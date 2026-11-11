@@ -195,7 +195,24 @@ class LedgerClassificationService
             return $matches >= 2;
         });
 
-        return $hits->count() === 1 ? $hits->first() : null;
+        if ($hits->count() === 1) {
+            return $hits->first();
+        }
+        if ($hits->count() >= 2) {
+            return null;
+        }
+
+        // No two-word hit: French cotisation references often spell out only
+        // a surname ("MME SONDT ..."), never the forename — fall back to an
+        // exact last-name word match, but only when it uniquely identifies
+        // one member, to avoid false positives on common surnames.
+        $lastNameHits = $this->memberDetails->filter(function (MemberDetail $d) use ($norm, $words): bool {
+            $lastName = $norm($d->last_name ?? '');
+
+            return $lastName !== '' && in_array($lastName, $words, true);
+        });
+
+        return $lastNameHits->count() === 1 ? $lastNameHits->first() : null;
     }
 
     /** @return array{tag: string, category: string, direction: string}|null */

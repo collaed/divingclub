@@ -131,6 +131,41 @@ class BankReconciliationBackfillTest extends TestCase
         $this->assertNull($this->svc->proposeBackfill($tx));
     }
 
+    public function test_a_surname_alone_with_no_forename_still_resolves_when_unique(): void
+    {
+        $user = $this->member('fonctionnaire', 45);
+        $tx = BankTransaction::create([
+            'transaction_date' => now(), 'amount' => 999.00,
+            // Real-world French cotisation wording: only a civility + surname,
+            // the forename never appears, and a second (unrelated) surname
+            // rides along for a couple paying together.
+            'communication' => 'cotisation CEP + FLASSA 2026/2027 MME SCHMID M. BERELDANGE',
+            'status' => 'unmatched',
+        ]);
+
+        $proposal = $this->svc->proposeBackfill($tx);
+
+        $this->assertNotNull($proposal);
+        $this->assertSame($user->id, $proposal['user']->id);
+        $this->assertSame('name', $proposal['matched_by']);
+    }
+
+    public function test_a_surname_shared_by_two_members_stays_unresolved(): void
+    {
+        $this->member('fonctionnaire', 45);
+        $status = MemberStatus::where('slug', 'fonctionnaire')->firstOrFail();
+        $other = User::factory()->create(['status_id' => $status->id]);
+        MemberDetail::create(['user_id' => $other->id, 'first_name' => 'Anna', 'last_name' => 'Schmid']);
+
+        $tx = BankTransaction::create([
+            'transaction_date' => now(), 'amount' => 100.00,
+            'communication' => 'cotisation MME SCHMID',
+            'status' => 'unmatched',
+        ]);
+
+        $this->assertNull($this->svc->proposeBackfill($tx));
+    }
+
     public function test_non_bureau_user_cannot_backfill(): void
     {
         $member = $this->createMemberUser();
