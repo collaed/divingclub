@@ -3,6 +3,32 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## 2026-11-11 — prod at 8470271
+
+### New
+- Bank reconciliation: an "Action Checklist" page listing who paid this
+  season and what's still outstanding on their file (medical cert,
+  FFESSM/FLASSA licence renewal, insurance registration), and a
+  "Recognize this person" option on an unmatched bank transaction for
+  when no reference or pending due matches — it remembers the
+  account/name for next time and auto-confirms the payment when the
+  amount cleanly matches a season fee.
+
+### Fixed
+- Linking a bank transaction to a member by typing their name could
+  silently fail to register anything if what you typed wasn't a
+  byte-for-byte match (case, accents, spacing) to the suggestion — the
+  page looked unchanged with no error shown.
+- A bank transaction with no counterparty account/name on the statement
+  itself was still told you "this account/name is now linked... for
+  next time" after identifying the member — there's nothing to
+  remember on those, and it now says so.
+- "Last Dive Date" on a member's profile was a disabled value computed
+  only from club-organised dive-event attendance, so it went stale for
+  anyone diving outside those events and couldn't be corrected. It's
+  now a normal editable field (the club-event date is still shown as a
+  hint).
+
 ## 2026-11-07 — prod at 72d48db
 
 ### Data changes
