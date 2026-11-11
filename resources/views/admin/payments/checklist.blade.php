@@ -41,7 +41,7 @@
                             <span class="badge bg-{{ $cert['badge'] }}">{{ __($cert['label']) }}</span>
                             @if($cert['cert'])
                                 <div class="small text-muted">
-                                    {{ $cert['cert']->expiry_date?->format('d/m/Y') }}
+                                    {{ $cert['cert']->date_established?->format('d/m/Y') }}
                                     <a href="{{ route('profile.document.download', ['document' => $cert['cert'], 'as' => ($u->detail?->last_name).'_'.($u->detail?->first_name).'_'.$u->id]) }}" title="{{ __('Download certificate') }}">@icon('📥')</a>
                                 </div>
                             @endif

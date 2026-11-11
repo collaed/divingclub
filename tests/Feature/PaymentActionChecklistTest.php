@@ -71,19 +71,20 @@ class PaymentActionChecklistTest extends TestCase
         $response->assertSee('Assurance Loisir 1 Top');
     }
 
-    public function test_a_current_medical_cert_shows_its_expiry_date_and_a_named_download_link(): void
+    public function test_a_current_medical_cert_shows_its_exam_date_and_a_named_download_link(): void
     {
         $user = $this->member('Lambert');
         $this->paidMembership($user, []);
         $cert = Document::create([
             'user_id' => $user->id, 'category' => 'medical', 'is_current' => true,
-            'expiry_date' => '2027-06-15', 'file_path' => 'documents/current.pdf',
+            'date_established' => '2026-11-02', 'expiry_date' => '2027-06-15', 'file_path' => 'documents/current.pdf',
             'original_filename' => 'scan.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1,
         ]);
 
         $response = $this->actingAs($this->admin)->get(route('admin.payments.checklist', ['season_year' => '2027', 'all' => 1]))->assertOk();
 
-        $response->assertSee('15/06/2027');
+        $response->assertSee('02/11/2026');
+        $response->assertDontSee('15/06/2027');
         $response->assertSee(route('profile.document.download', ['document' => $cert, 'as' => 'Lambert_Marie_'.$user->id]), false);
     }
 
