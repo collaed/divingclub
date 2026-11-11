@@ -16,17 +16,19 @@
                 @error('dive_count') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             @php
-                $lastDive = $target->eventRegistrations()
+                $lastClubEvent = $target->eventRegistrations()
                     ->whereHas('event', fn($q) => $q->where('event_type', 'dive')->where('event_date', '<=', now()))
                     ->join('events', 'events.id', '=', 'event_registrations.event_id')
                     ->orderByDesc('events.event_date')->value('events.event_date');
             @endphp
-            @if($lastDive)
             <div class="mb-3">
                 <label class="form-label">{{ __('Last Dive Date') }}</label>
-                <input type="text" class="form-control" value="{{ \Carbon\Carbon::parse($lastDive)->translatedFormat('d M Y') }}" disabled>
+                <input type="date" name="last_dive_date" class="form-control @error('last_dive_date') is-invalid @enderror" value="{{ old('last_dive_date', $d?->last_dive_date?->format('Y-m-d')) }}">
+                @error('last_dive_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @if($lastClubEvent)
+                    <small class="text-muted">{{ __('Last club dive event on file: :date — only tracks organised club dives, not all your diving.', ['date' => \Carbon\Carbon::parse($lastClubEvent)->translatedFormat('d M Y')]) }}</small>
+                @endif
             </div>
-            @endif
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">{{ __('Air Consumption') }}</label>

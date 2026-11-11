@@ -65,6 +65,18 @@ class ProfileEditTest extends TestCase
         $this->get('/profile')->assertRedirect('/login');
     }
 
+    public function test_member_can_self_report_their_last_dive_date(): void
+    {
+        $user = $this->createUser();
+
+        $this->actingAs($user)->post('/profile/diving', [
+            'tab' => 'diving',
+            'last_dive_date' => '2026-10-18',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame('2026-10-18', $user->detail->refresh()->last_dive_date->format('Y-m-d'));
+    }
+
     private function createUser(): User
     {
         $roleTable = \Schema::hasTable('legacy_roles') ? 'legacy_roles' : 'roles';
