@@ -87,11 +87,17 @@ class ProfileDocumentController extends Controller
         return back()->with('success', __('Document uploaded.'))->withInput(['tab' => $request->category === 'medical' ? 'medical' : 'info']);
     }
 
-    public function download(Document $document): Response
+    public function download(Request $request, Document $document): Response
     {
         $viewer = auth()->user();
         if ($document->user_id !== $viewer->id && ! $viewer->isBureau()) {
             abort(403);
+        }
+
+        $filename = $document->original_filename;
+        if ($request->filled('as')) {
+            $extension = pathinfo($document->original_filename, PATHINFO_EXTENSION);
+            $filename = Str::slug((string) $request->string('as'), '_').($extension ? ".{$extension}" : '');
         }
 
         // Strip 'private/' prefix since local disk root is already storage/app/private/
@@ -99,16 +105,16 @@ class ProfileDocumentController extends Controller
         $localPath = str_starts_with($path, 'private/') ? substr($path, 8) : $path;
 
         if (Storage::disk('local')->exists($localPath)) {
-            return Storage::disk('local')->download($localPath, $document->original_filename);
+            return Storage::disk('local')->download($localPath, $filename);
         }
 
         if (Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->download($path, $document->original_filename);
+            return Storage::disk('public')->download($path, $filename);
         }
 
         // Fallback: try raw path from storage/app/
         if (file_exists(storage_path('app/'.$path))) {
-            return response()->download(storage_path('app/'.$path), $document->original_filename);
+            return response()->download(storage_path('app/'.$path), $filename);
         }
 
         abort(404, __('File not found.'));

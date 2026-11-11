@@ -73,6 +73,41 @@ class DocumentUploadTest extends TestCase
         }
     }
 
+    public function test_download_defaults_to_the_original_filename(): void
+    {
+        Storage::fake('local');
+        $user = $this->createUser();
+        $doc = Document::create([
+            'user_id' => $user->id, 'category' => 'medical', 'file_path' => 'documents/scan.pdf',
+            'original_filename' => 'scan.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1,
+        ]);
+        Storage::disk('local')->put('documents/scan.pdf', 'content');
+
+        $response = $this->actingAs($user)->get(route('profile.document.download', $doc));
+
+        $response->assertOk();
+        $this->assertStringContainsString('scan.pdf', $response->headers->get('content-disposition'));
+    }
+
+    public function test_bureau_can_download_with_an_override_filename(): void
+    {
+        Storage::fake('local');
+        $user = $this->createUser();
+        SpatieRole::findOrCreate('bureau_master', 'web');
+        $bureau = $this->createUser();
+        $bureau->assignRole('bureau_master');
+        $doc = Document::create([
+            'user_id' => $user->id, 'category' => 'medical', 'file_path' => 'documents/scan.pdf',
+            'original_filename' => 'scan.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1,
+        ]);
+        Storage::disk('local')->put('documents/scan.pdf', 'content');
+
+        $response = $this->actingAs($bureau)->get(route('profile.document.download', ['document' => $doc, 'as' => 'User_Test_'.$user->id]));
+
+        $response->assertOk();
+        $this->assertStringContainsString('user_test_'.$user->id.'.pdf', $response->headers->get('content-disposition'));
+    }
+
     public function test_guest_cannot_upload_document(): void
     {
         $this->post('/profile/document', [
