@@ -45,12 +45,12 @@ class BankReconciliationManualOverrideLearningTest extends TestCase
         $bureau = $this->createBureauUser();
         $suggested = $this->createMemberUser();
         $actual = $this->createMemberUser();
-        $this->pendingDue($suggested);
+        $suggestedDue = $this->pendingDue($suggested);
         $actualDue = $this->pendingDue($actual);
 
         $tx = BankTransaction::create([
             'transaction_date' => now(), 'amount' => 100.0, 'communication' => 'no reference at all',
-            'counterparty' => 'Account of the real payer', 'matched_payment_id' => $suggested->id,
+            'counterparty' => 'Account of the real payer', 'matched_payment_id' => $suggestedDue->id,
             'match_score' => 60, 'match_reason' => 'auto-suggested', 'status' => 'suggested',
         ]);
 
