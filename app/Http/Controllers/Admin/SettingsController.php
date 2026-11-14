@@ -10,6 +10,7 @@ use App\Http\Requests\StoreMedicalRuleRequest;
 use App\Http\Requests\StoreMembershipFeeRequest;
 use App\Models\EquipmentMaintenanceRule;
 use App\Models\Federation;
+use App\Models\MailForwardingRule;
 use App\Models\MedicalComplianceRule;
 use App\Models\MembershipFee;
 use App\Models\MemberStatus;
@@ -38,6 +39,7 @@ class SettingsController extends Controller
             'themePresets' => ThemeService::presets(),
             'membershipFees' => MembershipFee::with('status')->orderBy('season_year', 'desc')->orderBy('status_id')->get(),
             'statusSets' => StatusSet::with('statuses')->orderBy('name')->get(),
+            'forwardingRules' => MailForwardingRule::orderBy('from_address')->get(),
         ]);
     }
 
@@ -248,7 +250,7 @@ class SettingsController extends Controller
 
     public function updateTheme(Request $request): RedirectResponse
     {
-        $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'club_bank_name', 'dues_cutoff_grace_days', 'fee_taper_reference_date', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'ui_show_icons', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x', 'newsletter_article_base_url', 'newsletter_font', 'default_locale', 'site_layout', 'landing_cta_text', 'landing_cta_url', 'landing_cta_until'];
+        $allowed = ['primary_color', 'secondary_color', 'accent_color', 'header_gradient_start', 'header_gradient_end', 'footer_bg', 'body_bg', 'body_color', 'logo_text', 'logo_emoji', 'logo_accent_text', 'logo_plain_text', 'club_full_name', 'layout_width', 'card_style', 'header_bubbles', 'preset', 'club_iban', 'club_bic', 'club_email', 'club_address', 'club_phone', 'club_country', 'club_bank_name', 'dues_cutoff_grace_days', 'fee_taper_reference_date', 'warehouse_address', 'warehouse_lat', 'warehouse_lon', 'club_short_code', 'social_auto_publish', 'fb_group_is_closed', 'fb_group_id', 'fb_publish_enabled', 'ig_publish_enabled', 'ig_account_id', 'license_key', 'ui_style', 'ui_show_icons', 'training_locations', 'social_facebook', 'social_instagram', 'social_youtube', 'social_tiktok', 'social_whatsapp', 'social_x', 'newsletter_article_base_url', 'newsletter_font', 'default_locale', 'site_layout', 'landing_cta_text', 'landing_cta_url', 'landing_cta_until', 'mail_from_address', 'mail_from_name', 'mail_reply_to', 'mail_inbound_address'];
 
         // Handle enabled_locales checkbox array separately
         if ($request->has('enabled_locales')) {
@@ -306,5 +308,49 @@ class SettingsController extends Controller
         Cache::forget('theme_settings');
 
         return back()->with('success', __('Logo uploaded.'));
+    }
+
+    // --- Mail Forwarding Rules ---
+    public function storeForwardingRule(Request $request): RedirectResponse|JsonResponse
+    {
+        $v = $request->validate([
+            'from_address' => 'required|email|max:255|unique:mail_forwarding_rules,from_address',
+            'to_addresses' => 'required|string|max:1000',
+            'label' => 'nullable|string|max:255',
+        ]);
+        $rule = MailForwardingRule::create($v);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'rule' => $rule]);
+        }
+
+        return back()->with('success', __('Forwarding rule added.'));
+    }
+
+    public function updateForwardingRule(Request $request, MailForwardingRule $rule): RedirectResponse|JsonResponse
+    {
+        $v = $request->validate([
+            'to_addresses' => 'required|string|max:1000',
+            'label' => 'nullable|string|max:255',
+            'enabled' => 'sometimes|boolean',
+        ]);
+        $rule->update($v);
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'rule' => $rule->fresh()]);
+        }
+
+        return back()->with('success', __('Forwarding rule updated.'));
+    }
+
+    public function destroyForwardingRule(Request $request, MailForwardingRule $rule): RedirectResponse|JsonResponse
+    {
+        $rule->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', __('Forwarding rule deleted.'));
     }
 }

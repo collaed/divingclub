@@ -113,15 +113,20 @@ entirely outside what this Laravel app (or Claude Code acting on this
 repo) can reach or automate.
 
 What *is* fixed, inside the Laravel app, as of this session:
-`PollInboundMail` (`app/Jobs/PollInboundMail.php`) now has a
-`contact_redirect` short-circuit — mail addressed to the club's public
-contact address (`config('club.contact_email')`, e.g. `info@clubcep.eu`)
-bypasses `MailAliasService` resolution and the bureau/instructor
-sender-authorization check entirely, and is forwarded unconditionally to
-`config('services.inbound_mail.contact_redirect')`
-(`INBOUND_MAIL_CONTACT_REDIRECT` env var) when that's set. This closes the
-gap where mail from the public (not a club-internal alias, and not from a
-`users` row) was being rejected and dropped by the sender check.
+`PollInboundMail` (`app/Jobs/PollInboundMail.php`) now checks the
+`mail_forwarding_rules` table (admin-managed at `admin/settings` →
+Technical → "Email & Forwarding", `App\Models\MailForwardingRule`) before
+`MailAliasService` resolution — mail addressed to any configured address
+(e.g. the club's public contact address, `info@clubcep.eu`) bypasses the
+bureau/instructor sender-authorization check entirely and is forwarded
+unconditionally to the rule's target(s). This replaced the earlier
+single, env-only `INBOUND_MAIL_CONTACT_REDIRECT` short-circuit (which was
+never actually set in any environment) with an admin-editable table, so
+the same unconditional-forward treatment can apply to any address, not
+just the contact mailbox, without an `.env` edit or a restart. This
+closes the gap where mail from the public (not a club-internal alias, and
+not from a `users` row) was being rejected and dropped by the sender
+check.
 
 This fix is real but currently **inert in production**, because
 `services.inbound_mail.enabled` (`INBOUND_MAIL_ENABLED` env var, default

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Event;
 use App\Models\MemberStatus;
+use App\Models\ThemeSetting;
 use App\Models\User;
 
 class MailAliasService
@@ -49,7 +50,7 @@ class MailAliasService
      */
     public static function mailtoAddress(string $tag): string
     {
-        $base = config('club.mail_address', 'club@example.com');
+        $base = ThemeSetting::get('mail_inbound_address', config('club.mail_address', 'club@example.com'));
         [$mailbox, $domain] = explode('@', $base, 2);
 
         return "{$mailbox}+{$tag}@{$domain}";

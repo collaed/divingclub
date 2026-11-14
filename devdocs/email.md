@@ -69,22 +69,24 @@ All sent/received emails stored in `email_log`:
 | `cep+{tag}@clubcep.eu` | Plus-addressing (any of above) | Per-alias |
 | `sas.{name}@clubcep.eu` | Vanity alias → bureau member's personal email + CC club Gmail | Bureau |
 
-### Public Contact Address Redirect
+### Forwarding Rules (admin/settings → Technical → Email & Forwarding)
 
-Mail to the club's public contact address (`config('club.contact_email')`,
-e.g. `info@clubcep.eu`) isn't a club-internal alias — it comes from the
-public, who aren't `users` rows and would otherwise be rejected by the
-sender-authorization check below. If `config('services.inbound_mail.contact_redirect')`
-is set and the message's `to` matches `club.contact_email`, `PollInboundMail`
-forwards it there unconditionally, bypassing alias resolution and the
-bureau/instructor sender check entirely, before any of the steps below run.
+`App\Models\MailForwardingRule` (table `mail_forwarding_rules`, managed on
+that admin page) lists addresses that aren't club-internal aliases — e.g.
+the public contact address, `config('club.contact_email')` — where the
+sender comes from the public, who aren't `users` rows and would otherwise
+be rejected by the sender-authorization check below. If an enabled rule's
+`from_address` matches the message's `to`, `PollInboundMail` forwards it
+to the rule's `to_addresses` unconditionally, bypassing alias resolution
+and the bureau/instructor sender check entirely, before any of the steps
+below run.
 
 ### Processing Pipeline
 
 ```
 PollInboundMail fetches message
   → Extract from, to, subject, body (handles MIME multipart, base64, QP)
-  → (contact-redirect check — see above — short-circuits here if it matches)
+  → (forwarding-rule check — see above — short-circuits here if a rule matches)
   → Check subject for (recipients: ...) directive override
   → MailAliasService::resolve(to) → get recipient list
   → Auth check: sender must be bureau or instructor (else → rejected, logged)

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Federation;
+use App\Models\MailForwardingRule;
 use App\Models\ThemeSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -122,5 +123,71 @@ class AdminSettingsTest extends TestCase
             ->assertRedirect();
 
         $this->assertNull(Federation::find($fed->id));
+    }
+
+    public function test_bureau_can_update_mail_settings(): void
+    {
+        $this->actingAs($this->admin)
+            ->post(route('admin.settings.theme.update'), [
+                'mail_from_address' => 'noreply@clubcep.eu',
+                'mail_from_name' => 'CEP',
+                'mail_reply_to' => 'reply@clubcep.eu',
+                'mail_inbound_address' => 'inbound@clubcep.eu',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame('noreply@clubcep.eu', ThemeSetting::get('mail_from_address'));
+        $this->assertSame('CEP', ThemeSetting::get('mail_from_name'));
+        $this->assertSame('reply@clubcep.eu', ThemeSetting::get('mail_reply_to'));
+        $this->assertSame('inbound@clubcep.eu', ThemeSetting::get('mail_inbound_address'));
+    }
+
+    public function test_guest_cannot_manage_forwarding_rules(): void
+    {
+        $this->post(route('admin.settings.forwarding-rule.store'), [
+            'from_address' => 'info@example.com', 'to_addresses' => 'club@gmail.example',
+        ])->assertRedirect(route('login'));
+    }
+
+    public function test_bureau_can_crud_a_forwarding_rule(): void
+    {
+        $this->actingAs($this->admin)
+            ->post(route('admin.settings.forwarding-rule.store'), [
+                'from_address' => 'info@example.com', 'to_addresses' => 'club@gmail.example', 'label' => 'Public contact',
+            ])
+            ->assertRedirect();
+
+        $rule = MailForwardingRule::where('from_address', 'info@example.com')->first();
+        $this->assertNotNull($rule);
+        $this->assertTrue($rule->enabled);
+
+        $this->actingAs($this->admin)
+            ->put(route('admin.settings.forwarding-rule.update', $rule), [
+                'to_addresses' => 'other@gmail.example', 'label' => 'Renamed', 'enabled' => false,
+            ])
+            ->assertRedirect();
+
+        $rule->refresh();
+        $this->assertSame('other@gmail.example', $rule->to_addresses);
+        $this->assertFalse($rule->enabled);
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.settings.forwarding-rule.destroy', $rule))
+            ->assertRedirect();
+
+        $this->assertNull(MailForwardingRule::find($rule->id));
+    }
+
+    public function test_forwarding_rule_from_address_must_be_unique(): void
+    {
+        MailForwardingRule::create(['from_address' => 'info@example.com', 'to_addresses' => 'a@example.com']);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.settings.forwarding-rule.store'), [
+                'from_address' => 'info@example.com', 'to_addresses' => 'b@example.com',
+            ])
+            ->assertSessionHasErrors('from_address');
+
+        $this->assertSame(1, MailForwardingRule::where('from_address', 'info@example.com')->count());
     }
 }

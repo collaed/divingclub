@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Models\DocumentDispatchRecipient;
+use App\Models\ThemeSetting;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -49,7 +50,10 @@ class SendTrackedDocumentEmail implements ShouldQueue
      */
     private function fromAddress(): array
     {
-        return [config('club.contact_email'), config('mail.from.name')];
+        return [
+            ThemeSetting::get('club_email', config('club.contact_email')),
+            ThemeSetting::get('mail_from_name', config('mail.from.name')),
+        ];
     }
 
     /**

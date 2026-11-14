@@ -213,6 +213,9 @@ Route::post('/settings/theme/preset', [SettingsController::class, 'applyPreset']
 Route::post('/settings/theme/logo', [SettingsController::class, 'uploadLogo'])->name('settings.theme.logo');
 Route::post('/settings/membership-fee', [SettingsController::class, 'storeMembershipFee'])->name('settings.membership-fee.store');
 Route::delete('/settings/membership-fee/{fee}', [SettingsController::class, 'destroyMembershipFee'])->name('settings.membership-fee.destroy');
+Route::post('/settings/forwarding-rule', [SettingsController::class, 'storeForwardingRule'])->name('settings.forwarding-rule.store');
+Route::put('/settings/forwarding-rule/{rule}', [SettingsController::class, 'updateForwardingRule'])->name('settings.forwarding-rule.update');
+Route::delete('/settings/forwarding-rule/{rule}', [SettingsController::class, 'destroyForwardingRule'])->name('settings.forwarding-rule.destroy');
 
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');

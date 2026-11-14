@@ -700,6 +700,139 @@
         <div class="tab-pane fade" id="tab-technical">
         <div class="accordion" id="technicalAccordion">
 
+        {{-- Email & Forwarding --}}
+        <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#mailSection">{{ __('Email & Forwarding') }}</button></h2>
+            <div id="mailSection" class="accordion-collapse collapse show" data-bs-parent="#technicalAccordion">
+                <div class="accordion-body">
+                    <p class="text-muted small">{{ __('The public contact address members see is set under Club & Finance → Club Identity → Contact Email.') }}</p>
+                    <form method="POST" action="{{ route('admin.settings.theme.update') }}">
+                        @csrf
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label" for="mail_from_address">{{ __('Default From Address') }}</label>
+                                <input type="email" id="mail_from_address" name="mail_from_address" class="form-control" value="{{ $themeSettings['mail_from_address'] ?? '' }}" placeholder="{{ config('mail.from.address') }}">
+                                <small class="text-muted">{{ __('Sender used for app-generated mail that doesn\'t set its own From.') }}</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="mail_from_name">{{ __('Default From Name') }}</label>
+                                <input type="text" id="mail_from_name" name="mail_from_name" class="form-control" value="{{ $themeSettings['mail_from_name'] ?? '' }}" placeholder="{{ config('mail.from.name') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="mail_reply_to">{{ __('Default Reply-To') }}</label>
+                                <input type="email" id="mail_reply_to" name="mail_reply_to" class="form-control" value="{{ $themeSettings['mail_reply_to'] ?? '' }}" placeholder="{{ __('none') }}">
+                                <small class="text-muted">{{ __('Applied only when a send doesn\'t already set its own Reply-To.') }}</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="mail_inbound_address">{{ __('Inbound Alias Base') }}</label>
+                                <input type="email" id="mail_inbound_address" name="mail_inbound_address" class="form-control" value="{{ $themeSettings['mail_inbound_address'] ?? '' }}" placeholder="{{ config('club.mail_address') }}">
+                                <small class="text-muted">{{ __('Base address plus-addressed aliases are built from, e.g. club+bureau@domain.') }}</small>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Email Settings') }}</button>
+                    </form>
+                    <hr>
+                    <h6>@icon('↪️') {{ __('Forwarding Rules') }}</h6>
+                    <p class="text-muted small">{{ __('Mail arriving at one of these addresses is forwarded unconditionally to its targets, bypassing the normal member-only sender check — for public-facing addresses (e.g. a contact mailbox) where the sender is never a club member.') }}</p>
+                    <div id="forwardingRulesSection" data-rules-region>
+                        <table class="table table-sm align-middle">
+                            <thead><tr><th>{{ __('Incoming address') }}</th><th>{{ __('Forwards to') }}</th><th>{{ __('Label') }}</th><th>{{ __('Enabled') }}</th><th class="text-end">{{ __('Actions') }}</th></tr></thead>
+                            <tbody>
+                            @foreach($forwardingRules as $r)
+                                <tr data-rule-id="{{ $r->id }}" data-rule-row data-url="{{ route('admin.settings.forwarding-rule.update', $r) }}">
+                                    <td><code>{{ $r->from_address }}</code></td>
+                                    <td><input type="text" class="form-control form-control-sm" value="{{ $r->to_addresses }}" required aria-label="{{ __('Forwards to') }}" data-rule-field="to_addresses"></td>
+                                    <td><input type="text" class="form-control form-control-sm" value="{{ $r->label }}" aria-label="{{ __('Label') }}" data-rule-field="label"></td>
+                                    <td><input type="checkbox" class="form-check-input" data-rule-field="enabled" {{ $r->enabled ? 'checked' : '' }}></td>
+                                    <td class="text-end text-nowrap">
+                                        <span class="text-success small me-2 d-none" data-rule-saved>@icon('✓') {{ __('Saved') }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-rule-delete data-url="{{ route('admin.settings.forwarding-rule.destroy', $r) }}" data-confirm="{{ __('Delete the forwarding rule for “:name”?', ['name' => $r->from_address]) }}" title="{{ __('Delete') }}">@icon('🗑️')</button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                        <form method="POST" action="{{ route('admin.settings.forwarding-rule.store') }}" class="row g-2 mt-2">
+                            @csrf
+                            <div class="col-md-3"><input type="email" name="from_address" class="form-control form-control-sm" placeholder="{{ __('info@club.example') }}" aria-label="{{ __('Incoming address') }}" required></div>
+                            <div class="col-md-3"><input type="text" name="to_addresses" class="form-control form-control-sm" placeholder="{{ __('target@gmail.example, other@example.com') }}" aria-label="{{ __('Forwards to') }}" required></div>
+                            <div class="col-md-3"><input type="text" name="label" class="form-control form-control-sm" placeholder="{{ __('Label') }}" aria-label="{{ __('Label') }}"></div>
+                            <div class="col-md-3"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Rule') }}</button></div>
+                        </form>
+
+                        @push('scripts')
+                        <script>
+                        (function () {
+                            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+                            const region = document.getElementById('forwardingRulesSection');
+                            if (!region || !csrf) { return; }
+
+                            let timer = null;
+
+                            function saveRow(row) {
+                                const payload = {
+                                    to_addresses: row.querySelector('[data-rule-field="to_addresses"]')?.value ?? '',
+                                    label: row.querySelector('[data-rule-field="label"]')?.value ?? '',
+                                    enabled: row.querySelector('[data-rule-field="enabled"]')?.checked ?? false,
+                                };
+                                fetch(row.dataset.url, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                                    body: JSON.stringify(payload),
+                                })
+                                .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
+                                .then(function () {
+                                    const badge = row.querySelector('[data-rule-saved]');
+                                    if (badge) { badge.classList.remove('d-none'); setTimeout(function () { badge.classList.add('d-none'); }, 1500); }
+                                })
+                                .catch(function () { if (typeof showToast === 'function') { showToast('{{ __('Save failed') }}', 'danger'); } });
+                            }
+
+                            region.addEventListener('input', function (e) {
+                                const field = e.target.closest('[data-rule-field]');
+                                if (!field || field.type === 'checkbox') { return; }
+                                const row = field.closest('[data-rule-row]');
+                                clearTimeout(timer);
+                                timer = setTimeout(function () { saveRow(row); }, 400);
+                            });
+
+                            region.addEventListener('change', function (e) {
+                                const field = e.target.closest('[data-rule-field]');
+                                if (!field || field.type !== 'checkbox') { return; }
+                                saveRow(field.closest('[data-rule-row]'));
+                            });
+
+                            region.addEventListener('click', function (e) {
+                                const btn = e.target.closest('[data-rule-delete]');
+                                if (!btn) { return; }
+                                e.preventDefault();
+                                if (!window.confirm(btn.dataset.confirm || 'Delete?')) { return; }
+
+                                btn.disabled = true;
+                                fetch(btn.dataset.url, {
+                                    method: 'DELETE',
+                                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                                })
+                                .then(async function (r) {
+                                    const data = await r.json().catch(function () { return {}; });
+                                    if (!r.ok || !data.ok) { throw new Error(data.message || ('HTTP ' + r.status)); }
+                                    const row = btn.closest('[data-rule-row]');
+                                    if (row) { row.remove(); }
+                                    if (typeof showToast === 'function') { showToast('{{ __('Rule deleted.') }}', 'success'); }
+                                })
+                                .catch(function (err) {
+                                    btn.disabled = false;
+                                    if (typeof showToast === 'function') { showToast(err.message || '{{ __('Delete failed') }}', 'danger'); }
+                                });
+                            });
+                        })();
+                        </script>
+                        @endpush
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- API Configuration Guide --}}
         <div class="accordion-item">
             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false" data-bs-target="#apiSection">{{ __('API Keys & Configuration') }}</button></h2>

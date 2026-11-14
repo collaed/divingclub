@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Models\EmailLog;
+use App\Models\MailForwardingRule;
 use App\Models\User;
 use App\Services\InboundMailFilter;
 use App\Services\MailAliasService;
@@ -175,6 +176,15 @@ class PollInboundMail implements ShouldQueue
 
     private function processMessage(string $from, string $to, string $subject, string $body): void
     {
+        $rule = MailForwardingRule::where('enabled', true)
+            ->whereRaw('LOWER(from_address) = ?', [strtolower($to)])
+            ->first();
+        if ($rule) {
+            $this->forwardViaRule($from, $to, $subject, $body, $rule);
+
+            return;
+        }
+
         $recipientDirective = null;
         $simulate = false;
 
@@ -254,6 +264,35 @@ class PollInboundMail implements ShouldQueue
             "Your message '{$subject}' was sent to {$sent} recipients ({$resolved['label']}).",
             fn ($m) => $m->to($from)->subject("[Sent] {$subject} → {$resolved['label']}")
         );
+    }
+
+    /**
+     * An admin-configured forwarding rule matched this recipient — it isn't
+     * a club-internal alias, so it bypasses alias resolution and the
+     * bureau/instructor sender check entirely — just forward it,
+     * unconditionally, to every target the rule lists.
+     */
+    private function forwardViaRule(string $from, string $to, string $subject, string $body, MailForwardingRule $rule): void
+    {
+        $targets = $rule->targets();
+
+        try {
+            foreach ($targets as $target) {
+                Mail::html($body, fn ($m) => $m->to($target)->replyTo($from)->subject($subject));
+            }
+            $status = 'forwarded';
+            $error = 'Redirected to '.implode(', ', $targets);
+        } catch (\Throwable $e) {
+            $status = 'failed';
+            $error = "Redirect to {$rule->to_addresses} failed: {$e->getMessage()}";
+            Log::warning("Inbound forwarding-rule redirect failed: {$e->getMessage()}");
+        }
+
+        EmailLog::create([
+            'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
+            'body' => substr($body, 0, 5000), 'status' => $status,
+            'direction' => 'inbound', 'authorized' => true, 'error' => $error,
+        ]);
     }
 
     // ─── Raw email parsing (Maildir mode) ──────────────────

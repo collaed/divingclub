@@ -8,6 +8,7 @@ use App\Auth\DivingClubUserProvider;
 use App\Jobs\ResolveLoginGeo;
 use App\Models\EmailLog;
 use App\Models\LoginRecord;
+use App\Models\ThemeSetting;
 use App\Services\BrevoTransport;
 use App\Services\LicenseService;
 use App\Services\MailBalancer;
@@ -47,6 +48,19 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        // Admin-editable mail sender identity (admin/settings → Technical →
+        // Email & Forwarding), falling back to the .env-sourced defaults.
+        // Read at boot rather than per-send: Laravel bakes the mailer's
+        // default from-address in once when it's first resolved, so this
+        // only picks up a saved change on the next request — immediate for
+        // web traffic; a long-running Horizon worker needs its next restart.
+        if ($from = ThemeSetting::get('mail_from_address')) {
+            config(['mail.from.address' => $from]);
+        }
+        if ($fromName = ThemeSetting::get('mail_from_name')) {
+            config(['mail.from.name' => $fromName]);
+        }
 
         Mail::extend('brevo', fn () => new BrevoTransport((string) config('services.brevo.key')));
 
@@ -121,6 +135,17 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(MessageSending::class, function () {
             $provider = MailBalancer::configureForNext();
             MailBalancer::recordSend($provider);
+        });
+
+        // Default Reply-To (admin/settings → Technical → Email & Forwarding)
+        // — only when the send didn't already set its own (e.g. inbound
+        // forwarding replies to the original sender). Applied per-send via
+        // the event, not merged into config at boot, so it takes effect
+        // immediately even inside a long-running Horizon worker.
+        Event::listen(MessageSending::class, function (MessageSending $event) {
+            if (empty($event->message->getReplyTo()) && $replyTo = ThemeSetting::get('mail_reply_to')) {
+                $event->message->replyTo($replyTo);
+            }
         });
 
         // Record notification-channel mail (password reset, email verification,

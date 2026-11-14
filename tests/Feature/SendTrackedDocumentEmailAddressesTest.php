@@ -8,6 +8,7 @@ use App\Jobs\SendTrackedDocumentEmail;
 use App\Models\DocumentDispatch;
 use App\Models\DocumentDispatchRecipient;
 use App\Models\LibraryFile;
+use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Models\UserEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -83,5 +84,19 @@ class SendTrackedDocumentEmailAddressesTest extends TestCase
         $method->setAccessible(true);
 
         $this->assertSame(['info@clubcep.eu', 'CEP'], $method->invoke($job));
+    }
+
+    /** An admin-configured override (admin/settings → Club Identity / Email & Forwarding) wins over the .env defaults. */
+    public function test_an_admin_configured_override_takes_precedence(): void
+    {
+        config(['club.contact_email' => 'info@clubcep.eu', 'mail.from.name' => 'CEP']);
+        ThemeSetting::set('club_email', 'overridden@clubcep.eu');
+        ThemeSetting::set('mail_from_name', 'Overridden Name');
+
+        $job = new SendTrackedDocumentEmail(1);
+        $method = new \ReflectionMethod(SendTrackedDocumentEmail::class, 'fromAddress');
+        $method->setAccessible(true);
+
+        $this->assertSame(['overridden@clubcep.eu', 'Overridden Name'], $method->invoke($job));
     }
 }

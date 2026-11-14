@@ -3,6 +3,26 @@
 What reached production, newest first. Conventions are in
 `.kiro/steering/release-notes.md`. Entries before 2026-09-16 were not recorded.
 
+## Unreleased
+
+### New
+- `admin/settings` → Technical → "Email & Forwarding": manage the site's
+  default From address/name, default Reply-To, the inbound alias base
+  address, and a table of forwarding rules — mail arriving at a configured
+  address is forwarded unconditionally to its targets, bypassing the
+  normal alias/sender-authorization check. Replaces the old single
+  `INBOUND_MAIL_CONTACT_REDIRECT` env var (never actually configured) with
+  an admin-editable table, so any address can get this treatment — not
+  just the contact mailbox — without an `.env` edit or a restart.
+
+### Fixed
+- Mail to the public contact address (`info@clubcep.eu`) was silently
+  dropped by the inbound pipeline: it isn't a club-internal alias, so it
+  fell through to the bureau/instructor sender check and anyone outside
+  the club got logged as "rejected" and never reached anyone. A forwarding
+  rule for that address now bypasses alias resolution and the sender check
+  entirely (see above).
+
 ## 2026-11-11 — prod at 8470271
 
 ### New
