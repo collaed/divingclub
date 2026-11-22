@@ -33,7 +33,7 @@ class MailAliasService
         }
 
         return match (true) {
-            in_array($local, ['bureau', 'members.b']) => static::bureau(),
+            in_array($local, ['bureau', 'board', 'members.b']) => static::bureau(),
             in_array($local, ['all', 'members']) => static::allActive(),
             in_array($local, ['instructors', 'moniteurs', 'members.m']) => static::instructors(),
             str_starts_with($local, 'event-') => static::eventParticipants($local),
@@ -314,6 +314,7 @@ class MailAliasService
 
         return [
             'bureau' => 'Bureau members — '.$ex('bureau'),
+            'board' => 'Bureau members (synonym) — '.$ex('board'),
             'instructors' => 'Active instructors — '.$ex('instructors'),
             'members' => 'All active members — '.$ex('members'),
             'event.{id}' => 'Event participants — '.$ex('event.{id}'),

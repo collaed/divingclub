@@ -9,6 +9,7 @@ use App\Models\MailForwardingRule;
 use App\Models\User;
 use App\Services\InboundMailFilter;
 use App\Services\MailAliasService;
+use App\Services\MailBalancer;
 use App\Services\ScheduleHeartbeat;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -229,36 +230,50 @@ class PollInboundMail implements ShouldQueue
             return;
         }
 
-        $sent = 0;
-        foreach ($resolved['emails'] as $email) {
-            try {
-                Mail::html($body, fn ($m) => $m->to($email)->replyTo($from)->subject("[{$resolved['label']}] {$subject}"));
-                $sent++;
-            } catch (\Throwable $e) {
-                Log::warning("Inbound forward failed to {$email}: {$e->getMessage()}");
-            }
-        }
-
         // Extract event ID from alias for logging
         $eventId = null;
         if (preg_match('/event[.\-](\d+)/', $to, $em)) {
             $eventId = (int) $em[1];
         }
 
-        // Filter inbound content before logging
+        // Filter inbound content before logging — message-level, so computed
+        // once and applied to every recipient's own log row below.
         $filtered = InboundMailFilter::filter($body, $eventId, $from);
+        $finalSubject = "[{$resolved['label']}] {$subject}";
 
-        EmailLog::create([
-            'event_id' => $eventId,
-            'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
-            'body' => substr($filtered['body'], 0, 5000),
-            'status' => $filtered['needs_review'] ? 'pending_review' : 'forwarded',
-            'direction' => 'inbound',
-            'authorized' => ! $filtered['needs_review'],
-            'error' => $filtered['needs_review']
-                ? "Needs review: {$filtered['review_reason']}"
-                : "Sent to {$sent}/".count($resolved['emails']),
-        ]);
+        // One EmailLog row per recipient (not one for the whole batch) so a
+        // failure on one address doesn't obscure whether the others went
+        // through, and so which relay handled each send is traceable.
+        $sent = 0;
+        foreach ($resolved['emails'] as $email) {
+            $status = 'forwarded';
+            $error = null;
+
+            try {
+                Mail::html($body, fn ($m) => $m->to($email)->replyTo($from)->subject($finalSubject));
+                $sent++;
+            } catch (\Throwable $e) {
+                $status = 'failed';
+                $error = $e->getMessage();
+                Log::warning("Inbound forward failed to {$email}: {$e->getMessage()}");
+            }
+
+            if ($filtered['needs_review'] && $status !== 'failed') {
+                $status = 'pending_review';
+                $error = "Needs review: {$filtered['review_reason']}";
+            }
+
+            EmailLog::create([
+                'event_id' => $eventId,
+                'to_email' => $email, 'from_email' => $from, 'subject' => $finalSubject,
+                'body' => substr($filtered['body'], 0, 5000),
+                'status' => $status,
+                'direction' => 'inbound',
+                'authorized' => ! $filtered['needs_review'],
+                'error' => $error,
+                'provider' => MailBalancer::lastProvider(),
+            ]);
+        }
 
         Mail::raw(
             "Your message '{$subject}' was sent to {$sent} recipients ({$resolved['label']}).",
@@ -274,25 +289,29 @@ class PollInboundMail implements ShouldQueue
      */
     private function forwardViaRule(string $from, string $to, string $subject, string $body, MailForwardingRule $rule): void
     {
-        $targets = $rule->targets();
-
-        try {
-            foreach ($targets as $target) {
-                Mail::html($body, fn ($m) => $m->to($target)->replyTo($from)->subject($subject));
-            }
+        // One EmailLog row per target (not one for the whole rule) — same
+        // reasoning as processMessage()'s forwarding loop: a failure on one
+        // address must not hide whether the others went through, or which
+        // relay each one used.
+        foreach ($rule->targets() as $target) {
             $status = 'forwarded';
-            $error = 'Redirected to '.implode(', ', $targets);
-        } catch (\Throwable $e) {
-            $status = 'failed';
-            $error = "Redirect to {$rule->to_addresses} failed: {$e->getMessage()}";
-            Log::warning("Inbound forwarding-rule redirect failed: {$e->getMessage()}");
-        }
+            $error = "Redirected to {$target}";
 
-        EmailLog::create([
-            'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
-            'body' => substr($body, 0, 5000), 'status' => $status,
-            'direction' => 'inbound', 'authorized' => true, 'error' => $error,
-        ]);
+            try {
+                Mail::html($body, fn ($m) => $m->to($target)->replyTo($from)->subject($subject));
+            } catch (\Throwable $e) {
+                $status = 'failed';
+                $error = "Redirect to {$target} failed: {$e->getMessage()}";
+                Log::warning("Inbound forwarding-rule redirect failed: {$e->getMessage()}");
+            }
+
+            EmailLog::create([
+                'to_email' => $target, 'from_email' => $from, 'subject' => $subject,
+                'body' => substr($body, 0, 5000), 'status' => $status,
+                'direction' => 'inbound', 'authorized' => true, 'error' => $error,
+                'provider' => MailBalancer::lastProvider(),
+            ]);
+        }
     }
 
     // ─── Raw email parsing (Maildir mode) ──────────────────

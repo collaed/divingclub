@@ -46,7 +46,7 @@ class EmailLog extends Model
 
     protected $table = 'email_log';
 
-    protected $fillable = ['event_id', 'user_id', 'to_email', 'alias', 'from_name', 'from_email', 'subject', 'body', 'template_slug', 'status', 'direction', 'authorized', 'attempts', 'error'];
+    protected $fillable = ['event_id', 'user_id', 'to_email', 'alias', 'from_name', 'from_email', 'subject', 'body', 'template_slug', 'status', 'direction', 'authorized', 'attempts', 'error', 'provider'];
 
     /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo

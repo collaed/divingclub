@@ -48,6 +48,12 @@ All sent/received emails stored in `email_log`:
 - direction (inbound/outbound), to_email, from_email, subject, body (truncated 5000 chars)
 - status (sent, failed, forwarded, rejected, pending_review)
 - event_id (if related to an event)
+- provider (which `MailBalancer` relay — resend/mailjet/brevo — handled this send; nullable)
+
+Inbound forwarding (alias resolution and `MailForwardingRule` redirects alike)
+writes **one row per actual recipient**, not one row for the whole batch — a
+failure on one address doesn't obscure whether the others went through, and
+each row's `to_email`/`status`/`provider` traces that specific send.
 
 ## Inbound (receiving emails to club aliases)
 
@@ -62,7 +68,7 @@ All sent/received emails stored in `email_log`:
 | Alias Format | Resolves To | Auth Required |
 |---|---|---|
 | `members@clubcep.eu` | All active members | Bureau only |
-| `bureau@clubcep.eu` / `members.b@` | Bureau members | Bureau only |
+| `bureau@clubcep.eu` / `board@` / `members.b@` | Bureau members | Bureau only |
 | `instructors@clubcep.eu` / `members.m@` | Active instructors | Bureau or instructor |
 | `event-{id}@clubcep.eu` / `members.s{id}@` | Event participants | Bureau, instructor, or participant |
 | `members.pn1/2/3@` | Training groups | Bureau or instructor |

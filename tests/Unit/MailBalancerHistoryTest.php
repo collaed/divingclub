@@ -41,6 +41,20 @@ class MailBalancerHistoryTest extends TestCase
         $this->assertSame(1, MailSendStat::where('provider', 'mailjet')->where('date', today())->value('count'));
     }
 
+    /**
+     * The MessageSending listener calls recordSend() right before every
+     * send — lastProvider() lets a caller (e.g. PollInboundMail) log which
+     * relay handled a specific send right after Mail::send()/html() returns.
+     */
+    public function test_last_provider_reflects_the_most_recent_recorded_send(): void
+    {
+        MailBalancer::recordSend('resend_primary');
+        $this->assertSame('resend_primary', MailBalancer::lastProvider());
+
+        MailBalancer::recordSend('brevo');
+        $this->assertSame('brevo', MailBalancer::lastProvider());
+    }
+
     public function test_history_zero_fills_days_with_no_sends_and_windows_correctly(): void
     {
         MailSendStat::create(['date' => today(), 'provider' => 'resend_primary', 'count' => 3]);

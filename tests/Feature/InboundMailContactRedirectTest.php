@@ -43,7 +43,9 @@ class InboundMailContactRedirectTest extends TestCase
         // Not a club member — would be rejected by the normal alias path.
         $this->processMessage('random.stranger@external.test', 'info@example.com', 'Question about joining', 'Hi, how do I join?');
 
-        $log = EmailLog::where('to_email', 'info@example.com')->first();
+        // One row per actual recipient (not the original alias address) so
+        // which relay each send used is traceable per address.
+        $log = EmailLog::where('to_email', 'club@gmail.example')->first();
         $this->assertNotNull($log);
         $this->assertSame('forwarded', $log->status);
         $this->assertSame('inbound', $log->direction);
@@ -58,9 +60,11 @@ class InboundMailContactRedirectTest extends TestCase
 
         $this->processMessage('random.stranger@external.test', 'info@example.com', 'Hi', 'Hi there');
 
-        $log = EmailLog::where('to_email', 'info@example.com')->first();
-        $this->assertSame('forwarded', $log->status);
-        $this->assertSame('Redirected to a@example.com, b@example.com', $log->error);
+        $this->assertSame(2, EmailLog::where('status', 'forwarded')->count());
+        $logA = EmailLog::where('to_email', 'a@example.com')->first();
+        $logB = EmailLog::where('to_email', 'b@example.com')->first();
+        $this->assertSame('Redirected to a@example.com', $logA->error);
+        $this->assertSame('Redirected to b@example.com', $logB->error);
     }
 
     public function test_a_disabled_rule_is_ignored(): void

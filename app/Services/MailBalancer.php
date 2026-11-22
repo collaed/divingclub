@@ -71,11 +71,26 @@ class MailBalancer
         };
     }
 
+    /**
+     * The provider chosen for the most recent send in this request/job — set
+     * by the same MessageSending listener that calls recordSend(), so a
+     * caller can log which relay actually handled a specific send right
+     * after Mail::send()/html() returns (see PollInboundMail).
+     */
+    private static ?string $lastProvider = null;
+
     /** Record a send for a provider. */
     public static function recordSend(string $provider): void
     {
+        self::$lastProvider = $provider;
+
         $stat = MailSendStat::firstOrCreate(['date' => today(), 'provider' => $provider], ['count' => 0]);
         $stat->increment('count');
+    }
+
+    public static function lastProvider(): ?string
+    {
+        return self::$lastProvider;
     }
 
     /**
