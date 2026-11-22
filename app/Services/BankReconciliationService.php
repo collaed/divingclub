@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
@@ -469,25 +470,27 @@ class BankReconciliationService
      */
     public function proposeBackfill(BankTransaction $tx): ?array
     {
-        $user = null;
-        $matchedBy = null;
-
-        if (preg_match('/CEP-\d{4}-(\d+)-/i', (string) $tx->communication, $m) === 1 && (int) $m[1] > 0) {
-            $user = User::find((int) $m[1]);
-            $matchedBy = $user ? 'reference' : null;
-        }
-
-        if (! $user) {
-            $detail = app(LedgerClassificationService::class)->matchMember((string) $tx->communication);
-            $user = $detail?->user;
-            $matchedBy = $user ? 'name' : null;
-        }
-
+        ['user' => $user, 'matchedBy' => $matchedBy] = $this->resolveReferencedOrNamedUser($tx);
         if (! $user) {
             return null;
         }
 
         return $this->buildBackfillProposal($tx, $user, (string) $matchedBy);
+    }
+
+    /** @return array{user: ?User, matchedBy: ?string} */
+    private function resolveReferencedOrNamedUser(BankTransaction $tx): array
+    {
+        if (preg_match('/CEP-\d{4}-(\d+)-/i', (string) $tx->communication, $m) === 1 && (int) $m[1] > 0) {
+            $user = User::find((int) $m[1]);
+            if ($user) {
+                return ['user' => $user, 'matchedBy' => 'reference'];
+            }
+        }
+
+        $detail = app(LedgerClassificationService::class)->matchMember((string) $tx->communication);
+
+        return ['user' => $detail?->user, 'matchedBy' => $detail?->user ? 'name' : null];
     }
 
     /**
@@ -553,6 +556,189 @@ class BankReconciliationService
             'new_status' => $payment->status,
             'amount_paid' => $payment->amount_paid,
             'amount_due' => $payment->amount_due,
+        ]);
+    }
+
+    /**
+     * For a transaction that matches no single PaymentExpected and no clean
+     * single-person backfill (proposeBackfill() returned null or a dirty
+     * match) — tries a family lump sum: an anchor member resolved the same
+     * way proposeBackfill() does, whose family_id groups several members,
+     * each contributing their own share of the total. Every family member
+     * is assumed to be part of the payment (the real-world case described:
+     * "2 adults + 1 kid" summed) — this does not search partial subsets of
+     * the family, which keeps the combinatorics small and matches how
+     * these payments actually happen.
+     *
+     * Never auto-applies anything — always returns candidates for a bureau
+     * member to review and click, even when there is only one candidate and
+     * it scores the maximum confidence.
+     *
+     * @return array{members: Collection<int, User>, candidates: list<array{breakdown: list<array{user: User, label: string, amount: float}>, total: float, confidence: int}>}|null
+     */
+    public function proposeFamilyBackfill(BankTransaction $tx): ?array
+    {
+        ['user' => $anchor] = $this->resolveReferencedOrNamedUser($tx);
+        $familyId = $anchor?->detail?->family_id;
+        if ($familyId === null) {
+            return null;
+        }
+
+        $members = User::whereHas('detail', fn ($q) => $q->where('family_id', $familyId))->with('detail')->get();
+        if ($members->count() < 2) {
+            return null;
+        }
+
+        $year = (string) Season::currentDuesYear();
+        $insuranceHint = app(LedgerClassificationService::class)->parseCotisationText((string) $tx->communication)['insurance'];
+
+        $variantsByMember = $members->map(fn (User $m): array => [
+            'user' => $m,
+            'variants' => $this->feeVariantsFor($m, $year, $insuranceHint),
+        ])->all();
+
+        $combos = [];
+        $this->collectMatchingCombinations($variantsByMember, 0, [], 0.0, (float) $tx->amount, $combos);
+        if ($combos === []) {
+            return null;
+        }
+
+        $corroborated = $this->communicationNamesAtLeastTwo((string) $tx->communication, $members);
+        $candidates = array_map(fn (array $breakdown): array => [
+            'breakdown' => $breakdown,
+            'total' => round(array_sum(array_column($breakdown, 'amount')), 2),
+            'confidence' => $this->familyConfidence($breakdown, $year, count($combos), $corroborated),
+        ], $combos);
+
+        return ['members' => $members, 'candidates' => $candidates];
+    }
+
+    /**
+     * Base cotisation, plus (only) the one insurance tier hinted at in the
+     * communication text, if any — not every tier, which would blow up the
+     * combination search for no real benefit (a shared lump-sum reference
+     * realistically names at most one insurance tier, if it names any).
+     *
+     * @return list<array{label: string, amount: float}>
+     */
+    private function feeVariantsFor(User $member, string $year, ?string $insuranceHint): array
+    {
+        $fees = app(FeeCalculationService::class);
+        $variants = [['label' => 'base', 'amount' => round($fees->calculate($member, $year)['amount_due'], 2)]];
+
+        if ($insuranceHint && $insuranceHint !== 'none') {
+            $slug = "ass_{$insuranceHint}";
+            $variants[] = ['label' => $slug, 'amount' => round($fees->calculate($member, $year, [$slug])['amount_due'], 2)];
+        }
+
+        return $variants;
+    }
+
+    /**
+     * @param  list<array{user: User, variants: list<array{label: string, amount: float}>}>  $variantsByMember
+     * @param  list<array{user: User, label: string, amount: float}>  $chosen
+     * @param  list<list<array{user: User, label: string, amount: float}>>  $results
+     */
+    private function collectMatchingCombinations(array $variantsByMember, int $i, array $chosen, float $sum, float $target, array &$results): void
+    {
+        if ($i === count($variantsByMember)) {
+            if (abs($sum - $target) < 0.005) {
+                $results[] = $chosen;
+            }
+
+            return;
+        }
+
+        foreach ($variantsByMember[$i]['variants'] as $variant) {
+            $this->collectMatchingCombinations(
+                $variantsByMember, $i + 1,
+                [...$chosen, ['user' => $variantsByMember[$i]['user'], 'label' => $variant['label'], 'amount' => $variant['amount']]],
+                $sum + $variant['amount'], $target, $results
+            );
+        }
+    }
+
+    /** Whether at least 2 of the family's members are nameable in the free-text communication. */
+    private function communicationNamesAtLeastTwo(string $communication, Collection $members): bool
+    {
+        $compact = mb_strtolower(preg_replace('/[^a-z]/i', '', Str::ascii($communication)) ?? '');
+        $named = $members->filter(function (User $m) use ($compact): bool {
+            $last = mb_strtolower(Str::ascii((string) $m->detail?->last_name));
+
+            return $last !== '' && str_contains($compact, $last);
+        });
+
+        return $named->count() >= 2;
+    }
+
+    /**
+     * 100 only when this is the one candidate AND the communication names at
+     * least 2 family members AND at least one member in the breakdown
+     * already had a prior (non-backfilled) commitment matching their share.
+     * 60 when unique but missing one of those two signals. 30 when more than
+     * one combination fits the amount — ambiguous, never auto-picked.
+     *
+     * @param  list<array{user: User, label: string, amount: float}>  $breakdown
+     */
+    private function familyConfidence(array $breakdown, string $year, int $totalCombos, bool $corroborated): int
+    {
+        if ($totalCombos > 1) {
+            return 30;
+        }
+
+        $hasPriorCommit = collect($breakdown)->contains(fn (array $row): bool => PaymentExpected::where('user_id', $row['user']->id)
+            ->where('season_year', $year)
+            ->whereIn('status', ['pending', 'partial'])
+            ->whereBetween('amount_due', [$row['amount'] - 0.005, $row['amount'] + 0.005])
+            ->exists());
+
+        return $corroborated && $hasPriorCommit ? 100 : 60;
+    }
+
+    /**
+     * Creates one PaymentExpected per breakdown row, all marked paid from
+     * this single transaction — confirmMatch() can't be reused as-is since
+     * BankTransaction.matched_payment_id links only one payment; this calls
+     * MembershipRenewalService::recordSeasonPaid() per row instead, so every
+     * family member's cotisation_years still gets updated. The transaction
+     * itself links to the first created payment (so existing single-link UI
+     * still has somewhere to point) and is marked confirmed.
+     *
+     * @param  array{breakdown: list<array{user: User, label: string, amount: float}>, total: float, confidence: int}  $candidate
+     */
+    public function createAndConfirmFamilyBackfill(BankTransaction $tx, array $candidate): void
+    {
+        $year = (string) Season::currentDuesYear();
+        $created = [];
+
+        foreach ($candidate['breakdown'] as $row) {
+            $payment = PaymentExpected::create([
+                'user_id' => $row['user']->id,
+                'type' => 'membership',
+                'season_year' => $year,
+                'amount_due' => $row['amount'],
+                'amount_paid' => $row['amount'],
+                'status' => 'paid',
+                'paid_at' => $tx->transaction_date,
+                'reconciled_by' => auth()->user()?->name,
+                'reconciled_at' => now(),
+                'bank_statement_ref' => $tx->statement_ref ?? $tx->transaction_ref,
+                'bank_statement_date' => $tx->transaction_date,
+                'note' => "Backfilled as part of a family lump payment — bank transaction #{$tx->id} (total €{$tx->amount}, this share €{$row['amount']}).",
+            ]);
+
+            app(MembershipRenewalService::class)->recordSeasonPaid($payment->fresh());
+            $created[] = $payment;
+        }
+
+        $tx->update(['matched_payment_id' => $created[0]->id, 'status' => 'confirmed', 'confirmed_by' => auth()->id()]);
+
+        $this->learnCounterparty($tx, $created[0]->user);
+
+        Log::info('Bank reconciliation family backfill created', [
+            'bank_transaction_id' => $tx->id,
+            'payment_expected_ids' => array_map(fn (PaymentExpected $p): int => $p->id, $created),
+            'amount' => $tx->amount,
         ]);
     }
 

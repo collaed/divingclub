@@ -255,6 +255,29 @@ class PaymentController extends Controller
     }
 
     /**
+     * Same idea as backfillFromTransaction(), but for a family's lump-sum
+     * payment covering several members' cotisations at once (see
+     * BankReconciliationService::proposeFamilyBackfill()). The candidate is
+     * never trusted from the client — only its index into a freshly
+     * recomputed proposal, same pattern as the single-member path trusting
+     * nothing but a server-side re-derivation.
+     */
+    public function backfillFamilyMatch(Request $request, BankTransaction $transaction): RedirectResponse
+    {
+        $svc = app(BankReconciliationService::class);
+        $proposal = $svc->proposeFamilyBackfill($transaction);
+        $index = (int) $request->input('candidate_index', 0);
+
+        if (! $proposal || ! isset($proposal['candidates'][$index])) {
+            return back()->with('error', __('This proposal is no longer valid — refresh and try again.'));
+        }
+
+        $svc->createAndConfirmFamilyBackfill($transaction, $proposal['candidates'][$index]);
+
+        return back()->with('success', __('Family payment recorded and confirmed.'));
+    }
+
+    /**
      * Full, untruncated view of one transaction — the list only shows the
      * first 40 characters of its communication — plus a member search to
      * link it to a different pending due than the one it was suggested

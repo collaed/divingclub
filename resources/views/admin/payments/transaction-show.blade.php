@@ -3,6 +3,7 @@
         $fees = app(\App\Services\FeeCalculationService::class);
         $pe = $transaction->matchedPayment;
         $backfill = $pe ? null : app(\App\Services\BankReconciliationService::class)->proposeBackfill($transaction);
+        $familyProposal = ($pe || ($backfill && $backfill['clean_match'])) ? null : app(\App\Services\BankReconciliationService::class)->proposeFamilyBackfill($transaction);
     @endphp
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
@@ -47,6 +48,29 @@
             @if(! $pe && $backfill && $backfill['clean_match'])
                 <p class="mb-2">{{ __('No payment on file, but this matches :name\'s cotisation: :communication (€:amount).', ['name' => $backfill['user']->name, 'communication' => $backfill['communication'], 'amount' => number_format($backfill['amount_due'], 2, ',', ' ')]) }}</p>
                 <form method="POST" action="{{ route('admin.payments.backfill-match', $transaction) }}">@csrf <button class="btn btn-sm btn-success">{{ __('Create & confirm') }}</button></form>
+            @elseif(! $pe && $familyProposal)
+                <p class="mb-2">{{ __('No single-member match, but this could be a family lump payment — review each option below (always requires your confirmation, even at 100%).') }}</p>
+                @foreach($familyProposal['candidates'] as $i => $candidate)
+                    <div class="border rounded p-2 mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-{{ $candidate['confidence'] >= 100 ? 'success' : ($candidate['confidence'] >= 60 ? 'warning text-dark' : 'secondary') }}">{{ __('Confidence') }}: {{ $candidate['confidence'] }}%</span>
+                            <form method="POST" action="{{ route('admin.payments.backfill-family-match', $transaction) }}">
+                                @csrf
+                                <input type="hidden" name="candidate_index" value="{{ $i }}">
+                                <button class="btn btn-sm btn-success">{{ __('Create & confirm') }}</button>
+                            </form>
+                        </div>
+                        <table class="table table-sm table-borderless mb-0">
+                            @foreach($candidate['breakdown'] as $row)
+                                <tr>
+                                    <td class="py-0">{{ $row['user']->name }}</td>
+                                    <td class="py-0 text-muted">{{ $row['label'] }}</td>
+                                    <td class="py-0 text-end" style="width:6rem">€{{ number_format($row['amount'], 2, ',', ' ') }}</td>
+                                </tr>
+                            @endforeach
+                        </table>
+                    </div>
+                @endforeach
             @elseif(! $pe && $backfill)
                 <p class="text-warning mb-0">{{ __('Looks like :name, but paid €:paid instead of the expected €:due — review manually.', ['name' => $backfill['user']->name, 'paid' => number_format((float) $transaction->amount, 2, ',', ' '), 'due' => number_format($backfill['amount_due'], 2, ',', ' ')]) }}</p>
             @elseif(! $pe)
