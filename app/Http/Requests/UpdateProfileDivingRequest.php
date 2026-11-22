@@ -29,6 +29,9 @@ class UpdateProfileDivingRequest extends FormRequest
             'apnea_level' => 'nullable|string|max:50',
             'other_certifications' => 'nullable|string',
             'training_enrollments' => 'nullable|string',
+            'training_level' => 'nullable|string|in:N1,N2,N3',
+            'training_flags' => 'nullable|array',
+            'training_flags.*' => 'string|in:RIFAP,NITROX,QUALIFS',
         ];
     }
 }

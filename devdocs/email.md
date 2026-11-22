@@ -71,7 +71,8 @@ each row's `to_email`/`status`/`provider` traces that specific send.
 | `bureau@clubcep.eu` / `board@` / `members.b@` | Bureau members | Bureau only |
 | `instructors@clubcep.eu` / `members.m@` | Active instructors | Bureau or instructor |
 | `event-{id}@clubcep.eu` / `members.s{id}@` | Event participants | Bureau, instructor, or participant |
-| `members.pn1/2/3@` | Training groups | Bureau or instructor |
+| `members.pn1/2/3@` | Training groups (self-enrolled level, N1-3 mutually exclusive) | Bureau or instructor |
+| `members.rifap/nitrox/qualifs@` | Self-enrolled training flags (independent of each other and of the level) | Bureau or instructor |
 | `cep+{tag}@clubcep.eu` | Plus-addressing (any of above) | Per-alias |
 | `sas.{name}@clubcep.eu` | Vanity alias → bureau member's personal email + CC club Gmail | Bureau |
 

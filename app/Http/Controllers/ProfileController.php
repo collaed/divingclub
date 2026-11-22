@@ -461,8 +461,21 @@ class ProfileController extends Controller
 
         $validated['other_certifications'] = isset($validated['other_certifications']) && $validated['other_certifications']
             ? array_map('trim', explode(',', $validated['other_certifications'])) : [];
-        $validated['training_enrollments'] = isset($validated['training_enrollments']) && $validated['training_enrollments']
+
+        // training_enrollments mixes free text (anything an instructor/member
+        // has typed in over time, e.g. "N4 theory", "MEF1") with a controlled
+        // self-enrollment vocabulary (N1-3 mutually exclusive, RIFAP/NITROX/
+        // QUALIFS independent — also drives the matching mail aliases, see
+        // MailAliasService::trainingLevel()). The controlled tokens are
+        // always derived fresh from training_level/training_flags, never
+        // from the free-text box, so the two never fight each other.
+        $controlledTokens = ['N1', 'N2', 'N3', 'RIFAP', 'NITROX', 'QUALIFS'];
+        $freeText = isset($validated['training_enrollments']) && $validated['training_enrollments']
             ? array_map('trim', explode(',', $validated['training_enrollments'])) : [];
+        $freeText = array_values(array_diff($freeText, $controlledTokens));
+        $structured = array_values(array_filter([$validated['training_level'] ?? null, ...($validated['training_flags'] ?? [])]));
+        $validated['training_enrollments'] = array_values(array_unique([...$freeText, ...$structured]));
+        unset($validated['training_level'], $validated['training_flags']);
 
         $target->detail()->updateOrCreate(['user_id' => $target->id], $validated);
 

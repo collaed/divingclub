@@ -40,6 +40,9 @@ class MailAliasService
             str_starts_with($local, 'members.s') => static::eventParticipantsLegacy($local),
             str_starts_with($local, 'year=') => static::membersByYear($local),
             str_starts_with($local, 'members.pn') => static::trainingLevel($local),
+            in_array($local, ['members.rifap', 'rifap']) => static::trainingFlag('RIFAP'),
+            in_array($local, ['members.nitrox', 'nitrox']) => static::trainingFlag('NITROX'),
+            in_array($local, ['members.qualifs', 'qualifs']) => static::trainingFlag('QUALIFS'),
             default => null,
         };
     }
@@ -259,6 +262,20 @@ class MailAliasService
         return ['emails' => $emails, 'label' => "Training {$level}", 'auth_level' => 'bureau_or_instructor'];
     }
 
+    /**
+     * Members self-enrolled in a training flag (RIFAP, NITROX, QUALIFS) —
+     * independent of each other and of the N1/N2/N3 level, see
+     * ProfileController::updateDiving().
+     */
+    protected static function trainingFlag(string $token): array
+    {
+        $emails = User::whereHas('detail', fn ($q) => $q->whereJsonContains('training_enrollments', $token))
+            ->whereNotNull('email_verified_at')
+            ->pluck('primary_email')->toArray();
+
+        return ['emails' => $emails, 'label' => "Training {$token}", 'auth_level' => 'bureau_or_instructor'];
+    }
+
     /** Find members by partial name match (first + last). */
     protected static function findByName(string $name): array
     {
@@ -321,6 +338,9 @@ class MailAliasService
             'members.pn1' => 'N1 students — '.$ex('members.pn1'),
             'members.pn2' => 'N2 students — '.$ex('members.pn2'),
             'members.pn3' => 'N3 students — '.$ex('members.pn3'),
+            'members.rifap' => 'Self-enrolled RIFAP — '.$ex('members.rifap'),
+            'members.nitrox' => 'Self-enrolled NITROX — '.$ex('members.nitrox'),
+            'members.qualifs' => 'Self-enrolled QUALIFS — '.$ex('members.qualifs'),
             'year={YYYY}' => 'Members by dues year — '.$ex('year={YYYY}'),
         ];
     }

@@ -91,9 +91,33 @@
                 </datalist>
                 @error('apnea_level') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
+            @php
+                $enrolled = $d?->training_enrollments ?? [];
+                $currentLevel = old('training_level', collect(['N1', 'N2', 'N3'])->first(fn ($l) => in_array($l, $enrolled)));
+            @endphp
             <div class="mb-3">
-                <label class="form-label">{{ __('Training Enrollments') }}</label>
-                <input type="text" name="training_enrollments" class="form-control @error('training_enrollments') is-invalid @enderror" value="{{ old('training_enrollments', $d?->training_enrollments ? implode(', ', $d->training_enrollments) : '') }}" placeholder="N4 theory, Initiateur, ...">
+                <label class="form-label">{{ __('Working Toward') }}</label>
+                <select name="training_level" class="form-select @error('training_level') is-invalid @enderror">
+                    <option value="">{{ __('None') }}</option>
+                    @foreach(['N1', 'N2', 'N3'] as $level)
+                        <option value="{{ $level }}" {{ $currentLevel === $level ? 'selected' : '' }}>{{ $level }}</option>
+                    @endforeach
+                </select>
+                @error('training_level') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Also Enrolled In') }}</label>
+                @foreach(['RIFAP', 'NITROX', 'QUALIFS'] as $flag)
+                    <div class="form-check form-check-inline">
+                        <input type="checkbox" class="form-check-input" name="training_flags[]" value="{{ $flag }}" id="tf_{{ $flag }}" {{ in_array($flag, old('training_flags', $enrolled)) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="tf_{{ $flag }}">{{ $flag }}</label>
+                    </div>
+                @endforeach
+                @error('training_flags.*') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Other Training Notes') }}</label>
+                <input type="text" name="training_enrollments" class="form-control @error('training_enrollments') is-invalid @enderror" value="{{ old('training_enrollments', implode(', ', array_diff($enrolled, ['N1', 'N2', 'N3', 'RIFAP', 'NITROX', 'QUALIFS']))) }}" placeholder="N4 theory, Initiateur, ...">
                 @error('training_enrollments') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
