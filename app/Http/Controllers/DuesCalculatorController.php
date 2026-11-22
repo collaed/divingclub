@@ -23,14 +23,38 @@ class DuesCalculatorController extends Controller
 {
     public function __construct(private FeeCalculationService $fees, private MembershipRenewalService $renewals) {}
 
+    /**
+     * The member whose dues this request concerns: the authenticated member
+     * by default, or a family member they're allowed to act for (see
+     * User::canActFor()) when target_user_id is posted. Returns null for a
+     * guest (not logged in) — callers fall back to resolveCalculatingUser().
+     */
+    private function actingUser(Request $request): ?User
+    {
+        $actor = auth()->user();
+        if (! $actor instanceof User) {
+            return null;
+        }
+
+        $targetId = $request->input('target_user_id');
+        if (! $targetId) {
+            return $actor;
+        }
+
+        $target = User::findOrFail($targetId);
+        abort_unless($actor->canActFor($target), 403);
+
+        return $target;
+    }
+
     public function show(Request $request): View
     {
         $year = (string) $request->input('season_year', Season::currentDuesYear());
-        $data = $this->viewData($year);
+        $user = $this->actingUser($request);
+        $data = $this->viewData($year, $user);
 
         // Pre-check the member's own insurance choice so they don't have to
         // remember it: last season's tier when known, else the recommended one.
-        $user = auth()->user();
         if ($user instanceof User) {
             $slug = $this->renewals->preselectedInsuranceSlug($user, $year);
             $data['selectedOptionals'] = $slug ? [$slug] : [];
@@ -45,13 +69,14 @@ class DuesCalculatorController extends Controller
         $statusId = $request->input('status_id');
         $selectedOptionals = $this->selectedOptionals($request);
 
-        $data = $this->viewData($year);
+        $actingUser = $this->actingUser($request);
+        $data = $this->viewData($year, $actingUser);
 
         $status = MemberStatus::find($statusId);
         $lastName = strtoupper((string) $request->input('last_name', ''));
         $firstName = strtoupper((string) $request->input('first_name', ''));
 
-        $user = $this->resolveCalculatingUser($request, $lastName, $firstName);
+        $user = $this->resolveCalculatingUser($actingUser, $request, $lastName, $firstName);
 
         $calc = $this->fees->calculate($user, $year, $selectedOptionals, $status);
         $breakdown = $this->fees->breakdown($user, $year, $selectedOptionals, $status);
@@ -71,15 +96,15 @@ class DuesCalculatorController extends Controller
     }
 
     /**
-     * The user whose age drives the derivation: the authenticated member, or a
-     * transient guest built from the posted name and date of birth so the
-     * service can still derive the FFESSM/FLASSA block.
+     * The user whose age drives the derivation: the resolved acting user
+     * (self or family member), or a transient guest built from the posted
+     * name and date of birth so the service can still derive the
+     * FFESSM/FLASSA block.
      */
-    private function resolveCalculatingUser(CalculateDuesRequest $request, string $lastName, string $firstName): User
+    private function resolveCalculatingUser(?User $actingUser, CalculateDuesRequest $request, string $lastName, string $firstName): User
     {
-        $user = auth()->user();
-        if ($user instanceof User) {
-            return $user;
+        if ($actingUser instanceof User) {
+            return $actingUser;
         }
 
         $guest = new User;
@@ -103,13 +128,20 @@ class DuesCalculatorController extends Controller
      */
     public function commit(Request $request): RedirectResponse
     {
-        $user = auth()->user();
-        abort_unless($user !== null, 403);
+        $actor = auth()->user();
+        abort_unless($actor !== null, 403);
 
         $v = $request->validate([
             'season_year' => 'required|string|max:10',
             'status_id' => 'required|integer|exists:member_statuses,id',
+            'target_user_id' => 'nullable|integer|exists:users,id',
         ]);
+
+        $user = $actor;
+        if (! empty($v['target_user_id'])) {
+            $user = User::findOrFail($v['target_user_id']);
+            abort_unless($actor->canActFor($user), 403);
+        }
         $selectedOptionals = $this->selectedOptionals($request);
 
         $status = MemberStatus::find($v['status_id']);
@@ -139,9 +171,8 @@ class DuesCalculatorController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function viewData(string $year): array
+    private function viewData(string $year, ?User $user): array
     {
-        $user = auth()->user();
         $set = $user?->statusSet;
 
         if ($set instanceof StatusSet) {
@@ -183,6 +214,10 @@ class DuesCalculatorController extends Controller
             'unclassified' => $unclassified,
             'isGuest' => $user === null,
             'memberDob' => $user?->detail?->date_of_birth?->toDateString(),
+            'actingUserId' => $user?->id,
+            'actingLastName' => $user?->detail?->last_name,
+            'actingFirstName' => $user?->detail?->first_name,
+            'familyMembers' => auth()->user()?->familyMembers() ?? new \Illuminate\Database\Eloquent\Collection,
         ];
     }
 

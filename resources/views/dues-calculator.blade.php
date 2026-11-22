@@ -32,6 +32,17 @@
 
                     <form method="POST" action="{{ route('dues.calculate') }}" id="dues-form" data-dues-form>
                         @csrf
+                        @if(($familyMembers ?? collect())->isNotEmpty())
+                            <div class="mb-3">
+                                <label class="form-label" for="dc-acting">{{ __('Viewing dues for') }}</label>
+                                <select id="dc-acting" name="target_user_id" class="form-select" style="max-width:300px" data-dues-input>
+                                    <option value="" {{ old('target_user_id', $actingUserId ?? '') == '' ? 'selected' : '' }}>{{ __('Me') }}</option>
+                                    @foreach($familyMembers as $fm)
+                                        <option value="{{ $fm->id }}" {{ (string) old('target_user_id', $actingUserId ?? '') === (string) $fm->id ? 'selected' : '' }}>{{ $fm->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
                         <div class="row g-3 mb-3">
                             <div class="col-md-3">
                                 <label class="form-label" for="dc-season">{{ __('Season Year') }}</label>
@@ -40,11 +51,11 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label" for="dc-last">{{ __('Last Name') }}</label>
-                                <input type="text" id="dc-last" name="last_name" class="form-control" value="{{ $lastName ?? (auth()->user()?->detail?->last_name ?? '') }}" required placeholder="DUPONT">
+                                <input type="text" id="dc-last" name="last_name" class="form-control" value="{{ $lastName ?? ($actingLastName ?? '') }}" required placeholder="DUPONT">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label" for="dc-first">{{ __('First Name') }}</label>
-                                <input type="text" id="dc-first" name="first_name" class="form-control" value="{{ $firstName ?? (auth()->user()?->detail?->first_name ?? '') }}" required placeholder="Marie">
+                                <input type="text" id="dc-first" name="first_name" class="form-control" value="{{ $firstName ?? ($actingFirstName ?? '') }}" required placeholder="Marie">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label" for="dc-dob">{{ __('Date of Birth') }}</label>
@@ -179,6 +190,9 @@
                                 @csrf
                                 <input type="hidden" name="season_year" value="{{ $year }}">
                                 <input type="hidden" name="status_id" value="{{ $statusId }}">
+                                @if($actingUserId ?? null)
+                                    <input type="hidden" name="target_user_id" value="{{ $actingUserId }}">
+                                @endif
                                 @foreach($selectedOptionals ?? [] as $slug)
                                     <input type="hidden" name="optionals[]" value="{{ $slug }}">
                                 @endforeach

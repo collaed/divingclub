@@ -364,6 +364,46 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->hasMany(ParentalConsent::class, 'minor_user_id');
     }
 
+    /**
+     * Other members sharing this member's family_id (self-service household
+     * grouping, see FamilyController) — empty when not in a family.
+     *
+     * @return Collection<int, User>
+     */
+    public function familyMembers(): Collection
+    {
+        $familyId = $this->detail?->family_id;
+        if ($familyId === null) {
+            return new Collection;
+        }
+
+        return self::whereHas('detail', fn (Builder $q) => $q->where('family_id', $familyId))
+            ->where('id', '!=', $this->id)
+            ->get();
+    }
+
+    /**
+     * Whether $this may act for $target on the family-scoped convenience
+     * screens (event registration quick-pick, medical upload, dues preview):
+     * always true for self; true for an existing guardian relation (minors,
+     * independent of the family feature); true when both share a family_id.
+     * Deliberately simple — the real control is at the point a member is
+     * added to a family (mutual confirm for adults, an existing GuardianLink
+     * for minors), not a per-action re-check.
+     */
+    public function canActFor(User $target): bool
+    {
+        if ($target->is($this)) {
+            return true;
+        }
+        if ($this->minors->contains($target)) {
+            return true;
+        }
+        $myFamilyId = $this->detail?->family_id;
+
+        return $myFamilyId !== null && $target->detail?->family_id === $myFamilyId;
+    }
+
     /** Check if profile has the minimum fields needed for dive/pool/training registration. */
     public function hasDiveProfile(): bool
     {

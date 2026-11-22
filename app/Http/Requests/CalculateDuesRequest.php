@@ -31,6 +31,7 @@ class CalculateDuesRequest extends FormRequest
             'date_of_birth' => 'nullable|date',
             'optionals' => 'array',
             'optionals.*' => 'string',
+            'target_user_id' => 'nullable|integer|exists:users,id',
         ];
     }
 }

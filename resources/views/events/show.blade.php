@@ -276,11 +276,23 @@
                         {{-- Register another person (bureau can always do this) --}}
                         @if(($event->isRegistrationOpen() || $isPrivileged) && $members->count())
                             <hr>
+                            @php
+                                $registeredIds = $event->registrations->whereIn('status', ['confirmed','waiting'])->pluck('user_id')->filter()->all();
+                                $availableMembers = $members->reject(fn($m) => in_array($m->id, $registeredIds))->map(fn($m) => ['id' => $m->id, 'name' => $m->name])->values();
+                                $familyAvailable = auth()->user()->familyMembers()->whereNotIn('id', $registeredIds)->whereIn('id', $members->pluck('id'));
+                            @endphp
                             <form method="POST" action="{{ route('events.register', $event) }}" id="register-other-form">
                                 @csrf
                                 <label class="form-label small fw-bold">{{ __('Register another person') }}</label>
                                 <input type="hidden" name="user_id" id="register-user-id" value="">
                                 <input type="hidden" name="non_member_name" id="register-non-member-name" value="">
+                                @if($familyAvailable->isNotEmpty())
+                                    <div class="mb-2 d-flex flex-wrap gap-1">
+                                        @foreach($familyAvailable as $fm)
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-family-pick="{{ $fm->id }}" data-family-name="{{ $fm->name }}">{{ $fm->name }}</button>
+                                        @endforeach
+                                    </div>
+                                @endif
                                 <div class="position-relative mb-2">
                                     <input type="text" id="register-combo" class="form-select form-select-sm" placeholder="{{ __('Type name or select member…') }}" autocomplete="off" required>
                                     <div id="register-combo-dropdown" class="dropdown-menu w-100" style="max-height:200px;overflow-y:auto;font-size:0.85rem"></div>
@@ -291,10 +303,6 @@
                                 <input type="text" name="comment" class="form-control form-control-sm mb-2" placeholder="{{ __('Comment (optional)') }}">
                                 <button class="btn btn-outline-primary btn-sm w-100">{{ __('Register') }}</button>
                             </form>
-                            @php
-                                $registeredIds = $event->registrations->whereIn('status', ['confirmed','waiting'])->pluck('user_id')->filter()->all();
-                                $availableMembers = $members->reject(fn($m) => in_array($m->id, $registeredIds))->map(fn($m) => ['id' => $m->id, 'name' => $m->name])->values();
-                            @endphp
                             <script>
                             (function() {
                                 const members = @json($availableMembers);
@@ -325,6 +333,11 @@
                                     dropdown.classList.remove('show');
                                 });
                                 document.addEventListener('click', e => { if (!e.target.closest('#register-combo, #register-combo-dropdown')) dropdown.classList.remove('show'); });
+                                document.querySelectorAll('[data-family-pick]').forEach(btn => btn.addEventListener('click', function() {
+                                    userIdField.value = this.dataset.familyPick;
+                                    nonMemberField.value = '';
+                                    input.value = this.dataset.familyName;
+                                }));
                                 document.getElementById('register-other-form').addEventListener('submit', function(e) {
                                     if (!userIdField.value && !nonMemberField.value) {
                                         // If typed name doesn't match a member and user is privileged, treat as non-member

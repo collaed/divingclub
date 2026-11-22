@@ -22,6 +22,7 @@ use App\Http\Controllers\DiveGroupController;
 use App\Http\Controllers\DocumentBrowserController;
 use App\Http\Controllers\DuesCalculatorController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\GdprController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HomeController;
@@ -213,6 +214,12 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
 
     Route::post('/profile/avatar', [ProfileAvatarController::class, 'upload'])->name('profile.avatar.upload');
     Route::delete('/profile/avatar', [ProfileAvatarController::class, 'delete'])->name('profile.avatar.delete');
+
+    // Family grouping (self-service)
+    Route::post('/family/propose', [FamilyController::class, 'propose'])->name('family.propose');
+    Route::post('/family/invites/{invite}/confirm', [FamilyController::class, 'confirm'])->name('family.confirm');
+    Route::post('/family/invites/{invite}/decline', [FamilyController::class, 'decline'])->name('family.decline');
+    Route::post('/family/leave', [FamilyController::class, 'leave'])->name('family.leave');
 
     // Certification levels
     Route::post('/profile/cert', [ProfileCertificationController::class, 'add'])->name('profile.cert.add');

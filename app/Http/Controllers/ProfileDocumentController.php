@@ -22,7 +22,7 @@ class ProfileDocumentController extends Controller
         $viewer = auth()->user();
         $target = $user ?? ($request->target_user_id ? User::findOrFail($request->target_user_id) : $viewer);
 
-        if ($target->id !== $viewer->id && ! $viewer->isBureau()) {
+        if ($target->id !== $viewer->id && ! $viewer->isBureau() && ! $viewer->canActFor($target)) {
             abort(403);
         }
 

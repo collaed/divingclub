@@ -147,6 +147,9 @@
             if ($tierSensitive) {
                 $tabs['equipment'] = __('Equipment on Loan');
             }
+            if ($isSelf) {
+                $tabs['family'] = __('Family');
+            }
             $activeTab = old('tab', $tab);
         @endphp
         @foreach($tabs as $key => $label)
@@ -189,6 +192,11 @@
         @if(isset($tabs['equipment']))
         <div class="tab-pane fade {{ $activeTab === 'equipment' ? 'show active' : '' }}" id="tab-equipment" role="tabpanel">
             @include('profile.tabs.equipment', ['target' => $target])
+        </div>
+        @endif
+        @if(isset($tabs['family']))
+        <div class="tab-pane fade {{ $activeTab === 'family' ? 'show active' : '' }}" id="tab-family" role="tabpanel">
+            @include('profile.tabs.family', ['target' => $target, 'viewer' => $viewer])
         </div>
         @endif
     </div>

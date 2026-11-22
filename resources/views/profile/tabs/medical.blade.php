@@ -57,6 +57,16 @@
     <input type="hidden" name="category" value="medical">
     @if($target->id !== auth()->id())
         <input type="hidden" name="target_user_id" value="{{ $target->id }}">
+    @elseif(auth()->user()->familyMembers()->isNotEmpty())
+        <div class="col-md-3 mb-2">
+            <label class="form-label">{{ __('Uploading for') }}</label>
+            <select name="target_user_id" class="form-select form-select-sm">
+                <option value="">{{ __('Me') }}</option>
+                @foreach(auth()->user()->familyMembers() as $fm)
+                    <option value="{{ $fm->id }}">{{ $fm->name }}</option>
+                @endforeach
+            </select>
+        </div>
     @endif
     <div class="row g-2 align-items-end">
         <div class="col-md-4">
