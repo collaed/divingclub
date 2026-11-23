@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\LoginHistoryController;
+use App\Http\Controllers\Admin\MailAliasController;
 use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MedicalReviewController;
 use App\Http\Controllers\Admin\MemberController;
@@ -67,6 +68,7 @@ Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->n
 Route::post('/members/{user}/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
 Route::post('/members/{user}/impersonate', [MemberController::class, 'impersonate'])->name('impersonate');
 Route::post('/members/{user}/send-reset', [MemberController::class, 'sendReset'])->name('send-reset');
+Route::post('/members/{user}/personal-alias', [MemberController::class, 'activatePersonalAlias'])->name('members.personal-alias.activate');
 Route::delete('/members/{user}', [MemberController::class, 'archive'])->name('members.archive');
 
 // Articles & Links
@@ -217,6 +219,12 @@ Route::delete('/settings/membership-fee/{fee}', [SettingsController::class, 'des
 Route::post('/settings/forwarding-rule', [SettingsController::class, 'storeForwardingRule'])->name('settings.forwarding-rule.store');
 Route::put('/settings/forwarding-rule/{rule}', [SettingsController::class, 'updateForwardingRule'])->name('settings.forwarding-rule.update');
 Route::delete('/settings/forwarding-rule/{rule}', [SettingsController::class, 'destroyForwardingRule'])->name('settings.forwarding-rule.destroy');
+
+Route::get('/mail-aliases', [MailAliasController::class, 'index'])->name('mail-aliases.index');
+Route::post('/mail-aliases/preview', [MailAliasController::class, 'preview'])->name('mail-aliases.preview');
+Route::post('/mail-aliases', [MailAliasController::class, 'store'])->name('mail-aliases.store');
+Route::put('/mail-aliases/{mailAliasDefinition}', [MailAliasController::class, 'update'])->name('mail-aliases.update');
+Route::delete('/mail-aliases/{mailAliasDefinition}', [MailAliasController::class, 'destroy'])->name('mail-aliases.destroy');
 
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');

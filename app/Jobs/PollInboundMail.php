@@ -307,7 +307,7 @@ class PollInboundMail implements ShouldQueue
 
             EmailLog::create([
                 'to_email' => $target, 'from_email' => $from, 'subject' => $subject,
-                'body' => substr($body, 0, 5000), 'status' => $status,
+                'alias' => $to, 'body' => substr($body, 0, 5000), 'status' => $status,
                 'direction' => 'inbound', 'authorized' => true, 'error' => $error,
                 'provider' => MailBalancer::lastProvider(),
             ]);

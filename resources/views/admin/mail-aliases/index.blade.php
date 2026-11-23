@@ -1,0 +1,206 @@
+<x-admin-layout :title="__('Mail Aliases')">
+    @php($isBureauMaster = auth()->user()->hasRole('bureau_master'))
+
+    <h4 class="mb-1">{{ __('Mail Aliases') }}</h4>
+    <p class="text-muted small mb-4">{{ __('Define a mailing alias by ticking the member properties it must match (all selected properties must hold at once). Sending to the alias\'s tag — e.g. :example — reaches everyone who currently matches.', ['example' => \App\Services\MailAliasService::mailtoAddress('{tag}')]) }}</p>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card dc-card">
+                <div class="card-header">{{ __('Existing aliases') }}</div>
+                <div class="card-body p-0">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>{{ __('Tag') }}</th><th>{{ __('Label') }}</th><th class="text-end">{{ __('Members') }}</th><th></th>@if($isBureauMaster)<th class="text-end">{{ __('Actions') }}</th>@endif</tr></thead>
+                        <tbody>
+                        @forelse($definitions as $row)
+                            @php($d = $row['definition'])
+                            <tr data-definition data-id="{{ $d->id }}" data-tag="{{ $d->tag }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
+                                <td><code>{{ $d->tag }}</code></td>
+                                <td>{{ $d->label }}</td>
+                                <td class="text-end">{{ $row['count'] }}</td>
+                                <td>@unless($d->enabled)<span class="badge bg-secondary">{{ __('Disabled') }}</span>@endunless</td>
+                                @if($isBureauMaster)
+                                <td class="text-end text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-edit-definition>{{ __('Edit') }}</button>
+                                    <form method="POST" action="{{ route('admin.mail-aliases.destroy', $d) }}" class="d-inline" data-confirm-form data-confirm="{{ __('Delete the “:label” alias?', ['label' => $d->label]) }}">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">@icon('🗑️')</button>
+                                    </form>
+                                </td>
+                                @endif
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="text-muted text-center py-3">{{ __('No dynamic aliases yet.') }}</td></tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card dc-card">
+                <div class="card-header">{{ __('Build an alias') }}</div>
+                <div class="card-body">
+                    @if($isBureauMaster)
+                    <form id="aliasBuilderForm" method="POST" action="{{ route('admin.mail-aliases.store') }}">
+                        @csrf
+                        <input type="hidden" name="_method" id="builderMethod" value="POST">
+                        <input type="hidden" id="builderActionStore" value="{{ route('admin.mail-aliases.store') }}">
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">{{ __('Tag') }}</label>
+                                <input type="text" name="tag" id="builderTag" class="form-control form-control-sm @error('tag') is-invalid @enderror" required placeholder="n1-renewal-chase">
+                                @error('tag') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">{{ __('Label') }}</label>
+                                <input type="text" name="label" id="builderLabel" class="form-control form-control-sm @error('label') is-invalid @enderror" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ __('Who can send') }}</label>
+                                <select name="auth_level" id="builderAuthLevel" class="form-select form-select-sm">
+                                    <option value="bureau">{{ __('Bureau') }}</option>
+                                    <option value="bureau_or_instructor">{{ __('Bureau or instructor') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="builderCriteria" class="row g-2 mb-3">
+                            @foreach($options as $key => $label)
+                                <div class="col-md-6 form-check">
+                                    <input type="checkbox" class="form-check-input" name="criteria[]" value="{{ $key }}" id="crit-{{ $key }}" data-criterion>
+                                    <label class="form-check-label small" for="crit-{{ $key }}">{{ $label }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="d-flex gap-2 mb-3">
+                            <button type="submit" class="btn btn-sm btn-primary">{{ __('Save alias') }}</button>
+                            <button type="button" id="builderCancelEdit" class="btn btn-sm btn-outline-secondary d-none">{{ __('Cancel edit') }}</button>
+                        </div>
+                    </form>
+                    @else
+                        <p class="text-muted small">{{ __('Only bureau_master can create or edit aliases. You can still preview who any selection would match below.') }}</p>
+                        <div id="builderCriteria" class="row g-2 mb-3">
+                            @foreach($options as $key => $label)
+                                <div class="col-md-6 form-check">
+                                    <input type="checkbox" class="form-check-input" id="crit-{{ $key }}" data-criterion value="{{ $key }}">
+                                    <label class="form-check-label small" for="crit-{{ $key }}">{{ $label }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <hr>
+                    <h6 class="d-flex justify-content-between align-items-center">
+                        <span>{{ __('Matching members') }} (<span id="previewCount">0</span>)</span>
+                    </h6>
+                    <div id="previewList" class="small" style="max-height: 20rem; overflow-y: auto;">
+                        <p class="text-muted">{{ __('Tick a property above to see who it matches.') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+    (function () {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+        const previewUrl = @json(route('admin.mail-aliases.preview'));
+        const criteriaBox = document.getElementById('builderCriteria');
+        const countEl = document.getElementById('previewCount');
+        const listEl = document.getElementById('previewList');
+        let timer = null;
+
+        function selectedCriteria() {
+            return Array.from(criteriaBox.querySelectorAll('[data-criterion]:checked')).map(function (el) { return el.value; });
+        }
+
+        function runPreview() {
+            const criteria = selectedCriteria();
+            if (criteria.length === 0) {
+                countEl.textContent = '0';
+                listEl.innerHTML = '<p class="text-muted">{{ __('Tick a property above to see who it matches.') }}</p>';
+                return;
+            }
+            const body = new URLSearchParams();
+            criteria.forEach(function (c) { body.append('criteria[]', c); });
+            fetch(previewUrl, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString(),
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                countEl.textContent = data.count;
+                if (data.members.length === 0) {
+                    listEl.innerHTML = '<p class="text-muted">{{ __('No one matches this combination.') }}</p>';
+                    return;
+                }
+                listEl.innerHTML = '<ul class="list-unstyled mb-0">' + data.members.map(function (m) {
+                    return '<li>' + m.name + ' <span class="text-muted">(' + m.email + ')</span></li>';
+                }).join('') + (data.truncated ? '<li class="text-muted">{{ __('…and more') }}</li>' : '') + '</ul>';
+            });
+        }
+
+        if (criteriaBox) {
+            criteriaBox.addEventListener('change', function (e) {
+                if (!e.target.matches('[data-criterion]')) { return; }
+                clearTimeout(timer);
+                timer = setTimeout(runPreview, 300);
+            });
+        }
+
+        @if($isBureauMaster)
+        const form = document.getElementById('aliasBuilderForm');
+        const tagInput = document.getElementById('builderTag');
+        const labelInput = document.getElementById('builderLabel');
+        const authInput = document.getElementById('builderAuthLevel');
+        const methodInput = document.getElementById('builderMethod');
+        const storeUrl = document.getElementById('builderActionStore').value;
+        const cancelBtn = document.getElementById('builderCancelEdit');
+
+        function resetForm() {
+            form.action = storeUrl;
+            methodInput.value = 'POST';
+            tagInput.value = '';
+            tagInput.readOnly = false;
+            labelInput.value = '';
+            authInput.value = 'bureau';
+            criteriaBox.querySelectorAll('[data-criterion]').forEach(function (el) { el.checked = false; });
+            cancelBtn.classList.add('d-none');
+            runPreview();
+        }
+
+        document.querySelectorAll('[data-edit-definition]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const row = btn.closest('[data-definition]');
+                form.action = row.dataset.updateUrl;
+                methodInput.value = 'PUT';
+                tagInput.value = row.dataset.tag;
+                tagInput.readOnly = true; // tag isn't editable once created — matches MailAliasService::resolve()'s routing key; readonly (not disabled) so it still submits
+                labelInput.value = row.dataset.label;
+                authInput.value = row.dataset.authLevel;
+                const criteria = JSON.parse(row.dataset.criteria || '[]');
+                criteriaBox.querySelectorAll('[data-criterion]').forEach(function (el) {
+                    el.checked = criteria.includes(el.value);
+                });
+                cancelBtn.classList.remove('d-none');
+                runPreview();
+                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+        cancelBtn.addEventListener('click', resetForm);
+        @endif
+
+        document.querySelectorAll('[data-confirm-form]').forEach(function (f) {
+            f.addEventListener('submit', function (e) {
+                if (!window.confirm(f.dataset.confirm || '{{ __('Are you sure?') }}')) { e.preventDefault(); }
+            });
+        });
+    })();
+    </script>
+    @endpush
+</x-admin-layout>

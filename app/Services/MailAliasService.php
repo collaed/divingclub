@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Event;
+use App\Models\MailAliasDefinition;
 use App\Models\MemberStatus;
 use App\Models\ThemeSetting;
 use App\Models\User;
@@ -30,6 +31,13 @@ class MailAliasService
             $local = substr($local, strpos($local, '+') + 1);
             // Normalize: event.42 → event-42, members.s42 stays
             $local = preg_replace('/^event\.(\d+)$/', 'event-$1', $local);
+        }
+
+        // Admin-defined dynamic aliases (Admin\MailAliasController) take
+        // precedence over the static aliases below.
+        $definition = MailAliasDefinition::where('tag', $local)->where('enabled', true)->first();
+        if ($definition) {
+            return static::resolveDefinition($definition);
         }
 
         return match (true) {
@@ -147,6 +155,16 @@ class MailAliasService
             'participant' => static::isEventParticipantOrStaff($sender, $alias),
             default => false,
         };
+    }
+
+    /** Resolve an admin-defined dynamic alias (Admin\MailAliasController) via MailAliasCriteria. */
+    protected static function resolveDefinition(MailAliasDefinition $definition): array
+    {
+        $emails = MailAliasCriteria::matchingUsers($definition->criteria)
+            ->whereNotNull('email_verified_at')
+            ->pluck('primary_email')->toArray();
+
+        return ['emails' => $emails, 'label' => $definition->label, 'auth_level' => $definition->auth_level];
     }
 
     /** Bureau members (detail.bureau_member = true). */

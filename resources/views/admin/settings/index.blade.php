@@ -728,6 +728,11 @@
                                 <input type="email" id="mail_inbound_address" name="mail_inbound_address" class="form-control" value="{{ $themeSettings['mail_inbound_address'] ?? '' }}" placeholder="{{ config('club.mail_address') }}">
                                 <small class="text-muted">{{ __('Base address plus-addressed aliases are built from, e.g. club+bureau@domain.') }}</small>
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="mail_personal_alias_cc">{{ __('Personal Alias CC') }}</label>
+                                <input type="email" id="mail_personal_alias_cc" name="mail_personal_alias_cc" class="form-control" value="{{ $themeSettings['mail_personal_alias_cc'] ?? '' }}" placeholder="{{ config('club.contact_email') }}">
+                                <small class="text-muted">{{ __('Also cc\'d on every member\'s personal vanity alias (sas.{name}@...), activated from their profile.') }}</small>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary">{{ __('Save Email Settings') }}</button>
                     </form>
@@ -759,6 +764,33 @@
                             <div class="col-md-3"><input type="text" name="label" class="form-control form-control-sm" placeholder="{{ __('Label') }}" aria-label="{{ __('Label') }}"></div>
                             <div class="col-md-3"><button type="submit" class="btn btn-sm btn-primary">{{ __('Add Rule') }}</button></div>
                         </form>
+
+                        <hr>
+                        <h6>@icon('👤') {{ __('Personal Aliases') }}</h6>
+                        <p class="text-muted small">{{ __('Vanity addresses (sas.{name}@...) activated from a member\'s profile — mail forwards to their own address + the Personal Alias CC above.') }}</p>
+                        <table class="table table-sm align-middle">
+                            <thead><tr><th>{{ __('Member') }}</th><th>{{ __('Address') }}</th><th>{{ __('Forwards to') }}</th><th>{{ __('Enabled') }}</th><th>{{ __('Last used') }}</th><th class="text-end">{{ __('Actions') }}</th></tr></thead>
+                            <tbody>
+                            @forelse($personalAliases as $r)
+                                <tr data-rule-id="{{ $r->id }}" data-rule-row data-url="{{ route('admin.settings.forwarding-rule.update', $r) }}">
+                                    <td>{{ $r->user?->name ?? '—' }}</td>
+                                    <td><code>{{ $r->from_address }}</code></td>
+                                    <td><input type="text" class="form-control form-control-sm" value="{{ $r->to_addresses }}" required aria-label="{{ __('Forwards to') }}" data-rule-field="to_addresses"></td>
+                                    <td><input type="checkbox" class="form-check-input" data-rule-field="enabled" {{ $r->enabled ? 'checked' : '' }}></td>
+                                    <td class="small text-muted">
+                                        @php $last = $r->lastForwardedAt(); @endphp
+                                        {{ $last ? $last->diffForHumans() : __('Never') }}
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <span class="text-success small me-2 d-none" data-rule-saved>@icon('✓') {{ __('Saved') }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-rule-delete data-url="{{ route('admin.settings.forwarding-rule.destroy', $r) }}" data-confirm="{{ __('Delete the personal alias for “:name”?', ['name' => $r->user?->name ?? $r->from_address]) }}" title="{{ __('Delete') }}">@icon('🗑️')</button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6" class="text-muted text-center py-3">{{ __('No personal aliases activated yet — activate one from a member\'s profile.') }}</td></tr>
+                            @endforelse
+                            </tbody>
+                        </table>
 
                         @push('scripts')
                         <script>

@@ -50,6 +50,7 @@
             <a href="{{ route('admin.articles.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.articles.*') ? 'active' : '' }}">@icon('📝') {{ __('Articles') }}</a>
             <a href="{{ route('admin.library.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.library.*') ? 'active' : '' }}">@icon('📁') {{ __('Documents') }}</a>
             <a href="{{ route('admin.email.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.email.*') ? 'active' : '' }}">@icon('📧') {{ __('Email') }}</a>
+            <a href="{{ route('admin.mail-aliases.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.mail-aliases.*') ? 'active' : '' }}">@icon('✉️') {{ __('Mail Aliases') }}</a>
             <a href="{{ route('admin.newsletters.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.newsletters.*') ? 'active' : '' }}">@icon('📬') {{ __('Newsletters') }}</a>
             @if(auth()->user()->hasRole('bureau_master'))
                 <a href="{{ route('admin.document-dispatch.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.document-dispatch.*') ? 'active' : '' }}">@icon('📤') {{ __('Tracked docs') }}</a>

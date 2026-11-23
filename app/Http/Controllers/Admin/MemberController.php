@@ -8,9 +8,11 @@ use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMemberByBureauRequest;
 use App\Models\AuditLog;
+use App\Models\MailForwardingRule;
 use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\StatusSet;
+use App\Models\ThemeSetting;
 use App\Models\User;
 use App\Models\UserEmail;
 use App\Notifications\ProfileApprovedNotification;
@@ -294,5 +296,35 @@ class MemberController extends Controller
         Password::sendResetLink(['email' => $user->primary_email]);
 
         return back()->with('success', __('Password reset link sent to :email', ['email' => $user->primary_email]));
+    }
+
+    /**
+     * Activates a personal vanity alias (sas.{name}@...) for a member —
+     * mail to it forwards to their own address + the club's shared cc —
+     * by creating the same MailForwardingRule row the Email & Forwarding
+     * settings page manages, tagged with this member (see
+     * MailForwardingRule::$user). A no-op if one already exists.
+     */
+    public function activatePersonalAlias(User $user): RedirectResponse
+    {
+        abort_unless(auth()->user()?->hasRole('bureau_master'), 403);
+
+        if (MailForwardingRule::where('user_id', $user->id)->exists()) {
+            return back()->with('error', __('A personal alias already exists for this member.'));
+        }
+
+        $base = ThemeSetting::get('mail_inbound_address', config('club.mail_address', 'club@example.com'));
+        $domain = explode('@', $base, 2)[1] ?? 'example.com';
+        $slug = Str::slug($user->detail?->first_name ?? $user->name);
+        $ccAddress = ThemeSetting::get('mail_personal_alias_cc', config('club.contact_email'));
+
+        MailForwardingRule::create([
+            'user_id' => $user->id,
+            'from_address' => "sas.{$slug}@{$domain}",
+            'to_addresses' => $ccAddress ? "{$user->primary_email},{$ccAddress}" : $user->primary_email,
+            'label' => $user->name,
+        ]);
+
+        return back()->with('success', __('Personal alias activated for :name.', ['name' => $user->name]));
     }
 }

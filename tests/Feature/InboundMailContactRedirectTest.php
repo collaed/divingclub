@@ -50,6 +50,9 @@ class InboundMailContactRedirectTest extends TestCase
         $this->assertSame('forwarded', $log->status);
         $this->assertSame('inbound', $log->direction);
         $this->assertTrue((bool) $log->authorized);
+        // So a rule's traffic can be traced back to which inbound address
+        // triggered it — see MailForwardingRule::lastForwardedAt().
+        $this->assertSame('info@example.com', $log->alias);
     }
 
     public function test_a_rule_can_forward_to_more_than_one_target(): void

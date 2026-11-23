@@ -1,4 +1,46 @@
-@php $d = $target->detail; $isSelf = $viewer->id === $target->id; @endphp
+@php
+    $d = $target->detail;
+    $isSelf = $viewer->id === $target->id;
+    $personalAlias = \App\Models\MailForwardingRule::where('user_id', $target->id)->first();
+@endphp
+
+@if($viewer->hasRole('bureau_master'))
+<div class="card dc-card mb-4">
+    <div class="card-header">@icon('✉️') {{ __('Personal Mail Alias') }}</div>
+    <div class="card-body">
+        @if($personalAlias)
+            <p class="mb-2"><code>{{ $personalAlias->from_address }}</code> → {{ $personalAlias->to_addresses }}</p>
+            <div class="form-check form-switch">
+                <input type="checkbox" class="form-check-input" role="switch" id="personalAliasEnabled" data-rule-field="enabled" data-url="{{ route('admin.settings.forwarding-rule.update', $personalAlias) }}" {{ $personalAlias->enabled ? 'checked' : '' }}>
+                <label class="form-check-label" for="personalAliasEnabled">{{ __('Enabled') }}</label>
+            </div>
+            <p class="small text-muted mb-0 mt-1">{{ __('Manage or delete it from Settings → Technical → Email & Forwarding.') }}</p>
+        @else
+            <form method="POST" action="{{ route('admin.members.personal-alias.activate', $target) }}">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Activate personal alias') }} (sas.{{ \Illuminate\Support\Str::slug($d?->first_name ?? $target->name) }}@…)</button>
+            </form>
+        @endif
+    </div>
+</div>
+@push('scripts')
+<script>
+(function () {
+    const toggle = document.getElementById('personalAliasEnabled');
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!toggle || !csrf) { return; }
+    toggle.addEventListener('change', function () {
+        fetch(toggle.dataset.url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+            body: JSON.stringify({ enabled: toggle.checked, to_addresses: @json($personalAlias?->to_addresses) }),
+        }).catch(function () { if (typeof showToast === 'function') { showToast('{{ __('Save failed') }}', 'danger'); } });
+    });
+})();
+</script>
+@endpush
+@endif
+
 <form method="POST" action="{{ $viewer->isBureau() && !$isSelf ? route('admin.profile.update.private', $target) : route('profile.update.private') }}">
     @csrf
     <input type="hidden" name="tab" value="private">
