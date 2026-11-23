@@ -115,4 +115,27 @@ class BankStatementParsingTest extends TestCase
 
         $this->assertSame([], app(BankReconciliationService::class)->parseStatement(self::REAL_WORLD_SAMPLE));
     }
+
+    public function test_repasting_the_same_delimited_text_does_not_create_duplicates(): void
+    {
+        Http::fake();
+        $text = "15/03/2026;55.00;cotisation;J DUPONT\n16/03/2026;30.00;cotisation;M MARTIN";
+        $svc = app(BankReconciliationService::class);
+
+        $this->assertCount(2, $svc->parseStatement($text));
+        $this->assertCount(0, $svc->parseStatement($text));
+        $this->assertSame(2, BankTransaction::count());
+    }
+
+    public function test_reextracting_the_same_ai_rows_does_not_create_duplicates(): void
+    {
+        $this->cloudflareRespondingWith([
+            ['date' => '2026-07-07', 'amount' => 999.00, 'communication' => 'ok', 'counterparty' => 'EDDY COLLART'],
+        ]);
+        $svc = app(BankReconciliationService::class);
+
+        $this->assertCount(1, $svc->parseStatement(self::REAL_WORLD_SAMPLE));
+        $this->assertCount(0, $svc->parseStatement(self::REAL_WORLD_SAMPLE));
+        $this->assertSame(1, BankTransaction::count());
+    }
 }

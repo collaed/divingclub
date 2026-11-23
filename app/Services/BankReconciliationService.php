@@ -41,7 +41,7 @@ class BankReconciliationService
      * existing IBAN sub-score in matchScore(), and the four communication
      * lines plus counterparty name for the text/name sub-scores.
      *
-     * @return array{transactions: BankTransaction[], page_count: int}
+     * @return array{transactions: BankTransaction[], page_count: int, duplicates: int}
      */
     public function parseXlsxStatement(string $path, ?string $statementRef = null): array
     {
@@ -55,6 +55,7 @@ class BankReconciliationService
         }
 
         $transactions = [];
+        $duplicates = 0;
         foreach (array_slice($rows, 1) as $row) {
             if (($row[0] ?? null) === null || $row[0] === '') {
                 continue; // blank separator row
@@ -68,17 +69,37 @@ class BankReconciliationService
             $communication = trim(implode(' ', array_filter([
                 $row[7] ?? null, $row[8] ?? null, $row[9] ?? null, $row[10] ?? null, $row[12] ?? null,
             ], fn ($v) => $v !== null && $v !== '')));
+            $counterparty = trim((string) ($row[11] ?? ''));
+            $date = $this->asDate($row[0]);
+
+            // The bank's export is always the *full* account history, not a
+            // diff — re-uploading it (e.g. to pick up the latest few lines)
+            // re-presents every previously-seen line too. Without this check
+            // every one of those got re-inserted as a fresh, unmatched
+            // duplicate on each re-import (see devdocs/payments.md).
+            if ($this->alreadyImported($date, $amount, $communication, $counterparty)) {
+                $duplicates++;
+
+                continue;
+            }
 
             $transactions[] = BankTransaction::create([
-                'transaction_date' => $this->asDate($row[0]),
+                'transaction_date' => $date,
                 'amount' => $amount,
                 'communication' => $communication,
-                'counterparty' => trim((string) ($row[11] ?? '')),
+                'counterparty' => $counterparty,
                 'statement_ref' => $statementRef,
             ]);
         }
 
-        return ['transactions' => $transactions, 'page_count' => 1];
+        return ['transactions' => $transactions, 'page_count' => 1, 'duplicates' => $duplicates];
+    }
+
+    /** Same identity check used by every import path below — see parseXlsxStatement(). */
+    private function alreadyImported(Carbon|string|null $date, float $amount, string $communication, string $counterparty): bool
+    {
+        return BankTransaction::where('transaction_date', $date)->where('amount', $amount)
+            ->where('communication', $communication)->where('counterparty', $counterparty)->exists();
     }
 
     /** @param  mixed  $value  the raw cell value: an Excel date serial number, or empty */
@@ -121,11 +142,19 @@ class BankReconciliationService
                 continue;
             }
 
+            $date = $this->parseDate($parts[0] ?? '');
+            $amount = (float) str_replace(',', '.', $parts[1] ?? '0');
+            $communication = trim($parts[2] ?? '');
+            $counterparty = trim($parts[3] ?? '');
+            if ($this->alreadyImported($date, $amount, $communication, $counterparty)) {
+                continue;
+            }
+
             $transactions[] = BankTransaction::create([
-                'transaction_date' => $this->parseDate($parts[0] ?? ''),
-                'amount' => (float) str_replace(',', '.', $parts[1] ?? '0'),
-                'communication' => trim($parts[2] ?? ''),
-                'counterparty' => trim($parts[3] ?? ''),
+                'transaction_date' => $date,
+                'amount' => $amount,
+                'communication' => $communication,
+                'counterparty' => $counterparty,
             ]);
         }
 
@@ -158,11 +187,17 @@ class BankReconciliationService
                 continue;
             }
 
+            $communication = is_string($row['communication'] ?? null) ? mb_substr($row['communication'], 0, 500) : '';
+            $counterparty = is_string($row['counterparty'] ?? null) ? mb_substr($row['counterparty'], 0, 255) : '';
+            if ($this->alreadyImported($date, $amount, $communication, $counterparty)) {
+                continue;
+            }
+
             $transactions[] = BankTransaction::create([
                 'transaction_date' => $date,
                 'amount' => $amount,
-                'communication' => is_string($row['communication'] ?? null) ? mb_substr($row['communication'], 0, 500) : '',
-                'counterparty' => is_string($row['counterparty'] ?? null) ? mb_substr($row['counterparty'], 0, 255) : '',
+                'communication' => $communication,
+                'counterparty' => $counterparty,
             ]);
         }
 

@@ -184,10 +184,11 @@ class PaymentController extends Controller
             $path = $request->file('statement_xlsx')->store('bank-statements', 'local');
             Log::info('Bank reconciliation import started (Excel)', ['original_name' => $request->file('statement_xlsx')->getClientOriginalName(), 'statement_ref' => $request->statement_ref]);
             $result = $svc->parseXlsxStatement(Storage::disk('local')->path($path), $request->statement_ref);
-            Log::info('Bank reconciliation import finished (Excel)', ['count' => count($result['transactions'])]);
+            Log::info('Bank reconciliation import finished (Excel)', ['count' => count($result['transactions']), 'duplicates' => $result['duplicates']]);
 
-            return back()->with('success', __(':count transactions imported from Excel.', [
+            return back()->with('success', __(':count transactions imported from Excel, :duplicates already known.', [
                 'count' => count($result['transactions']),
+                'duplicates' => $result['duplicates'],
             ]));
         }
 

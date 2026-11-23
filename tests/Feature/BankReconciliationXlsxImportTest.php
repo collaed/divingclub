@@ -79,6 +79,31 @@ class BankReconciliationXlsxImportTest extends TestCase
         @unlink($path);
     }
 
+    /**
+     * The bank's export is always the full account history, not a diff —
+     * re-uploading it to pick up the latest few lines re-presents every
+     * previously-imported line too. Those must be recognised and skipped,
+     * not re-inserted as fresh duplicates (see app/Services/BankReconciliationService.php).
+     */
+    public function test_reimporting_the_same_statement_does_not_create_duplicates(): void
+    {
+        $row = [strtotime('2026-03-17'), 'Virement', null, 153.5, '1', 24721.77, 'VIR', 'CLUB-2026-3-DUPONT', 'MARIE', null, null, 'LU680019335575380000', 'DUPONT MARIE', 'RUE CLAIE 95', '6792 HALANZY'];
+
+        $path1 = $this->makeXlsx([$row]);
+        $first = app(BankReconciliationService::class)->parseXlsxStatement($path1);
+        @unlink($path1);
+
+        $path2 = $this->makeXlsx([$row]);
+        $second = app(BankReconciliationService::class)->parseXlsxStatement($path2);
+        @unlink($path2);
+
+        $this->assertCount(1, $first['transactions']);
+        $this->assertSame(0, $first['duplicates']);
+        $this->assertSame([], $second['transactions']);
+        $this->assertSame(1, $second['duplicates']);
+        $this->assertSame(1, BankTransaction::count());
+    }
+
     public function test_an_unrecognised_header_is_refused(): void
     {
         $path = $this->makeXlsx([['x']], ['Not', 'The', 'Right', 'Header']);
