@@ -2,7 +2,7 @@
 @section('guide-title', __('Inbound Mail Aliases'))
 @section('guide-content')
 <h5>📬 {{ __('Mail Alias System') }}</h5>
-<p>Send an email to a special address and it gets forwarded to the right group of members. Uses standard <strong>plus-addressing</strong> (RFC 5233) — works on any mail server with zero configuration.</p>
+<p>Send an email to a special address and it gets forwarded to the right group of members. Uses standard <strong>plus-addressing</strong> (RFC 5233) by default — works on any mail server with zero configuration. If your mail server is a domain-wide catch-all, you can switch to bare addresses (e.g. <code>bureau@domain</code> instead of <code>club+bureau@domain</code>) under Settings → Email & Forwarding → <strong>Bare Alias Addresses</strong> — the addresses below reflect whichever mode is currently enabled.</p>
 
 <h5 class="mt-4">📧 {{ __('How it works') }}</h5>
 <p>Your club has one base address configured in <code>.env</code>:</p>

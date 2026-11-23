@@ -46,15 +46,35 @@ class MailAliasCriteria
     }
 
     /**
+     * Users matching every selected criterion (AND'd), plus anyone explicitly
+     * included by id, minus anyone explicitly excluded by id — so a group can
+     * mix "everyone who currently matches" with named exceptions, or (with no
+     * criteria at all) be built from named people only.
+     *
      * @param  array<int, string>  $keys
+     * @param  array<int, int>  $includeIds
+     * @param  array<int, int>  $excludeIds
      * @return Builder<User>
      */
-    public static function matchingUsers(array $keys): Builder
+    public static function matchingUsers(array $keys, array $includeIds = [], array $excludeIds = []): Builder
     {
         $query = User::query();
+        $selected = array_intersect($keys, array_keys(self::options()));
 
-        foreach (array_intersect($keys, array_keys(self::options())) as $key) {
-            self::apply($query, $key);
+        $query->where(function (Builder $q) use ($selected, $includeIds): void {
+            foreach ($selected as $key) {
+                self::apply($q, $key);
+            }
+
+            if ($includeIds !== []) {
+                $selected !== [] ? $q->orWhereIn('id', $includeIds) : $q->whereIn('id', $includeIds);
+            } elseif ($selected === []) {
+                $q->whereRaw('1 = 0');
+            }
+        });
+
+        if ($excludeIds !== []) {
+            $query->whereNotIn('id', $excludeIds);
         }
 
         return $query;

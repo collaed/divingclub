@@ -729,6 +729,14 @@
                                 <small class="text-muted">{{ __('Base address plus-addressed aliases are built from, e.g. club+bureau@domain.') }}</small>
                             </div>
                             <div class="col-md-4">
+                                <label class="form-label" for="mail_bare_aliases">{{ __('Bare Alias Addresses') }}</label>
+                                <select id="mail_bare_aliases" name="mail_bare_aliases" class="form-select">
+                                    <option value="0" {{ ($themeSettings['mail_bare_aliases'] ?? '0') === '0' ? 'selected' : '' }}>{{ __('No — plus-addressed (club+bureau@domain)') }}</option>
+                                    <option value="1" {{ ($themeSettings['mail_bare_aliases'] ?? '0') === '1' ? 'selected' : '' }}>{{ __('Yes — bare (bureau@domain)') }}</option>
+                                </select>
+                                <small class="text-muted">{{ __('Only enable this if your mail server delivers every address at this domain to the inbound mailbox (a domain-wide catch-all) — otherwise mail to these addresses will bounce.') }}</small>
+                            </div>
+                            <div class="col-md-4">
                                 <label class="form-label" for="mail_personal_alias_cc">{{ __('Personal Alias CC') }}</label>
                                 <input type="email" id="mail_personal_alias_cc" name="mail_personal_alias_cc" class="form-control" value="{{ $themeSettings['mail_personal_alias_cc'] ?? '' }}" placeholder="{{ config('club.contact_email') }}">
                                 <small class="text-muted">{{ __('Also cc\'d on every member\'s personal vanity alias (sas.{name}@...), activated from their profile.') }}</small>

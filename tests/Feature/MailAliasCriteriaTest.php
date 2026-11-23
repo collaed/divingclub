@@ -166,12 +166,62 @@ class MailAliasCriteriaTest extends TestCase
         $this->assertFalse($matched->contains($instructorOnly->id));
     }
 
-    public function test_unknown_keys_are_ignored_rather_than_erroring(): void
+    /**
+     * An unknown key contributes no predicate rather than erroring — but,
+     * unlike a real criterion, it also doesn't fall back to "match everyone":
+     * zero real criteria and zero named includes means zero matches, which is
+     * what lets an all-unticked selection safely mean "named members only"
+     * instead of accidentally spamming the whole club.
+     */
+    public function test_unknown_keys_are_ignored_and_contribute_no_match(): void
     {
         $this->createMemberUser();
 
-        $count = MailAliasCriteria::matchingUsers(['not_a_real_key'])->count();
+        $this->assertSame(0, MailAliasCriteria::matchingUsers(['not_a_real_key'])->count());
+    }
 
-        $this->assertGreaterThan(0, $count);
+    public function test_an_included_member_is_added_even_without_matching_any_criterion(): void
+    {
+        $bureauMember = $this->createMemberUser();
+        $bureauMember->detail->update(['bureau_member' => true]);
+        $outsider = $this->createMemberUser();
+
+        $matched = MailAliasCriteria::matchingUsers(['bureau'], [$outsider->id])->pluck('id');
+
+        $this->assertTrue($matched->contains($bureauMember->id));
+        $this->assertTrue($matched->contains($outsider->id));
+    }
+
+    public function test_an_excluded_member_is_removed_even_if_they_match_every_criterion(): void
+    {
+        $bureauMemberA = $this->createMemberUser();
+        $bureauMemberA->detail->update(['bureau_member' => true]);
+        $bureauMemberB = $this->createMemberUser();
+        $bureauMemberB->detail->update(['bureau_member' => true]);
+
+        $matched = MailAliasCriteria::matchingUsers(['bureau'], [], [$bureauMemberB->id])->pluck('id');
+
+        $this->assertTrue($matched->contains($bureauMemberA->id));
+        $this->assertFalse($matched->contains($bureauMemberB->id));
+    }
+
+    public function test_a_group_can_be_built_from_named_members_only_with_no_criteria(): void
+    {
+        $named = $this->createMemberUser();
+        $other = $this->createMemberUser();
+
+        $matched = MailAliasCriteria::matchingUsers([], [$named->id])->pluck('id');
+
+        $this->assertSame([$named->id], $matched->all());
+        $this->assertFalse($matched->contains($other->id));
+    }
+
+    public function test_exclude_wins_over_include_for_the_same_member(): void
+    {
+        $member = $this->createMemberUser();
+
+        $matched = MailAliasCriteria::matchingUsers([], [$member->id], [$member->id])->pluck('id');
+
+        $this->assertFalse($matched->contains($member->id));
     }
 }

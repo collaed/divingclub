@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MailAliasDefinition;
+use App\Models\User;
 use App\Services\MailAliasCriteria;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -23,24 +24,29 @@ class MailAliasController extends Controller
         $definitions = MailAliasDefinition::orderBy('label')->get()
             ->map(fn (MailAliasDefinition $d) => [
                 'definition' => $d,
-                'count' => MailAliasCriteria::matchingUsers($d->criteria)->count(),
+                'count' => MailAliasCriteria::matchingUsers($d->criteria, $d->include_user_ids, $d->exclude_user_ids)->count(),
             ]);
 
         return view('admin.mail-aliases.index', [
             'definitions' => $definitions,
             'options' => MailAliasCriteria::options(),
+            'availableUsers' => User::with('detail')->get(),
         ]);
     }
 
-    /** Live preview for a draft (not yet saved) checkbox selection. */
+    /** Live preview for a draft (not yet saved) selection. */
     public function preview(Request $request): JsonResponse
     {
         $v = $request->validate([
             'criteria' => 'array',
             'criteria.*' => 'string|in:'.implode(',', array_keys(MailAliasCriteria::options())),
+            'include_user_ids' => 'array',
+            'include_user_ids.*' => 'integer',
+            'exclude_user_ids' => 'array',
+            'exclude_user_ids.*' => 'integer',
         ]);
 
-        $query = MailAliasCriteria::matchingUsers($v['criteria'] ?? [])->with('detail');
+        $query = MailAliasCriteria::matchingUsers($v['criteria'] ?? [], $v['include_user_ids'] ?? [], $v['exclude_user_ids'] ?? [])->with('detail');
         $count = $query->count();
         $members = $query->limit(self::MAX_PREVIEW_ROWS)->get()
             ->map(fn ($u) => ['name' => $u->name, 'email' => $u->primary_email]);
@@ -95,11 +101,28 @@ class MailAliasController extends Controller
         $v = $request->validate([
             'tags' => 'required|string|max:500',
             'label' => 'required|string|max:255',
-            'criteria' => 'required|array|min:1',
+            'criteria' => 'array',
             'criteria.*' => 'string|in:'.implode(',', array_keys(MailAliasCriteria::options())),
+            'include_user_ids' => 'array',
+            'include_user_ids.*' => 'integer|exists:users,id',
+            'exclude_user_ids' => 'array',
+            'exclude_user_ids.*' => 'integer|exists:users,id',
             'auth_level' => ['required', 'in:'.implode(',', array_keys(MailAliasDefinition::AUTH_LEVELS))],
             'enabled' => 'sometimes|boolean',
         ]);
+
+        // Unchecked/emptied criteria or chip lists don't appear in the
+        // request at all — default them explicitly so an update actually
+        // clears them instead of leaving the old value in place.
+        $v['criteria'] ??= [];
+        $v['include_user_ids'] ??= [];
+        $v['exclude_user_ids'] ??= [];
+
+        if ($v['criteria'] === [] && $v['include_user_ids'] === []) {
+            throw ValidationException::withMessages([
+                'criteria' => __('Tick at least one property, or add at least one named member below.'),
+            ]);
+        }
 
         $v['tags'] = $this->normalizedTags($v['tags'], $existing);
 

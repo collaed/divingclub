@@ -27,4 +27,20 @@ class MailAliasServiceMailtoAddressTest extends TestCase
 
         $this->assertSame('inbound+bureau@newdomain.eu', MailAliasService::mailtoAddress('bureau'));
     }
+
+    public function test_bare_mode_drops_the_mailbox_prefix(): void
+    {
+        config(['club.mail_address' => 'club@clubcep.eu']);
+        ThemeSetting::set('mail_bare_aliases', '1');
+
+        $this->assertSame('bureau@clubcep.eu', MailAliasService::mailtoAddress('bureau'));
+    }
+
+    public function test_bare_mode_normalizes_the_event_dot_tag_to_its_resolvable_dash_form(): void
+    {
+        config(['club.mail_address' => 'club@clubcep.eu']);
+        ThemeSetting::set('mail_bare_aliases', '1');
+
+        $this->assertSame('event-42@clubcep.eu', MailAliasService::mailtoAddress('event.42'));
+    }
 }

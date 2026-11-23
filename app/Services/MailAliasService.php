@@ -57,13 +57,27 @@ class MailAliasService
     }
 
     /**
-     * Generate a mailto address for a given alias tag.
-     * e.g. mailtoAddress('event.42') → 'cep+event.42@clubcep.eu'
+     * Generate a mailto address for a given alias tag. Plus-addressed by
+     * default (e.g. 'cep+bureau@clubcep.eu') — that's the only form every
+     * mail server accepts with zero configuration (RFC 5233). If the admin
+     * has confirmed their mail server catches all mail for this domain
+     * (ThemeSetting 'mail_bare_aliases'), the bare form is used instead
+     * (e.g. 'bureau@clubcep.eu') — nicer to give out, but only deliverable
+     * on a domain-wide catch-all.
      */
     public static function mailtoAddress(string $tag): string
     {
         $base = ThemeSetting::get('mail_inbound_address', config('club.mail_address', 'club@example.com'));
         [$mailbox, $domain] = explode('@', $base, 2);
+
+        if (ThemeSetting::get('mail_bare_aliases', '0') === '1') {
+            // event.{id} is only ever routed in its dash form (see resolve()'s
+            // plus-stripping branch) — normalize here too, so the bare address
+            // shown is the one that actually works.
+            $tag = preg_replace('/^event\.(\d+)$/', 'event-$1', $tag) ?? $tag;
+
+            return "{$tag}@{$domain}";
+        }
 
         return "{$mailbox}+{$tag}@{$domain}";
     }
@@ -177,7 +191,7 @@ class MailAliasService
     /** Resolve an admin-defined dynamic alias (Admin\MailAliasController) via MailAliasCriteria. */
     protected static function resolveDefinition(MailAliasDefinition $definition): array
     {
-        $emails = MailAliasCriteria::matchingUsers($definition->criteria)
+        $emails = MailAliasCriteria::matchingUsers($definition->criteria, $definition->include_user_ids, $definition->exclude_user_ids)
             ->whereNotNull('email_verified_at')
             ->pluck('primary_email')->toArray();
 

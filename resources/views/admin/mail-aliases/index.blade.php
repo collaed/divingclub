@@ -2,7 +2,7 @@
     @php($isBureauMaster = auth()->user()->hasRole('bureau_master'))
 
     <h4 class="mb-1">{{ __('Mail Aliases') }}</h4>
-    <p class="text-muted small mb-4">{{ __('Define a mailing alias by ticking the member properties it must match (all selected properties must hold at once). Sending to any of the alias\'s tags — e.g. :example — reaches everyone who currently matches. Give an alias several tags (e.g. "bureau, board") to create synonyms that can never drift apart, since they share one definition.', ['example' => \App\Services\MailAliasService::mailtoAddress('{tag}')]) }}</p>
+    <p class="text-muted small mb-4">{{ __('Define a mailing alias by ticking the member properties it must match (all selected properties must hold at once), and/or by naming specific people to always include or exclude. Sending to any of the alias\'s tags — e.g. :example — reaches everyone who currently matches. Give an alias several tags (e.g. "bureau, board") to create synonyms that can never drift apart, since they share one definition.', ['example' => \App\Services\MailAliasService::mailtoAddress('{tag}')]) }}</p>
 
     <div class="row g-4">
         <div class="col-lg-5">
@@ -14,7 +14,7 @@
                         <tbody>
                         @forelse($definitions as $row)
                             @php($d = $row['definition'])
-                            <tr data-definition data-id="{{ $d->id }}" data-tags="{{ implode(', ', $d->tags) }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
+                            <tr data-definition data-id="{{ $d->id }}" data-tags="{{ implode(', ', $d->tags) }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-include-ids="{{ json_encode($d->include_user_ids) }}" data-exclude-ids="{{ json_encode($d->exclude_user_ids) }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
                                 <td>@foreach($d->tags as $tag)<code>{{ $tag }}</code>@if(! $loop->last), @endif @endforeach</td>
                                 <td>{{ $d->label }}</td>
                                 <td class="text-end">{{ $row['count'] }}</td>
@@ -76,6 +76,9 @@
                                 </div>
                             @endforeach
                         </div>
+                        <div class="form-text mb-2">{{ __('Leave every property unticked to build the alias from named members only.') }}</div>
+
+                        @include('admin.mail-aliases._member-pickers')
 
                         <div class="d-flex gap-2 mb-3">
                             <button type="submit" class="btn btn-sm btn-primary">{{ __('Save alias') }}</button>
@@ -92,6 +95,8 @@
                                 </div>
                             @endforeach
                         </div>
+
+                        @include('admin.mail-aliases._member-pickers')
                     @endif
 
                     <hr>
@@ -99,7 +104,7 @@
                         <span>{{ __('Matching members') }} (<span id="previewCount">0</span>)</span>
                     </h6>
                     <div id="previewList" class="small" style="max-height: 20rem; overflow-y: auto;">
-                        <p class="text-muted">{{ __('Tick a property above to see who it matches.') }}</p>
+                        <p class="text-muted">{{ __('Tick a property, or add a named member, to see who it matches.') }}</p>
                     </div>
                 </div>
             </div>
@@ -114,7 +119,68 @@
         const criteriaBox = document.getElementById('builderCriteria');
         const countEl = document.getElementById('previewCount');
         const listEl = document.getElementById('previewList');
+        const users = @json($availableUsers->map(fn ($u) => ['id' => $u->id, 'name' => trim(($u->detail?->first_name ?? '').' '.($u->detail?->last_name ?? '')) ?: $u->name, 'email' => $u->primary_email])->values());
         let timer = null;
+
+        // ─── Named-member chip pickers (include/exclude) ───
+        function chipList(kind) { return document.querySelector('[data-chip-list="' + kind + '"]'); }
+
+        function chipIds(kind) {
+            return Array.from(chipList(kind).querySelectorAll('input[type=hidden]')).map(function (el) { return parseInt(el.value, 10); });
+        }
+
+        function addChip(kind, id) {
+            const list = chipList(kind);
+            if (!list || chipIds(kind).includes(id)) { return; }
+            const user = users.find(function (u) { return u.id === id; });
+            if (!user) { return; }
+            const chip = document.createElement('span');
+            chip.className = 'badge bg-light text-dark border d-inline-flex align-items-center gap-1';
+            chip.innerHTML = '<input type="hidden" name="' + kind + '_user_ids[]" value="' + id + '">' + user.name
+                + ' <button type="button" class="btn-close btn-close-sm" style="font-size:.55rem" aria-label="{{ __('Remove') }}"></button>';
+            chip.querySelector('button').addEventListener('click', function () {
+                chip.remove();
+                clearTimeout(timer);
+                timer = setTimeout(runPreview, 300);
+            });
+            list.appendChild(chip);
+        }
+
+        function setChips(kind, ids) {
+            const list = chipList(kind);
+            if (list) { list.innerHTML = ''; }
+            (ids || []).forEach(function (id) { addChip(kind, id); });
+        }
+
+        ['include', 'exclude'].forEach(function (kind) {
+            const input = document.querySelector('[data-member-combo="' + kind + '"]');
+            const dropdown = document.querySelector('[data-member-dropdown="' + kind + '"]');
+            if (!input || !dropdown) { return; }
+
+            function render(filter) {
+                const f = filter.toLowerCase();
+                const matches = (f ? users.filter(function (u) { return u.name.toLowerCase().includes(f) || u.email.toLowerCase().includes(f); }) : users).slice(0, 15);
+                dropdown.innerHTML = matches.map(function (u) {
+                    return '<button type="button" class="dropdown-item small" data-id="' + u.id + '">' + u.name + ' <span class="text-muted">' + u.email + '</span></button>';
+                }).join('');
+                dropdown.classList.toggle('show', matches.length > 0);
+            }
+
+            input.addEventListener('focus', function () { render(input.value); });
+            input.addEventListener('input', function () { render(input.value); });
+            dropdown.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-id]');
+                if (!btn) { return; }
+                addChip(kind, parseInt(btn.dataset.id, 10));
+                input.value = '';
+                dropdown.classList.remove('show');
+                clearTimeout(timer);
+                timer = setTimeout(runPreview, 300);
+            });
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('[data-member-combo="' + kind + '"], [data-member-dropdown="' + kind + '"]')) { dropdown.classList.remove('show'); }
+            });
+        });
 
         function selectedCriteria() {
             return Array.from(criteriaBox.querySelectorAll('[data-criterion]:checked')).map(function (el) { return el.value; });
@@ -122,13 +188,16 @@
 
         function runPreview() {
             const criteria = selectedCriteria();
-            if (criteria.length === 0) {
+            const includeIds = chipIds('include');
+            if (criteria.length === 0 && includeIds.length === 0) {
                 countEl.textContent = '0';
-                listEl.innerHTML = '<p class="text-muted">{{ __('Tick a property above to see who it matches.') }}</p>';
+                listEl.innerHTML = '<p class="text-muted">{{ __('Tick a property, or add a named member, to see who it matches.') }}</p>';
                 return;
             }
             const body = new URLSearchParams();
             criteria.forEach(function (c) { body.append('criteria[]', c); });
+            includeIds.forEach(function (id) { body.append('include_user_ids[]', id); });
+            chipIds('exclude').forEach(function (id) { body.append('exclude_user_ids[]', id); });
             fetch(previewUrl, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -171,6 +240,8 @@
             labelInput.value = '';
             authInput.value = 'bureau';
             criteriaBox.querySelectorAll('[data-criterion]').forEach(function (el) { el.checked = false; });
+            setChips('include', []);
+            setChips('exclude', []);
             cancelBtn.classList.add('d-none');
             runPreview();
         }
@@ -187,6 +258,8 @@
                 criteriaBox.querySelectorAll('[data-criterion]').forEach(function (el) {
                     el.checked = criteria.includes(el.value);
                 });
+                setChips('include', JSON.parse(row.dataset.includeIds || '[]'));
+                setChips('exclude', JSON.parse(row.dataset.excludeIds || '[]'));
                 cancelBtn.classList.remove('d-none');
                 runPreview();
                 form.scrollIntoView({ behavior: 'smooth', block: 'center' });

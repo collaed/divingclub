@@ -79,6 +79,76 @@ class MailAliasControllerTest extends TestCase
         $this->assertSame(1, MailAliasDefinition::count());
     }
 
+    public function test_an_alias_can_be_built_from_named_members_only_with_no_criteria(): void
+    {
+        $named = $this->createMemberUser();
+
+        $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.store'), [
+                'tags' => 'steering-group',
+                'label' => 'Steering group',
+                'include_user_ids' => [$named->id],
+                'auth_level' => 'bureau',
+            ])
+            ->assertRedirect();
+
+        $definition = MailAliasDefinition::where('label', 'Steering group')->first();
+        $this->assertSame([], $definition->criteria);
+        $this->assertSame([$named->id], $definition->include_user_ids);
+        $this->assertContains($named->primary_email, MailAliasService::resolve('steering-group@club.example')['emails']);
+    }
+
+    public function test_creating_an_alias_with_no_criteria_and_no_named_members_is_rejected(): void
+    {
+        $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.store'), [
+                'tags' => 'empty-group',
+                'label' => 'Empty',
+                'auth_level' => 'bureau',
+            ])
+            ->assertSessionHasErrors('criteria');
+
+        $this->assertSame(0, MailAliasDefinition::count());
+    }
+
+    public function test_updating_an_alias_to_remove_all_named_members_clears_the_stored_list(): void
+    {
+        $named = $this->createMemberUser();
+        $definition = MailAliasDefinition::create([
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'],
+            'include_user_ids' => [$named->id], 'auth_level' => 'bureau',
+        ]);
+
+        $this->actingAs($this->bureauMaster)
+            ->put(route('admin.mail-aliases.update', $definition), [
+                'tags' => 'n1-chase',
+                'label' => 'N1 students',
+                'criteria' => ['pn1'],
+                'auth_level' => 'bureau',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame([], $definition->fresh()->include_user_ids);
+    }
+
+    public function test_preview_honors_a_draft_include_and_exclude_selection(): void
+    {
+        $included = $this->createMemberUser();
+        $excluded = $this->createMemberUser();
+        $excluded->detail->update(['bureau_member' => true]);
+
+        $response = $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.preview'), [
+                'criteria' => ['bureau'],
+                'include_user_ids' => [$included->id],
+                'exclude_user_ids' => [$excluded->id],
+            ])
+            ->assertOk();
+
+        $response->assertJsonFragment(['email' => $included->primary_email]);
+        $response->assertJsonMissing(['email' => $excluded->primary_email]);
+    }
+
     public function test_a_non_bureau_master_cannot_create_an_alias(): void
     {
         $finance = $this->createBureauUser();

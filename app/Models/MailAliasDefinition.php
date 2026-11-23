@@ -15,12 +15,16 @@ use Illuminate\Database\Eloquent\Model;
  *
  * A definition can carry several tags (e.g. "bureau" + "board") so that
  * synonyms share one criteria/auth_level and can never drift apart — see
- * MailAliasController's "tags" field.
+ * MailAliasController's "tags" field. include_user_ids/exclude_user_ids add
+ * named exceptions on top of (or instead of) the criteria match — see
+ * MailAliasCriteria::matchingUsers().
  *
  * @property int $id
  * @property array<int, string> $tags
  * @property string $label
  * @property array<int, string> $criteria
+ * @property array<int, int> $include_user_ids
+ * @property array<int, int> $exclude_user_ids
  * @property string $auth_level
  * @property bool $enabled
  * @property Carbon|null $created_at
@@ -45,10 +49,19 @@ class MailAliasDefinition extends Model
         'open' => 'Anyone (no sender check)',
     ];
 
-    protected $fillable = ['tags', 'label', 'criteria', 'auth_level', 'enabled'];
+    protected $fillable = ['tags', 'label', 'criteria', 'include_user_ids', 'exclude_user_ids', 'auth_level', 'enabled'];
+
+    /** Default raw (pre-cast) values — create() omitting these still gets a valid empty JSON array, not NULL. */
+    protected $attributes = ['include_user_ids' => '[]', 'exclude_user_ids' => '[]'];
 
     protected function casts(): array
     {
-        return ['tags' => 'array', 'criteria' => 'array', 'enabled' => 'boolean'];
+        return [
+            'tags' => 'array',
+            'criteria' => 'array',
+            'include_user_ids' => 'array',
+            'exclude_user_ids' => 'array',
+            'enabled' => 'boolean',
+        ];
     }
 }
