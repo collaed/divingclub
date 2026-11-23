@@ -116,6 +116,7 @@
                     <th>{{ __('Set') }}</th>
                     <th>{{ __('Status') }}</th>
                     <th>{{ __('Medical') }}</th>
+                    <th><x-sortable-th column="last_seen_at" :label="__('Last activity')" /></th>
                     <th></th>
                 </tr>
             </thead>
@@ -157,6 +158,13 @@
                             @php $mMed = app(\App\Services\MedicalComplianceService::class)->getStatus($m); @endphp
                             <span class="badge bg-{{ $mMed['badge'] }}" style="font-size:0.65rem;">{{ __($mMed['label']) }}</span>
                         </td>
+                        <td class="text-muted small">
+                            @if($m->last_seen_at)
+                                <x-local-time :at="$m->last_seen_at" />
+                            @else
+                                {{ __('Never') }}
+                            @endif
+                        </td>
                         <td class="text-end text-nowrap">
                             <a href="{{ route('admin.profile.show', $m) }}" class="btn btn-sm btn-outline-primary">{{ __('View') }}</a>
                             <form method="POST" action="{{ route('admin.send-reset', $m) }}" class="d-inline">
@@ -167,6 +175,13 @@
                                 @csrf
                                 <button class="btn btn-sm btn-outline-warning">{{ __('Impersonate') }}</button>
                             </form>
+                            @if(auth()->user()?->hasRole('bureau_master'))
+                                <form method="POST" action="{{ route('admin.members.archive', $m) }}" class="d-inline"
+                                      data-confirm="{{ __('Archive this member? They will disappear from the roster; find them under Trash to restore or permanently delete.') }}" data-confirm-btn="{{ __('Archive') }}" data-confirm-style="danger">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" title="{{ __('Archive (soft-delete)') }}">@icon('🗄️')</button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @endforeach

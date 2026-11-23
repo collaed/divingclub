@@ -98,11 +98,22 @@ class MemberController extends Controller
             $query->active();
         }
 
-        $sortable = ['id' => 'users.id', 'email' => 'primary_email', 'name' => 'primary_email'];
-        $sort = $sortable[$request->get('sort')] ?? 'users.id';
+        $sortable = ['id' => 'users.id', 'email' => 'primary_email', 'name' => 'primary_email', 'last_seen_at' => 'last_seen_at'];
+        $sortKey = $request->get('sort');
+        $sort = $sortable[$sortKey] ?? 'users.id';
         $dir = $request->get('dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        $members = $query->orderBy($sort, $dir)->paginate($this->perPage(25))->withQueryString();
+        if ($sort === 'last_seen_at') {
+            // Never-seen accounts (null) are the stalest regardless of sort
+            // direction: first when showing oldest-first, last when showing
+            // newest-first. "IS NULL" is 0/1 on both MySQL and Postgres.
+            $nullsDir = $dir === 'asc' ? 'desc' : 'asc';
+            $query->orderByRaw("last_seen_at is null {$nullsDir}")->orderBy($sort, $dir);
+        } else {
+            $query->orderBy($sort, $dir);
+        }
+
+        $members = $query->paginate($this->perPage(25))->withQueryString();
         $statuses = MemberStatus::orderBy('name')->get();
         $statusSets = StatusSet::with('statuses:id')->orderBy('name')->get();
         $roles = Role::orderBy('name')->get();
@@ -257,6 +268,25 @@ class MemberController extends Controller
         }
 
         return redirect()->route('admin.members.index')->with('success', __('Impersonation ended.'));
+    }
+
+    /**
+     * Housekeeping soft-delete: bureau_master retires a stale/old member from
+     * the active roster. Reversible (see Admin\TrashController::restore()) —
+     * permanent purging is still a separate, bureau_master-gated step there.
+     */
+    public function archive(Request $request, User $user): RedirectResponse|JsonResponse
+    {
+        abort_unless(auth()->user()?->hasRole('bureau_master'), 403);
+        abort_if($user->id === auth()->id(), 422, __('Use account erasure to remove your own account.'));
+
+        $user->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', __('Member archived — find it under Trash to restore or permanently delete.'));
     }
 
     public function sendReset(User $user): RedirectResponse

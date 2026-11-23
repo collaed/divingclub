@@ -67,6 +67,7 @@ Route::post('/members/{user}/info', [ProfileController::class, 'updateInfo'])->n
 Route::post('/members/{user}/private', [ProfileController::class, 'updatePrivate'])->name('profile.update.private');
 Route::post('/members/{user}/impersonate', [MemberController::class, 'impersonate'])->name('impersonate');
 Route::post('/members/{user}/send-reset', [MemberController::class, 'sendReset'])->name('send-reset');
+Route::delete('/members/{user}', [MemberController::class, 'archive'])->name('members.archive');
 
 // Articles & Links
 Route::resource('articles', ArticleController::class)->except('show');

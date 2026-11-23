@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\MemberStatus;
 use App\Models\ThemeSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -72,9 +73,14 @@ PEM;
     /** Singleton-style flag: once verified this request, skip re-check. */
     private static ?bool $requestCache = null;
 
+    /**
+     * Counts only active members — the same "not former, and classified"
+     * exclusion the rest of the app already uses for default member listings
+     * (see MailAliasService::allActive()) — not every row ever created.
+     */
     public static function memberCount(): int
     {
-        return User::count();
+        return User::whereHas('status', fn ($q) => $q->whereNotIn('slug', MemberStatus::inactiveSlugs()))->count();
     }
 
     /** Decode the free tier limit from the obfuscated seed. */

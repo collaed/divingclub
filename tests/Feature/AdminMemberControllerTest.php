@@ -234,4 +234,57 @@ class AdminMemberControllerTest extends TestCase
             ])
             ->assertForbidden();
     }
+
+    public function test_bureau_master_can_archive_a_stale_member(): void
+    {
+        $member = $this->createMemberUser();
+
+        $this->actingAs($this->admin)
+            ->delete(route('admin.members.archive', $member))
+            ->assertRedirect();
+
+        $this->assertTrue(User::onlyTrashed()->whereKey($member->id)->exists());
+
+        // Shows up under the trash "members" kind — the existing restore/purge
+        // path, unchanged.
+        $this->actingAs($this->admin)
+            ->get(route('admin.trash.index', ['kind' => 'members']))
+            ->assertOk();
+    }
+
+    public function test_bureau_finance_cannot_archive_a_member(): void
+    {
+        $finance = $this->createBureauUser();
+        $finance->syncRoles(['bureau_finance']);
+        $member = $this->createMemberUser();
+
+        $this->actingAs($finance)
+            ->delete(route('admin.members.archive', $member))
+            ->assertForbidden();
+
+        $this->assertFalse(User::onlyTrashed()->whereKey($member->id)->exists());
+    }
+
+    public function test_bureau_master_cannot_archive_themself(): void
+    {
+        $this->actingAs($this->admin)
+            ->delete(route('admin.members.archive', $this->admin))
+            ->assertStatus(422);
+
+        $this->assertFalse(User::onlyTrashed()->whereKey($this->admin->id)->exists());
+    }
+
+    public function test_members_list_can_be_sorted_by_last_activity_with_nulls_present(): void
+    {
+        $neverSeen = $this->createMemberUser();
+        $seenRecently = $this->createMemberUser();
+        $seenRecently->update(['last_seen_at' => now()]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.members.index', ['sort' => 'last_seen_at', 'dir' => 'asc']))
+            ->assertOk();
+
+        $this->assertNull($neverSeen->fresh()->last_seen_at);
+        $this->assertNotNull($seenRecently->fresh()->last_seen_at);
+    }
 }
