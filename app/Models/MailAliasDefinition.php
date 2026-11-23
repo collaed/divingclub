@@ -16,8 +16,10 @@ use Illuminate\Database\Eloquent\Model;
  * A definition can carry several tags (e.g. "bureau" + "board") so that
  * synonyms share one criteria/auth_level and can never drift apart — see
  * MailAliasController's "tags" field. include_user_ids/exclude_user_ids add
- * named exceptions on top of (or instead of) the criteria match — see
- * MailAliasCriteria::matchingUsers().
+ * named member exceptions on top of (or instead of) the criteria match —
+ * see MailAliasCriteria::matchingUsers(). include_contact_ids adds external,
+ * non-member addresses (App\Models\MailListContact) the same way — see
+ * MailAliasService::resolveDefinition().
  *
  * @property int $id
  * @property array<int, string> $tags
@@ -25,6 +27,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property array<int, string> $criteria
  * @property array<int, int> $include_user_ids
  * @property array<int, int> $exclude_user_ids
+ * @property array<int, int> $include_contact_ids
  * @property string $auth_level
  * @property bool $enabled
  * @property Carbon|null $created_at
@@ -49,10 +52,10 @@ class MailAliasDefinition extends Model
         'open' => 'Anyone (no sender check)',
     ];
 
-    protected $fillable = ['tags', 'label', 'criteria', 'include_user_ids', 'exclude_user_ids', 'auth_level', 'enabled'];
+    protected $fillable = ['tags', 'label', 'criteria', 'include_user_ids', 'exclude_user_ids', 'include_contact_ids', 'auth_level', 'enabled'];
 
     /** Default raw (pre-cast) values — create() omitting these still gets a valid empty JSON array, not NULL. */
-    protected $attributes = ['include_user_ids' => '[]', 'exclude_user_ids' => '[]'];
+    protected $attributes = ['include_user_ids' => '[]', 'exclude_user_ids' => '[]', 'include_contact_ids' => '[]'];
 
     protected function casts(): array
     {
@@ -61,6 +64,7 @@ class MailAliasDefinition extends Model
             'criteria' => 'array',
             'include_user_ids' => 'array',
             'exclude_user_ids' => 'array',
+            'include_contact_ids' => 'array',
             'enabled' => 'boolean',
         ];
     }

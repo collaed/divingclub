@@ -238,6 +238,7 @@ class PollInboundMail implements ShouldQueue
         // once and applied to every recipient's own log row below.
         $filtered = InboundMailFilter::filter($body, $eventId, $from);
         $finalSubject = "[{$resolved['label']}] {$subject}";
+        $contactTokens = $resolved['contact_unsubscribe_tokens'] ?? [];
 
         // One EmailLog row per recipient (not one for the whole batch) so a
         // failure on one address doesn't obscure whether the others went
@@ -246,9 +247,12 @@ class PollInboundMail implements ShouldQueue
         foreach ($resolved['emails'] as $email) {
             $status = 'forwarded';
             $error = null;
+            $recipientBody = isset($contactTokens[$email])
+                ? $body.MailAliasService::unsubscribeFooterHtml($contactTokens[$email])
+                : $body;
 
             try {
-                Mail::html($body, fn ($m) => $m->to($email)->replyTo($from)->subject($finalSubject));
+                Mail::html($recipientBody, fn ($m) => $m->to($email)->replyTo($from)->subject($finalSubject));
                 $sent++;
             } catch (\Throwable $e) {
                 $status = 'failed';

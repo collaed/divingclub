@@ -29,6 +29,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\InstructorAvailabilityController;
 use App\Http\Controllers\KanbanController;
+use App\Http\Controllers\MailListUnsubscribeController;
 use App\Http\Controllers\MembersDirectoryController;
 use App\Http\Controllers\ProfileAvatarController;
 use App\Http\Controllers\ProfileCertificationController;
@@ -101,6 +102,10 @@ Route::get('/d/{token}', [TrackedDocumentController::class, 'open'])->middleware
 // Public/token-based like the tracked-document link above: whoever holds the
 // link proves ownership of the inbox, no active session required.
 Route::get('/profile/email/verify/{token}', [ProfileEmailController::class, 'verify'])->middleware('throttle:30,1')->name('profile.email.verify');
+
+// Mail-list contact unsubscribe link (see MailAliasService::unsubscribeFooterHtml()).
+// Public/token-based like the two links above: one click, no login.
+Route::get('/unsubscribe/{token}', [MailListUnsubscribeController::class, 'show'])->middleware('throttle:30,1')->name('mail-list.unsubscribe');
 
 // Guest auth
 Route::middleware('guest')->group(function () {

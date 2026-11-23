@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Models\MailAliasDefinition;
+use App\Models\MailListContact;
 use App\Models\User;
 use App\Services\MailAliasService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -96,6 +97,50 @@ class MailAliasControllerTest extends TestCase
         $this->assertSame([], $definition->criteria);
         $this->assertSame([$named->id], $definition->include_user_ids);
         $this->assertContains($named->primary_email, MailAliasService::resolve('steering-group@club.example')['emails']);
+    }
+
+    public function test_an_alias_can_include_a_mailing_list_contact(): void
+    {
+        $contact = MailListContact::create(['email' => 'prospect@example.com']);
+
+        $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.store'), [
+                'tags' => 'newsletter',
+                'label' => 'Newsletter',
+                'include_contact_ids' => [$contact->id],
+                'auth_level' => 'bureau',
+            ])
+            ->assertRedirect();
+
+        $definition = MailAliasDefinition::where('label', 'Newsletter')->first();
+        $this->assertSame([$contact->id], $definition->include_contact_ids);
+
+        $resolved = MailAliasService::resolve('newsletter@club.example');
+        $this->assertContains('prospect@example.com', $resolved['emails']);
+        $this->assertArrayHasKey('prospect@example.com', $resolved['contact_unsubscribe_tokens']);
+    }
+
+    public function test_an_unsubscribed_contact_is_excluded_from_resolution(): void
+    {
+        $contact = MailListContact::create(['email' => 'prospect@example.com', 'subscribed' => false]);
+        MailAliasDefinition::create([
+            'tags' => ['newsletter'], 'label' => 'Newsletter', 'criteria' => [], 'include_contact_ids' => [$contact->id], 'auth_level' => 'bureau',
+        ]);
+
+        $resolved = MailAliasService::resolve('newsletter@club.example');
+
+        $this->assertNotContains('prospect@example.com', $resolved['emails']);
+    }
+
+    public function test_preview_includes_a_draft_contact_selection(): void
+    {
+        $contact = MailListContact::create(['email' => 'prospect@example.com', 'name' => 'Prospect']);
+
+        $response = $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.preview'), ['include_contact_ids' => [$contact->id]])
+            ->assertOk();
+
+        $response->assertJsonFragment(['name' => 'Prospect', 'email' => 'prospect@example.com']);
     }
 
     public function test_creating_an_alias_with_no_criteria_and_no_named_members_is_rejected(): void

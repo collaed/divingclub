@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MailAliasDefinition;
+use App\Models\MailListContact;
 use App\Models\User;
 use App\Services\MailAliasCriteria;
 use Illuminate\Contracts\View\View;
@@ -31,6 +32,7 @@ class MailAliasController extends Controller
             'definitions' => $definitions,
             'options' => MailAliasCriteria::options(),
             'availableUsers' => User::with('detail')->get(),
+            'availableContacts' => MailListContact::orderBy('email')->get(),
         ]);
     }
 
@@ -44,6 +46,8 @@ class MailAliasController extends Controller
             'include_user_ids.*' => 'integer',
             'exclude_user_ids' => 'array',
             'exclude_user_ids.*' => 'integer',
+            'include_contact_ids' => 'array',
+            'include_contact_ids.*' => 'integer',
         ]);
 
         $query = MailAliasCriteria::matchingUsers($v['criteria'] ?? [], $v['include_user_ids'] ?? [], $v['exclude_user_ids'] ?? [])->with('detail');
@@ -51,7 +55,16 @@ class MailAliasController extends Controller
         $members = $query->limit(self::MAX_PREVIEW_ROWS)->get()
             ->map(fn ($u) => ['name' => $u->name, 'email' => $u->primary_email]);
 
-        return response()->json(['count' => $count, 'members' => $members, 'truncated' => $count > self::MAX_PREVIEW_ROWS]);
+        $contacts = MailListContact::whereIn('id', $v['include_contact_ids'] ?? [])->get()
+            ->map(fn (MailListContact $c) => ['name' => $c->name ?: $c->email, 'email' => $c->email]);
+
+        $members = $members->concat($contacts);
+
+        return response()->json([
+            'count' => $count + $contacts->count(),
+            'members' => $members->take(self::MAX_PREVIEW_ROWS)->values(),
+            'truncated' => $count > self::MAX_PREVIEW_ROWS,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse|JsonResponse
@@ -107,6 +120,8 @@ class MailAliasController extends Controller
             'include_user_ids.*' => 'integer|exists:users,id',
             'exclude_user_ids' => 'array',
             'exclude_user_ids.*' => 'integer|exists:users,id',
+            'include_contact_ids' => 'array',
+            'include_contact_ids.*' => 'integer|exists:mail_list_contacts,id',
             'auth_level' => ['required', 'in:'.implode(',', array_keys(MailAliasDefinition::AUTH_LEVELS))],
             'enabled' => 'sometimes|boolean',
         ]);
@@ -117,10 +132,11 @@ class MailAliasController extends Controller
         $v['criteria'] ??= [];
         $v['include_user_ids'] ??= [];
         $v['exclude_user_ids'] ??= [];
+        $v['include_contact_ids'] ??= [];
 
-        if ($v['criteria'] === [] && $v['include_user_ids'] === []) {
+        if ($v['criteria'] === [] && $v['include_user_ids'] === [] && $v['include_contact_ids'] === []) {
             throw ValidationException::withMessages([
-                'criteria' => __('Tick at least one property, or add at least one named member below.'),
+                'criteria' => __('Tick at least one property, or add at least one named member or contact below.'),
             ]);
         }
 

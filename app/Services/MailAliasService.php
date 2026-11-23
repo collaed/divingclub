@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Event;
 use App\Models\MailAliasDefinition;
+use App\Models\MailListContact;
 use App\Models\MemberStatus;
 use App\Models\ThemeSetting;
 use App\Models\User;
@@ -188,14 +189,35 @@ class MailAliasService
         };
     }
 
-    /** Resolve an admin-defined dynamic alias (Admin\MailAliasController) via MailAliasCriteria. */
+    /**
+     * Resolve an admin-defined dynamic alias (Admin\MailAliasController) via
+     * MailAliasCriteria, plus any named App\Models\MailListContact rows the
+     * definition includes (only while still subscribed).
+     */
     protected static function resolveDefinition(MailAliasDefinition $definition): array
     {
         $emails = MailAliasCriteria::matchingUsers($definition->criteria, $definition->include_user_ids, $definition->exclude_user_ids)
             ->whereNotNull('email_verified_at')
             ->pluck('primary_email')->toArray();
 
-        return ['emails' => $emails, 'label' => $definition->label, 'auth_level' => $definition->auth_level];
+        $contactTokens = MailListContact::whereIn('id', $definition->include_contact_ids)
+            ->where('subscribed', true)
+            ->pluck('unsubscribe_token', 'email')->toArray();
+
+        return [
+            'emails' => array_values(array_unique(array_merge($emails, array_keys($contactTokens)))),
+            'label' => $definition->label,
+            'auth_level' => $definition->auth_level,
+            'contact_unsubscribe_tokens' => $contactTokens,
+        ];
+    }
+
+    /** One-line HTML footer appended to a mail-list contact's own copy of a forwarded alias message. */
+    public static function unsubscribeFooterHtml(string $token): string
+    {
+        $url = route('mail-list.unsubscribe', $token);
+
+        return '<p style="font-size:11px;color:#888;margin-top:1em">'.__('You are receiving this because you asked to stay informed.').' <a href="'.$url.'">'.__('Unsubscribe').'</a></p>';
     }
 
     /** Bureau members (detail.bureau_member = true). */

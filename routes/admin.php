@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\LibraryController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\LoginHistoryController;
 use App\Http\Controllers\Admin\MailAliasController;
+use App\Http\Controllers\Admin\MailListContactController;
 use App\Http\Controllers\Admin\MedicalExportController;
 use App\Http\Controllers\Admin\MedicalReviewController;
 use App\Http\Controllers\Admin\MemberController;
@@ -225,6 +226,11 @@ Route::post('/mail-aliases/preview', [MailAliasController::class, 'preview'])->n
 Route::post('/mail-aliases', [MailAliasController::class, 'store'])->name('mail-aliases.store');
 Route::put('/mail-aliases/{mailAliasDefinition}', [MailAliasController::class, 'update'])->name('mail-aliases.update');
 Route::delete('/mail-aliases/{mailAliasDefinition}', [MailAliasController::class, 'destroy'])->name('mail-aliases.destroy');
+
+Route::get('/mail-list-contacts', [MailListContactController::class, 'index'])->name('mail-list-contacts.index');
+Route::post('/mail-list-contacts', [MailListContactController::class, 'store'])->name('mail-list-contacts.store');
+Route::patch('/mail-list-contacts/{mailListContact}/toggle', [MailListContactController::class, 'toggle'])->name('mail-list-contacts.toggle');
+Route::delete('/mail-list-contacts/{mailListContact}', [MailListContactController::class, 'destroy'])->name('mail-list-contacts.destroy');
 
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');

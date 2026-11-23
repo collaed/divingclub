@@ -14,7 +14,7 @@
                         <tbody>
                         @forelse($definitions as $row)
                             @php($d = $row['definition'])
-                            <tr data-definition data-id="{{ $d->id }}" data-tags="{{ implode(', ', $d->tags) }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-include-ids="{{ json_encode($d->include_user_ids) }}" data-exclude-ids="{{ json_encode($d->exclude_user_ids) }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
+                            <tr data-definition data-id="{{ $d->id }}" data-tags="{{ implode(', ', $d->tags) }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-include-ids="{{ json_encode($d->include_user_ids) }}" data-exclude-ids="{{ json_encode($d->exclude_user_ids) }}" data-contact-ids="{{ json_encode($d->include_contact_ids) }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
                                 <td>@foreach($d->tags as $tag)<code>{{ $tag }}</code>@if(! $loop->last), @endif @endforeach</td>
                                 <td>{{ $d->label }}</td>
                                 <td class="text-end">{{ $row['count'] }}</td>
@@ -76,9 +76,10 @@
                                 </div>
                             @endforeach
                         </div>
-                        <div class="form-text mb-2">{{ __('Leave every property unticked to build the alias from named members only.') }}</div>
+                        <div class="form-text mb-2">{{ __('Leave every property unticked to build the alias from named members or mailing-list contacts only.') }}</div>
 
                         @include('admin.mail-aliases._member-pickers')
+                        @include('admin.mail-aliases._contact-picker')
 
                         <div class="d-flex gap-2 mb-3">
                             <button type="submit" class="btn btn-sm btn-primary">{{ __('Save alias') }}</button>
@@ -97,6 +98,7 @@
                         </div>
 
                         @include('admin.mail-aliases._member-pickers')
+                        @include('admin.mail-aliases._contact-picker')
                     @endif
 
                     <hr>
@@ -120,9 +122,16 @@
         const countEl = document.getElementById('previewCount');
         const listEl = document.getElementById('previewList');
         const users = @json($availableUsers->map(fn ($u) => ['id' => $u->id, 'name' => trim(($u->detail?->first_name ?? '').' '.($u->detail?->last_name ?? '')) ?: $u->name, 'email' => $u->primary_email])->values());
+        const contacts = @json($availableContacts->map(fn ($c) => ['id' => $c->id, 'name' => $c->name ?: $c->email, 'email' => $c->email])->values());
         let timer = null;
 
-        // ─── Named-member chip pickers (include/exclude) ───
+        // ─── Named chip pickers (members: include/exclude; external contacts: a single include list) ───
+        const kindConfig = {
+            include: { source: users, field: 'include_user_ids' },
+            exclude: { source: users, field: 'exclude_user_ids' },
+            contact: { source: contacts, field: 'include_contact_ids' },
+        };
+
         function chipList(kind) { return document.querySelector('[data-chip-list="' + kind + '"]'); }
 
         function chipIds(kind) {
@@ -132,11 +141,11 @@
         function addChip(kind, id) {
             const list = chipList(kind);
             if (!list || chipIds(kind).includes(id)) { return; }
-            const user = users.find(function (u) { return u.id === id; });
-            if (!user) { return; }
+            const entry = kindConfig[kind].source.find(function (u) { return u.id === id; });
+            if (!entry) { return; }
             const chip = document.createElement('span');
             chip.className = 'badge bg-light text-dark border d-inline-flex align-items-center gap-1';
-            chip.innerHTML = '<input type="hidden" name="' + kind + '_user_ids[]" value="' + id + '">' + user.name
+            chip.innerHTML = '<input type="hidden" name="' + kindConfig[kind].field + '[]" value="' + id + '">' + entry.name
                 + ' <button type="button" class="btn-close btn-close-sm" style="font-size:.55rem" aria-label="{{ __('Remove') }}"></button>';
             chip.querySelector('button').addEventListener('click', function () {
                 chip.remove();
@@ -152,14 +161,15 @@
             (ids || []).forEach(function (id) { addChip(kind, id); });
         }
 
-        ['include', 'exclude'].forEach(function (kind) {
+        Object.keys(kindConfig).forEach(function (kind) {
             const input = document.querySelector('[data-member-combo="' + kind + '"]');
             const dropdown = document.querySelector('[data-member-dropdown="' + kind + '"]');
             if (!input || !dropdown) { return; }
+            const source = kindConfig[kind].source;
 
             function render(filter) {
                 const f = filter.toLowerCase();
-                const matches = (f ? users.filter(function (u) { return u.name.toLowerCase().includes(f) || u.email.toLowerCase().includes(f); }) : users).slice(0, 15);
+                const matches = (f ? source.filter(function (u) { return u.name.toLowerCase().includes(f) || u.email.toLowerCase().includes(f); }) : source).slice(0, 15);
                 dropdown.innerHTML = matches.map(function (u) {
                     return '<button type="button" class="dropdown-item small" data-id="' + u.id + '">' + u.name + ' <span class="text-muted">' + u.email + '</span></button>';
                 }).join('');
@@ -189,7 +199,8 @@
         function runPreview() {
             const criteria = selectedCriteria();
             const includeIds = chipIds('include');
-            if (criteria.length === 0 && includeIds.length === 0) {
+            const contactIds = chipIds('contact');
+            if (criteria.length === 0 && includeIds.length === 0 && contactIds.length === 0) {
                 countEl.textContent = '0';
                 listEl.innerHTML = '<p class="text-muted">{{ __('Tick a property, or add a named member, to see who it matches.') }}</p>';
                 return;
@@ -198,6 +209,7 @@
             criteria.forEach(function (c) { body.append('criteria[]', c); });
             includeIds.forEach(function (id) { body.append('include_user_ids[]', id); });
             chipIds('exclude').forEach(function (id) { body.append('exclude_user_ids[]', id); });
+            contactIds.forEach(function (id) { body.append('include_contact_ids[]', id); });
             fetch(previewUrl, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -242,6 +254,7 @@
             criteriaBox.querySelectorAll('[data-criterion]').forEach(function (el) { el.checked = false; });
             setChips('include', []);
             setChips('exclude', []);
+            setChips('contact', []);
             cancelBtn.classList.add('d-none');
             runPreview();
         }
@@ -260,6 +273,7 @@
                 });
                 setChips('include', JSON.parse(row.dataset.includeIds || '[]'));
                 setChips('exclude', JSON.parse(row.dataset.excludeIds || '[]'));
+                setChips('contact', JSON.parse(row.dataset.contactIds || '[]'));
                 cancelBtn.classList.remove('d-none');
                 runPreview();
                 form.scrollIntoView({ behavior: 'smooth', block: 'center' });
