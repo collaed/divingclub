@@ -29,18 +29,54 @@ class MailAliasControllerTest extends TestCase
     {
         $this->actingAs($this->bureauMaster)
             ->post(route('admin.mail-aliases.store'), [
-                'tag' => 'n1-chase',
+                'tags' => 'n1-chase',
                 'label' => 'N1 students',
                 'criteria' => ['pn1'],
                 'auth_level' => 'bureau_or_instructor',
             ])
             ->assertRedirect();
 
-        $this->assertDatabaseHas('mail_alias_definitions', [
-            'tag' => 'n1-chase',
-            'label' => 'N1 students',
-            'auth_level' => 'bureau_or_instructor',
+        $definition = MailAliasDefinition::where('label', 'N1 students')->first();
+        $this->assertNotNull($definition);
+        $this->assertSame(['n1-chase'], $definition->tags);
+        $this->assertSame('bureau_or_instructor', $definition->auth_level);
+    }
+
+    public function test_a_single_definition_can_carry_several_synonym_tags(): void
+    {
+        $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.store'), [
+                'tags' => 'bureau2, board2',
+                'label' => 'Bureau (dynamic)',
+                'criteria' => ['bureau'],
+                'auth_level' => 'bureau',
+            ])
+            ->assertRedirect();
+
+        $definition = MailAliasDefinition::where('label', 'Bureau (dynamic)')->first();
+        $this->assertSame(['bureau2', 'board2'], $definition->tags);
+
+        $byFirstTag = MailAliasService::resolve('bureau2@club.example');
+        $bySecondTag = MailAliasService::resolve('board2@club.example');
+        $this->assertSame($byFirstTag, $bySecondTag);
+    }
+
+    public function test_a_tag_already_used_by_another_definition_is_rejected(): void
+    {
+        MailAliasDefinition::create([
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau',
         ]);
+
+        $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.store'), [
+                'tags' => 'n1-chase',
+                'label' => 'Duplicate',
+                'criteria' => ['pn2'],
+                'auth_level' => 'bureau',
+            ])
+            ->assertSessionHasErrors('tags');
+
+        $this->assertSame(1, MailAliasDefinition::count());
     }
 
     public function test_a_non_bureau_master_cannot_create_an_alias(): void
@@ -50,14 +86,14 @@ class MailAliasControllerTest extends TestCase
 
         $this->actingAs($finance)
             ->post(route('admin.mail-aliases.store'), [
-                'tag' => 'n1-chase',
+                'tags' => 'n1-chase',
                 'label' => 'N1 students',
                 'criteria' => ['pn1'],
                 'auth_level' => 'bureau',
             ])
             ->assertForbidden();
 
-        $this->assertDatabaseMissing('mail_alias_definitions', ['tag' => 'n1-chase']);
+        $this->assertSame(0, MailAliasDefinition::count());
     }
 
     public function test_a_non_bureau_master_can_still_view_the_list_and_preview(): void
@@ -72,12 +108,12 @@ class MailAliasControllerTest extends TestCase
     public function test_bureau_master_can_update_an_alias(): void
     {
         $definition = MailAliasDefinition::create([
-            'tag' => 'n1-chase', 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau',
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau',
         ]);
 
         $this->actingAs($this->bureauMaster)
             ->put(route('admin.mail-aliases.update', $definition), [
-                'tag' => 'n1-chase',
+                'tags' => 'n1-chase, n1',
                 'label' => 'N1 students (renamed)',
                 'criteria' => ['pn1', 'pn2'],
                 'auth_level' => 'bureau',
@@ -85,13 +121,14 @@ class MailAliasControllerTest extends TestCase
             ->assertRedirect();
 
         $this->assertSame(['pn1', 'pn2'], $definition->fresh()->criteria);
+        $this->assertSame(['n1-chase', 'n1'], $definition->fresh()->tags);
         $this->assertSame('N1 students (renamed)', $definition->fresh()->label);
     }
 
     public function test_bureau_master_can_delete_an_alias(): void
     {
         $definition = MailAliasDefinition::create([
-            'tag' => 'n1-chase', 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau',
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau',
         ]);
 
         $this->actingAs($this->bureauMaster)
@@ -119,7 +156,7 @@ class MailAliasControllerTest extends TestCase
         $n1 = $this->createMemberUser();
         $n1->detail->update(['training_enrollments' => ['N1']]);
         MailAliasDefinition::create([
-            'tag' => 'n1-chase', 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau_or_instructor',
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau_or_instructor',
         ]);
 
         $resolved = MailAliasService::resolve('n1-chase@club.example');
@@ -132,9 +169,50 @@ class MailAliasControllerTest extends TestCase
     public function test_a_disabled_definition_is_not_resolved(): void
     {
         MailAliasDefinition::create([
-            'tag' => 'n1-chase', 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau', 'enabled' => false,
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'bureau', 'enabled' => false,
         ]);
 
         $this->assertNull(MailAliasService::resolve('n1-chase@club.example'));
+    }
+
+    public function test_a_member_of_an_open_alias_group_can_send_without_being_bureau(): void
+    {
+        $n1 = $this->createMemberUser();
+        $n1->detail->update(['training_enrollments' => ['N1']]);
+        MailAliasDefinition::create([
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'group_or_bureau',
+        ]);
+
+        $this->assertTrue(MailAliasService::isAuthorized($n1->primary_email, 'n1-chase@club.example'));
+    }
+
+    public function test_a_non_group_member_is_rejected_under_group_or_bureau(): void
+    {
+        $outsider = $this->createMemberUser();
+        MailAliasDefinition::create([
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'group_or_bureau',
+        ]);
+
+        $this->assertFalse(MailAliasService::isAuthorized($outsider->primary_email, 'n1-chase@club.example'));
+    }
+
+    public function test_any_member_auth_level_allows_any_registered_member(): void
+    {
+        $member = $this->createMemberUser();
+        MailAliasDefinition::create([
+            'tags' => ['suggestions'], 'label' => 'Suggestions', 'criteria' => ['current_member'], 'auth_level' => 'any_member',
+        ]);
+
+        $this->assertTrue(MailAliasService::isAuthorized($member->primary_email, 'suggestions@club.example'));
+        $this->assertFalse(MailAliasService::isAuthorized('stranger@external.test', 'suggestions@club.example'));
+    }
+
+    public function test_open_auth_level_allows_any_address(): void
+    {
+        MailAliasDefinition::create([
+            'tags' => ['contact'], 'label' => 'Contact', 'criteria' => ['bureau'], 'auth_level' => 'open',
+        ]);
+
+        $this->assertTrue(MailAliasService::isAuthorized('stranger@external.test', 'contact@club.example'));
     }
 }

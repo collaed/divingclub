@@ -34,8 +34,9 @@ class MailAliasService
         }
 
         // Admin-defined dynamic aliases (Admin\MailAliasController) take
-        // precedence over the static aliases below.
-        $definition = MailAliasDefinition::where('tag', $local)->where('enabled', true)->first();
+        // precedence over the static aliases below. A definition may answer
+        // to several tags (synonyms sharing one criteria/auth_level).
+        $definition = MailAliasDefinition::whereJsonContains('tags', $local)->where('enabled', true)->first();
         if ($definition) {
             return static::resolveDefinition($definition);
         }
@@ -140,8 +141,22 @@ class MailAliasService
     public static function isAuthorized(string $senderEmail, string $alias): bool
     {
         $resolved = static::resolve($alias);
-        if (! $resolved) {
-            return false;
+
+        return $resolved && static::authorizedFor($resolved, $senderEmail, $alias);
+    }
+
+    /**
+     * Check if a sender is authorized against an *already resolved* alias.
+     * Shared with the inbound-mail pipelines, which may resolve through
+     * resolveMultiple() or fall back to a different alias before checking —
+     * re-resolving here would lose that context.
+     *
+     * @param  array{emails: string[], label: string, auth_level: string}  $resolved
+     */
+    public static function authorizedFor(array $resolved, string $senderEmail, ?string $alias = null): bool
+    {
+        if ($resolved['auth_level'] === 'open') {
+            return true;
         }
 
         $sender = User::where('primary_email', $senderEmail)->first();
@@ -152,7 +167,9 @@ class MailAliasService
         return match ($resolved['auth_level']) {
             'bureau' => $sender->isBureau(),
             'bureau_or_instructor' => $sender->isBureau() || $sender->hasRole('instructor'),
-            'participant' => static::isEventParticipantOrStaff($sender, $alias),
+            'group_or_bureau' => $sender->isBureau() || in_array($senderEmail, $resolved['emails'], true),
+            'any_member' => true,
+            'participant' => $alias !== null && static::isEventParticipantOrStaff($sender, $alias),
             default => false,
         };
     }

@@ -2,7 +2,7 @@
     @php($isBureauMaster = auth()->user()->hasRole('bureau_master'))
 
     <h4 class="mb-1">{{ __('Mail Aliases') }}</h4>
-    <p class="text-muted small mb-4">{{ __('Define a mailing alias by ticking the member properties it must match (all selected properties must hold at once). Sending to the alias\'s tag — e.g. :example — reaches everyone who currently matches.', ['example' => \App\Services\MailAliasService::mailtoAddress('{tag}')]) }}</p>
+    <p class="text-muted small mb-4">{{ __('Define a mailing alias by ticking the member properties it must match (all selected properties must hold at once). Sending to any of the alias\'s tags — e.g. :example — reaches everyone who currently matches. Give an alias several tags (e.g. "bureau, board") to create synonyms that can never drift apart, since they share one definition.', ['example' => \App\Services\MailAliasService::mailtoAddress('{tag}')]) }}</p>
 
     <div class="row g-4">
         <div class="col-lg-5">
@@ -10,12 +10,12 @@
                 <div class="card-header">{{ __('Existing aliases') }}</div>
                 <div class="card-body p-0">
                     <table class="table table-sm align-middle mb-0">
-                        <thead><tr><th>{{ __('Tag') }}</th><th>{{ __('Label') }}</th><th class="text-end">{{ __('Members') }}</th><th></th>@if($isBureauMaster)<th class="text-end">{{ __('Actions') }}</th>@endif</tr></thead>
+                        <thead><tr><th>{{ __('Tags') }}</th><th>{{ __('Label') }}</th><th class="text-end">{{ __('Members') }}</th><th></th>@if($isBureauMaster)<th class="text-end">{{ __('Actions') }}</th>@endif</tr></thead>
                         <tbody>
                         @forelse($definitions as $row)
                             @php($d = $row['definition'])
-                            <tr data-definition data-id="{{ $d->id }}" data-tag="{{ $d->tag }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
-                                <td><code>{{ $d->tag }}</code></td>
+                            <tr data-definition data-id="{{ $d->id }}" data-tags="{{ implode(', ', $d->tags) }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
+                                <td>@foreach($d->tags as $tag)<code>{{ $tag }}</code>@if(! $loop->last), @endif @endforeach</td>
                                 <td>{{ $d->label }}</td>
                                 <td class="text-end">{{ $row['count'] }}</td>
                                 <td>@unless($d->enabled)<span class="badge bg-secondary">{{ __('Disabled') }}</span>@endunless</td>
@@ -49,9 +49,10 @@
                         <input type="hidden" id="builderActionStore" value="{{ route('admin.mail-aliases.store') }}">
                         <div class="row g-2 mb-3">
                             <div class="col-md-4">
-                                <label class="form-label">{{ __('Tag') }}</label>
-                                <input type="text" name="tag" id="builderTag" class="form-control form-control-sm @error('tag') is-invalid @enderror" required placeholder="n1-renewal-chase">
-                                @error('tag') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <label class="form-label">{{ __('Tags') }}</label>
+                                <input type="text" name="tags" id="builderTags" class="form-control form-control-sm @error('tags') is-invalid @enderror" required placeholder="n1-renewal-chase, n1-chase">
+                                <div class="form-text">{{ __('Comma-separated. Add a synonym here instead of a second alias, so it can\'t drift from this one.') }}</div>
+                                @error('tags') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label">{{ __('Label') }}</label>
@@ -60,8 +61,9 @@
                             <div class="col-md-3">
                                 <label class="form-label">{{ __('Who can send') }}</label>
                                 <select name="auth_level" id="builderAuthLevel" class="form-select form-select-sm">
-                                    <option value="bureau">{{ __('Bureau') }}</option>
-                                    <option value="bureau_or_instructor">{{ __('Bureau or instructor') }}</option>
+                                    @foreach(\App\Models\MailAliasDefinition::AUTH_LEVELS as $value => $authLabel)
+                                        <option value="{{ $value }}">{{ __($authLabel) }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -155,7 +157,7 @@
 
         @if($isBureauMaster)
         const form = document.getElementById('aliasBuilderForm');
-        const tagInput = document.getElementById('builderTag');
+        const tagInput = document.getElementById('builderTags');
         const labelInput = document.getElementById('builderLabel');
         const authInput = document.getElementById('builderAuthLevel');
         const methodInput = document.getElementById('builderMethod');
@@ -166,7 +168,6 @@
             form.action = storeUrl;
             methodInput.value = 'POST';
             tagInput.value = '';
-            tagInput.readOnly = false;
             labelInput.value = '';
             authInput.value = 'bureau';
             criteriaBox.querySelectorAll('[data-criterion]').forEach(function (el) { el.checked = false; });
@@ -179,8 +180,7 @@
                 const row = btn.closest('[data-definition]');
                 form.action = row.dataset.updateUrl;
                 methodInput.value = 'PUT';
-                tagInput.value = row.dataset.tag;
-                tagInput.readOnly = true; // tag isn't editable once created — matches MailAliasService::resolve()'s routing key; readonly (not disabled) so it still submits
+                tagInput.value = row.dataset.tags;
                 labelInput.value = row.dataset.label;
                 authInput.value = row.dataset.authLevel;
                 const criteria = JSON.parse(row.dataset.criteria || '[]');

@@ -9,12 +9,16 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * An admin-defined mailing alias: members matching every selected criterion
- * (AND'd, see MailAliasCriteria) receive mail sent to this alias's tag. See
- * MailAliasService::resolve(), which checks this table before falling back
- * to its own hardcoded aliases.
+ * (AND'd, see MailAliasCriteria) receive mail sent to any of this alias's
+ * tags. See MailAliasService::resolve(), which checks this table before
+ * falling back to its own hardcoded aliases.
+ *
+ * A definition can carry several tags (e.g. "bureau" + "board") so that
+ * synonyms share one criteria/auth_level and can never drift apart — see
+ * MailAliasController's "tags" field.
  *
  * @property int $id
- * @property string $tag
+ * @property array<int, string> $tags
  * @property string $label
  * @property array<int, string> $criteria
  * @property string $auth_level
@@ -24,10 +28,27 @@ use Illuminate\Database\Eloquent\Model;
  */
 class MailAliasDefinition extends Model
 {
-    protected $fillable = ['tag', 'label', 'criteria', 'auth_level', 'enabled'];
+    /**
+     * Who may send to this alias:
+     *  - bureau / bureau_or_instructor: the usual admin/instructor gate.
+     *  - group_or_bureau: a member the alias itself resolves to, or bureau.
+     *  - any_member: any registered club member.
+     *  - open: no authentication at all — any Internet address.
+     *
+     * @var array<string, string>
+     */
+    public const AUTH_LEVELS = [
+        'bureau' => 'Bureau only',
+        'bureau_or_instructor' => 'Bureau or instructor',
+        'group_or_bureau' => 'A member of this group, or bureau',
+        'any_member' => 'Any club member',
+        'open' => 'Anyone (no sender check)',
+    ];
+
+    protected $fillable = ['tags', 'label', 'criteria', 'auth_level', 'enabled'];
 
     protected function casts(): array
     {
-        return ['criteria' => 'array', 'enabled' => 'boolean'];
+        return ['tags' => 'array', 'criteria' => 'array', 'enabled' => 'boolean'];
     }
 }

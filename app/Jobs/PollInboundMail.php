@@ -6,7 +6,6 @@ namespace App\Jobs;
 
 use App\Models\EmailLog;
 use App\Models\MailForwardingRule;
-use App\Models\User;
 use App\Services\InboundMailFilter;
 use App\Services\MailAliasService;
 use App\Services\MailBalancer;
@@ -210,8 +209,7 @@ class PollInboundMail implements ShouldQueue
             $subject = "[Unknown: {$to}] {$subject}";
         }
 
-        $sender = User::where('primary_email', $from)->first();
-        if (! $sender || (! $sender->isBureau() && ! $sender->hasRole('instructor'))) {
+        if (! MailAliasService::authorizedFor($resolved, $from, $to)) {
             EmailLog::create([
                 'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
                 'body' => substr($body, 0, 5000), 'status' => 'rejected',

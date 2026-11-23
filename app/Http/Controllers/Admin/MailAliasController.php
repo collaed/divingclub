@@ -11,6 +11,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class MailAliasController extends Controller
 {
@@ -90,13 +92,53 @@ class MailAliasController extends Controller
     /** @return array<string, mixed> */
     private function validated(Request $request, ?MailAliasDefinition $existing = null): array
     {
-        return $request->validate([
-            'tag' => ['required', 'string', 'max:100', 'alpha_dash', 'unique:mail_alias_definitions,tag,'.($existing?->id ?? 'NULL')],
+        $v = $request->validate([
+            'tags' => 'required|string|max:500',
             'label' => 'required|string|max:255',
             'criteria' => 'required|array|min:1',
             'criteria.*' => 'string|in:'.implode(',', array_keys(MailAliasCriteria::options())),
-            'auth_level' => 'required|in:bureau,bureau_or_instructor',
+            'auth_level' => ['required', 'in:'.implode(',', array_keys(MailAliasDefinition::AUTH_LEVELS))],
             'enabled' => 'sometimes|boolean',
         ]);
+
+        $v['tags'] = $this->normalizedTags($v['tags'], $existing);
+
+        return $v;
+    }
+
+    /**
+     * Split the comma-separated "tags" input into a deduplicated, slugged
+     * list, and reject any tag already claimed by another definition — tags
+     * replace a unique DB column, so this is where that uniqueness lives.
+     *
+     * @return array<int, string>
+     */
+    private function normalizedTags(string $raw, ?MailAliasDefinition $existing): array
+    {
+        $tags = collect(explode(',', $raw))
+            ->map(fn (string $t) => Str::slug(trim($t), '-'))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($tags->isEmpty()) {
+            throw ValidationException::withMessages(['tags' => __('Enter at least one tag.')]);
+        }
+
+        $clash = MailAliasDefinition::query()
+            ->when($existing, fn ($q) => $q->whereKeyNot($existing->id))
+            ->get()
+            ->first(fn (MailAliasDefinition $d) => array_intersect($tags->all(), $d->tags) !== []);
+
+        if ($clash) {
+            throw ValidationException::withMessages([
+                'tags' => __('":tag" is already used by the ":label" alias.', [
+                    'tag' => implode(', ', array_intersect($tags->all(), $clash->tags)),
+                    'label' => $clash->label,
+                ]),
+            ]);
+        }
+
+        return $tags->all();
     }
 }
