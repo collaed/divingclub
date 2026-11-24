@@ -283,6 +283,15 @@
             runPreview();
         }
 
+        // A plain page reload can leave the hidden _method field at a stale
+        // 'PUT' from a previous "Edit" click — some browsers (Firefox) restore
+        // named form-field values on reload independently of the <form>
+        // element's own action attribute, which isn't "form data" and simply
+        // reverts to the plain create URL baked into the server-rendered
+        // HTML. A PUT submitted to that bare, no-id URL 405s with no
+        // indication why. Force a clean, matching baseline on every load.
+        resetForm();
+
         document.querySelectorAll('[data-edit-definition]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 const row = btn.closest('[data-definition]');

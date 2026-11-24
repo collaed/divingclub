@@ -43,6 +43,20 @@ class MailAliasControllerTest extends TestCase
         $this->assertSame('bureau_or_instructor', $definition->auth_level);
     }
 
+    public function test_index_renders_the_builder_form_defaulted_to_a_matching_create_action_and_method(): void
+    {
+        // A mismatch here (e.g. action pointing at the bare collection URL
+        // while the spoofed method is PUT) 405s with no indication why —
+        // see resetForm()'s call on page load in the Blade view, which
+        // guards against a browser restoring the hidden _method field from
+        // a previous "Edit" click independently of the <form> action.
+        $response = $this->actingAs($this->bureauMaster)->get(route('admin.mail-aliases.index'));
+
+        $response->assertOk();
+        $response->assertSee('id="builderMethod" value="POST"', false);
+        $response->assertSee('action="'.route('admin.mail-aliases.store').'"', false);
+    }
+
     public function test_a_dotted_tag_keeps_its_dot(): void
     {
         $this->actingAs($this->bureauMaster)
