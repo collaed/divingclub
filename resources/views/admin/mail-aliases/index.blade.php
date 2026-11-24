@@ -14,7 +14,7 @@
                         <tbody>
                         @forelse($definitions as $row)
                             @php($d = $row['definition'])
-                            <tr data-definition data-id="{{ $d->id }}" data-tags="{{ implode(', ', $d->tags) }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-include-ids="{{ json_encode($d->include_user_ids) }}" data-exclude-ids="{{ json_encode($d->exclude_user_ids) }}" data-contact-ids="{{ json_encode($d->include_contact_ids) }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
+                            <tr data-definition data-id="{{ $d->id }}" data-tags="{{ implode(', ', $d->tags) }}" data-label="{{ $d->label }}" data-auth-level="{{ $d->auth_level }}" data-criteria="{{ json_encode($d->criteria) }}" data-include-ids="{{ json_encode($d->include_user_ids) }}" data-exclude-ids="{{ json_encode($d->exclude_user_ids) }}" data-contact-ids="{{ json_encode($d->include_contact_ids) }}" data-include-all-contacts="{{ $d->include_all_contacts ? '1' : '0' }}" data-update-url="{{ route('admin.mail-aliases.update', $d) }}">
                                 <td>@foreach($d->tags as $tag)<code>{{ $tag }}</code>@if(! $loop->last), @endif @endforeach</td>
                                 <td>{{ $d->label }}</td>
                                 <td class="text-end">{{ $row['count'] }}</td>
@@ -196,11 +196,14 @@
             return Array.from(criteriaBox.querySelectorAll('[data-criterion]:checked')).map(function (el) { return el.value; });
         }
 
+        const includeAllContactsInput = document.getElementById('builderIncludeAllContacts');
+
         function runPreview() {
             const criteria = selectedCriteria();
             const includeIds = chipIds('include');
             const contactIds = chipIds('contact');
-            if (criteria.length === 0 && includeIds.length === 0 && contactIds.length === 0) {
+            const includeAllContacts = includeAllContactsInput ? includeAllContactsInput.checked : false;
+            if (criteria.length === 0 && includeIds.length === 0 && contactIds.length === 0 && !includeAllContacts) {
                 countEl.textContent = '0';
                 listEl.innerHTML = '<p class="text-muted">{{ __('Tick a property, or add a named member, to see who it matches.') }}</p>';
                 return;
@@ -210,6 +213,7 @@
             includeIds.forEach(function (id) { body.append('include_user_ids[]', id); });
             chipIds('exclude').forEach(function (id) { body.append('exclude_user_ids[]', id); });
             contactIds.forEach(function (id) { body.append('include_contact_ids[]', id); });
+            if (includeAllContacts) { body.append('include_all_contacts', '1'); }
             fetch(previewUrl, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -236,6 +240,13 @@
             });
         }
 
+        if (includeAllContactsInput) {
+            includeAllContactsInput.addEventListener('change', function () {
+                clearTimeout(timer);
+                timer = setTimeout(runPreview, 300);
+            });
+        }
+
         @if($isBureauMaster)
         const form = document.getElementById('aliasBuilderForm');
         const tagInput = document.getElementById('builderTags');
@@ -255,6 +266,7 @@
             setChips('include', []);
             setChips('exclude', []);
             setChips('contact', []);
+            if (includeAllContactsInput) { includeAllContactsInput.checked = false; }
             cancelBtn.classList.add('d-none');
             runPreview();
         }
@@ -274,6 +286,7 @@
                 setChips('include', JSON.parse(row.dataset.includeIds || '[]'));
                 setChips('exclude', JSON.parse(row.dataset.excludeIds || '[]'));
                 setChips('contact', JSON.parse(row.dataset.contactIds || '[]'));
+                if (includeAllContactsInput) { includeAllContactsInput.checked = row.dataset.includeAllContacts === '1'; }
                 cancelBtn.classList.remove('d-none');
                 runPreview();
                 form.scrollIntoView({ behavior: 'smooth', block: 'center' });

@@ -197,7 +197,9 @@ class MailAliasService
     /**
      * Resolve an admin-defined dynamic alias (Admin\MailAliasController) via
      * MailAliasCriteria, plus any named App\Models\MailListContact rows the
-     * definition includes (only while still subscribed).
+     * definition includes (only while still subscribed), or — with
+     * include_all_contacts — every currently-subscribed one regardless of
+     * which ones are individually named.
      */
     protected static function resolveDefinition(MailAliasDefinition $definition): array
     {
@@ -205,7 +207,11 @@ class MailAliasService
             ->whereNotNull('email_verified_at')
             ->pluck('primary_email')->toArray();
 
-        $contactTokens = MailListContact::whereIn('id', $definition->include_contact_ids)
+        $contactTokens = MailListContact::query()
+            ->when(
+                ! $definition->include_all_contacts,
+                fn ($q) => $q->whereIn('id', $definition->include_contact_ids)
+            )
             ->where('subscribed', true)
             ->pluck('unsubscribe_token', 'email')->toArray();
 

@@ -48,6 +48,7 @@ class MailAliasController extends Controller
             'exclude_user_ids.*' => 'integer',
             'include_contact_ids' => 'array',
             'include_contact_ids.*' => 'integer',
+            'include_all_contacts' => 'sometimes|boolean',
         ]);
 
         $query = MailAliasCriteria::matchingUsers($v['criteria'] ?? [], $v['include_user_ids'] ?? [], $v['exclude_user_ids'] ?? [])->with('detail');
@@ -55,7 +56,13 @@ class MailAliasController extends Controller
         $members = $query->limit(self::MAX_PREVIEW_ROWS)->get()
             ->map(fn ($u) => ['name' => $u->name, 'email' => $u->primary_email]);
 
-        $contacts = MailListContact::whereIn('id', $v['include_contact_ids'] ?? [])->get()
+        $contactsQuery = MailListContact::query()
+            ->when(
+                ! ($v['include_all_contacts'] ?? false),
+                fn ($q) => $q->whereIn('id', $v['include_contact_ids'] ?? [])
+            )
+            ->where('subscribed', true);
+        $contacts = $contactsQuery->get()
             ->map(fn (MailListContact $c) => ['name' => $c->name ?: $c->email, 'email' => $c->email]);
 
         $members = $members->concat($contacts);
@@ -122,6 +129,7 @@ class MailAliasController extends Controller
             'exclude_user_ids.*' => 'integer|exists:users,id',
             'include_contact_ids' => 'array',
             'include_contact_ids.*' => 'integer|exists:mail_list_contacts,id',
+            'include_all_contacts' => 'sometimes|boolean',
             'auth_level' => ['required', 'in:'.implode(',', array_keys(MailAliasDefinition::AUTH_LEVELS))],
             'enabled' => 'sometimes|boolean',
         ]);
@@ -133,8 +141,9 @@ class MailAliasController extends Controller
         $v['include_user_ids'] ??= [];
         $v['exclude_user_ids'] ??= [];
         $v['include_contact_ids'] ??= [];
+        $v['include_all_contacts'] ??= false;
 
-        if ($v['criteria'] === [] && $v['include_user_ids'] === [] && $v['include_contact_ids'] === []) {
+        if ($v['criteria'] === [] && $v['include_user_ids'] === [] && $v['include_contact_ids'] === [] && ! $v['include_all_contacts']) {
             throw ValidationException::withMessages([
                 'criteria' => __('Tick at least one property, or add at least one named member or contact below.'),
             ]);
@@ -155,7 +164,7 @@ class MailAliasController extends Controller
     private function normalizedTags(string $raw, ?MailAliasDefinition $existing): array
     {
         $tags = collect(explode(',', $raw))
-            ->map(fn (string $t) => Str::slug(trim($t), '-'))
+            ->map(fn (string $t) => $this->slugTag($t))
             ->filter()
             ->unique()
             ->values();
@@ -179,5 +188,22 @@ class MailAliasController extends Controller
         }
 
         return $tags->all();
+    }
+
+    /**
+     * Like Str::slug(), but keeps dots — several of the hardcoded legacy
+     * aliases this builder can supersede use dot-separated local parts
+     * (members.b, members.pn1, members.s42…), and Str::slug() silently
+     * drops anything that isn't alphanumeric or the separator, dots
+     * included, so "members.b" would otherwise save as "membersb".
+     */
+    private function slugTag(string $value): string
+    {
+        $value = Str::ascii(trim($value));
+        $value = strtolower($value);
+        $value = preg_replace('/[^a-z0-9.]+/', '-', $value) ?? '';
+        $value = preg_replace('/-{2,}/', '-', $value) ?? '';
+
+        return trim($value, '-');
     }
 }

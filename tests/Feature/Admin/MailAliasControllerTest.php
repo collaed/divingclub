@@ -43,6 +43,21 @@ class MailAliasControllerTest extends TestCase
         $this->assertSame('bureau_or_instructor', $definition->auth_level);
     }
 
+    public function test_a_dotted_tag_keeps_its_dot(): void
+    {
+        $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.store'), [
+                'tags' => 'members.b',
+                'label' => 'Bureau (custom)',
+                'criteria' => ['bureau'],
+                'auth_level' => 'bureau',
+            ])
+            ->assertRedirect();
+
+        $definition = MailAliasDefinition::where('label', 'Bureau (custom)')->first();
+        $this->assertSame(['members.b'], $definition->tags);
+    }
+
     public function test_a_single_definition_can_carry_several_synonym_tags(): void
     {
         $this->actingAs($this->bureauMaster)
@@ -118,6 +133,50 @@ class MailAliasControllerTest extends TestCase
         $resolved = MailAliasService::resolve('newsletter@club.example');
         $this->assertContains('prospect@example.com', $resolved['emails']);
         $this->assertArrayHasKey('prospect@example.com', $resolved['contact_unsubscribe_tokens']);
+    }
+
+    public function test_an_alias_can_include_all_subscribed_contacts_without_naming_them(): void
+    {
+        $subscribed = MailListContact::create(['email' => 'prospect1@example.com']);
+        $alsoSubscribed = MailListContact::create(['email' => 'prospect2@example.com']);
+        $unsubscribed = MailListContact::create(['email' => 'gone@example.com', 'subscribed' => false]);
+
+        $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.store'), [
+                'tags' => 'prospects',
+                'label' => 'Prospects',
+                'include_all_contacts' => '1',
+                'auth_level' => 'bureau',
+            ])
+            ->assertRedirect();
+
+        $definition = MailAliasDefinition::where('label', 'Prospects')->first();
+        $this->assertTrue($definition->include_all_contacts);
+        $this->assertSame([], $definition->include_contact_ids);
+
+        $resolved = MailAliasService::resolve('prospects@club.example');
+        $this->assertContains($subscribed->email, $resolved['emails']);
+        $this->assertContains($alsoSubscribed->email, $resolved['emails']);
+        $this->assertNotContains($unsubscribed->email, $resolved['emails']);
+
+        // A contact added after the alias was saved is picked up too — it's
+        // not a snapshot of who was subscribed at save time.
+        $later = MailListContact::create(['email' => 'prospect3@example.com']);
+        $resolved = MailAliasService::resolve('prospects@club.example');
+        $this->assertContains($later->email, $resolved['emails']);
+    }
+
+    public function test_preview_includes_all_subscribed_contacts_when_that_flag_is_set(): void
+    {
+        $subscribed = MailListContact::create(['email' => 'prospect@example.com', 'name' => 'Prospect']);
+        MailListContact::create(['email' => 'gone@example.com', 'subscribed' => false]);
+
+        $response = $this->actingAs($this->bureauMaster)
+            ->post(route('admin.mail-aliases.preview'), ['include_all_contacts' => '1'])
+            ->assertOk();
+
+        $response->assertJsonFragment(['name' => 'Prospect', 'email' => $subscribed->email]);
+        $response->assertJsonMissing(['email' => 'gone@example.com']);
     }
 
     public function test_an_unsubscribed_contact_is_excluded_from_resolution(): void

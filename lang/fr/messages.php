@@ -14,6 +14,7 @@ return [
     'Already part of your family.' => 'Déjà membre de votre famille.',
     'Also Enrolled In' => 'Également inscrit à',
     'Also cc\'d on every member\'s personal vanity alias (sas.{name}@...), activated from their profile.' => 'Également mis en copie sur l\'alias personnel de chaque membre (sas.{name}@...), activé depuis son profil.',
+    'All subscribed mailing-list contacts (prospects)' => 'Tous les contacts abonnés de la liste de diffusion (prospects)',
     'Always exclude' => 'Toujours exclure',
     'Always include' => 'Toujours inclure',
     'An invite with :name is already pending.' => 'Une invitation avec :name est déjà en attente.',
