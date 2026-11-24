@@ -5,6 +5,13 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-24 — prod at 58ade7e
+
+### Fixed
+- `admin/guardians` (Minors & Parental Consent) returned a 500 for any minor
+  with a guardian attached — the unlink button's link pointed at a pivot
+  row id that was never exposed by the relationship. Fixed.
+
 ## 2026-11-24 — prod at 51e3f5c
 
 ### Fixed
