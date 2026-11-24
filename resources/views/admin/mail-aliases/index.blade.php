@@ -75,12 +75,14 @@
                                     <label class="form-check-label small" for="crit-{{ $key }}">{{ $label }}</label>
                                 </div>
                             @endforeach
-                            <div class="col-md-6 form-check">
-                                <input type="checkbox" class="form-check-input" name="include_all_contacts" value="1" id="builderIncludeAllContacts" data-include-all-contacts>
-                                <label class="form-check-label small" for="builderIncludeAllContacts">{{ __('Prospects (all mailing-list contacts)') }}</label>
-                            </div>
                         </div>
                         <div class="form-text mb-2">{{ __('Leave every property unticked to build the alias from named members or mailing-list contacts only.') }}</div>
+
+                        <div class="form-check mb-1">
+                            <input type="checkbox" class="form-check-input" name="include_all_contacts" value="1" id="builderIncludeAllContacts" data-include-all-contacts>
+                            <label class="form-check-label small" for="builderIncludeAllContacts">{{ __('Prospects (all mailing-list contacts)') }}</label>
+                        </div>
+                        <div class="form-text mb-3">{{ __('Added on top of anyone matched above — not required to also match the ticked properties.') }}</div>
 
                         @include('admin.mail-aliases._member-pickers')
                         @include('admin.mail-aliases._contact-picker')
@@ -99,11 +101,13 @@
                                     <label class="form-check-label small" for="crit-{{ $key }}">{{ $label }}</label>
                                 </div>
                             @endforeach
-                            <div class="col-md-6 form-check">
-                                <input type="checkbox" class="form-check-input" id="builderIncludeAllContacts" data-include-all-contacts>
-                                <label class="form-check-label small" for="builderIncludeAllContacts">{{ __('Prospects (all mailing-list contacts)') }}</label>
-                            </div>
                         </div>
+
+                        <div class="form-check mb-1">
+                            <input type="checkbox" class="form-check-input" id="builderIncludeAllContacts" data-include-all-contacts>
+                            <label class="form-check-label small" for="builderIncludeAllContacts">{{ __('Prospects (all mailing-list contacts)') }}</label>
+                        </div>
+                        <div class="form-text mb-3">{{ __('Added on top of anyone matched above — not required to also match the ticked properties.') }}</div>
 
                         @include('admin.mail-aliases._member-pickers')
                         @include('admin.mail-aliases._contact-picker')

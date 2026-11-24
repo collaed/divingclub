@@ -11,6 +11,7 @@ return [
     'Add a Family Member' => 'Ajouter un membre de la famille',
     'Add contacts' => 'Ajouter des contacts',
     'Added' => 'Ajouté',
+    'Added on top of anyone matched above — not required to also match the ticked properties.' => 'Ajouté en plus des personnes déjà sélectionnées ci-dessus — pas besoin de correspondre aussi aux propriétés cochées.',
     'Already part of your family.' => 'Déjà membre de votre famille.',
     'Also Enrolled In' => 'Également inscrit à',
     'Also cc\'d on every member\'s personal vanity alias (sas.{name}@...), activated from their profile.' => 'Également mis en copie sur l\'alias personnel de chaque membre (sas.{name}@...), activé depuis son profil.',

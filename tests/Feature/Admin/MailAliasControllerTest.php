@@ -166,6 +166,27 @@ class MailAliasControllerTest extends TestCase
         $this->assertContains($later->email, $resolved['emails']);
     }
 
+    public function test_criteria_and_prospects_are_unioned_not_intersected(): void
+    {
+        $pn2Member = $this->createMemberUser();
+        $pn2Member->detail->update(['training_enrollments' => ['N2']]);
+        $otherMember = $this->createMemberUser(); // matches neither bucket
+        $contact = MailListContact::create(['email' => 'prospect@example.com']);
+
+        MailAliasDefinition::create([
+            'tags' => ['prospects-and-pn2'], 'label' => 'PN2 + Prospects',
+            'criteria' => ['pn2'], 'include_all_contacts' => true, 'auth_level' => 'bureau',
+        ]);
+
+        $resolved = MailAliasService::resolve('prospects-and-pn2@club.example');
+
+        // Everyone matching EITHER bucket is reached, not only people who are
+        // both a PN2 member and a mailing-list contact at once.
+        $this->assertContains($pn2Member->primary_email, $resolved['emails']);
+        $this->assertContains($contact->email, $resolved['emails']);
+        $this->assertNotContains($otherMember->primary_email, $resolved['emails']);
+    }
+
     public function test_preview_includes_all_subscribed_contacts_when_that_flag_is_set(): void
     {
         $subscribed = MailListContact::create(['email' => 'prospect@example.com', 'name' => 'Prospect']);
