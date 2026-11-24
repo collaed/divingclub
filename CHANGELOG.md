@@ -5,7 +5,23 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-24 — prod at 3775f04
+
 ### New
+- Dynamic mail-alias builder (admin → Mail Aliases): build a club alias from
+  tickable criteria (current member, bureau, instructor, training levels,
+  etc.), named member include/exclude overrides, and several tags sharing
+  one alias. Bureau members can also activate their own personal vanity
+  alias from their profile.
+- "Mailing List Contacts": a bucket of email addresses for people who've
+  shown interest but never registered an account, manageable from
+  admin → Mailing List Contacts and selectable into any alias alongside
+  real members. Each contact gets a one-click, self-service unsubscribe
+  link on their own copy of every alias message; registered members never
+  see this and are unaffected.
+- Every alias-forwarded message now carries a short footer (English and
+  French) explaining why the recipient received it; mailing-list contacts
+  additionally get their unsubscribe link there.
 - `admin/settings` → Technical → "Email & Forwarding": manage the site's
   default From address/name, default Reply-To, the inbound alias base
   address, and a table of forwarding rules — mail arriving at a configured
@@ -14,6 +30,30 @@ What reached production, newest first. Conventions are in
   `INBOUND_MAIL_CONTACT_REDIRECT` env var (never actually configured) with
   an admin-editable table, so any address can get this treatment — not
   just the contact mailbox — without an `.env` edit or a restart.
+- Self-service family grouping: adults can form a shared household and act
+  for each other on event registration, medical-certificate upload, and
+  dues; a family's single bank transfer covering several members' dues can
+  be reconciled as one lump sum instead of matched member by member.
+  Minors can only be added by someone who already holds guardianship.
+- Members can self-enroll their own training level (N1/N2/N3) and flags
+  (RIFAP, NITROX, QUALIFS) from their diving profile tab, instead of
+  needing an instructor to enter it by hand.
+- Event page: communications sent to participants now show as one thread
+  per message (not one card per recipient), with a per-recipient delivery
+  status and a bureau-only option to edit a communication's displayed text.
+- `board@` now works as a plain synonym for `bureau@`.
+
+### Changed
+- A member can now authorize sending to a bureau/instructor-restricted
+  alias from any verified secondary email on their profile, not just
+  their primary address.
+- Admin → Payments list: member names link to their profile.
+- License counting now only considers active members (lapsed "former"
+  accounts no longer count against the cap); the member list gained a
+  sortable "last activity" column and a housekeeping archive action for
+  stale accounts.
+- Every forwarded alias message is now logged per recipient instead of
+  once per batch, and records which mail provider actually handled it.
 
 ### Fixed
 - Mail to the public contact address (`info@clubcep.eu`) was silently
@@ -22,6 +62,35 @@ What reached production, newest first. Conventions are in
   the club got logged as "rejected" and never reached anyone. A forwarding
   rule for that address now bypasses alias resolution and the sender check
   entirely (see above).
+- A message sent to two club aliases at once (e.g. one as To, one as Bcc)
+  could silently drop the Bcc'd alias and process the visible one twice
+  instead.
+- Event communications could render out of order when several were logged
+  within the same second — the normal case for a message forwarded to
+  many participants at once.
+- A newly created event's participant email address could come out in the
+  wrong format for domains using plus-addressing.
+- The medical certificate export (zip) could include a member's old,
+  superseded certificate alongside the current one, and a certificate
+  imported from the legacy system could appear a second time under an
+  un-renamed name because of a storage-path mismatch. Exported filenames
+  are now consistently "Lastname Firstname exam-date".
+- A medical certificate imported through the admin "incoming files" tool
+  never became the member's official current certificate.
+- Mail-provider rotation (Resend/Mailjet/Brevo) could mis-record which
+  provider actually sent a message, and the secondary Resend account could
+  silently reuse the primary account's connection instead of its own —
+  affected only internal usage logs/stats, not delivery.
+- Bank reconciliation import (XLSX upload, pasted text, and AI-extracted
+  PDF text) re-added every previously-seen statement line as a new,
+  unmatched transaction on every re-upload, since the bank's export is
+  always the full account history rather than an incremental diff.
+- The dues/action-checklist showed a certificate's expiry date where it
+  meant to show the exam date.
+
+### Needs attention
+- Bureau should look over the new "Mailing List Contacts" page and the
+  alias builder's contact picker before relying on it for a real campaign.
 
 ## 2026-11-11 — prod at 8470271
 
