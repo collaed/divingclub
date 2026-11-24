@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\LibraryFile;
 use App\Models\MemberDetail;
 use App\Models\User;
+use App\Services\MedicalComplianceService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -143,15 +144,23 @@ class ProcessIncomingFiles extends Command
         }
         copy($fullPath, storage_path("app/{$storagePath}"));
 
-        Document::create([
+        $doc = Document::create([
             'user_id' => $user->id,
             'category' => $category,
             'file_path' => $storagePath,
             'original_filename' => $filename,
             'mime_type' => mime_content_type($fullPath) ?: 'application/octet-stream',
             'size_bytes' => filesize($fullPath),
-            'is_current' => $category === 'licence_card',
+            'is_current' => in_array($category, ['licence_card', 'medical'], true),
         ]);
+
+        // A medical cert also needs the same superseding + compliance
+        // evaluation every other medical-cert creation path runs (profile
+        // upload, legacy sync) — otherwise an older current cert is never
+        // demoted and this one never gets an expiry/compliance verdict.
+        if ($category === 'medical') {
+            app(MedicalComplianceService::class)->evaluateCertificate($doc);
+        }
     }
 
     private function guessCategory(string $filename): string

@@ -74,15 +74,16 @@ class MedicalExportController extends Controller
     }
 
     /**
-     * Download current medical certificates as a ZIP.
+     * Download current medical certificates as a ZIP — only the active
+     * (non-superseded) certificate per member, never older versions.
      * Includes DB-tracked documents + legacy files from private/medical/.
-     * Files named: LASTNAME Firstname member# type.ext
+     * Files named: LASTNAME Firstname date.ext
      */
     public function downloadCertificates(Request $request): Response
     {
         $federationId = $request->get('federation_id');
 
-        // DB-tracked documents
+        // DB-tracked documents — is_current already excludes superseded ones.
         $query = Document::where('category', 'medical')
             ->where('is_current', true)
             ->with('user.detail');
@@ -93,7 +94,11 @@ class MedicalExportController extends Controller
 
         $docs = $query->get();
 
-        // Legacy files from private/medical/ (LASTNAME_Firstname.pdf)
+        // Legacy files from private/medical/ (LASTNAME_Firstname.pdf) — these
+        // predate is_current tracking, so a member can have several old scans
+        // sitting there with nothing marking which one is still valid. Group
+        // by (last name, first name) and keep only the most recently modified
+        // file per person, so a superseded legacy scan never rides along.
         $legacyFiles = [];
         $legacyDir = storage_path('app/private/medical');
         if (is_dir($legacyDir)) {
@@ -117,6 +122,7 @@ class MedicalExportController extends Controller
                 glob("{$legacyDir}/*/*") ?: [],
             );
 
+            $newestPerPerson = [];
             foreach ($candidates as $file) {
                 if (! is_file($file)) {
                     continue;
@@ -124,18 +130,33 @@ class MedicalExportController extends Controller
 
                 $basename = pathinfo($file, PATHINFO_FILENAME);
                 // Match LASTNAME_Firstname or LASTNAME Firstname
-                $lastName = strtoupper(explode('_', $basename)[0] ?? '');
+                [$lastNamePart, $firstNamePart] = [...preg_split('/[_\s]+/', $basename, 2), ''];
+                $lastName = strtoupper($lastNamePart);
+                $firstName = strtoupper($firstNamePart);
 
                 if ($matchNames !== null && ! in_array($lastName, $matchNames)) {
                     continue;
                 }
 
                 // Skip if we already have a DB document for this user
-                $alreadyInDb = $docs->contains(fn ($doc): bool => strtoupper(Str::ascii($doc->user?->detail?->last_name ?? '')) === $lastName);
-                if (! $alreadyInDb) {
-                    $legacyFiles[] = $file;
+                $alreadyInDb = $docs->contains(function ($doc) use ($lastName, $firstName): bool {
+                    $d = $doc->user?->detail;
+
+                    return strtoupper(Str::ascii($d?->last_name ?? '')) === $lastName
+                        && strtoupper(Str::ascii($d?->first_name ?? '')) === $firstName;
+                });
+                if ($alreadyInDb) {
+                    continue;
+                }
+
+                $personKey = "{$lastName}|{$firstName}";
+                $mtime = filemtime($file) ?: 0;
+                if (! isset($newestPerPerson[$personKey]) || $mtime > $newestPerPerson[$personKey]['mtime']) {
+                    $newestPerPerson[$personKey] = ['file' => $file, 'mtime' => $mtime];
                 }
             }
+
+            $legacyFiles = array_column($newestPerPerson, 'file');
         }
 
         if ($docs->isEmpty() && $legacyFiles === []) {
@@ -152,6 +173,7 @@ class MedicalExportController extends Controller
         }
 
         // Add DB-tracked documents
+        $usedNames = [];
         foreach ($docs as $doc) {
             $disk = Storage::disk('local');
             if (! $disk->exists($doc->file_path)) {
@@ -161,11 +183,16 @@ class MedicalExportController extends Controller
             $d = $doc->user?->detail;
             $lastName = strtoupper(Str::ascii($d->last_name ?? 'UNKNOWN'));
             $firstName = Str::ascii($d->first_name ?? 'Unknown');
-            $memberId = $doc->user_id;
-            $type = $doc->cert_type ? strtoupper($doc->cert_type) : 'MED';
+            $date = ($doc->date_established ?? $doc->created_at)->format('Y-m-d');
             $ext = pathinfo($doc->original_filename, PATHINFO_EXTENSION) ?: 'pdf';
 
-            $filename = "{$lastName} {$firstName} {$memberId} {$type}.{$ext}";
+            $filename = "{$lastName} {$firstName} {$date}.{$ext}";
+            // Two members sharing a name and exam date would otherwise collide.
+            if (isset($usedNames[$filename])) {
+                $filename = "{$lastName} {$firstName} {$date} ({$doc->user_id}).{$ext}";
+            }
+            $usedNames[$filename] = true;
+
             $zip->addFromString($filename, $disk->get($doc->file_path));
         }
 
