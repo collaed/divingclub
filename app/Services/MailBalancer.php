@@ -265,26 +265,37 @@ class MailBalancer
     {
         $provider = static::nextProvider();
 
-        switch ($provider) {
-            case 'resend_primary':
-                config(['mail.default' => 'resend']);
-                config(['services.resend.key' => config('services.resend.key')]);
-                break;
-
-            case 'resend_secondary':
-                config(['mail.default' => 'resend']);
-                config(['services.resend.key' => config('services.resend.key_secondary')]);
-                break;
-
-            case 'mailjet':
-                config(['mail.default' => 'sendmail']);
-                break;
-
-            case 'brevo':
-                config(['mail.default' => 'brevo']);
-                break;
-        }
+        config(['mail.default' => self::mailerNameFor($provider)]);
 
         return $provider;
+    }
+
+    /**
+     * The provider actually carrying the send that's currently in flight —
+     * i.e. whatever config::mail.default was set to the last time
+     * configureForNext() ran (or the app's baseline mailer, before that has
+     * ever run). Used to record each send against the provider that really
+     * handled it; see the MessageSending listener in AppServiceProvider.
+     */
+    public static function currentProviderLabel(): string
+    {
+        return match (config('mail.default')) {
+            'resend' => 'resend_primary',
+            'resend_secondary' => 'resend_secondary',
+            'brevo' => 'brevo',
+            'sendmail' => 'mailjet',
+            default => 'mailjet',
+        };
+    }
+
+    /** The Laravel mailer name (config('mail.mailers') key) for a provider. */
+    private static function mailerNameFor(string $provider): string
+    {
+        return match ($provider) {
+            'resend_primary' => 'resend',
+            'resend_secondary' => 'resend_secondary',
+            'brevo' => 'brevo',
+            default => 'sendmail',
+        };
     }
 }

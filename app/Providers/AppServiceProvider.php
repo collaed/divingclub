@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Resend\Laravel\Transport\ResendTransportFactory;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
 
@@ -63,6 +64,18 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Mail::extend('brevo', fn () => new BrevoTransport((string) config('services.brevo.key')));
+
+        // A separate mailer name (not just a swapped 'services.resend.key'
+        // config value) because Laravel's MailManager resolves a mailer
+        // once per name and caches it — and resend-laravel's own Resend
+        // client is bound as an app singleton, built from whichever key was
+        // active the first time anything resolved it. Swapping the config
+        // key between sends while reusing the name 'resend' silently kept
+        // using the first key for the rest of the process; this gives the
+        // secondary key its own named mailer so it's resolved fresh.
+        Mail::extend('resend_secondary', fn () => new ResendTransportFactory(
+            \Resend::client((string) config('services.resend.key_secondary'))
+        ));
 
         // Register Microsoft Socialite provider
         Event::listen(SocialiteWasCalled::class, MicrosoftExtendSocialite::class);
@@ -131,10 +144,17 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        // Load-balance outgoing mail across providers
+        // Load-balance outgoing mail across providers. MessageSending fires
+        // from inside Mailer::send(), on a mailer instance already resolved
+        // (and transport already bound) from whatever config::mail.default
+        // was when THIS send started — so recording must read that value
+        // first, before configureForNext() changes it for the send after
+        // this one. Recording the freshly-picked provider instead (the
+        // order this used to run in) mislabeled every send as the next
+        // one's provider, one step ahead of what actually carried it.
         Event::listen(MessageSending::class, function () {
-            $provider = MailBalancer::configureForNext();
-            MailBalancer::recordSend($provider);
+            MailBalancer::recordSend(MailBalancer::currentProviderLabel());
+            MailBalancer::configureForNext();
         });
 
         // Default Reply-To (admin/settings → Technical → Email & Forwarding)

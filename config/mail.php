@@ -65,6 +65,14 @@ return [
             'transport' => 'resend',
         ],
 
+        // Secondary Resend account for MailBalancer's rotation — its own
+        // mailer name, not just a swapped api key, because resend-laravel's
+        // Resend client is an app singleton and Laravel caches a resolved
+        // mailer per name; see AppServiceProvider's Mail::extend() call.
+        'resend_secondary' => [
+            'transport' => 'resend_secondary',
+        ],
+
         'brevo' => [
             'transport' => 'brevo',
         ],

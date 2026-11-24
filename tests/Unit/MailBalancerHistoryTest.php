@@ -148,4 +148,43 @@ class MailBalancerHistoryTest extends TestCase
 
         $this->assertSame('resend_secondary', MailBalancer::nextProvider());
     }
+
+    public function test_resend_secondary_gets_its_own_mailer_name_not_a_swapped_key(): void
+    {
+        config(['mail.default' => 'log']);
+
+        MailSendStat::create(['date' => today(), 'provider' => 'resend_primary', 'count' => 98]);
+        $this->assertSame('resend_secondary', MailBalancer::nextProvider());
+
+        MailBalancer::configureForNext();
+
+        // A separate mailer name, not 'resend' with a swapped api key — see
+        // AppServiceProvider's Mail::extend('resend_secondary', ...): the
+        // resend-laravel package's own client is an app singleton, so
+        // swapping services.resend.key after 'resend' has been resolved
+        // once has no effect on mail actually sent afterwards.
+        $this->assertSame('resend_secondary', config('mail.default'));
+    }
+
+    /**
+     * MessageSending fires on an already-resolved mailer, bound to whatever
+     * config::mail.default was when the send started — so the provider
+     * recorded for THIS send must be read before configureForNext() changes
+     * it for the NEXT one, or every send is mislabeled one provider ahead
+     * of what actually carried it (see AppServiceProvider's listener).
+     */
+    public function test_current_provider_label_reflects_what_is_actively_configured(): void
+    {
+        config(['mail.default' => 'sendmail']);
+        $this->assertSame('mailjet', MailBalancer::currentProviderLabel());
+
+        config(['mail.default' => 'resend']);
+        $this->assertSame('resend_primary', MailBalancer::currentProviderLabel());
+
+        config(['mail.default' => 'resend_secondary']);
+        $this->assertSame('resend_secondary', MailBalancer::currentProviderLabel());
+
+        config(['mail.default' => 'brevo']);
+        $this->assertSame('brevo', MailBalancer::currentProviderLabel());
+    }
 }
