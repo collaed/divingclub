@@ -5,6 +5,18 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-24 — prod at c39f355
+
+### New
+- SDI and TDI added as certification federations (admin → Federations),
+  each seeded with their full official certification progression —
+  diver, instructor and specialty levels — so members can record SDI/TDI
+  certifications the same way as PADI, SSI, CMAS, etc.
+
+### Changed
+- Added the missing French translations for everything shipped in the
+  previous release (mail aliases, mailing-list contacts, admin nav).
+
 ## 2026-11-24 — prod at 3775f04
 
 ### New
