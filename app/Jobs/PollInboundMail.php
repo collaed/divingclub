@@ -79,7 +79,14 @@ class PollInboundMail implements ShouldQueue
             $headers = $this->parseRawHeaders($raw);
             $messages[] = [
                 'from' => $this->extractEmail($headers['from'] ?? ''),
-                'to' => $this->extractEmail($headers['to'] ?? ''),
+                // Postfix local delivery writes one maildir file per envelope
+                // recipient, each stamped with its own X-Original-To — the
+                // "To:" header is just whatever the sender typed and is
+                // identical across copies, so a message sent to two local
+                // aliases at once (e.g. one To, one Bcc) would otherwise
+                // resolve every copy to the same (visible) alias instead of
+                // each copy's actual recipient.
+                'to' => $this->extractEmail($headers['x-original-to'] ?? $headers['to'] ?? ''),
                 'subject' => $this->decodeMimeHeader($headers['subject'] ?? '(no subject)'),
                 'body' => $this->parseRawBody($raw),
             ];
