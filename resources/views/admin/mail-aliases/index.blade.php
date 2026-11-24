@@ -75,6 +75,10 @@
                                     <label class="form-check-label small" for="crit-{{ $key }}">{{ $label }}</label>
                                 </div>
                             @endforeach
+                            <div class="col-md-6 form-check">
+                                <input type="checkbox" class="form-check-input" name="include_all_contacts" value="1" id="builderIncludeAllContacts" data-include-all-contacts>
+                                <label class="form-check-label small" for="builderIncludeAllContacts">{{ __('Prospects (all mailing-list contacts)') }}</label>
+                            </div>
                         </div>
                         <div class="form-text mb-2">{{ __('Leave every property unticked to build the alias from named members or mailing-list contacts only.') }}</div>
 
@@ -95,6 +99,10 @@
                                     <label class="form-check-label small" for="crit-{{ $key }}">{{ $label }}</label>
                                 </div>
                             @endforeach
+                            <div class="col-md-6 form-check">
+                                <input type="checkbox" class="form-check-input" id="builderIncludeAllContacts" data-include-all-contacts>
+                                <label class="form-check-label small" for="builderIncludeAllContacts">{{ __('Prospects (all mailing-list contacts)') }}</label>
+                            </div>
                         </div>
 
                         @include('admin.mail-aliases._member-pickers')
