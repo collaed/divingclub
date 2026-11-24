@@ -143,4 +143,34 @@ class MedicalExportZipTest extends TestCase
         $this->assertCount(1, $entries, 'Only one legacy file per person should be exported.');
         $this->assertSame('999 DUPONT_Jean.pdf', $entries[0]);
     }
+
+    /**
+     * A file imported by SyncOldEvents gets both a nested legacy file AND a
+     * current Document row pointing at that exact file. The legacy-name
+     * parser assumed "LASTNAME_Firstname" order, but files synced onto this
+     * server are actually "Firstname LASTNAME {old-system-id}" — the
+     * reversed order broke the by-name "already in DB" check, so the file
+     * was exported twice: once correctly renamed via the Document row, and
+     * once again under its old, un-renamed legacy entry.
+     */
+    public function test_a_nested_legacy_file_already_tracked_by_a_document_is_not_duplicated(): void
+    {
+        $user = $this->memberWithName('Louis', 'Chaussard');
+        File::ensureDirectoryExists($this->legacyDir."/{$user->id}");
+        File::put($this->legacyDir."/{$user->id}/Louis CHAUSSARD 286.pdf", '%PDF-1.4 fake');
+        Document::create([
+            'user_id' => $user->id, 'category' => 'medical', 'is_current' => true,
+            'file_path' => "private/medical/{$user->id}/Louis CHAUSSARD 286.pdf",
+            'original_filename' => 'Louis CHAUSSARD 286.pdf',
+            'mime_type' => 'application/pdf', 'size_bytes' => 1, 'date_established' => '2026-03-15',
+        ]);
+
+        $response = $this->actingAs($this->createBureauUser())->get('/admin/medical-certificates');
+        $entries = $this->zipEntries($response);
+
+        $this->assertCount(1, $entries, 'The file is already tracked by a Document row and must not also ride along via the legacy branch.');
+        $this->assertSame('CHAUSSARD Louis 2026-03-15.pdf', $entries[0]);
+
+        File::deleteDirectory($this->legacyDir."/{$user->id}");
+    }
 }

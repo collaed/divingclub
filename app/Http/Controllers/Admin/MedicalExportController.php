@@ -94,21 +94,42 @@ class MedicalExportController extends Controller
 
         $docs = $query->get();
 
-        // Legacy files from private/medical/ (LASTNAME_Firstname.pdf) — these
-        // predate is_current tracking, so a member can have several old scans
-        // sitting there with nothing marking which one is still valid. Group
-        // by (last name, first name) and keep only the most recently modified
-        // file per person, so a superseded legacy scan never rides along.
+        // Legacy files from private/medical/ (e.g. LASTNAME_Firstname.pdf,
+        // but observed on this server as "Firstname LASTNAME 123.pdf" too —
+        // word order isn't consistent, so name matching below is order
+        // independent) — these predate is_current tracking, so a member can
+        // have several old scans sitting there with nothing marking which
+        // one is still valid. Group by person and keep only the most
+        // recently modified file, so a superseded legacy scan never rides
+        // along.
         $legacyFiles = [];
         $legacyDir = storage_path('app/private/medical');
         if (is_dir($legacyDir)) {
+            // A name as a sorted bag of its (non-numeric) words, so
+            // "LASTNAME Firstname" and "Firstname LASTNAME 123" both reduce
+            // to the same key regardless of which order the source used.
+            $nameKey = function (string $text): string {
+                $words = array_filter(
+                    preg_split('/[_\s]+/', strtoupper(trim(Str::ascii($text)))) ?: [],
+                    fn (string $w): bool => $w !== '' && ! ctype_digit($w)
+                );
+                sort($words);
+
+                return implode(' ', $words);
+            };
+
+            // Exact file path, not name-matching — unambiguous regardless of
+            // word order, so a legacy file already tracked by a current DB
+            // document is never re-added under its old, un-renamed entry.
+            $trackedPaths = $docs->pluck('file_path')->flip();
+
             // If filtering by federation, get matching user names to filter legacy files
             $matchNames = null;
             if ($federationId) {
                 $matchNames = User::whereHas('licences', fn ($q) => $q->where('federation_id', $federationId))
                     ->with('detail')
                     ->get()
-                    ->map(fn ($u) => strtoupper(Str::ascii($u->detail?->last_name ?? '')))
+                    ->map(fn ($u) => $nameKey(($u->detail?->last_name ?? '').' '.($u->detail?->first_name ?? '')))
                     ->filter()
                     ->toArray();
             }
@@ -128,28 +149,16 @@ class MedicalExportController extends Controller
                     continue;
                 }
 
-                $basename = pathinfo($file, PATHINFO_FILENAME);
-                // Match LASTNAME_Firstname or LASTNAME Firstname
-                [$lastNamePart, $firstNamePart] = [...preg_split('/[_\s]+/', $basename, 2), ''];
-                $lastName = strtoupper($lastNamePart);
-                $firstName = strtoupper($firstNamePart);
-
-                if ($matchNames !== null && ! in_array($lastName, $matchNames)) {
+                if (isset($trackedPaths['private/medical/'.Str::after($file, "{$legacyDir}/")])) {
                     continue;
                 }
 
-                // Skip if we already have a DB document for this user
-                $alreadyInDb = $docs->contains(function ($doc) use ($lastName, $firstName): bool {
-                    $d = $doc->user?->detail;
+                $personKey = $nameKey(pathinfo($file, PATHINFO_FILENAME));
 
-                    return strtoupper(Str::ascii($d?->last_name ?? '')) === $lastName
-                        && strtoupper(Str::ascii($d?->first_name ?? '')) === $firstName;
-                });
-                if ($alreadyInDb) {
+                if ($matchNames !== null && ! in_array($personKey, $matchNames, true)) {
                     continue;
                 }
 
-                $personKey = "{$lastName}|{$firstName}";
                 $mtime = filemtime($file) ?: 0;
                 if (! isset($newestPerPerson[$personKey]) || $mtime > $newestPerPerson[$personKey]['mtime']) {
                     $newestPerPerson[$personKey] = ['file' => $file, 'mtime' => $mtime];
@@ -176,7 +185,14 @@ class MedicalExportController extends Controller
         $usedNames = [];
         foreach ($docs as $doc) {
             $disk = Storage::disk('local');
-            if (! $disk->exists($doc->file_path)) {
+            // Disk 'local''s root is already storage/app/private — a path
+            // built with that prefix baked in (e.g. SyncOldEvents' imports)
+            // would otherwise look for storage/app/private/private/...
+            // and never be found, silently falling through to the legacy
+            // branch below under its old, un-renamed entry (see
+            // ProfileDocumentController::download() for the same handling).
+            $diskPath = str_starts_with($doc->file_path, 'private/') ? substr($doc->file_path, 8) : $doc->file_path;
+            if (! $disk->exists($diskPath)) {
                 continue;
             }
 
@@ -193,7 +209,7 @@ class MedicalExportController extends Controller
             }
             $usedNames[$filename] = true;
 
-            $zip->addFromString($filename, $disk->get($doc->file_path));
+            $zip->addFromString($filename, $disk->get($diskPath));
         }
 
         // Add legacy files — prefix with the containing folder when nested so
