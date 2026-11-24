@@ -1,7 +1,10 @@
 <x-admin-layout :title="__('Mailing List Contacts')">
     @php($isBureauMaster = auth()->user()->hasRole('bureau_master'))
 
-    <h4 class="mb-1">{{ __('Mailing List Contacts') }}</h4>
+    <div class="d-flex justify-content-between align-items-start mb-1">
+        <h4 class="mb-0">{{ __('Mailing List Contacts') }}</h4>
+        <a href="{{ route('admin.mail-aliases.index') }}" class="btn btn-sm btn-outline-secondary">@icon('✉️') {{ __('Mail Aliases') }}</a>
+    </div>
     <p class="text-muted small mb-4">{{ __('People who have expressed interest in the club but never registered an account. Pick this bucket into any mail alias (see :link) to reach them too — they can unsubscribe themselves at any time via a link added to their copy of the message.', ['link' => __('Mail Aliases')]) }}</p>
 
     <div class="card dc-card">

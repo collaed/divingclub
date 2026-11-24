@@ -24,6 +24,14 @@ class MailListContactControllerTest extends TestCase
         $this->bureauMaster = $this->createBureauUser();
     }
 
+    public function test_index_links_back_to_mail_aliases_management(): void
+    {
+        $response = $this->actingAs($this->bureauMaster)->get(route('admin.mail-list-contacts.index'));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.mail-aliases.index'), false);
+    }
+
     public function test_bureau_master_can_bulk_add_contacts_parsing_both_line_formats(): void
     {
         $this->actingAs($this->bureauMaster)
