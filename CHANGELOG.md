@@ -5,6 +5,15 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-24 — prod at 4c9557f
+
+### Fixed
+- Mail alias builder: saving a new alias could 405 ("Oops! An Error
+  Occurred") if the page had been reloaded after a previous "Edit" click
+  without cancelling it first — some browsers restore a hidden form field
+  independently of the form's own action, leaving the two mismatched. The
+  builder now resets to a consistent state on every page load.
+
 ## 2026-11-24 — prod at ac7e939
 
 ### New
