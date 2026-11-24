@@ -5,6 +5,17 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-24 — prod at 51e3f5c
+
+### Fixed
+- Medical certificate ZIP export: a legacy scan was no longer excluded once
+  skipping depended on matching the person, not just the exact file path —
+  someone whose certificate had been re-uploaded still got their old,
+  superseded scan exported alongside the current one, under its original,
+  inconsistent filename. Legacy files are now matched by person and, when
+  matched to a member account, renamed to the same LASTNAME Firstname date
+  convention as DB-tracked certificates.
+
 ## 2026-11-24 — prod at c39f355
 
 ### New
