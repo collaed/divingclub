@@ -45,7 +45,11 @@
             <tbody>
             @foreach($payments as $p)
                 <tr>
-                    <td>{{ $p->user?->name }}</td>
+                    <td>
+                        @if($p->user)
+                            <a href="{{ route('admin.profile.show', $p->user) }}">{{ $p->user->name }}</a>
+                        @endif
+                    </td>
                     <td><span class="badge bg-secondary">{{ $p->type }}</span></td>
                     <td>€{{ number_format($p->amount_due, 2) }}</td>
                     <td>€{{ number_format($p->amount_paid, 2) }}</td>

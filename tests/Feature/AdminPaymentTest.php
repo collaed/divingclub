@@ -52,6 +52,22 @@ class AdminPaymentTest extends TestCase
             ->assertOk();
     }
 
+    public function test_the_payments_list_links_each_member_to_their_profile(): void
+    {
+        $member = User::factory()->create(['email_verified_at' => now()]);
+        MemberDetail::factory()->create(['user_id' => $member->id, 'first_name' => 'Jean', 'last_name' => 'Dupont']);
+        $member->assignRole('member');
+        PaymentExpected::create([
+            'user_id' => $member->id, 'type' => 'cotisation', 'amount_due' => 50, 'amount_paid' => 0,
+            'status' => 'pending', 'season_year' => '2027',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.payments.index'));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.profile.show', $member), false);
+    }
+
     public function test_bulk_fee_generation_bills_real_member_statuses_not_just_the_literal_actif_slug(): void
     {
         $realStatus = MemberStatus::firstOrCreate(['slug' => 'membre_de_droit'], ['name' => 'Membre de droit']);
