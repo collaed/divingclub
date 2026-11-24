@@ -5,6 +5,20 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-24 — prod at ac7e939
+
+### New
+- Mail alias builder: a "Prospects (all mailing-list contacts)" checkbox
+  reaches every currently-subscribed mailing-list contact without having
+  to name each one — added on top of any matched properties, not ANDed
+  with them.
+
+### Fixed
+- Mail alias tags containing a dot (e.g. `members.b`) were silently saved
+  without it, breaking compatibility with the legacy dot-separated alias
+  names. Dots are now preserved.
+- Mailing List Contacts page now links back to Mail Aliases management.
+
 ## 2026-11-24 — prod at 58ade7e
 
 ### Fixed
