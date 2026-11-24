@@ -554,37 +554,53 @@
                 </div>
             @endif
 
-            {{-- Communication history --}}
-            @if($emailHistory->count())
+            {{-- Communication history — one inbound message becomes several
+                 EmailLog rows (one per recipient), collapsed here into a
+                 single thread per message (see EmailLog::threadKey()). --}}
+            @if($emailThreads->count())
                 <div class="card dc-card mb-4">
                     <div class="card-header d-flex justify-content-between">
                         <span>@icon('📧') {{ __('Communications') }}</span>
-                        <span class="badge bg-secondary">{{ $emailHistory->count() }}</span>
+                        <span class="badge bg-secondary">{{ $emailThreads->count() }}</span>
                     </div>
                     <div class="card-body p-0" style="max-height:400px; overflow-y:auto">
-                        @foreach($emailHistory as $mail)
+                        @foreach($emailThreads as $thread)
+                            @php $mail = $thread->first(); $anyPendingReview = $thread->contains(fn ($m) => $m->status === 'pending_review'); @endphp
                             <div class="border-bottom p-2 small">
                                 <div class="d-flex justify-content-between text-muted" style="font-size:0.7rem">
                                     <span>{{ $mail->from_name ?? $mail->user?->name ?? __('System') }} @if($mail->from_email)<{{ $mail->from_email }}>@endif</span>
-                                    <span>
-                                        {{ $mail->created_at->format('d/m/Y H:i') }}
-                                        @if($mail->status === 'pending_review')
-                                            <span class="badge bg-warning text-dark ms-1">{{ __('Pending review') }}</span>
-                                        @endif
-                                    </span>
+                                    <span>{{ $mail->created_at->format('d/m/Y H:i') }}</span>
                                 </div>
                                 <div class="fw-bold">{{ $mail->subject }}</div>
+                                <div class="text-muted mt-1" style="font-size:0.7rem">
+                                    {{ __('To') }}:
+                                    @foreach($thread as $recipient)
+                                        <span class="badge bg-{{ $recipient->status === 'forwarded' ? 'success' : ($recipient->status === 'pending_review' ? 'warning text-dark' : ($recipient->status === 'failed' ? 'danger' : 'secondary')) }} me-1">
+                                            {{ $recipient->to_email }} ({{ __($recipient->status ?? 'unknown') }})
+                                        </span>
+                                    @endforeach
+                                </div>
                                 @if($mail->body)
-                                    <details class="mt-1" @if($mail->status === 'pending_review') open @endif>
+                                    <details class="mt-1 comm-body" @if($anyPendingReview) open @endif>
                                         <summary class="text-muted" style="font-size:0.7rem; cursor:pointer">{{ __('Show message') }}</summary>
-                                        <div class="mt-1 p-2 bg-light rounded" style="font-size:0.75rem; white-space:pre-wrap">{{ Str::limit($mail->body, 2000) }}</div>
+                                        <div class="comm-view mt-1 p-2 bg-light rounded" style="font-size:0.75rem; white-space:pre-wrap">{{ Str::limit($mail->body, 2000) }}</div>
+                                        @can('send email')
+                                            <button type="button" class="btn btn-sm btn-link p-0 mt-1" onclick="const b=this.closest('.comm-body'); b.querySelector('.comm-view').classList.add('d-none'); b.querySelector('.comm-edit').classList.remove('d-none'); this.classList.add('d-none')">✏️ {{ __('Edit') }}</button>
+                                            <form method="POST" action="{{ route('admin.email.update', $mail) }}" class="comm-edit d-none mt-1">
+                                                @csrf @method('PUT')
+                                                <textarea name="body" class="form-control form-control-sm" rows="4" style="font-size:0.75rem">{{ $mail->body }}</textarea>
+                                                <button class="btn btn-sm btn-outline-primary py-0 mt-1">{{ __('Save') }}</button>
+                                            </form>
+                                        @endcan
                                     </details>
                                 @endif
                                 @can('send email')
                                     <div class="mt-1 d-flex gap-1">
-                                        @if($mail->status === 'pending_review')
-                                            <form method="POST" action="{{ route('admin.email.approve', $mail) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-success py-0">✓ {{ __('Approve') }}</button></form>
-                                            <form method="POST" action="{{ route('admin.email.reject', $mail) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-warning py-0">✗ {{ __('Reject') }}</button></form>
+                                        @if($anyPendingReview)
+                                            @foreach($thread->where('status', 'pending_review') as $pending)
+                                                <form method="POST" action="{{ route('admin.email.approve', $pending) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-success py-0">✓ {{ __('Approve') }} ({{ $pending->to_email }})</button></form>
+                                                <form method="POST" action="{{ route('admin.email.reject', $pending) }}" class="d-inline">@csrf <button class="btn btn-sm btn-outline-warning py-0">✗ {{ __('Reject') }} ({{ $pending->to_email }})</button></form>
+                                            @endforeach
                                         @endif
                                         <form method="POST" action="{{ route('admin.email.destroy', $mail) }}" class="d-inline" data-confirm="{{ __('Delete this communication?') }}" data-confirm-style="danger" data-confirm-btn="{{ __('Delete') }}">@csrf @method('DELETE') <button class="btn btn-sm btn-outline-danger py-0">🗑</button></form>
                                     </div>

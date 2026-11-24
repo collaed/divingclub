@@ -104,6 +104,29 @@ class EventCommunicationHistoryTest extends TestCase
         $response->assertSee('Legacy alias match');
     }
 
+    public function test_multiple_recipients_of_the_same_message_collapse_into_one_thread(): void
+    {
+        $event = $this->event();
+        $member = $this->member();
+
+        foreach (['a@example.com', 'b@example.com', 'c@example.com'] as $to) {
+            EmailLog::create([
+                'event_id' => $event->id, 'to_email' => $to, 'subject' => 'Batch message',
+                'from_email' => 'sender@example.com', 'body' => 'shared body', 'status' => 'forwarded',
+                'direction' => 'inbound', 'created_at' => '2026-01-01 10:00:00',
+            ]);
+        }
+
+        $response = $this->actingAs($member)->get("/events/{$event->id}");
+
+        $response->assertOk();
+        // The header badge shows the thread count (1), not the row count (3).
+        $response->assertSee('<span class="badge bg-secondary">1</span>', false);
+        $response->assertSee('a@example.com');
+        $response->assertSee('b@example.com');
+        $response->assertSee('c@example.com');
+    }
+
     public function test_communications_for_another_event_do_not_appear(): void
     {
         $event = $this->event();

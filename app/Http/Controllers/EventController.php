@@ -35,6 +35,7 @@ use App\Services\EventGearLoanService;
 use App\Services\EventRegistrationService;
 use App\Services\FaceDetectionService;
 use App\Services\ImageQualityService;
+use App\Services\MailAliasService;
 use App\Services\PushNotificationService;
 use App\Services\SocialPublishService;
 use Carbon\Carbon;
@@ -104,10 +105,17 @@ class EventController extends Controller
             // second — tie-break on id (strictly insertion-ordered) so the
             // truly newest communication always renders first.
         })->orderByDesc('created_at')->orderByDesc('id')->get();
+
+        // One inbound message produces one EmailLog row per recipient —
+        // collapse those into a single thread per message (see
+        // EmailLog::threadKey()) so the page shows one communication, not
+        // one per recipient, while still listing each recipient's own status.
+        $emailThreads = $emailHistory->groupBy(fn (EmailLog $e) => $e->threadKey())->values();
+
         $members = auth()->check() ? User::with('detail')->role(['member', 'instructor', 'instructor_apnea', 'bureau_finance', 'bureau_technical', 'bureau_master'])->orderBy('username')->get() : collect();
         $isRoutine = $this->isRoutineForCurrentUser($event);
 
-        return view('events.show', compact('event', 'userReg', 'emailHistory', 'members', 'isRoutine'));
+        return view('events.show', compact('event', 'userReg', 'emailThreads', 'members', 'isRoutine'));
     }
 
     /**
@@ -162,7 +170,7 @@ class EventController extends Controller
         $data['inscription_close_at'] = Event::parseClubLocalToUtc($data['inscription_close_at'] ?? null);
 
         $event = Event::create($data);
-        $event->update(['participant_email' => 'event-'.$event->id.'@'.config('club.domain')]);
+        $event->update(['participant_email' => MailAliasService::eventMailto($event->id)]);
 
         // Push notification for non-routine events
         if (! in_array($event->event_type, ['pool', 'theory'])) {

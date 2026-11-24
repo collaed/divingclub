@@ -267,4 +267,20 @@ class EmailController extends Controller
 
         return back()->with('success', __('Communication deleted.'));
     }
+
+    /**
+     * Edit a communication's displayed content. One inbound message is
+     * logged as several EmailLog rows (one per recipient — see
+     * PollInboundMail::processMessage()), so the edit is applied to every
+     * row in the same thread (EmailLog::threadKey()), not just this one.
+     */
+    public function updateLog(Request $request, EmailLog $emailLog): RedirectResponse
+    {
+        abort_unless(auth()->user()->can('send email'), 403);
+        $data = $request->validate(['body' => 'required|string']);
+
+        EmailLog::sameThread($emailLog)->update(['body' => $data['body']]);
+
+        return back()->with('success', __('Communication updated.'));
+    }
 }

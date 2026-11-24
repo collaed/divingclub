@@ -365,6 +365,7 @@ Route::get('/audit-finances', [AuditorController::class, 'index'])->name('audit-
 // Email log moderation
 Route::post('/email/{emailLog}/approve', [EmailController::class, 'approve'])->name('email.approve');
 Route::post('/email/{emailLog}/reject', [EmailController::class, 'reject'])->name('email.reject');
+Route::put('/email/{emailLog}', [EmailController::class, 'updateLog'])->name('email.update');
 Route::delete('/email/{emailLog}', [EmailController::class, 'destroyLog'])->name('email.destroy');
 
 // Worklist browse — stores member IDs in session for prev/next navigation

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -58,5 +59,26 @@ class EmailLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * One inbound alias message produces one EmailLog row per recipient
+     * (see PollInboundMail::processMessage()) — these share the same
+     * subject/sender/timestamp and are really copies of a single
+     * communication. Used to collapse them into one thread for display
+     * (EventController::show()) and to apply an edit to every copy at once
+     * (EmailController::updateLog()).
+     */
+    public function threadKey(): string
+    {
+        return md5(($this->subject ?? '').'|'.($this->from_email ?? '').'|'.($this->created_at?->format('Y-m-d H:i:s') ?? ''));
+    }
+
+    /** @param  Builder<EmailLog>  $query */
+    public function scopeSameThread(Builder $query, self $log): void
+    {
+        $query->where('subject', $log->subject)
+            ->where('from_email', $log->from_email)
+            ->where('created_at', $log->created_at);
     }
 }
