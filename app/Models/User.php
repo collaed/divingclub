@@ -278,14 +278,14 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function guardians(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'guardian_links', 'minor_user_id', 'guardian_user_id')
-            ->withPivot('relationship')->withTimestamps();
+            ->withPivot('id', 'relationship')->withTimestamps();
     }
 
     /** @return BelongsToMany<User, $this> */
     public function minors(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'guardian_links', 'guardian_user_id', 'minor_user_id')
-            ->withPivot('relationship')->withTimestamps();
+            ->withPivot('id', 'relationship')->withTimestamps();
     }
 
     /**
