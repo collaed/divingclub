@@ -23,6 +23,8 @@ class CertificationLevelSeeder extends Seeder
             'UCPA' => 'Union nationale des Centres sportifs de Plein Air',
             'BSAC' => 'British Sub-Aqua Club',
             'CMAS' => 'Confédération Mondiale des Activités Subaquatiques',
+            'SDI' => 'Scuba Diving International',
+            'TDI' => 'Technical Diving International',
         ];
 
         foreach ($feds as $acronym => $name) {
@@ -222,6 +224,115 @@ class CertificationLevelSeeder extends Seeder
                 ['code' => 'M2', 'name' => 'CMAS 2 Star Instructor', 'category' => 'instructor', 'rank' => 110, 'equivalence_group' => 'instr_2'],
                 ['code' => 'M3', 'name' => 'CMAS 3 Star Instructor', 'category' => 'instructor', 'rank' => 120, 'equivalence_group' => 'instr_3'],
                 ['code' => 'M4', 'name' => 'CMAS 4 Star Instructor', 'category' => 'instructor', 'rank' => 130, 'equivalence_group' => 'instr_4'],
+            ],
+
+            // ================================================================
+            // SDI — Scuba Diving International (recreational sister agency of TDI)
+            // ================================================================
+            'SDI' => [
+                // Short / intro courses
+                ['code' => 'SNORKELER', 'name' => 'Snorkeler', 'category' => 'specialty', 'rank' => 1, 'equivalence_group' => null],
+                ['code' => 'SCUBA_DISCOVERY', 'name' => 'Scuba Discovery', 'category' => 'specialty', 'rank' => 2, 'equivalence_group' => null],
+                ['code' => 'FUTURE_BUDDIES', 'name' => 'Future Buddies', 'category' => 'specialty', 'rank' => 3, 'equivalence_group' => null],
+                ['code' => 'SHALLOW_WATER', 'name' => 'Shallow Water Diver', 'category' => 'specialty', 'rank' => 4, 'equivalence_group' => null],
+                ['code' => 'INDOOR_DIVER', 'name' => 'Indoor Diver', 'category' => 'specialty', 'rank' => 5, 'equivalence_group' => null],
+                ['code' => 'INACTIVE_REFRESHER', 'name' => 'Inactive Diver / Refresher', 'category' => 'specialty', 'rank' => 6, 'equivalence_group' => null],
+                ['code' => 'SCUBILITY', 'name' => 'Scubility', 'category' => 'specialty', 'rank' => 7, 'equivalence_group' => null],
+                ['code' => 'SCUBILITY_INSTR', 'name' => 'SDI Scubility Instructor', 'category' => 'instructor', 'rank' => 96, 'equivalence_group' => null],
+
+                // Core diver progression
+                ['code' => 'OWD', 'name' => 'Open Water Scuba Diver', 'category' => 'diver', 'rank' => 20, 'equivalence_group' => 'cmas_1s'],
+                ['code' => 'ADV_DIVER', 'name' => 'Advanced Diver', 'category' => 'diver', 'rank' => 35, 'equivalence_group' => 'cmas_2s'],
+                ['code' => 'RESCUE', 'name' => 'Rescue Diver', 'category' => 'diver', 'rank' => 36, 'equivalence_group' => 'rescue'],
+                ['code' => 'MASTER_DIVER', 'name' => 'Master Diver', 'category' => 'diver', 'rank' => 45, 'equivalence_group' => 'cmas_3s'],
+                ['code' => 'DM', 'name' => 'SDI Divemaster', 'category' => 'diver', 'rank' => 46, 'equivalence_group' => 'cmas_3s'],
+
+                // Instructor cadre
+                ['code' => 'AI', 'name' => 'SDI Assistant Instructor', 'category' => 'instructor', 'rank' => 95, 'equivalence_group' => null],
+                ['code' => 'OWSI', 'name' => 'SDI Instructor', 'category' => 'instructor', 'rank' => 100, 'equivalence_group' => 'instr_1'],
+                ['code' => 'ELITE_INSTR', 'name' => 'SDI Elite Scuba Instructor', 'category' => 'instructor', 'rank' => 105, 'equivalence_group' => null],
+                ['code' => 'NON_DIVING_INSTR', 'name' => 'SDI Non-Diving Specialty Instructor', 'category' => 'instructor', 'rank' => 106, 'equivalence_group' => null],
+                ['code' => 'COURSE_DIR', 'name' => 'SDI Course Director', 'category' => 'instructor', 'rank' => 115, 'equivalence_group' => 'instr_3'],
+                ['code' => 'IT', 'name' => 'SDI Instructor Trainer', 'category' => 'instructor', 'rank' => 130, 'equivalence_group' => 'instr_4'],
+
+                // Specialties
+                ['code' => 'ADV_ADVENTURE', 'name' => 'Advanced Adventure', 'category' => 'specialty', 'rank' => 200, 'equivalence_group' => null],
+                ['code' => 'ADV_BUOYANCY', 'name' => 'Advanced Buoyancy Control', 'category' => 'specialty', 'rank' => 201, 'equivalence_group' => null],
+                ['code' => 'AIR_FILL_TECH', 'name' => 'Air Fill Station Technician', 'category' => 'specialty', 'rank' => 202, 'equivalence_group' => null],
+                ['code' => 'ALTITUDE', 'name' => 'Altitude Diver', 'category' => 'specialty', 'rank' => 203, 'equivalence_group' => null],
+                ['code' => 'BOAT', 'name' => 'Boat Diver', 'category' => 'specialty', 'rank' => 204, 'equivalence_group' => null],
+                ['code' => 'COMPUTER', 'name' => 'Computer Diver', 'category' => 'specialty', 'rank' => 205, 'equivalence_group' => null],
+                ['code' => 'COMPUTER_NITROX', 'name' => 'Computer Nitrox Diver', 'category' => 'specialty', 'rank' => 206, 'equivalence_group' => 'nitrox'],
+                ['code' => 'DEEP', 'name' => 'Deep Diver', 'category' => 'specialty', 'rank' => 207, 'equivalence_group' => null],
+                ['code' => 'DPV', 'name' => 'Diver Propulsion Vehicle', 'category' => 'specialty', 'rank' => 208, 'equivalence_group' => null],
+                ['code' => 'DRIFT', 'name' => 'Drift Diver', 'category' => 'specialty', 'rank' => 209, 'equivalence_group' => null],
+                ['code' => 'DRYSUIT', 'name' => 'Dry Suit Diver', 'category' => 'specialty', 'rank' => 210, 'equivalence_group' => null],
+                ['code' => 'EQUIP_SPECIALIST', 'name' => 'Equipment Specialist', 'category' => 'specialty', 'rank' => 211, 'equivalence_group' => null],
+                ['code' => 'FULL_FACE_MASK', 'name' => 'Full Face Mask Diver', 'category' => 'specialty', 'rank' => 212, 'equivalence_group' => null],
+                ['code' => 'ICE', 'name' => 'Ice Diver', 'category' => 'specialty', 'rank' => 213, 'equivalence_group' => null],
+                ['code' => 'MARINE_ECO', 'name' => 'Marine Ecosystems Awareness', 'category' => 'specialty', 'rank' => 214, 'equivalence_group' => null],
+                ['code' => 'NIGHT_LIMITED_VIS', 'name' => 'Night/Limited Visibility Diver', 'category' => 'specialty', 'rank' => 215, 'equivalence_group' => null],
+                ['code' => 'RESEARCH', 'name' => 'Research Diver', 'category' => 'specialty', 'rank' => 216, 'equivalence_group' => null],
+                ['code' => 'SEARCH_RECOVERY', 'name' => 'Search & Recovery Diver', 'category' => 'specialty', 'rank' => 217, 'equivalence_group' => null],
+                ['code' => 'SHORE_BEACH', 'name' => 'Shore/Beach Diver', 'category' => 'specialty', 'rank' => 218, 'equivalence_group' => null],
+                ['code' => 'SIDEMOUNT', 'name' => 'Sidemount Diver', 'category' => 'specialty', 'rank' => 219, 'equivalence_group' => null],
+                ['code' => 'SOLO', 'name' => 'Solo Diver', 'category' => 'specialty', 'rank' => 220, 'equivalence_group' => null],
+                ['code' => 'UW_HUNTER', 'name' => 'U/W Hunter & Collector', 'category' => 'specialty', 'rank' => 221, 'equivalence_group' => null],
+                ['code' => 'UW_NAV', 'name' => 'U/W Navigation', 'category' => 'specialty', 'rank' => 222, 'equivalence_group' => null],
+                ['code' => 'UW_PHOTO', 'name' => 'U/W Photographer', 'category' => 'specialty', 'rank' => 223, 'equivalence_group' => null],
+                ['code' => 'UW_VIDEO', 'name' => 'U/W Videographer', 'category' => 'specialty', 'rank' => 224, 'equivalence_group' => null],
+                ['code' => 'VISUAL_INSPECTION', 'name' => 'Visual Inspection Procedures', 'category' => 'specialty', 'rank' => 225, 'equivalence_group' => null],
+                ['code' => 'WRECK', 'name' => 'Wreck Diver', 'category' => 'specialty', 'rank' => 226, 'equivalence_group' => null],
+            ],
+
+            // ================================================================
+            // TDI — Technical Diving International (technical sister agency of SDI)
+            // ================================================================
+            'TDI' => [
+                // Open circuit
+                ['code' => 'NITROX', 'name' => 'Nitrox Diver', 'category' => 'diver', 'rank' => 10, 'equivalence_group' => 'nitrox'],
+                ['code' => 'INTRO_TECH', 'name' => 'Intro to Tech', 'category' => 'diver', 'rank' => 15, 'equivalence_group' => null],
+                ['code' => 'ADV_NITROX', 'name' => 'Advanced Nitrox Diver', 'category' => 'diver', 'rank' => 20, 'equivalence_group' => 'nitrox_adv'],
+                ['code' => 'DECO_PROC', 'name' => 'Decompression Procedures Diver', 'category' => 'diver', 'rank' => 30, 'equivalence_group' => null],
+                ['code' => 'HELITROX', 'name' => 'Helitrox Diver', 'category' => 'diver', 'rank' => 32, 'equivalence_group' => null],
+                ['code' => 'EXT_RANGE', 'name' => 'Extended Range Diver', 'category' => 'diver', 'rank' => 40, 'equivalence_group' => null],
+                ['code' => 'TRIMIX', 'name' => 'Trimix Diver', 'category' => 'diver', 'rank' => 42, 'equivalence_group' => null],
+                ['code' => 'ADV_TRIMIX', 'name' => 'Advanced Trimix Diver', 'category' => 'diver', 'rank' => 50, 'equivalence_group' => 'trimix'],
+
+                // Rebreather
+                ['code' => 'CCR_AIR_DIL', 'name' => 'Air Diluent CCR', 'category' => 'diver', 'rank' => 60, 'equivalence_group' => null],
+                ['code' => 'CCR_SCR', 'name' => 'Semi Closed Rebreather', 'category' => 'diver', 'rank' => 61, 'equivalence_group' => null],
+                ['code' => 'CCR_AIR_DIL_DECO', 'name' => 'Air Diluent Deco CCR', 'category' => 'diver', 'rank' => 65, 'equivalence_group' => null],
+                ['code' => 'CCR_HELITROX', 'name' => 'Helitrox CCR', 'category' => 'diver', 'rank' => 66, 'equivalence_group' => null],
+                ['code' => 'CCR_MIXED_GAS', 'name' => 'Mixed Gas CCR', 'category' => 'diver', 'rank' => 70, 'equivalence_group' => null],
+                ['code' => 'CCR_ADV_MIXED_GAS', 'name' => 'Advanced Mixed Gas CCR', 'category' => 'diver', 'rank' => 75, 'equivalence_group' => null],
+
+                // Overhead
+                ['code' => 'CAVERN_DISCOVERY', 'name' => 'Cavern Discovery', 'category' => 'diver', 'rank' => 79, 'equivalence_group' => null],
+                ['code' => 'CAVERN', 'name' => 'Cavern Diver', 'category' => 'diver', 'rank' => 80, 'equivalence_group' => null],
+                ['code' => 'INTRO_CAVE', 'name' => 'Intro to Cave Diver', 'category' => 'diver', 'rank' => 85, 'equivalence_group' => null],
+                ['code' => 'FULL_CAVE', 'name' => 'Full Cave Diver', 'category' => 'diver', 'rank' => 90, 'equivalence_group' => null],
+                ['code' => 'CCR_CAVERN', 'name' => 'Rebreather Cavern Diver', 'category' => 'diver', 'rank' => 93, 'equivalence_group' => null],
+                ['code' => 'CCR_INTRO_CAVE', 'name' => 'Rebreather Intro to Cave Diver', 'category' => 'diver', 'rank' => 94, 'equivalence_group' => null],
+                ['code' => 'CCR_FULL_CAVE', 'name' => 'Rebreather Full Cave Diver', 'category' => 'diver', 'rank' => 95, 'equivalence_group' => null],
+
+                // Overhead / service / misc specialties
+                ['code' => 'ADV_WRECK', 'name' => 'Advanced Wreck Diver', 'category' => 'specialty', 'rank' => 200, 'equivalence_group' => null],
+                ['code' => 'DPV', 'name' => 'Diver Propulsion Vehicle', 'category' => 'specialty', 'rank' => 201, 'equivalence_group' => null],
+                ['code' => 'MINE', 'name' => 'Mine Diver', 'category' => 'specialty', 'rank' => 202, 'equivalence_group' => null],
+                ['code' => 'CAVE_SURVEY', 'name' => 'Cave Survey', 'category' => 'specialty', 'rank' => 203, 'equivalence_group' => null],
+                ['code' => 'STAGE_CAVE', 'name' => 'Stage Cave', 'category' => 'specialty', 'rank' => 204, 'equivalence_group' => null],
+                ['code' => 'CAVE_DPV', 'name' => 'Cave DPV', 'category' => 'specialty', 'rank' => 205, 'equivalence_group' => null],
+                ['code' => 'SIDEMOUNT', 'name' => 'TDI Sidemount', 'category' => 'specialty', 'rank' => 206, 'equivalence_group' => null],
+                ['code' => 'NITROX_BLENDER', 'name' => 'Nitrox Blender', 'category' => 'specialty', 'rank' => 210, 'equivalence_group' => null],
+                ['code' => 'ADV_BLENDER', 'name' => 'Advanced Blender', 'category' => 'specialty', 'rank' => 211, 'equivalence_group' => null],
+                ['code' => 'O2_SERVICE', 'name' => 'O2 Service Technician', 'category' => 'specialty', 'rank' => 212, 'equivalence_group' => null],
+
+                // Professional
+                ['code' => 'NON_DIVING_INSTR', 'name' => 'TDI Non-Diving Specialty Instructor', 'category' => 'instructor', 'rank' => 97, 'equivalence_group' => null],
+                ['code' => 'DM', 'name' => 'TDI Divemaster', 'category' => 'diver', 'rank' => 98, 'equivalence_group' => 'cmas_3s'],
+                ['code' => 'INSTR', 'name' => 'TDI Instructor', 'category' => 'instructor', 'rank' => 100, 'equivalence_group' => 'instr_1'],
+                ['code' => 'INSTR_TRAINER', 'name' => 'TDI Instructor Trainer', 'category' => 'instructor', 'rank' => 120, 'equivalence_group' => 'instr_4'],
             ],
         ];
     }
