@@ -174,7 +174,12 @@ class MailAliasService
             return true;
         }
 
-        $sender = User::where('primary_email', $senderEmail)->first();
+        // A member may legitimately send from any verified secondary address
+        // on their account (ProfileEmailController), not just their primary —
+        // e.g. a personal inbox added alongside a club-issued one.
+        $sender = User::where('primary_email', $senderEmail)
+            ->orWhereHas('emails', fn ($q) => $q->where('email', $senderEmail)->where('is_verified', true))
+            ->first();
         if (! $sender) {
             return false;
         }
