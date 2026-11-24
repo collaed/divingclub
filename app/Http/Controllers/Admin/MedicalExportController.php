@@ -118,10 +118,25 @@ class MedicalExportController extends Controller
                 return implode(' ', $words);
             };
 
-            // Exact file path, not name-matching — unambiguous regardless of
-            // word order, so a legacy file already tracked by a current DB
-            // document is never re-added under its old, un-renamed entry.
+            // Exact file path — kept as a cheap first check before the
+            // person-name one below.
             $trackedPaths = $docs->pluck('file_path')->flip();
+
+            // A legacy file whose *person* already has a current DB-tracked
+            // document must never ride along too, even when that document
+            // points at a different physical file (e.g. re-uploaded through
+            // the profile after the legacy import) — path equality alone
+            // misses that case.
+            $coveredKeys = $docs->map(
+                fn (Document $doc) => $nameKey(($doc->user?->detail?->last_name ?? '').' '.($doc->user?->detail?->first_name ?? ''))
+            )->filter()->flip();
+
+            // Looked up to rename legacy entries the same way as DB-tracked
+            // ones (LASTNAME Firstname date.ext) instead of keeping whatever
+            // messy filename the legacy import left on disk.
+            $usersByKey = User::with('detail')->get()
+                ->filter(fn (User $u) => $u->detail)
+                ->keyBy(fn (User $u) => $nameKey(($u->detail->last_name ?? '').' '.($u->detail->first_name ?? '')));
 
             // If filtering by federation, get matching user names to filter legacy files
             $matchNames = null;
@@ -155,17 +170,21 @@ class MedicalExportController extends Controller
 
                 $personKey = $nameKey(pathinfo($file, PATHINFO_FILENAME));
 
+                if (isset($coveredKeys[$personKey])) {
+                    continue;
+                }
+
                 if ($matchNames !== null && ! in_array($personKey, $matchNames, true)) {
                     continue;
                 }
 
                 $mtime = filemtime($file) ?: 0;
                 if (! isset($newestPerPerson[$personKey]) || $mtime > $newestPerPerson[$personKey]['mtime']) {
-                    $newestPerPerson[$personKey] = ['file' => $file, 'mtime' => $mtime];
+                    $newestPerPerson[$personKey] = ['file' => $file, 'mtime' => $mtime, 'key' => $personKey];
                 }
             }
 
-            $legacyFiles = array_column($newestPerPerson, 'file');
+            $legacyFiles = array_values($newestPerPerson);
         }
 
         if ($docs->isEmpty() && $legacyFiles === []) {
@@ -212,15 +231,35 @@ class MedicalExportController extends Controller
             $zip->addFromString($filename, $disk->get($diskPath));
         }
 
-        // Add legacy files — prefix with the containing folder when nested so
-        // the member association isn't lost, and guard is_file() once more.
-        foreach ($legacyFiles as $file) {
+        // Add legacy files, renamed the same way as DB-tracked ones
+        // (LASTNAME Firstname date.ext) whenever the person can be matched
+        // to a member account; otherwise fall back to the folder-qualified
+        // original name so the file is still identifiable.
+        foreach ($legacyFiles as $entry) {
+            $file = $entry['file'];
             if (! is_file($file)) {
                 continue;
             }
-            $parent = basename(dirname($file));
-            $entry = $parent === 'medical' ? basename($file) : $parent.' '.basename($file);
-            $zip->addFile($file, $entry);
+
+            $ext = pathinfo($file, PATHINFO_EXTENSION) ?: 'pdf';
+            $matchedUser = $usersByKey[$entry['key']] ?? null;
+
+            if ($matchedUser) {
+                $lastName = strtoupper(Str::ascii($matchedUser->detail->last_name ?? 'UNKNOWN'));
+                $firstName = Str::ascii($matchedUser->detail->first_name ?? 'Unknown');
+                $date = date('Y-m-d', $entry['mtime'] ?: time());
+
+                $filename = "{$lastName} {$firstName} {$date}.{$ext}";
+                if (isset($usedNames[$filename])) {
+                    $filename = "{$lastName} {$firstName} {$date} ({$matchedUser->id}).{$ext}";
+                }
+                $usedNames[$filename] = true;
+            } else {
+                $parent = basename(dirname($file));
+                $filename = $parent === 'medical' ? basename($file) : $parent.' '.basename($file);
+            }
+
+            $zip->addFile($file, $filename);
         }
 
         $zip->close();

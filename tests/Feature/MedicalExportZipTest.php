@@ -36,6 +36,8 @@ class MedicalExportZipTest extends TestCase
         File::deleteDirectory($this->legacyDir.'/999');
         @unlink($this->legacyDir.'/__TEST_Flat.pdf');
         @unlink($this->legacyDir.'/DUPONT_Jean.pdf');
+        @unlink($this->legacyDir.'/ALBUQUERQUE_Luis.pdf');
+        @unlink($this->legacyDir.'/9 Shadab BIGDEL SHAHSAVAN 353.pdf');
         parent::tearDown();
     }
 
@@ -172,5 +174,42 @@ class MedicalExportZipTest extends TestCase
         $this->assertSame('CHAUSSARD Louis 2026-03-15.pdf', $entries[0]);
 
         File::deleteDirectory($this->legacyDir."/{$user->id}");
+    }
+
+    /**
+     * A legacy file whose person has a current Document under a *different*
+     * physical path (e.g. re-uploaded through the profile after the legacy
+     * import) was not caught by the old exact-path "already tracked" check,
+     * so the superseded legacy scan rode along next to the correct one.
+     */
+    public function test_a_legacy_file_is_excluded_when_the_same_person_already_has_a_current_document_elsewhere(): void
+    {
+        $user = $this->memberWithName('Luis', 'Albuquerque');
+        Storage::disk('local')->put('documents/reuploaded.pdf', 'current');
+        Document::create([
+            'user_id' => $user->id, 'category' => 'medical', 'is_current' => true,
+            'file_path' => 'documents/reuploaded.pdf', 'original_filename' => 'reuploaded.pdf',
+            'mime_type' => 'application/pdf', 'size_bytes' => 1, 'date_established' => '2025-11-21',
+        ]);
+        File::put($this->legacyDir.'/ALBUQUERQUE_Luis.pdf', 'orphaned old scan');
+
+        $response = $this->actingAs($this->createBureauUser())->get('/admin/medical-certificates');
+        $entries = $this->zipEntries($response);
+
+        $this->assertCount(1, $entries, 'The orphaned legacy scan must not ride along once the person has a current DB-tracked document.');
+        $this->assertSame('ALBUQUERQUE Luis 2025-11-21.pdf', $entries[0]);
+    }
+
+    public function test_an_untracked_legacy_file_matching_a_member_is_renamed_to_the_standard_convention(): void
+    {
+        $user = $this->memberWithName('Shadab', 'Bigdel Shahsavan');
+        File::put($this->legacyDir.'/9 Shadab BIGDEL SHAHSAVAN 353.pdf', '%PDF-1.4 fake');
+        touch($this->legacyDir.'/9 Shadab BIGDEL SHAHSAVAN 353.pdf', mktime(0, 0, 0, 6, 15, 2026));
+
+        $response = $this->actingAs($this->createBureauUser())->get('/admin/medical-certificates');
+        $entries = $this->zipEntries($response);
+
+        $this->assertCount(1, $entries);
+        $this->assertSame('BIGDEL SHAHSAVAN Shadab 2026-06-15.pdf', $entries[0]);
     }
 }
