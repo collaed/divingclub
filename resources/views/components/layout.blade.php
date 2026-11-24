@@ -186,6 +186,8 @@
                                             <a class="dropdown-item" href="{{ route('admin.menu-items.index') }}">@icon('🧭') {{ __('Navigation') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.library.index') }}">@icon('📁') {{ __('Documents') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.email.index') }}">@icon('📧') {{ __('Email') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.mail-aliases.index') }}">@icon('✉️') {{ __('Mail Aliases') }}</a>
+                                            <a class="dropdown-item" href="{{ route('admin.mail-list-contacts.index') }}">@icon('📇') {{ __('Mailing List Contacts') }}</a>
                                             <a class="dropdown-item" href="{{ route('admin.newsletters.index') }}">@icon('📬') {{ __('Newsletters') }}</a>
                                             @if(auth()->user()->hasRole('bureau_master'))
                                             <a class="dropdown-item" href="{{ route('admin.document-dispatch.index') }}">@icon('📤') {{ __('Tracked docs') }}</a>

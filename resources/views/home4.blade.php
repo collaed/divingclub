@@ -89,6 +89,14 @@
                 <span class="h4-tile-icon">📧</span>
                 <span class="h4-tile-label">{{ __('Send Email') }}</span>
             </a>
+            <a href="{{ route('admin.mail-aliases.index') }}" class="h4-tile" style="background:#fff8e1">
+                <span class="h4-tile-icon">✉️</span>
+                <span class="h4-tile-label">{{ __('Mail Aliases') }}</span>
+            </a>
+            <a href="{{ route('admin.mail-list-contacts.index') }}" class="h4-tile" style="background:#fff8e1">
+                <span class="h4-tile-icon">📇</span>
+                <span class="h4-tile-label">{{ __('Mailing List Contacts') }}</span>
+            </a>
             <a href="{{ route('admin.newsletters.index') }}" class="h4-tile" style="background:#fff8e1">
                 <span class="h4-tile-icon">📬</span>
                 <span class="h4-tile-label">{{ __('Newsletters') }}</span>
