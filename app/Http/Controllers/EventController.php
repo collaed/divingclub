@@ -99,7 +99,11 @@ class EventController extends Controller
             $q->where('event_id', $event->id)
                 ->orWhere('to_email', 'like', "event-{$event->id}@%")
                 ->orWhere('alias', 'like', "event-{$event->id}@%");
-        })->orderByDesc('created_at')->get();
+            // created_at has only second precision, and a batch forward to
+            // many participants can insert several rows within the same
+            // second — tie-break on id (strictly insertion-ordered) so the
+            // truly newest communication always renders first.
+        })->orderByDesc('created_at')->orderByDesc('id')->get();
         $members = auth()->check() ? User::with('detail')->role(['member', 'instructor', 'instructor_apnea', 'bureau_finance', 'bureau_technical', 'bureau_master'])->orderBy('username')->get() : collect();
         $isRoutine = $this->isRoutineForCurrentUser($event);
 
