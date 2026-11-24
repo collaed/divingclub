@@ -212,12 +212,38 @@ class MailAliasService
         ];
     }
 
-    /** One-line HTML footer appended to a mail-list contact's own copy of a forwarded alias message. */
-    public static function unsubscribeFooterHtml(string $token): string
+    /**
+     * HTML footer appended to every recipient's own copy of a group-alias
+     * forward (not a personal vanity-alias forward — those bypass alias
+     * resolution entirely, see PollInboundMail::forwardViaRule(), and never
+     * get this footer). Always explains why the recipient is on the list, in
+     * both of the club's working languages regardless of the recipient's own
+     * locale preference — this is delivery metadata, not translated content.
+     * Only adds a self-service unsubscribe link when $contactToken is given,
+     * i.e. only for a MailListContact recipient: a registered member's alias
+     * membership is admin-controlled, not self-service.
+     */
+    public static function footerHtml(?string $contactToken = null): string
     {
-        $url = route('mail-list.unsubscribe', $token);
+        $club = ThemeSetting::get('club_full_name', 'Diving Club');
 
-        return '<p style="font-size:11px;color:#888;margin-top:1em">'.__('You are receiving this because you asked to stay informed.').' <a href="'.$url.'">'.__('Unsubscribe').'</a></p>';
+        $explanationKey = $contactToken === null
+            ? 'You are receiving this email because you are a member of :club matching a group communication criteria.'
+            : 'You are receiving this email because you asked to stay informed about :club.';
+
+        $html = '<p style="font-size:11px;color:#888;margin-top:1em">'
+            .__($explanationKey, ['club' => $club], 'en').'<br>'
+            .__($explanationKey, ['club' => $club], 'fr')
+            .'</p>';
+
+        if ($contactToken !== null) {
+            $url = route('mail-list.unsubscribe', $contactToken);
+            $html .= '<p style="font-size:11px;color:#888;margin-top:0.25em">'
+                .'<a href="'.$url.'">'.__('Unsubscribe', [], 'en').'</a> — <a href="'.$url.'">'.__('Unsubscribe', [], 'fr').'</a>'
+                .'</p>';
+        }
+
+        return $html;
     }
 
     /** Bureau members (detail.bureau_member = true). */

@@ -14,10 +14,12 @@ use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
 
 /**
- * A mail-list contact's own copy of a forwarded alias message must carry a
- * one-click unsubscribe link; a plain member recipient's copy must not —
- * see MailAliasService::resolveDefinition()/unsubscribeFooterHtml() and the
- * per-recipient loop in PollInboundMail::processMessage().
+ * Every recipient's own copy of a forwarded alias message carries an
+ * explanatory footer; only a mail-list contact's copy also carries a
+ * one-click unsubscribe link — a plain member recipient's copy must not,
+ * since their alias membership is admin-controlled, not self-service. See
+ * MailAliasService::resolveDefinition()/footerHtml() and the per-recipient
+ * loop in PollInboundMail::processMessage().
  */
 class PollInboundMailUnsubscribeFooterTest extends TestCase
 {
@@ -69,7 +71,15 @@ class PollInboundMailUnsubscribeFooterTest extends TestCase
 
         $this->processMessage('stranger@external.test', 'newsletter@example.com', 'Hello', 'Hi there');
 
-        $this->assertStringContainsString('unsubscribe', $bodies['prospect@example.com']);
-        $this->assertStringNotContainsString('unsubscribe', $bodies[$bureau->primary_email]);
+        $this->assertStringContainsString('Unsubscribe', $bodies['prospect@example.com']);
+        $this->assertStringContainsString('Se désabonner', $bodies['prospect@example.com']);
+        $this->assertStringNotContainsString('Unsubscribe', $bodies[$bureau->primary_email]);
+        $this->assertStringNotContainsString('Se désabonner', $bodies[$bureau->primary_email]);
+
+        // Both copies still carry the always-on explanation, in both languages.
+        $this->assertStringContainsString('member of', $bodies[$bureau->primary_email]);
+        $this->assertStringContainsString('membre de', $bodies[$bureau->primary_email]);
+        $this->assertStringContainsString('asked to stay informed', $bodies['prospect@example.com']);
+        $this->assertStringContainsString('demandé à rester informé', $bodies['prospect@example.com']);
     }
 }

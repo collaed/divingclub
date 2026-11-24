@@ -247,9 +247,7 @@ class PollInboundMail implements ShouldQueue
         foreach ($resolved['emails'] as $email) {
             $status = 'forwarded';
             $error = null;
-            $recipientBody = isset($contactTokens[$email])
-                ? $body.MailAliasService::unsubscribeFooterHtml($contactTokens[$email])
-                : $body;
+            $recipientBody = $body.MailAliasService::footerHtml($contactTokens[$email] ?? null);
 
             try {
                 Mail::html($recipientBody, fn ($m) => $m->to($email)->replyTo($from)->subject($finalSubject));
