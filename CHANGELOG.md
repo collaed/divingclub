@@ -5,6 +5,17 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-25 — prod at b30e1ad
+
+### Fixed
+- The Document Intake licence-scan drop area was rejecting scanned PDFs
+  (common for FLASSA cards), forcing a detour through the generic
+  upload area with no federation picker. It now accepts PDF the same
+  as a photo.
+- The Document Intake results table now updates itself every few
+  seconds while a file is still being classified, instead of needing a
+  manual page reload to see it land.
+
 ## 2026-11-25 — prod at 69cc063
 
 ### New
