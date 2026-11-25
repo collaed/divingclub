@@ -8,6 +8,7 @@ use App\Models\DocumentIntake;
 use App\Models\LicenceScan;
 use App\Services\BankReconciliationService;
 use App\Services\DocumentClassifierService;
+use App\Services\FfessmBrevetImportService;
 use App\Services\PdfTextExtractionService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -69,6 +70,12 @@ class ClassifyDocumentIntake implements ShouldQueue
 
             return;
         }
+        if ($this->forcedType === 'ffessm_brevet') {
+            $intake->update(['detected_type' => 'ffessm_brevet', 'detection_reason' => 'Set manually.']);
+            $this->routeToFfessmBrevet($intake, $sourcePath);
+
+            return;
+        }
 
         $mime = mime_content_type($sourcePath) ?: '';
         if (! str_contains($mime, 'pdf')) {
@@ -112,6 +119,29 @@ class ClassifyDocumentIntake implements ShouldQueue
         }
 
         $intake->update(['status' => 'routed', 'transactions_created' => count($transactions)]);
+    }
+
+    private function routeToFfessmBrevet(DocumentIntake $intake, string $sourcePath): void
+    {
+        try {
+            $result = app(FfessmBrevetImportService::class)->import($sourcePath, $intake->original_filename);
+        } catch (\RuntimeException $e) {
+            $intake->update(['status' => 'failed', 'error' => $e->getMessage()]);
+
+            return;
+        }
+
+        $unresolved = [...$result['unmatched_names'], ...$result['ambiguous_names'], ...$result['unmatched_levels']];
+
+        $intake->update([
+            'import_result' => $result,
+            'status' => $unresolved === [] ? 'routed' : 'needs_review',
+            'error' => $unresolved === []
+                ? null
+                : __('Not applied — needs a manual look: :count name(s)/level(s) (:names).', [
+                    'count' => count($unresolved), 'names' => implode(', ', $unresolved),
+                ]),
+        ]);
     }
 
     private function routeToLicenceScan(DocumentIntake $intake, ?int $federationId): void

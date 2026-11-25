@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $error
  * @property int|null $licence_scan_id
  * @property int|null $transactions_created
+ * @property array|null $import_result
  * @property int|null $uploaded_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -34,10 +35,15 @@ class DocumentIntake extends Model
 {
     protected $fillable = [
         'original_filename', 'file_path', 'detected_type', 'detection_reason',
-        'federation_id', 'status', 'error', 'licence_scan_id', 'transactions_created', 'uploaded_by',
+        'federation_id', 'status', 'error', 'licence_scan_id', 'transactions_created', 'import_result', 'uploaded_by',
     ];
 
-    public const TYPES = ['licence_scan', 'bank_statement'];
+    public const TYPES = ['licence_scan', 'bank_statement', 'ffessm_brevet'];
+
+    protected function casts(): array
+    {
+        return ['import_result' => 'array'];
+    }
 
     /** @return BelongsTo<Federation, $this> */
     public function federation(): BelongsTo

@@ -2,7 +2,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <h4 class="mb-0">@icon('📥') {{ __('Document Intake') }}</h4>
     </div>
-    <p class="text-muted small">{{ __('Drop federation licence scans and bank statements here — each one is read automatically, the type is detected, and it\'s routed to the right place. If a guess is wrong, correct it below and it will be reprocessed.') }}</p>
+    <p class="text-muted small">{{ __('Drop federation licence scans, bank statements, or FFESSM brevets exports here — each one is read automatically (or sent straight to the matching drop area below) and routed to the right place. If a guess is wrong, correct it in the table and it will be reprocessed.') }}</p>
 
     @if(session('success'))
         <div class="alert alert-success py-2 small">{{ session('success') }}</div>
@@ -27,6 +27,54 @@
         </div>
     </div>
 
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card dc-card h-100">
+                <div class="card-body">
+                    <h6 class="small fw-bold">@icon('🪪') {{ __('Federation licence scans') }}</h6>
+                    <form method="POST" action="{{ route('admin.document-intake.store') }}" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="intake_type" value="licence_scan">
+                        <div class="dc-dropzone rounded d-flex align-items-center justify-content-center gap-2 text-muted small mb-2" style="border: 2px dashed #ccc;" tabindex="0" role="button">
+                            <span>@icon('🪪')</span>
+                            <span class="dc-dropzone-label">{{ __('Drop licence card photos here') }}</span>
+                            <input type="file" name="files[]" class="dc-dropzone-input visually-hidden" accept="image/jpeg,image/png" multiple required>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <select name="federation_id" class="form-select form-select-sm">
+                                <option value="">{{ __('Unsure — review later') }}</option>
+                                @foreach($federations as $federation)
+                                    <option value="{{ $federation->id }}">{{ $federation->acronym }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">@icon('⬆️') {{ __('Upload') }}</button>
+                        </div>
+                        <p class="text-muted small mt-1 mb-0">{{ __('Picking a federation routes the scan straight to OCR; leave it unset if cards are mixed and pick it later on the Licence Scans screen.') }}</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card dc-card h-100">
+                <div class="card-body">
+                    <h6 class="small fw-bold">@icon('🏅') {{ __('FFESSM brevets import') }}</h6>
+                    <form method="POST" action="{{ route('admin.document-intake.store') }}" enctype="multipart/form-data" class="d-flex gap-2 align-items-end">
+                        @csrf
+                        <input type="hidden" name="intake_type" value="ffessm_brevet">
+                        <div class="flex-grow-1">
+                            <div class="dc-dropzone rounded d-flex align-items-center justify-content-center gap-2 text-muted small" style="border: 2px dashed #ccc;" tabindex="0" role="button">
+                                <span>@icon('🏅')</span>
+                                <span class="dc-dropzone-label">{{ __('Drop a "Liste des brevets" xlsx export here') }}</span>
+                                <input type="file" name="files[]" class="dc-dropzone-input visually-hidden" accept=".xlsx" multiple required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">@icon('⬆️') {{ __('Upload') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-hover align-middle table-sm">
             <thead>
@@ -47,6 +95,11 @@
                                 🪪 {{ __('Licence scan') }}@if($intake->federation) ({{ $intake->federation->acronym }})@endif
                             @elseif($intake->detected_type === 'bank_statement')
                                 🏦 {{ __('Bank statement') }}
+                            @elseif($intake->detected_type === 'ffessm_brevet')
+                                🏅 {{ __('FFESSM brevets import') }}
+                                @if($intake->import_result)
+                                    <br><span class="text-muted" style="font-size:.75rem">{{ __('Season :season — :certs cert(s), :licences licence(s)', ['season' => $intake->import_result['season'] ?? '—', 'certs' => ($intake->import_result['certs_created'] ?? 0) + ($intake->import_result['certs_updated'] ?? 0), 'licences' => $intake->import_result['licences_updated'] ?? 0]) }}</span>
+                                @endif
                             @else
                                 <span class="text-muted">{{ __('Not yet determined') }}</span>
                             @endif
@@ -64,10 +117,12 @@
                                 <a href="{{ route('admin.payments.reconciliation') }}">{{ __(':count transaction(s) → Reconciliation', ['count' => $intake->transactions_created]) }}</a>
                             @elseif($intake->error)
                                 <span class="text-danger">{{ $intake->error }}</span>
+                            @elseif($intake->detected_type === 'ffessm_brevet' && $intake->status === 'routed')
+                                <span class="text-success">{{ __('Applied.') }}</span>
                             @endif
                         </td>
                         <td>
-                            @if($intake->status === 'needs_review')
+                            @if($intake->status === 'needs_review' && $intake->detected_type !== 'ffessm_brevet')
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">{{ __('Set type') }}</button>
                                     <div class="dropdown-menu p-2" style="min-width:220px">
@@ -89,6 +144,12 @@
                                         </form>
                                     </div>
                                 </div>
+                            @elseif($intake->detected_type === 'ffessm_brevet' && in_array($intake->status, ['needs_review', 'failed'], true))
+                                <form method="POST" action="{{ route('admin.document-intake.reclassify', $intake) }}">
+                                    @csrf
+                                    <input type="hidden" name="type" value="ffessm_brevet">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">🔄 {{ __('Retry') }}</button>
+                                </form>
                             @endif
                         </td>
                     </tr>

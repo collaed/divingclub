@@ -37,12 +37,25 @@ class DocumentIntakeController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // The generic zone sends no intake_type and keeps today's pdf/image
+        // auto-classify behavior unchanged; the dedicated licence-scan and
+        // FFESSM-brevet zones each declare their own type up front, so the
+        // mimetypes accepted narrow to whatever that zone actually sends.
         $request->validate([
+            'intake_type' => 'nullable|in:licence_scan,bank_statement,ffessm_brevet',
+            'federation_id' => 'nullable|exists:federations,id',
             'files' => 'required|array|min:1',
             // 5MB is generous for a scanned document and keeps the limit under
             // SonarCloud's 8MB permissive-upload-size threshold (php:S5693).
-            'files.*' => 'file|mimetypes:application/pdf,image/jpeg,image/png|max:5120',
+            'files.*' => match ($request->input('intake_type')) {
+                'ffessm_brevet' => 'file|mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel|max:5120',
+                'licence_scan' => 'file|mimetypes:image/jpeg,image/png|max:5120',
+                default => 'file|mimetypes:application/pdf,image/jpeg,image/png|max:5120',
+            },
         ]);
+
+        $intakeType = $request->input('intake_type');
+        $federationId = $intakeType === 'licence_scan' && $request->filled('federation_id') ? (int) $request->input('federation_id') : null;
 
         foreach ($request->file('files') as $file) {
             $path = $file->store('document-intake/uploads', 'local');
@@ -54,7 +67,7 @@ class DocumentIntakeController extends Controller
                 'uploaded_by' => auth()->id(),
             ]);
 
-            ClassifyDocumentIntake::dispatch($intake->id)->afterCommit();
+            ClassifyDocumentIntake::dispatch($intake->id, $intakeType, $federationId)->afterCommit();
         }
 
         return back()->with('success', __(':count file(s) queued for classification.', ['count' => count($request->file('files'))]));
@@ -63,7 +76,7 @@ class DocumentIntakeController extends Controller
     public function reclassify(Request $request, DocumentIntake $intake): RedirectResponse
     {
         $v = $request->validate([
-            'type' => 'required|in:licence_scan,bank_statement',
+            'type' => 'required|in:licence_scan,bank_statement,ffessm_brevet',
             'federation_id' => 'required_if:type,licence_scan|nullable|exists:federations,id',
         ]);
 

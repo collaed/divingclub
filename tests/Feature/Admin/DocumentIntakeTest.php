@@ -56,6 +56,39 @@ class DocumentIntakeTest extends TestCase
         Bus::assertDispatchedTimes(ClassifyDocumentIntake::class, 2);
     }
 
+    public function test_uploading_to_the_licence_scan_zone_with_a_federation_routes_immediately(): void
+    {
+        Bus::fake([ProcessLicenceScan::class]);
+        $fed = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'FFESSM', 'visibility' => 'active']);
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.document-intake.store'), [
+                'intake_type' => 'licence_scan',
+                'federation_id' => $fed->id,
+                'files' => [UploadedFile::fake()->image('card.jpg')],
+            ])
+            ->assertRedirect();
+
+        $intake = DocumentIntake::sole();
+        $this->assertSame('routed', $intake->status);
+        $this->assertNotNull($intake->licence_scan_id);
+    }
+
+    public function test_uploading_to_the_licence_scan_zone_without_a_federation_still_needs_review(): void
+    {
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.document-intake.store'), [
+                'intake_type' => 'licence_scan',
+                'files' => [UploadedFile::fake()->image('card.jpg')],
+            ])
+            ->assertRedirect();
+
+        $intake = DocumentIntake::sole();
+        $this->assertSame('needs_review', $intake->status);
+        $this->assertSame('licence_scan', $intake->detected_type);
+        $this->assertNull($intake->federation_id);
+    }
+
     public function test_reclassify_as_licence_scan_requires_a_federation(): void
     {
         $intake = DocumentIntake::create(['original_filename' => 'a.pdf', 'file_path' => 'x', 'status' => 'needs_review', 'uploaded_by' => $this->createBureauUser()->id]);
