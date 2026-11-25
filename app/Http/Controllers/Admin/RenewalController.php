@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ClearLicencePendingRequest;
 use App\Http\Requests\OverrideRenewalRequest;
 use App\Http\Requests\ReceiveRenewalRequest;
+use App\Models\MemberLicence;
 use App\Models\MembershipFeeComponent;
 use App\Models\PaymentExpected;
 use App\Models\Season;
@@ -98,9 +99,26 @@ class RenewalController extends Controller
         ]);
     }
 
+    /**
+     * Ticking this box only ever meant "told the federation" — it never
+     * touched the member's own licence record, so the Insurance dropdown on
+     * their profile (profile/tabs/renewal.blade.php) stayed blank even after
+     * a paid, registered insurance tier. Fill it in from what was actually
+     * paid, same label the dropdown itself uses.
+     */
     public function insuranceRegistered(Request $request, PaymentExpected $payment): JsonResponse
     {
-        $payment->update(['insurance_registered_at' => $request->boolean('registered', true) ? now() : null]);
+        $registered = $request->boolean('registered', true);
+        $payment->update(['insurance_registered_at' => $registered ? now() : null]);
+
+        if ($registered && $payment->user_id) {
+            $label = $this->renewals->insuranceLabelForSlug($this->renewals->insuranceIn($payment->components ?? []));
+            if ($label) {
+                MemberLicence::where('user_id', $payment->user_id)
+                    ->whereHas('federation', fn ($q) => $q->where('acronym', 'FFESSM'))
+                    ->update(['insurance_type' => $label]);
+            }
+        }
 
         return response()->json(['ok' => true, 'registered' => $payment->insurance_registered_at !== null]);
     }

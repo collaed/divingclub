@@ -24,6 +24,22 @@ class MembershipRenewalService
 {
     private const EPSILON = 0.005;
 
+    /**
+     * MembershipFeeComponent insurance slug -> the exact label the licence
+     * row's own "Insurance" dropdown uses (profile/tabs/renewal.blade.php) —
+     * the fee component's name ("Assurance Loisir 1 Top") isn't the same
+     * string, so this can't be derived mechanically from it.
+     */
+    private const INSURANCE_SLUG_TO_LABEL = [
+        'ass_loisir1' => 'Loisir 1',
+        'ass_loisir1top' => 'Loisir 1 Top',
+        'ass_loisir2' => 'Loisir 2',
+        'ass_loisir2top' => 'Loisir 2 Top',
+        'ass_loisir3' => 'Loisir 3',
+        'ass_loisir3top' => 'Loisir 3 Top',
+        'ass_aucune' => 'Aucune',
+    ];
+
     /** Honoraire members count as paid from 1 October of the season's start year. */
     private const HONORAIRE_PAID_MONTH = 10;
 
@@ -312,6 +328,11 @@ class MembershipRenewalService
     public function insuranceIn(array $components): ?string
     {
         return $this->insuranceTiers()->pluck('slug')->first(fn (string $slug): bool => array_key_exists($slug, $components));
+    }
+
+    public function insuranceLabelForSlug(?string $slug): ?string
+    {
+        return $slug ? (self::INSURANCE_SLUG_TO_LABEL[$slug] ?? null) : null;
     }
 
     /**

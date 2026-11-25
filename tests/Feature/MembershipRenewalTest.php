@@ -244,6 +244,38 @@ class MembershipRenewalTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.payments.insurance'))->assertOk()->assertSee('Assurance Loisir 1 Top');
     }
 
+    public function test_marking_insurance_registered_also_fills_in_the_ffessm_licences_insurance_type(): void
+    {
+        $federation = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'Fédération', 'visibility' => 'active']);
+        $user = $this->member('externe');
+        $this->received($user, ['amount' => 238])->assertOk(); // Loisir 1 Top
+        $licence = $user->licences()->where('federation_id', $federation->id)->firstOrFail();
+        $this->assertNull($licence->insurance_type);
+
+        $payment = PaymentExpected::where('user_id', $user->id)->sole();
+        $this->actingAs($this->admin)
+            ->postJson(route('admin.payments.insurance.registered', $payment), ['registered' => true])
+            ->assertOk();
+
+        $this->assertSame('Loisir 1 Top', $licence->fresh()->insurance_type);
+    }
+
+    public function test_unregistering_insurance_does_not_clear_the_licences_insurance_type(): void
+    {
+        $federation = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'Fédération', 'visibility' => 'active']);
+        $user = $this->member('externe');
+        $this->received($user, ['amount' => 238])->assertOk();
+        $payment = PaymentExpected::where('user_id', $user->id)->sole();
+        $this->actingAs($this->admin)->postJson(route('admin.payments.insurance.registered', $payment), ['registered' => true]);
+
+        $this->actingAs($this->admin)
+            ->postJson(route('admin.payments.insurance.registered', $payment), ['registered' => false])
+            ->assertOk();
+
+        $licence = $user->licences()->where('federation_id', $federation->id)->firstOrFail();
+        $this->assertSame('Loisir 1 Top', $licence->insurance_type);
+    }
+
     public function test_preselected_insurance_defaults_to_the_recommended_tier_with_nothing_on_record(): void
     {
         $user = $this->member('externe');
