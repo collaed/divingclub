@@ -56,11 +56,19 @@ class AppServiceProvider extends ServiceProvider
         // default from-address in once when it's first resolved, so this
         // only picks up a saved change on the next request — immediate for
         // web traffic; a long-running Horizon worker needs its next restart.
-        if ($from = ThemeSetting::get('mail_from_address')) {
-            config(['mail.from.address' => $from]);
-        }
-        if ($fromName = ThemeSetting::get('mail_from_name')) {
-            config(['mail.from.name' => $fromName]);
+        // Every app boot runs this, including `artisan package:discover`
+        // right after `composer install` — before the database exists at
+        // all on a fresh install/CI checkout — so a missing DB/table here
+        // must not crash the entire bootstrap, just skip the override.
+        try {
+            if ($from = ThemeSetting::get('mail_from_address')) {
+                config(['mail.from.address' => $from]);
+            }
+            if ($fromName = ThemeSetting::get('mail_from_name')) {
+                config(['mail.from.name' => $fromName]);
+            }
+        } catch (\Throwable) {
+            // Nothing to report — this is expected before the DB is set up.
         }
 
         Mail::extend('brevo', fn () => new BrevoTransport((string) config('services.brevo.key')));
