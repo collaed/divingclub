@@ -209,7 +209,11 @@ class FfessmBrevetImportService
 
     private function normalizeKey(string $name): string
     {
-        $tokens = array_values(array_filter(explode(' ', Str::of($name)->ascii()->upper()->squish()->toString())));
+        // A hyphenated double surname on file (e.g. "PUENTE-CASTAN") is
+        // space-separated in the FFESSM export ("PUENTE CASTAN ...") —
+        // split on both so the two forms produce the same token set.
+        $ascii = str_replace('-', ' ', Str::of($name)->ascii()->upper()->toString());
+        $tokens = array_values(array_filter(explode(' ', Str::of($ascii)->squish()->toString())));
         sort($tokens);
 
         return implode(' ', $tokens);

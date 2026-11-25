@@ -104,6 +104,21 @@ class FfessmBrevetImportServiceTest extends TestCase
         @unlink($path);
     }
 
+    public function test_a_hyphenated_double_surname_matches_the_exports_space_separated_form(): void
+    {
+        $user = User::factory()->create();
+        MemberDetail::create(['user_id' => $user->id, 'first_name' => 'Barthélémy', 'last_name' => 'Puente-Castan']);
+        $path = $this->makeXlsx([
+            ['26/04/2026', '26/04/2026', 'Strasbourg', 'Niveau 1', 'Normal', '06', '06970240', 'CLUB EUROPEEN DE PLONGEE', 'A-24-1048401', 'Mr', 'PUENTE CASTAN BARTHELEMY', 'A-20-923394', 'CHAUSSARD Keran'],
+        ]);
+
+        $result = app(FfessmBrevetImportService::class)->import($path, 'test.xlsx');
+
+        $this->assertSame(1, $result['certs_created']);
+        $this->assertSame([], $result['unmatched_names']);
+        @unlink($path);
+    }
+
     public function test_reimporting_the_same_row_updates_rather_than_duplicates(): void
     {
         $this->member('Benjamin', 'Accadia');
