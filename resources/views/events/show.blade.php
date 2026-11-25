@@ -378,6 +378,11 @@
                 $confirmed = $event->registrations->where('status', 'confirmed');
                 $waiting = $event->registrations->where('status', 'waiting')->sortBy('waiting_list_position');
                 $cancelled = $event->registrations->where('status', 'cancelled');
+                // Held pending a federation licence (see EventRegistrationService::registerMember) —
+                // shown only to bureau/instructor staff, since they're the only ones who can act on
+                // it via the "Recheck licence" button in _participant_row; otherwise these rows were
+                // simply missing from the Participants card entirely, even for bureau_master.
+                $pendingLicenceRegs = $isPrivileged ? $event->registrations->where('status', 'pending_licence') : collect();
                 $instructorRegs = $confirmed->filter(fn($r) => $r->user && ($r->user->role_id === 3 || $r->user->detail?->active_instructor));
                 $memberRegs = $confirmed->filter(fn($r) => $r->user && !($r->user->role_id === 3 || $r->user->detail?->active_instructor));
                 $nonMemberRegs = $confirmed->filter(fn($r) => $r->isNonMember());
@@ -423,6 +428,15 @@
                         @endforeach
                         </ul>
                     @endif
+                    {{-- Held pending a federation licence (bureau/instructor only) --}}
+                    @if($pendingLicenceRegs->count())
+                        <div class="px-3 pt-2 pb-1"><small class="fw-bold text-danger">{{ __('Held — pending licence') }}</small></div>
+                        <ul class="list-group list-group-flush">
+                        @foreach($pendingLicenceRegs as $reg)
+                            @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event])
+                        @endforeach
+                        </ul>
+                    @endif
                     {{-- Waiting list --}}
                     @if($waiting->count())
                         <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Waiting List') }}</small></div>
@@ -443,7 +457,7 @@
                             </ul>
                         </div>
                     @endif
-                    @if($confirmed->count() === 0 && $waiting->count() === 0)
+                    @if($confirmed->count() === 0 && $waiting->count() === 0 && $pendingLicenceRegs->count() === 0)
                         <p class="text-muted small p-3 mb-0">{{ __('No registrations yet.') }}</p>
                     @endif
                 </div>

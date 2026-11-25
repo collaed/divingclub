@@ -265,6 +265,24 @@ class EventFederationLicenceTest extends TestCase
             ->assertSee($assistant->name);
     }
 
+    public function test_a_pending_licence_registration_is_visible_to_bureau_on_the_event_page(): void
+    {
+        $fed = $this->federation();
+        $event = $this->event(['required_federation_id' => $fed->id, 'event_date' => Carbon::parse('2026-06-15')]);
+        $u = $this->member();
+        $this->actingAs($u)->post("/events/{$event->id}/register")->assertSessionHas('success');
+
+        // Previously this registration never appeared in the Participants
+        // card at all (show.blade.php only rendered confirmed/waiting/
+        // cancelled buckets), so bureau_master had no "Recheck licence"
+        // button to click even though the DB row existed.
+        $this->actingAs($this->bureau())->get("/events/{$event->id}")
+            ->assertOk()
+            ->assertSee($u->name)
+            ->assertSee('Recheck licence')
+            ->assertDontSee('No registrations yet.');
+    }
+
     public function test_bureau_can_flag_a_member_as_handling_ffessm_externally_from_the_licence_row(): void
     {
         $fed = $this->federation('FFESSM');
