@@ -68,6 +68,18 @@ class PersonalAliasTest extends TestCase
         $this->assertSame(1, MailForwardingRule::where('user_id', $member->id)->count());
     }
 
+    public function test_the_activation_form_shows_the_real_configured_domain(): void
+    {
+        $admin = $this->createBureauUser();
+        $member = $this->createMemberUser();
+
+        $this->actingAs($admin)
+            ->get(route('admin.profile.show', $member).'?tab=private')
+            ->assertOk()
+            ->assertSee('@example.com')
+            ->assertDontSee('@…');
+    }
+
     public function test_bureau_master_can_override_the_local_part(): void
     {
         $admin = $this->createBureauUser();

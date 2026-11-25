@@ -2,6 +2,11 @@
     $d = $target->detail;
     $isSelf = $viewer->id === $target->id;
     $personalAlias = \App\Models\MailForwardingRule::where('user_id', $target->id)->first();
+    // Same resolution as MemberController::activatePersonalAlias() — shown
+    // here so the form previews the address it will actually create,
+    // rather than a generic placeholder.
+    $aliasBase = \App\Models\ThemeSetting::get('mail_inbound_address', config('club.mail_address', 'club@example.com'));
+    $aliasDomain = explode('@', $aliasBase, 2)[1] ?? 'example.com';
 @endphp
 
 @if($viewer->hasRole('bureau_master'))
@@ -20,7 +25,7 @@
                 @csrf
                 <span>sas.</span>
                 <input type="text" name="local_part" class="form-control form-control-sm" style="width: auto;" value="{{ \Illuminate\Support\Str::slug($d?->first_name ?? $target->name) }}" required>
-                <span>@…</span>
+                <span>{{ '@'.$aliasDomain }}</span>
                 <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Activate personal alias') }}</button>
             </form>
             <p class="small text-muted mb-0 mt-1">{{ __('Defaults to the first name — edit it if that address is already taken or to match an address already in use under the old system.') }}</p>
