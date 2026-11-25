@@ -79,6 +79,22 @@ class MembershipRenewalTest extends TestCase
             ->assertSee('Received €190.00');
     }
 
+    public function test_a_member_handling_ffessm_externally_is_not_charged_the_club_for_it(): void
+    {
+        // Reported for Ulysse Dus: his real transfer (€140) never matched
+        // the proposed €190 because the club's own fee calculation kept
+        // charging the €50 FFESSM licence component even though his profile
+        // already says he holds that licence directly with the federation,
+        // not through the club.
+        $user = $this->member('externe');
+        $user->detail->update(['ffessm_handled_externally' => true]);
+
+        $proposal = app(MembershipRenewalService::class)->proposal($user->fresh('licences'), '2027');
+
+        $this->assertEqualsWithDelta(140.0, $proposal['amount'], 0.001); // 130 + 10 FLASSA, no 50 FFESSM licence
+        $this->assertArrayNotHasKey('lic_adulte', $proposal['components']);
+    }
+
     public function test_a_commitment_is_the_amount_proposed_by_default(): void
     {
         $user = $this->member('externe');

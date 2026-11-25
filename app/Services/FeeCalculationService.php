@@ -155,8 +155,13 @@ class FeeCalculationService
     {
         $total = 0.0;
 
+        // A member who holds their FFESSM licence directly with the
+        // federation (not through the club) must never be charged for it —
+        // the slug is still recorded below for flagLicenceRenewal() and the
+        // insurance/licence-matching logic that reads it, only the fee line
+        // item itself is skipped.
         $ffessm = MembershipFeeComponent::where('slug', $derivation->ffessmSlug)->first();
-        if ($ffessm instanceof MembershipFeeComponent) {
+        if ($ffessm instanceof MembershipFeeComponent && ! $user->detail?->ffessm_handled_externally) {
             $amount = (float) $ffessm->amount;
             $total += $amount;
             $components[$ffessm->slug] = $amount;
