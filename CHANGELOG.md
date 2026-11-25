@@ -5,6 +5,39 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-25 — prod at 69cc063
+
+### New
+- A new "FFESSM Brevets Import" tool lets you upload the federation's
+  "Liste des brevets" export and have it update members' certification
+  history and licence numbers automatically.
+- Document Intake now has dedicated drop areas for federation licence
+  scans, bank statements (PDF or the bank's xlsx export), and FFESSM
+  brevets imports, instead of separate menu items — picking a federation
+  up front for a licence scan routes it straight through instead of
+  waiting for manual review.
+- Bureau can now delete a superseded (replaced) medical certificate
+  directly from a member's profile; it goes to the recycle bin
+  (Admin → Trash) like any other delete, so it can still be restored.
+- Activating a personal mail alias now lets bureau_master type a custom
+  address instead of always using the first name — useful when two
+  members share a first name, or to match an address already in use
+  under the old system.
+
+### Fixed
+- The "Cotisations" family dropdown was showing the parent's first name
+  instead of the selected family member's.
+- The "Add a Family Member" picker was limited to the 25 members with
+  the most similar-sounding surname, hiding people it should have found.
+- A member registered for an event requiring an active federation
+  licence, but held pending one, was invisible on the event page to
+  everyone — including bureau_master — with no way to re-check or
+  confirm them once the licence was added.
+- The FFESSM brevets import now matches a hyphenated double surname on
+  file against the federation export's space-separated form.
+- The personal mail alias activation form now shows the real configured
+  domain instead of a placeholder.
+
 ## 2026-11-24 — prod at 4c9557f
 
 ### Fixed
