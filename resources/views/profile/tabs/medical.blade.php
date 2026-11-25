@@ -15,7 +15,15 @@
 
 <h6>{{ __('Medical Certificates') }}</h6>
 @foreach($medDocs as $doc)
-    <div class="card dc-card mb-2">
+    <div class="card dc-card mb-2 position-relative">
+        @if(!$doc->is_current && $viewer->isBureau())
+            <form method="POST" action="{{ route('profile.document.destroy', $doc) }}" class="position-absolute top-0 end-0 m-1" onsubmit="return confirm('{{ __('Permanently remove this superseded certificate? It can be restored from Admin → Trash until force-erased there.') }}')">
+                @csrf
+                @method('DELETE')
+                <input type="hidden" name="tab" value="medical">
+                <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="{{ __('Delete') }}">@icon('🗑️')</button>
+            </form>
+        @endif
         <div class="card-body py-2 d-flex justify-content-between align-items-center">
             <div>
                 <a href="{{ route('profile.document.download', $doc) }}">{{ $doc->original_filename }}</a>

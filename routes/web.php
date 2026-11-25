@@ -216,6 +216,7 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
     Route::get('/profile/document/{document}', [ProfileDocumentController::class, 'download'])->name('profile.document.download');
     Route::get('/profile/document/{document}/view', [ProfileDocumentController::class, 'view'])->name('profile.document.view');
     Route::post('/profile/document/{document}/verify', [ProfileDocumentController::class, 'verify'])->name('profile.document.verify');
+    Route::delete('/profile/document/{document}', [ProfileDocumentController::class, 'destroy'])->name('profile.document.destroy');
 
     Route::post('/profile/avatar', [ProfileAvatarController::class, 'upload'])->name('profile.avatar.upload');
     Route::delete('/profile/avatar', [ProfileAvatarController::class, 'delete'])->name('profile.avatar.delete');

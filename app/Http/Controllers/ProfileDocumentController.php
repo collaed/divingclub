@@ -173,4 +173,22 @@ class ProfileDocumentController extends Controller
 
         return back()->with('success', __('Certificate verified.'))->withInput(['tab' => 'medical']);
     }
+
+    /**
+     * Soft-delete a superseded document — the current/active certificate for
+     * a category is never deletable from here, to avoid leaving a member
+     * with no certificate on file by mistake. Like every other delete in
+     * this app, this only moves it to the recycle bin (Admin → Trash); the
+     * file itself is removed from disk only on permanent erase there
+     * (see TrashController::forceDelete()).
+     */
+    public function destroy(Document $document): RedirectResponse
+    {
+        abort_unless(auth()->user()->isBureau(), 403);
+        abort_if($document->is_current, 403, __('The current certificate cannot be deleted — upload a replacement first.'));
+
+        $document->delete();
+
+        return back()->with('success', __('Certificate deleted.'))->withInput(['tab' => 'medical']);
+    }
 }

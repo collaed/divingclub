@@ -18,6 +18,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Recycle bin for soft-deleted records. Lets the bureau find and restore
@@ -158,9 +159,38 @@ class TrashController extends Controller
     {
         abort_unless(auth()->user()?->hasRole('bureau_master'), 403);
 
-        $this->find($kind, $id)->forceDelete();
+        $model = $this->find($kind, $id);
+        if ($model instanceof Document) {
+            $this->deleteDocumentFile($model);
+        }
+        $model->forceDelete();
 
         return back()->with('success', __('Permanently deleted.'));
+    }
+
+    /**
+     * Mirrors the three-location fallback ProfileDocumentController's
+     * download()/view() use (local disk with its 'private/' prefix
+     * stripped, the public disk, or a raw storage/app/ path from legacy
+     * imports) — a force-deleted document must not leave its file behind
+     * under whichever of these it actually lives in.
+     */
+    private function deleteDocumentFile(Document $document): void
+    {
+        $path = $document->file_path;
+        if (! $path) {
+            return;
+        }
+
+        $stripped = str_starts_with($path, 'private/') ? substr($path, 8) : $path;
+
+        if (Storage::disk('local')->exists($stripped)) {
+            Storage::disk('local')->delete($stripped);
+        } elseif (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        } elseif (file_exists(storage_path('app/'.$path))) {
+            @unlink(storage_path('app/'.$path));
+        }
     }
 
     private function find(string $kind, int $id): Model
