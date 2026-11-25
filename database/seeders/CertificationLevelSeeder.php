@@ -56,6 +56,13 @@ class CertificationLevelSeeder extends Seeder
             // FFESSM — French system (Niveaux)
             // ================================================================
             'FFESSM' => [
+                // Junior/youth diver ranks
+                ['code' => 'PLONGEUR_BRONZE', 'name' => 'Plongeur Bronze', 'category' => 'diver', 'rank' => 1, 'equivalence_group' => null],
+                ['code' => 'PLONGEUR_ARGENT', 'name' => 'Plongeur Argent', 'category' => 'diver', 'rank' => 2, 'equivalence_group' => null],
+                ['code' => 'PLONGEUR_OR', 'name' => 'Plongeur Or', 'category' => 'diver', 'rank' => 3, 'equivalence_group' => null],
+                // Freediving (apnée) track
+                ['code' => 'APNEA_PASS', 'name' => 'Pass Apnéiste (ATP)', 'category' => 'diver', 'rank' => 5, 'equivalence_group' => null],
+                ['code' => 'APNEA_1', 'name' => 'Apnéiste / Indoor Freediver 1 CMAS', 'category' => 'diver', 'rank' => 15, 'equivalence_group' => null],
                 // Diver levels
                 ['code' => 'PE20', 'name' => 'Plongeur Encadré 20m', 'category' => 'diver', 'rank' => 10, 'equivalence_group' => 'cmas_1s'],
                 ['code' => 'N1', 'name' => 'Niveau 1 — Plongeur Encadré 20m', 'category' => 'diver', 'rank' => 20, 'equivalence_group' => 'cmas_1s'],
@@ -77,6 +84,8 @@ class CertificationLevelSeeder extends Seeder
                 ['code' => 'NITROX_C', 'name' => 'Qualification Nitrox Confirmé', 'category' => 'specialty', 'rank' => 210, 'equivalence_group' => 'nitrox_adv'],
                 ['code' => 'TRIMIX', 'name' => 'Qualification Trimix', 'category' => 'specialty', 'rank' => 220, 'equivalence_group' => 'trimix'],
                 ['code' => 'RIFAP', 'name' => 'Réactions et Intervention Face à un Accident de Plongée', 'category' => 'specialty', 'rank' => 230, 'equivalence_group' => 'rescue'],
+                ['code' => 'RIFA_APNEE', 'name' => 'RIFA Apnée', 'category' => 'specialty', 'rank' => 235, 'equivalence_group' => null],
+                ['code' => 'DRYSUIT', 'name' => 'Combinaison étanche', 'category' => 'specialty', 'rank' => 240, 'equivalence_group' => null],
             ],
 
             // ================================================================

@@ -73,8 +73,8 @@ class DuesCalculatorController extends Controller
         $data = $this->viewData($year, $actingUser);
 
         $status = MemberStatus::find($statusId);
-        $lastName = strtoupper((string) $request->input('last_name', ''));
-        $firstName = strtoupper((string) $request->input('first_name', ''));
+        $lastName = $actingUser?->detail?->last_name ?? strtoupper((string) $request->input('last_name', ''));
+        $firstName = $actingUser?->detail?->first_name ?? strtoupper((string) $request->input('first_name', ''));
 
         $user = $this->resolveCalculatingUser($actingUser, $request, $lastName, $firstName);
 

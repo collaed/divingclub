@@ -4,6 +4,7 @@ use App\Helpers\LocaleHelper;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\FederationController;
+use App\Http\Controllers\Admin\FfessmBrevetImportController;
 use App\Http\Controllers\Admin\LicenceScanController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\NewsletterController;
@@ -420,6 +421,9 @@ Route::middleware(['auth', 'verified.email'])->group(function () {
         Route::get('/licence-scans/{licenceScan}/image', [LicenceScanController::class, 'image'])->name('licence-scans.image');
         Route::post('/licence-scans/{licenceScan}/assign', [LicenceScanController::class, 'assign'])->name('licence-scans.assign');
         Route::delete('/licence-scans/{licenceScan}', [LicenceScanController::class, 'destroy'])->name('licence-scans.destroy');
+
+        Route::get('/ffessm-brevet-import', [FfessmBrevetImportController::class, 'index'])->name('ffessm-brevet-import.index');
+        Route::post('/ffessm-brevet-import', [FfessmBrevetImportController::class, 'store'])->name('ffessm-brevet-import.store');
     });
 
     // Equipment / gear — delegated area (technical_dir + bureau), permission-gated.

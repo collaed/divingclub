@@ -68,6 +68,27 @@ class DuesCalculatorControllerTest extends TestCase
             ->assertSee('included_free', false); // flassa_state present in components
     }
 
+    public function test_switching_to_a_family_member_shows_that_members_own_name_not_the_actors(): void
+    {
+        $parent = $this->memberWithAge('externe', 40);
+        $parent->detail->update(['first_name' => 'Vincent', 'last_name' => 'Girard', 'family_id' => 1]);
+        $child = $this->memberWithAge('externe', 10);
+        $child->detail->update(['first_name' => 'Flore', 'last_name' => 'Girard', 'family_id' => 1]);
+
+        $this->actingAs($parent->fresh())->post(route('dues.calculate'), [
+            'season_year' => '2027',
+            'status_id' => $child->status_id,
+            'target_user_id' => $child->id,
+            // Stale values still sitting in the DOM text inputs from the
+            // previously-displayed family member, as the live-update JS
+            // would actually re-post them.
+            'last_name' => 'GIRARD',
+            'first_name' => 'VINCENT',
+        ])->assertOk()
+            ->assertSee('Flore')
+            ->assertDontSee('VINCENT');
+    }
+
     public function test_sympathisant_calculation_excludes_licences(): void
     {
         $user = $this->memberWithAge('sympathisant', 40);

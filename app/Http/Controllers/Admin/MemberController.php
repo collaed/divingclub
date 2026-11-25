@@ -303,9 +303,12 @@ class MemberController extends Controller
      * mail to it forwards to their own address + the club's shared cc —
      * by creating the same MailForwardingRule row the Email & Forwarding
      * settings page manages, tagged with this member (see
-     * MailForwardingRule::$user). A no-op if one already exists.
+     * MailForwardingRule::$user). A no-op if one already exists. The local
+     * part defaults to the member's first name but bureau_master can
+     * override it (e.g. to match an address already in use under the old
+     * system, or to disambiguate members who share a first name).
      */
-    public function activatePersonalAlias(User $user): RedirectResponse
+    public function activatePersonalAlias(Request $request, User $user): RedirectResponse
     {
         abort_unless(auth()->user()?->hasRole('bureau_master'), 403);
 
@@ -315,16 +318,37 @@ class MemberController extends Controller
 
         $base = ThemeSetting::get('mail_inbound_address', config('club.mail_address', 'club@example.com'));
         $domain = explode('@', $base, 2)[1] ?? 'example.com';
-        $slug = Str::slug($user->detail?->first_name ?? $user->name);
+        $localPart = $request->input('local_part');
+        $slug = $localPart ? $this->slugLocalPart($localPart) : Str::slug($user->detail?->first_name ?? $user->name);
+        $fromAddress = "sas.{$slug}@{$domain}";
+
+        if (MailForwardingRule::where('from_address', $fromAddress)->exists()) {
+            return back()->with('error', __('The address :address is already taken by another member.', ['address' => $fromAddress]));
+        }
+
         $ccAddress = ThemeSetting::get('mail_personal_alias_cc', config('club.contact_email'));
 
         MailForwardingRule::create([
             'user_id' => $user->id,
-            'from_address' => "sas.{$slug}@{$domain}",
+            'from_address' => $fromAddress,
             'to_addresses' => $ccAddress ? "{$user->primary_email},{$ccAddress}" : $user->primary_email,
             'label' => $user->name,
         ]);
 
         return back()->with('success', __('Personal alias activated for :name.', ['name' => $user->name]));
+    }
+
+    /**
+     * Like Str::slug(), but keeps dots, so an admin can type a
+     * firstname.lastname local part matching an old-system address exactly.
+     */
+    private function slugLocalPart(string $value): string
+    {
+        $value = Str::ascii(trim($value));
+        $value = strtolower($value);
+        $value = preg_replace('/[^a-z0-9.]+/', '-', $value) ?? '';
+        $value = preg_replace('/-{2,}/', '-', $value) ?? '';
+
+        return trim($value, '-');
     }
 }

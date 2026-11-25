@@ -16,10 +16,14 @@
             </div>
             <p class="small text-muted mb-0 mt-1">{{ __('Manage or delete it from Settings → Technical → Email & Forwarding.') }}</p>
         @else
-            <form method="POST" action="{{ route('admin.members.personal-alias.activate', $target) }}">
+            <form method="POST" action="{{ route('admin.members.personal-alias.activate', $target) }}" class="d-flex align-items-center gap-2">
                 @csrf
-                <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Activate personal alias') }} (sas.{{ \Illuminate\Support\Str::slug($d?->first_name ?? $target->name) }}@…)</button>
+                <span>sas.</span>
+                <input type="text" name="local_part" class="form-control form-control-sm" style="width: auto;" value="{{ \Illuminate\Support\Str::slug($d?->first_name ?? $target->name) }}" required>
+                <span>@…</span>
+                <button type="submit" class="btn btn-sm btn-outline-primary">{{ __('Activate personal alias') }}</button>
             </form>
+            <p class="small text-muted mb-0 mt-1">{{ __('Defaults to the first name — edit it if that address is already taken or to match an address already in use under the old system.') }}</p>
         @endif
     </div>
 </div>

@@ -67,4 +67,39 @@ class PersonalAliasTest extends TestCase
 
         $this->assertSame(1, MailForwardingRule::where('user_id', $member->id)->count());
     }
+
+    public function test_bureau_master_can_override_the_local_part(): void
+    {
+        $admin = $this->createBureauUser();
+        $member = $this->createMemberUser();
+        $member->detail->update(['first_name' => 'Jerome']);
+
+        $this->actingAs($admin)
+            ->post(route('admin.members.personal-alias.activate', $member), ['local_part' => 'jerome.boisseau'])
+            ->assertRedirect();
+
+        $rule = MailForwardingRule::where('user_id', $member->id)->first();
+        $this->assertSame('sas.jerome.boisseau@example.com', $rule->from_address);
+    }
+
+    public function test_activating_a_second_member_with_the_same_first_name_requires_an_override(): void
+    {
+        $admin = $this->createBureauUser();
+        $jerome1 = $this->createMemberUser();
+        $jerome1->detail->update(['first_name' => 'Jerome']);
+        $jerome2 = $this->createMemberUser();
+        $jerome2->detail->update(['first_name' => 'Jerome']);
+
+        $this->actingAs($admin)->post(route('admin.members.personal-alias.activate', $jerome1));
+
+        $this->actingAs($admin)
+            ->post(route('admin.members.personal-alias.activate', $jerome2))
+            ->assertSessionHas('error');
+        $this->assertSame(0, MailForwardingRule::where('user_id', $jerome2->id)->count());
+
+        $this->actingAs($admin)
+            ->post(route('admin.members.personal-alias.activate', $jerome2), ['local_part' => 'jerome.boisseau'])
+            ->assertRedirect();
+        $this->assertSame('sas.jerome.boisseau@example.com', MailForwardingRule::where('user_id', $jerome2->id)->first()->from_address);
+    }
 }
