@@ -159,4 +159,25 @@ class FamilyGroupingTest extends TestCase
         $this->assertNull($a->detail->fresh()->family_id);
         $this->assertSame($familyId, $b->detail->fresh()->family_id);
     }
+
+    public function test_the_full_candidate_list_is_offered_not_just_the_25_with_the_most_similar_surname(): void
+    {
+        $viewer = $this->createMemberUser();
+        $viewer->detail->update(['last_name' => 'German', 'first_name' => 'Kristina']);
+
+        // 25 members whose surname is textually close to the viewer's own —
+        // the old "surname similarity, top 25" sort would fill the list with
+        // exactly these and crowd out anyone else.
+        for ($i = 0; $i < 25; $i++) {
+            $u = $this->createMemberUser();
+            $u->detail->update(['last_name' => 'Germann'.$i, 'first_name' => 'Decoy'.$i]);
+        }
+
+        $target = $this->createMemberUser();
+        $target->detail->update(['last_name' => 'Demonnaz', 'first_name' => 'Fabien']);
+
+        $html = $this->actingAs($viewer)->get(route('profile.show', ['tab' => 'family']))->getContent();
+
+        $this->assertStringContainsString('Demonnaz', $html);
+    }
 }

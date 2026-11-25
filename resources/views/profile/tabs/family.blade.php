@@ -6,11 +6,12 @@
     if (! $target->isMinor()) {
         $excludeIds = $familyMembers->pluck('id')->push($target->id)
             ->merge($incoming->pluck('requester_id'))->merge($outgoing->pluck('invitee_id'));
-        $mySurname = mb_strtoupper((string) $target->detail?->last_name);
+        // The full membership (no cap — a short-list heuristic here would just
+        // hide whoever you're actually looking for, see the "surname similarity,
+        // top 25" version this replaced).
         $candidates = \App\Models\User::whereHas('detail')->whereNotIn('id', $excludeIds)
             ->with('detail')->get()
-            ->sortByDesc(fn ($u) => similar_text($mySurname, mb_strtoupper((string) $u->detail?->last_name)))
-            ->take(25);
+            ->sortBy(fn ($u) => mb_strtoupper((string) $u->name));
     }
 @endphp
 
@@ -62,18 +63,47 @@
 @if(! $target->isMinor())
     <h6 class="mt-3">{{ __('Add a Family Member') }}</h6>
     <p class="small text-muted">{{ __('For a child, you need an existing guardian link first (see Minors & Consent) — once that exists, adding them here is immediate, no confirmation needed from them.') }}</p>
-    <form method="POST" action="{{ route('family.propose') }}" class="row g-2 align-items-end">
+    <form method="POST" action="{{ route('family.propose') }}" class="row g-2 align-items-end" data-family-propose-form>
         @csrf
         <div class="col-md-6">
-            <select name="member_id" class="form-select" required>
-                <option value="">{{ __('Select a member…') }}</option>
+            <input type="text" list="family-candidates-list" class="form-control" placeholder="{{ __('Type a name…') }}" autocomplete="off" required data-family-member-search>
+            <input type="hidden" name="member_id" data-family-member-id>
+            <datalist id="family-candidates-list">
                 @foreach($candidates as $candidate)
-                    <option value="{{ $candidate->id }}">{{ $candidate->name }}</option>
+                    <option data-id="{{ $candidate->id }}" value="{{ $candidate->name }}"></option>
                 @endforeach
-            </select>
+            </datalist>
         </div>
         <div class="col-md-3">
             <button type="submit" class="btn btn-primary">{{ __('Add') }}</button>
         </div>
     </form>
+    @push('scripts')
+    <script>
+    (function () {
+        'use strict';
+        document.querySelectorAll('[data-family-propose-form]').forEach(function (form) {
+            var search = form.querySelector('[data-family-member-search]');
+            var hidden = form.querySelector('[data-family-member-id]');
+            var options = Array.from(form.querySelectorAll('#family-candidates-list option'));
+
+            function resolve() {
+                var match = options.find(function (o) { return o.value === search.value; });
+                hidden.value = match ? match.dataset.id : '';
+            }
+            search.addEventListener('input', resolve);
+            form.addEventListener('submit', function (e) {
+                resolve();
+                if (!hidden.value) {
+                    e.preventDefault();
+                    search.setCustomValidity('{{ __('Pick a name from the list.') }}');
+                    search.reportValidity();
+                } else {
+                    search.setCustomValidity('');
+                }
+            });
+        });
+    })();
+    </script>
+    @endpush
 @endif
