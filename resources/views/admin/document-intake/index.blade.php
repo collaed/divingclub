@@ -28,7 +28,7 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card dc-card h-100">
                 <div class="card-body">
                     <h6 class="small fw-bold">@icon('🪪') {{ __('Federation licence scans') }}</h6>
@@ -54,7 +54,26 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <div class="card dc-card h-100">
+                <div class="card-body">
+                    <h6 class="small fw-bold">@icon('🏦') {{ __('Bank statements') }}</h6>
+                    <form method="POST" action="{{ route('admin.document-intake.store') }}" enctype="multipart/form-data" class="d-flex gap-2 align-items-end">
+                        @csrf
+                        <input type="hidden" name="intake_type" value="bank_statement">
+                        <div class="flex-grow-1">
+                            <div class="dc-dropzone rounded d-flex align-items-center justify-content-center gap-2 text-muted small" style="border: 2px dashed #ccc;" tabindex="0" role="button">
+                                <span>@icon('🏦')</span>
+                                <span class="dc-dropzone-label">{{ __('Drop the bank\'s PDF or xlsx export here') }}</span>
+                                <input type="file" name="files[]" class="dc-dropzone-input visually-hidden" accept="application/pdf,.xlsx" multiple required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">@icon('⬆️') {{ __('Upload') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="card dc-card h-100">
                 <div class="card-body">
                     <h6 class="small fw-bold">@icon('🏅') {{ __('FFESSM brevets import') }}</h6>

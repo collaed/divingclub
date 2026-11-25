@@ -50,6 +50,10 @@ class DocumentIntakeController extends Controller
             'files.*' => match ($request->input('intake_type')) {
                 'ffessm_brevet' => 'file|mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel|max:5120',
                 'licence_scan' => 'file|mimetypes:image/jpeg,image/png|max:5120',
+                // The bank statement zone accepts the bank's own PDF export
+                // (OCR'd/text-parsed) or its XLSX account-history export
+                // (parsed directly, no OCR — see BankReconciliationService::parseXlsxStatement()).
+                'bank_statement' => 'file|mimetypes:application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel|max:5120',
                 default => 'file|mimetypes:application/pdf,image/jpeg,image/png|max:5120',
             },
         ]);

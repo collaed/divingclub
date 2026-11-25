@@ -6,6 +6,7 @@ namespace Tests\Feature\Admin;
 
 use App\Jobs\ClassifyDocumentIntake;
 use App\Jobs\ProcessLicenceScan;
+use App\Models\BankTransaction;
 use App\Models\DocumentIntake;
 use App\Models\Federation;
 use App\Services\BankReconciliationService;
@@ -15,6 +16,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
@@ -174,6 +178,75 @@ class DocumentIntakeTest extends TestCase
         );
 
         $this->assertSame('failed', $intake->refresh()->status);
+    }
+
+    /** Same bank export header as BankReconciliationXlsxImportTest. */
+    private const BANK_HEADER = [
+        'Date transaction', 'Description', 'Date valeur', 'Montant en EUR', 'Extrait', 'Solde journalier',
+        'Opération', 'Communication 1', 'Communication 2', 'Communication 3', 'Communication 4',
+        'Compte bénéficiaire', 'Nom de la contrepartie', 'Adresse de la contrepartie', 'Localité de la contrepartie',
+    ];
+
+    /** @param  array<int, array<int, mixed>>  $rows */
+    private function makeBankXlsx(array $rows): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'bankrecon_').'.xlsx';
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray(self::BANK_HEADER, null, 'A1');
+        foreach ($rows as $i => $row) {
+            $sheet->fromArray($row, null, 'A'.($i + 2));
+            if (array_key_exists(0, $row)) {
+                $sheet->setCellValue('A'.($i + 2), Date::PHPToExcel($row[0]));
+            }
+        }
+        (new Xlsx($spreadsheet))->save($path);
+
+        return $path;
+    }
+
+    public function test_uploading_an_xlsx_bank_statement_routes_and_creates_transactions(): void
+    {
+        $path = $this->makeBankXlsx([
+            [strtotime('2026-03-17'), 'Virement', null, 153.5, '1', 24721.77, 'VIR', 'CLUB-2026-3-DUPONT', 'MARIE', null, null, 'LU680019335575380000', 'DUPONT MARIE', 'RUE CLAIE 95', '6792 HALANZY'],
+        ]);
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.document-intake.store'), [
+                'intake_type' => 'bank_statement',
+                'files' => [new UploadedFile($path, 'extrait.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true)],
+            ])
+            ->assertRedirect();
+
+        $intake = DocumentIntake::sole();
+        $this->assertSame('routed', $intake->status);
+        $this->assertSame(1, $intake->transactions_created);
+        $this->assertDatabaseHas('bank_transactions', ['statement_ref' => 'extrait.xlsx', 'amount' => 153.5]);
+        @unlink($path);
+    }
+
+    public function test_an_xlsx_bank_statement_with_the_wrong_header_fails_cleanly(): void
+    {
+        Storage::fake('local');
+        $path = tempnam(sys_get_temp_dir(), 'bankrecon_').'.xlsx';
+        $spreadsheet = new Spreadsheet;
+        $spreadsheet->getActiveSheet()->fromArray(['Not', 'The', 'Right', 'Header'], null, 'A1');
+        (new Xlsx($spreadsheet))->save($path);
+        Storage::disk('local')->put('document-intake/uploads/bad.xlsx', file_get_contents($path));
+        @unlink($path);
+
+        $intake = DocumentIntake::create(['original_filename' => 'bad.xlsx', 'file_path' => 'document-intake/uploads/bad.xlsx', 'status' => 'processing']);
+
+        (new ClassifyDocumentIntake($intake->id, 'bank_statement'))->handle(
+            app(PdfTextExtractionService::class),
+            app(DocumentClassifierService::class),
+            app(BankReconciliationService::class),
+        );
+
+        $intake->refresh();
+        $this->assertSame('failed', $intake->status);
+        $this->assertNotNull($intake->error);
+        $this->assertSame(0, BankTransaction::count());
     }
 
     public function test_job_marks_needs_review_for_a_photo_upload_pending_manual_federation(): void

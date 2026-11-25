@@ -64,9 +64,12 @@ class ClassifyDocumentIntake implements ShouldQueue
             return;
         }
         if ($this->forcedType === 'bank_statement') {
-            $text = $extractor->extract($sourcePath);
             $intake->update(['detected_type' => 'bank_statement', 'detection_reason' => 'Set manually.', 'federation_id' => null]);
-            $this->routeToBankStatement($intake, $bankSvc, $text);
+            if ($this->isXlsx($intake->original_filename)) {
+                $this->routeToXlsxBankStatement($intake, $bankSvc, $sourcePath);
+            } else {
+                $this->routeToBankStatement($intake, $bankSvc, $extractor->extract($sourcePath));
+            }
 
             return;
         }
@@ -119,6 +122,37 @@ class ClassifyDocumentIntake implements ShouldQueue
         }
 
         $intake->update(['status' => 'routed', 'transactions_created' => count($transactions)]);
+    }
+
+    private function isXlsx(string $originalFilename): bool
+    {
+        return str_ends_with(strtolower($originalFilename), '.xlsx');
+    }
+
+    /**
+     * The bank's XLSX account-history export — parsed directly by
+     * BankReconciliationService::parseXlsxStatement(), which already stamps
+     * $intake->original_filename as each transaction's statement_ref and
+     * dedups against previously imported lines, same as the PDF path below.
+     */
+    private function routeToXlsxBankStatement(DocumentIntake $intake, BankReconciliationService $bankSvc, string $sourcePath): void
+    {
+        try {
+            $result = $bankSvc->parseXlsxStatement($sourcePath, $intake->original_filename);
+        } catch (\RuntimeException $e) {
+            $intake->update(['status' => 'failed', 'error' => $e->getMessage()]);
+
+            return;
+        }
+
+        $count = count($result['transactions']);
+        if ($count === 0) {
+            $intake->update(['status' => 'needs_review', 'error' => 'No transactions could be extracted from this statement.', 'transactions_created' => 0]);
+
+            return;
+        }
+
+        $intake->update(['status' => 'routed', 'transactions_created' => $count]);
     }
 
     private function routeToFfessmBrevet(DocumentIntake $intake, string $sourcePath): void
