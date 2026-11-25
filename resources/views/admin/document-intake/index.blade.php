@@ -37,8 +37,8 @@
                         <input type="hidden" name="intake_type" value="licence_scan">
                         <div class="dc-dropzone rounded d-flex align-items-center justify-content-center gap-2 text-muted small mb-2" style="border: 2px dashed #ccc;" tabindex="0" role="button">
                             <span>@icon('🪪')</span>
-                            <span class="dc-dropzone-label">{{ __('Drop licence card photos here') }}</span>
-                            <input type="file" name="files[]" class="dc-dropzone-input visually-hidden" accept="image/jpeg,image/png" multiple required>
+                            <span class="dc-dropzone-label">{{ __('Drop licence card photos or scanned PDFs here') }}</span>
+                            <input type="file" name="files[]" class="dc-dropzone-input visually-hidden" accept="application/pdf,image/jpeg,image/png" multiple required>
                         </div>
                         <div class="d-flex gap-2">
                             <select name="federation_id" class="form-select form-select-sm">
@@ -94,6 +94,7 @@
         </div>
     </div>
 
+    <div id="documentIntakeResults">
     <div class="table-responsive">
         <table class="table table-hover align-middle table-sm">
             <thead>
@@ -107,7 +108,7 @@
             </thead>
             <tbody>
                 @forelse($intakes as $intake)
-                    <tr>
+                    <tr data-intake-status="{{ $intake->status }}">
                         <td class="small">{{ $intake->original_filename }}</td>
                         <td class="small">
                             @if($intake->detected_type === 'licence_scan')
@@ -179,6 +180,7 @@
         </table>
     </div>
     {{ $intakes->links() }}
+    </div>
 
     <style>
         .dc-dropzone { min-height: 38px; padding: 6px 10px; cursor: pointer; transition: border-color .15s, color .15s; }
@@ -214,5 +216,26 @@
                 updateLabel();
             });
         });
+
+        // Classification runs on the queue, not in the request that uploaded
+        // the file — poll while anything is still "processing" so a bureau
+        // member watching the screen sees it land without a manual refresh.
+        // Stops polling itself once nothing is left processing.
+        (function () {
+            var container = document.getElementById('documentIntakeResults');
+            if (!container) { return; }
+
+            var timer = setInterval(function () {
+                if (!container.querySelector('[data-intake-status="processing"]')) {
+                    clearInterval(timer);
+
+                    return;
+                }
+                fetch(window.location.href).then(function (r) { return r.text(); }).then(function (html) {
+                    var fresh = new DOMParser().parseFromString(html, 'text/html').getElementById('documentIntakeResults');
+                    if (fresh) { container.innerHTML = fresh.innerHTML; }
+                }).catch(function () {});
+            }, 3000);
+        })();
     </script>
 </x-admin-layout>

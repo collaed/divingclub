@@ -49,7 +49,10 @@ class DocumentIntakeController extends Controller
             // SonarCloud's 8MB permissive-upload-size threshold (php:S5693).
             'files.*' => match ($request->input('intake_type')) {
                 'ffessm_brevet' => 'file|mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel|max:5120',
-                'licence_scan' => 'file|mimetypes:image/jpeg,image/png|max:5120',
+                // A licence scan is as often a scanned PDF (see
+                // ProcessLicenceScan's pdftoppm conversion, and FLASSA's
+                // PDF-only metadata/text handling) as a photographed card.
+                'licence_scan' => 'file|mimetypes:application/pdf,image/jpeg,image/png|max:5120',
                 // The bank statement zone accepts the bank's own PDF export
                 // (OCR'd/text-parsed) or its XLSX account-history export
                 // (parsed directly, no OCR — see BankReconciliationService::parseXlsxStatement()).

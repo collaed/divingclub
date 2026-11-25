@@ -78,6 +78,23 @@ class DocumentIntakeTest extends TestCase
         $this->assertNotNull($intake->licence_scan_id);
     }
 
+    public function test_the_licence_scan_zone_accepts_a_scanned_pdf_not_just_photos(): void
+    {
+        Bus::fake([ProcessLicenceScan::class]);
+        $fed = Federation::create(['acronym' => 'FLASSA', 'full_name' => 'FLASSA', 'visibility' => 'active']);
+
+        $this->actingAs($this->createBureauUser())
+            ->post(route('admin.document-intake.store'), [
+                'intake_type' => 'licence_scan',
+                'federation_id' => $fed->id,
+                'files' => [UploadedFile::fake()->create('card.pdf', 50, 'application/pdf')],
+            ])
+            ->assertRedirect()
+            ->assertSessionDoesntHaveErrors();
+
+        $this->assertSame('routed', DocumentIntake::sole()->status);
+    }
+
     public function test_uploading_to_the_licence_scan_zone_without_a_federation_still_needs_review(): void
     {
         $this->actingAs($this->createBureauUser())
