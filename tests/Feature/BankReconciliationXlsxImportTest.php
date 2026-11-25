@@ -104,6 +104,43 @@ class BankReconciliationXlsxImportTest extends TestCase
         $this->assertSame(1, BankTransaction::count());
     }
 
+    public function test_a_line_with_no_iban_still_records_the_counterpartys_name(): void
+    {
+        // Real export lines very commonly leave "Compte bénéficiaire" (IBAN)
+        // blank while "Nom de la contrepartie" is always filled — the name
+        // must not be silently discarded in that case (it's what
+        // learnCounterparty() needs to remember this payer for next time).
+        $path = $this->makeXlsx([
+            [strtotime('2026-11-17'), 'Virement', null, 205.0, '11', 16140.05, 'VIR', 'DIANA VAZQUEZ - Cotisation 2027 Ass', 'imile Loisir 1', null, null, null, 'M. DRANCA FLORIAN', '47 RUE ANTOINE MEYER', 'LUXEMBOURG-2153'],
+        ]);
+
+        $result = app(BankReconciliationService::class)->parseXlsxStatement($path);
+
+        $this->assertCount(1, $result['transactions']);
+        $this->assertSame('M. DRANCA FLORIAN', BankTransaction::sole()->counterparty);
+    }
+
+    public function test_reimporting_a_line_whose_iban_was_blank_is_still_recognised_as_a_duplicate(): void
+    {
+        // Before this fix, a blank-IBAN line was stored with counterparty ''
+        // — re-uploading the bank's cumulative history (which always
+        // re-presents every past line) must not treat that already-known
+        // row as new just because it's now read with the name instead.
+        $row = [strtotime('2026-11-17'), 'Virement', null, 205.0, '11', 16140.05, 'VIR', 'DIANA VAZQUEZ - Cotisation 2027 Ass', 'imile Loisir 1', null, null, null, 'M. DRANCA FLORIAN', '47 RUE ANTOINE MEYER', 'LUXEMBOURG-2153'];
+        BankTransaction::create([
+            'transaction_date' => '2026-11-17', 'amount' => 205.0,
+            'communication' => 'DIANA VAZQUEZ - Cotisation 2027 Ass imile Loisir 1 M. DRANCA FLORIAN',
+            'counterparty' => '',
+        ]);
+
+        $path = $this->makeXlsx([$row]);
+        $result = app(BankReconciliationService::class)->parseXlsxStatement($path);
+
+        $this->assertSame([], $result['transactions']);
+        $this->assertSame(1, $result['duplicates']);
+        $this->assertSame(1, BankTransaction::count());
+    }
+
     public function test_an_unrecognised_header_is_refused(): void
     {
         $path = $this->makeXlsx([['x']], ['Not', 'The', 'Right', 'Header']);

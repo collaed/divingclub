@@ -69,7 +69,14 @@ class BankReconciliationService
             $communication = trim(implode(' ', array_filter([
                 $row[7] ?? null, $row[8] ?? null, $row[9] ?? null, $row[10] ?? null, $row[12] ?? null,
             ], fn ($v) => $v !== null && $v !== '')));
-            $counterparty = trim((string) ($row[11] ?? ''));
+            // "Compte bénéficiaire" (IBAN) is blank on most of this bank's
+            // own lines in practice — when it is, fall back to "Nom de la
+            // contrepartie" so there's still something for learnCounterparty()
+            // to remember (it already handles either an IBAN or a plain
+            // name here, see matchScore()'s "Known account" leg) instead of
+            // silently discarding a real counterparty name.
+            $iban = trim((string) ($row[11] ?? ''));
+            $counterparty = $iban !== '' ? $iban : trim((string) ($row[12] ?? ''));
             $date = $this->asDate($row[0]);
 
             // The bank's export is always the *full* account history, not a
@@ -77,7 +84,13 @@ class BankReconciliationService
             // re-presents every previously-seen line too. Without this check
             // every one of those got re-inserted as a fresh, unmatched
             // duplicate on each re-import (see devdocs/payments.md).
-            if ($this->alreadyImported($date, $amount, $communication, $counterparty)) {
+            // Checked against both the new value ($counterparty, what every
+            // row imported from now on will have) and the blank IBAN alone
+            // (what every row imported before this fix has stored) — a line
+            // already on file under either scheme must still be recognised.
+            $alreadyImported = $this->alreadyImported($date, $amount, $communication, $counterparty)
+                || ($iban !== $counterparty && $this->alreadyImported($date, $amount, $communication, $iban));
+            if ($alreadyImported) {
                 $duplicates++;
 
                 continue;
