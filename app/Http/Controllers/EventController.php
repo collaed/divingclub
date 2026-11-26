@@ -23,6 +23,7 @@ use App\Helpers\HtmlSanitizer;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventGearRequest;
 use App\Http\Requests\UploadEventPhotoRequest;
+use App\Models\AuditLog;
 use App\Models\DiveSite;
 use App\Models\EmailLog;
 use App\Models\Event;
@@ -84,7 +85,19 @@ class EventController extends Controller
             ->withCount(['confirmedRegistrations as confirmed_count', 'waitingRegistrations as waiting_count'])
             ->get();
 
-        return view('events.index', compact('events', 'view', 'date', 'start', 'end'));
+        // Bureau/instructors only: a recap of who changed what on the
+        // calendar recently, so a rescheduled or retitled event (moved date,
+        // swapped instructor, …) doesn't go unnoticed by the rest of the team.
+        $recentEventChanges = collect();
+        if (auth()->user()?->isBureau() || auth()->user()?->hasAnyRole(['instructor', 'instructor_apnea'])) {
+            $recentEventChanges = AuditLog::where('model_type', Event::class)
+                ->with('user')
+                ->orderByDesc('created_at')
+                ->limit(15)
+                ->get();
+        }
+
+        return view('events.index', compact('events', 'view', 'date', 'start', 'end', 'recentEventChanges'));
     }
 
     public function show(Event $event): RedirectResponse|View

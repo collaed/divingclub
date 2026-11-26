@@ -138,4 +138,41 @@
             <p class="text-muted text-center py-4">{{ __('No events for this period.') }}</p>
         @endforelse
     @endif
+
+    @if(auth()->user()?->isBureau() || auth()->user()?->hasAnyRole(['instructor', 'instructor_apnea']))
+        <div class="card dc-card mt-4">
+            <div class="card-body">
+                <h6>{{ __('Recent event changes') }}</h6>
+                @if($recentEventChanges->isEmpty())
+                    <p class="text-muted small mb-0">{{ __('No recent changes.') }}</p>
+                @else
+                    <ul class="list-unstyled small mb-0">
+                        @foreach($recentEventChanges as $log)
+                            @php
+                                $changedEvent = \App\Models\Event::withTrashed()->find($log->model_id);
+                                $fields = $log->action === 'updated' && $log->new_values
+                                    ? implode(', ', array_diff(array_keys($log->new_values), ['updated_at']))
+                                    : null;
+                            @endphp
+                            <li class="mb-1 d-flex align-items-start gap-2">
+                                <span class="badge bg-{{ $log->action === 'deleted' ? 'danger' : ($log->action === 'created' ? 'success' : 'info') }}">{{ __($log->action) }}</span>
+                                <span class="flex-grow-1">
+                                    @if($changedEvent)
+                                        <a href="{{ route('events.show', $changedEvent) }}">{{ $changedEvent->title }}</a>
+                                    @else
+                                        {{ __('Event #:id (deleted)', ['id' => $log->model_id]) }}
+                                    @endif
+                                    — {{ $log->user?->name ?? __('Unknown') }}
+                                    <span class="text-muted">({{ $log->created_at->diffForHumans() }})</span>
+                                    @if($fields)
+                                        <div class="text-muted">{{ __('Changed') }}: {{ $fields }}</div>
+                                    @endif
+                                </span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </div>
+    @endif
 </x-layout>
