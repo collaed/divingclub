@@ -98,6 +98,21 @@ class LicenceScanTest extends TestCase
         $this->assertNull($licence->card_issued_at);
     }
 
+    public function test_assign_clears_an_outstanding_pending_renewal_flag(): void
+    {
+        $fed = $this->federation();
+        $member = $this->createMemberUser();
+        $bureau = $this->createBureauUser();
+        $licence = MemberLicence::create(['user_id' => $member->id, 'federation_id' => $fed->id, 'season' => '2026', 'licence_request_pending' => true]);
+        $scan = LicenceScan::create(['federation_id' => $fed->id, 'original_filename' => 'a.pdf', 'file_path' => 'x', 'status' => 'needs_review', 'uploaded_by' => $bureau->id]);
+
+        $this->actingAs($bureau)
+            ->post(route('admin.licence-scans.assign', $scan), ['user_id' => $member->id, 'licence_number' => '12345', 'year' => '2026'])
+            ->assertRedirect();
+
+        $this->assertFalse($licence->fresh()->licence_request_pending);
+    }
+
     public function test_assign_archives_the_original_upload_once_applied(): void
     {
         Storage::fake('local');

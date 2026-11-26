@@ -85,6 +85,7 @@ class LicenceScanController extends Controller
                 'season' => $v['year'] ?? null,
                 'scan_image_path' => $licenceScan->image_path,
                 'card_issued_at' => $this->extractCardIssuedAt($licenceScan),
+                'licence_request_pending' => false,
             ],
         );
 
