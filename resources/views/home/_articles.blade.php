@@ -1,18 +1,18 @@
 @forelse($widget['data']['articles'] ?? [] as $article)
-    @php $m = $article->typeMeta(); @endphp
+    @php $m = $article->typeMeta(); $t = $article->translated(); @endphp
     <div class="card dc-card mb-4 position-relative" style="border-left: 4px solid {{ $m['color'] }};">
         @if($article->featured_image)
             <a href="{{ route('article.show', $article->slug) }}" class="d-block">
-                <img src="{{ asset('storage/' . $article->featured_image) }}" class="card-img-top article-card-img" alt="{{ $article->title }}">
+                <img src="{{ asset('storage/' . $article->featured_image) }}" class="card-img-top article-card-img" alt="{{ $t['title'] }}">
             </a>
         @endif
         <div class="card-body">
             <span class="badge mb-2" style="background:{{ $m['color'] }}">{{ $m['icon'] }} {{ __($m['label']) }}</span>
             @if($article->vote_id) <span class="badge bg-info">@icon('🗳️') {{ __('Vote') }}</span> @endif
             <h5 class="card-title">
-                <a href="{{ route('article.show', $article->slug) }}" class="stretched-link text-reset text-decoration-none">{{ $article->title }}</a>
+                <a href="{{ route('article.show', $article->slug) }}" class="stretched-link text-reset text-decoration-none">{{ $t['title'] }}</a>
             </h5>
-            <div class="card-text article-card-preview">{!! $article->renderedBody() !!}</div>
+            <div class="card-text article-card-preview">{!! $article->renderedBody($t['body']) !!}</div>
             <a href="{{ route('article.show', $article->slug) }}" class="btn btn-outline-primary btn-sm position-relative">{{ __('Read more') }}</a>
         </div>
         <div class="card-footer text-muted small">

@@ -5,6 +5,7 @@
     </div>
     <div class="list-group list-group-flush">
         @forelse($widget['data']['classifieds'] ?? [] as $ad)
+            @php $t = $ad->translated(); @endphp
             <a href="{{ route('article.show', $ad->slug) }}" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
                 @if($ad->featured_image)
                     <img src="{{ asset('storage/' . $ad->featured_image) }}" alt="" style="width:72px;height:72px;object-fit:cover;flex-shrink:0;border-radius:6px">
@@ -12,7 +13,7 @@
                     <div class="d-flex align-items-center justify-content-center bg-light" style="width:72px;height:72px;flex-shrink:0;border-radius:6px;font-size:1.5rem">🏷️</div>
                 @endif
                 <div class="min-width-0">
-                    <div class="fw-semibold text-truncate" style="font-size:.9rem">{{ $ad->title }}</div>
+                    <div class="fw-semibold text-truncate" style="font-size:.9rem">{{ $t['title'] }}</div>
                     <small class="text-muted">{{ $ad->author?->name }} · {{ $ad->created_at->format('d/m/Y') }}</small>
                 </div>
             </a>

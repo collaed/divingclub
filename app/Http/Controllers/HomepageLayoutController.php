@@ -113,7 +113,7 @@ class HomepageLayoutController extends Controller
                 : EventPhoto::randomPublic($widget['config']['count'] ?? 8)->get()],
             'articles' => ['articles' => Article::active()->excludingSystem()->where('is_public', true)
                 ->where('article_type', '!=', 'classified')->where('sort_order', '>=', 0)
-                ->with('author.detail')->orderByDesc('created_at')
+                ->with('author.detail', 'translations')->orderByDesc('created_at')
                 ->limit($widget['config']['limit'] ?? 10)->get()],
             'quick_links' => ['links' => Link::where('is_public', true)->orderBy('sort_order')->get()],
             'photos' => ['photos' => auth()->check()
@@ -126,7 +126,7 @@ class HomepageLayoutController extends Controller
                 : collect()],
             'classifieds' => ['classifieds' => auth()->check()
                 ? Article::where('article_type', 'classified')->active()
-                    ->with('author.detail')->orderByDesc('created_at')
+                    ->with('author.detail', 'translations')->orderByDesc('created_at')
                     ->limit($widget['config']['limit'] ?? 5)->get()
                 : collect()],
             'buddy_requests' => ['requests' => auth()->check()
