@@ -69,6 +69,31 @@ class PollInboundMailAuthLevelTest extends TestCase
         $this->assertNotNull(EmailLog::where('status', 'forwarded')->first());
     }
 
+    /**
+     * resolveDefinition() builds the group's email list from members'
+     * PRIMARY addresses only — a group member sending from their own
+     * verified secondary address is a legitimate $sender (resolved by
+     * authorizedFor()'s initial lookup) but was previously still rejected
+     * because the old check compared the raw sent-from address against
+     * that primary-only list instead of the sender's own primary_email.
+     */
+    public function test_a_group_or_bureau_alias_accepts_a_group_members_verified_secondary_address(): void
+    {
+        $n1 = $this->createMemberUser();
+        $n1->detail->update(['training_enrollments' => ['N1']]);
+        UserEmail::create(['user_id' => $n1->id, 'email' => 'personal@example.test', 'is_verified' => true]);
+        MailAliasDefinition::create([
+            'tags' => ['n1-chase'], 'label' => 'N1 students', 'criteria' => ['pn1'], 'auth_level' => 'group_or_bureau',
+        ]);
+
+        Mail::shouldReceive('html')->once();
+        Mail::shouldReceive('raw')->once();
+
+        $this->processMessage('personal@example.test', 'n1-chase@example.com', 'Hello', 'Hi there');
+
+        $this->assertNotNull(EmailLog::where('status', 'forwarded')->first());
+    }
+
     public function test_a_bureau_only_alias_still_rejects_a_plain_member(): void
     {
         $member = $this->createMemberUser();

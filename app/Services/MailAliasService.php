@@ -187,7 +187,13 @@ class MailAliasService
         return match ($resolved['auth_level']) {
             'bureau' => $sender->isBureau(),
             'bureau_or_instructor' => $sender->isBureau() || $sender->hasRole('instructor'),
-            'group_or_bureau' => $sender->isBureau() || in_array($senderEmail, $resolved['emails'], true),
+            // $resolved['emails'] only ever holds members' primary addresses
+            // (see resolveDefinition()'s pluck('primary_email')), so a group
+            // member sending from their own verified secondary address must
+            // be checked by their primary, not by the literal $senderEmail
+            // they happened to send from — otherwise they'd be a legitimate
+            // $sender (resolved above) yet still fail this membership check.
+            'group_or_bureau' => $sender->isBureau() || in_array($sender->primary_email, $resolved['emails'], true),
             'any_member' => true,
             'participant' => $alias !== null && static::isEventParticipantOrStaff($sender, $alias),
             default => false,
