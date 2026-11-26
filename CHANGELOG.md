@@ -5,6 +5,24 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-26 — prod at cca5c11
+
+### Added
+- Bureau/instructors see a "Recent event changes" recap at the bottom of
+  the calendar page — who moved/retitled an event and when.
+
+### Fixed
+- App boot no longer crashes before the database exists (hit CI's
+  `composer install` and any fresh checkout).
+- A member with an FFESSM licence obtained directly through the
+  federation is no longer charged the club's FFESSM licence fee.
+- Homepage article/classifieds cards now show the viewer's own locale
+  instead of always showing the source language, matching the article
+  page itself.
+- The event-communication Communications panel no longer splits one
+  inbound message into two entries, and no longer shows raw/double-
+  escaped HTML instead of readable text.
+
 ## 2026-11-25 — prod at b30e1ad
 
 ### Fixed
