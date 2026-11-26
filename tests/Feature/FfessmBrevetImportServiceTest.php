@@ -38,7 +38,7 @@ class FfessmBrevetImportServiceTest extends TestCase
         $this->ffessm = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'FFESSM', 'visibility' => 'active']);
         CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'rank' => 20]);
         CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'RIFAP', 'name' => 'RIFA Plongée', 'category' => 'specialty', 'rank' => 230]);
-        CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'APNEA_PASS', 'name' => 'Pass Apnéiste (ATP)', 'category' => 'diver', 'rank' => 5]);
+        CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'rank' => 4]);
     }
 
     /** @param  array<int, array<int, mixed>>  $dataRows */
@@ -155,7 +155,7 @@ class FfessmBrevetImportServiceTest extends TestCase
         $this->assertSame(1, $result['certs_created']);
         $this->assertSame([], $result['unmatched_levels']);
         $user = User::whereHas('detail', fn ($q) => $q->where('first_name', 'Marco'))->firstOrFail();
-        $this->assertNotNull($user->certificationLevels()->where('code', 'APNEA_PASS')->first());
+        $this->assertNotNull($user->certificationLevels()->where('code', 'ATP')->first());
         @unlink($path);
     }
 

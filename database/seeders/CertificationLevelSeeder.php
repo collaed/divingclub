@@ -57,11 +57,12 @@ class CertificationLevelSeeder extends Seeder
             // ================================================================
             'FFESSM' => [
                 // Junior/youth diver ranks
-                ['code' => 'PLONGEUR_BRONZE', 'name' => 'Plongeur Bronze', 'category' => 'diver', 'rank' => 1, 'equivalence_group' => null],
-                ['code' => 'PLONGEUR_ARGENT', 'name' => 'Plongeur Argent', 'category' => 'diver', 'rank' => 2, 'equivalence_group' => null],
-                ['code' => 'PLONGEUR_OR', 'name' => 'Plongeur Or', 'category' => 'diver', 'rank' => 3, 'equivalence_group' => null],
-                // Freediving (apnée) track
-                ['code' => 'APNEA_PASS', 'name' => 'Pass Apnéiste (ATP)', 'category' => 'diver', 'rank' => 5, 'equivalence_group' => null],
+                ['code' => 'Bronze', 'name' => 'Jeune Plongeur Bronze', 'category' => 'diver', 'rank' => 4, 'equivalence_group' => null],
+                ['code' => 'Argent', 'name' => 'Jeune Plongeur Argent', 'category' => 'diver', 'rank' => 6, 'equivalence_group' => null],
+                ['code' => 'Or', 'name' => 'Jeune Plongeur Or', 'category' => 'diver', 'rank' => 8, 'equivalence_group' => null],
+                // Freediving (apnée) track — "ATP" is the sigle FFESSM itself
+                // prints next to this brevet on the club export.
+                ['code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'rank' => 4, 'equivalence_group' => null],
                 ['code' => 'APNEA_1', 'name' => 'Apnéiste / Indoor Freediver 1 CMAS', 'category' => 'diver', 'rank' => 15, 'equivalence_group' => null],
                 // Diver levels
                 ['code' => 'PE20', 'name' => 'Plongeur Encadré 20m', 'category' => 'diver', 'rank' => 10, 'equivalence_group' => 'cmas_1s'],

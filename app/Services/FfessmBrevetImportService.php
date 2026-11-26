@@ -32,11 +32,11 @@ class FfessmBrevetImportService
 {
     /** Exact "Niveau" label (as FFESSM writes it) => our CertificationLevel code. */
     private const LEVEL_MAP = [
-        'Plongeur Bronze' => 'PLONGEUR_BRONZE',
-        'Plongeur Argent' => 'PLONGEUR_ARGENT',
-        'Plongeur Or' => 'PLONGEUR_OR',
-        'Pass Apnéiste (ATP)' => 'APNEA_PASS',
-        'Pass Apnéiste' => 'APNEA_PASS',
+        'Plongeur Bronze' => 'Bronze',
+        'Plongeur Argent' => 'Argent',
+        'Plongeur Or' => 'Or',
+        'Pass Apnéiste (ATP)' => 'ATP',
+        'Pass Apnéiste' => 'ATP',
         'Apnéiste / Indoor Freediver 1 CMAS' => 'APNEA_1',
         'Niveau 1' => 'N1',
         'Niveau 2' => 'N2',
