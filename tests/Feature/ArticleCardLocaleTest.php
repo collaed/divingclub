@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Article;
 use App\Models\ArticleTranslation;
 use App\Models\MemberDetail;
-use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;

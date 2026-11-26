@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
+use Spatie\Permission\Models\Role;
 use Tests\Feature\Concerns\SeedsRoles;
 use Tests\TestCase;
 
@@ -53,7 +54,7 @@ class EventChangeRecapTest extends TestCase
 
     public function test_an_instructor_sees_the_recap_too(): void
     {
-        \Spatie\Permission\Models\Role::findOrCreate('instructor', 'web');
+        Role::findOrCreate('instructor', 'web');
         $bureau = $this->createBureauUser();
         $this->actingAs($bureau);
         $event = Event::factory()->create(['title' => 'FosseRecapCC']);
