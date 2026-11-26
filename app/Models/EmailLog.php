@@ -38,6 +38,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $authorized
  * @property string|null $attempts
  * @property string|null $error
+ * @property string|null $batch_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -47,7 +48,7 @@ class EmailLog extends Model
 
     protected $table = 'email_log';
 
-    protected $fillable = ['event_id', 'user_id', 'to_email', 'alias', 'from_name', 'from_email', 'subject', 'body', 'template_slug', 'status', 'direction', 'authorized', 'attempts', 'error', 'provider'];
+    protected $fillable = ['event_id', 'user_id', 'to_email', 'alias', 'from_name', 'from_email', 'subject', 'body', 'template_slug', 'status', 'direction', 'authorized', 'attempts', 'error', 'provider', 'batch_id'];
 
     /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo
@@ -63,20 +64,33 @@ class EmailLog extends Model
 
     /**
      * One inbound alias message produces one EmailLog row per recipient
-     * (see PollInboundMail::processMessage()) — these share the same
-     * subject/sender/timestamp and are really copies of a single
-     * communication. Used to collapse them into one thread for display
-     * (EventController::show()) and to apply an edit to every copy at once
-     * (EmailController::updateLog()).
+     * (see PollInboundMail::processMessage()) — these are really copies of a
+     * single communication. Used to collapse them into one thread for
+     * display (EventController::show()) and to apply an edit to every copy
+     * at once (EmailController::updateLog()).
+     *
+     * Rows written since batch_id was introduced share that id and thread on
+     * it directly — a send to several recipients takes long enough (each
+     * recipient is its own network call via MailBalancer) to straddle a
+     * second boundary, which used to split one message into multiple
+     * threads when grouping fell back to subject+sender+created_at. Older
+     * rows have no batch_id, so they keep the legacy fallback.
      */
     public function threadKey(): string
     {
-        return md5(($this->subject ?? '').'|'.($this->from_email ?? '').'|'.($this->created_at?->format('Y-m-d H:i:s') ?? ''));
+        return $this->batch_id
+            ?? md5(($this->subject ?? '').'|'.($this->from_email ?? '').'|'.($this->created_at?->format('Y-m-d H:i:s') ?? ''));
     }
 
     /** @param  Builder<EmailLog>  $query */
     public function scopeSameThread(Builder $query, self $log): void
     {
+        if ($log->batch_id) {
+            $query->where('batch_id', $log->batch_id);
+
+            return;
+        }
+
         $query->where('subject', $log->subject)
             ->where('from_email', $log->from_email)
             ->where('created_at', $log->created_at);

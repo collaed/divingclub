@@ -15,6 +15,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use IMAP\Connection;
 
 /**
@@ -219,7 +220,7 @@ class PollInboundMail implements ShouldQueue
         if (! MailAliasService::authorizedFor($resolved, $from, $to)) {
             EmailLog::create([
                 'to_email' => $to, 'from_email' => $from, 'subject' => $subject,
-                'body' => substr($body, 0, 5000), 'status' => 'rejected',
+                'body' => substr($this->toDisplayText($body), 0, 5000), 'status' => 'rejected',
                 'direction' => 'inbound', 'error' => 'Unauthorized sender',
             ]);
 
@@ -249,8 +250,14 @@ class PollInboundMail implements ShouldQueue
 
         // One EmailLog row per recipient (not one for the whole batch) so a
         // failure on one address doesn't obscure whether the others went
-        // through, and so which relay handled each send is traceable.
+        // through, and so which relay handled each send is traceable. They
+        // all share one batch_id so the Communications panel (and the bulk
+        // edit in EmailController::updateLog()) still treats them as a
+        // single thread regardless of which wall-clock second each row's
+        // own per-recipient send/insert lands in.
         $sent = 0;
+        $batchId = (string) Str::uuid();
+        $displayBody = substr($this->toDisplayText($filtered['body']), 0, 5000);
         foreach ($resolved['emails'] as $email) {
             $status = 'forwarded';
             $error = null;
@@ -273,12 +280,13 @@ class PollInboundMail implements ShouldQueue
             EmailLog::create([
                 'event_id' => $eventId,
                 'to_email' => $email, 'from_email' => $from, 'subject' => $finalSubject,
-                'body' => substr($filtered['body'], 0, 5000),
+                'body' => $displayBody,
                 'status' => $status,
                 'direction' => 'inbound',
                 'authorized' => ! $filtered['needs_review'],
                 'error' => $error,
                 'provider' => MailBalancer::lastProvider(),
+                'batch_id' => $batchId,
             ]);
         }
 
@@ -299,7 +307,10 @@ class PollInboundMail implements ShouldQueue
         // One EmailLog row per target (not one for the whole rule) — same
         // reasoning as processMessage()'s forwarding loop: a failure on one
         // address must not hide whether the others went through, or which
-        // relay each one used.
+        // relay each one used. They share one batch_id for the same reason
+        // the forwarding loop below does — see the comment there.
+        $batchId = (string) Str::uuid();
+        $displayBody = substr($this->toDisplayText($body), 0, 5000);
         foreach ($rule->targets() as $target) {
             $status = 'forwarded';
             $error = "Redirected to {$target}";
@@ -314,9 +325,10 @@ class PollInboundMail implements ShouldQueue
 
             EmailLog::create([
                 'to_email' => $target, 'from_email' => $from, 'subject' => $subject,
-                'alias' => $to, 'body' => substr($body, 0, 5000), 'status' => $status,
+                'alias' => $to, 'body' => $displayBody, 'status' => $status,
                 'direction' => 'inbound', 'authorized' => true, 'error' => $error,
                 'provider' => MailBalancer::lastProvider(),
+                'batch_id' => $batchId,
             ]);
         }
     }
@@ -376,6 +388,29 @@ class PollInboundMail implements ShouldQueue
         }
 
         return $body;
+    }
+
+    /**
+     * The body stored for display (Communications panel, EmailLog) must be
+     * plain, human-readable text — but parseRawBody()/getImapBody() hand
+     * back the chosen MIME part's *source* (HTML markup when an HTML part
+     * exists, otherwise a `<pre>`-wrapped, already-entity-escaped plain-text
+     * part), because that's what Mail::html() needs to forward it looking
+     * right in the recipient's own mail client. Blade's `{{ }}` then
+     * escapes that source a second time, so an HTML part shows as literal
+     * tag soup and a plain-text part shows its entities twice-escaped.
+     * Converting to text here (not in the extraction methods themselves)
+     * keeps the forwarded email untouched while fixing what gets logged.
+     */
+    private function toDisplayText(string $html): string
+    {
+        $text = preg_replace('/<(br|\/p|\/div|\/li|\/tr)\s*\/?>/i', "\n", $html);
+        $text = strip_tags($text);
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5);
+        $text = preg_replace('/[ \t]+/', ' ', $text);
+        $text = preg_replace('/\n{3,}/', "\n\n", $text);
+
+        return trim($text);
     }
 
     private function extractEmail(string $header): string
