@@ -90,6 +90,7 @@ class ProcessLicenceScan implements ShouldQueue
                 'season' => $fields['year'],
                 'scan_image_path' => $imageDisk,
                 'card_issued_at' => $this->extractCardIssuedAt($sourcePath, $scan->federation->acronym),
+                'licence_request_pending' => false,
             ],
         );
 
