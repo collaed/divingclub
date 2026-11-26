@@ -36,6 +36,7 @@ class FfessmBrevetImportService
         'Plongeur Argent' => 'PLONGEUR_ARGENT',
         'Plongeur Or' => 'PLONGEUR_OR',
         'Pass Apnéiste (ATP)' => 'APNEA_PASS',
+        'Pass Apnéiste' => 'APNEA_PASS',
         'Apnéiste / Indoor Freediver 1 CMAS' => 'APNEA_1',
         'Niveau 1' => 'N1',
         'Niveau 2' => 'N2',

@@ -38,6 +38,7 @@ class FfessmBrevetImportServiceTest extends TestCase
         $this->ffessm = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'FFESSM', 'visibility' => 'active']);
         CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'rank' => 20]);
         CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'RIFAP', 'name' => 'RIFA Plongée', 'category' => 'specialty', 'rank' => 230]);
+        CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'APNEA_PASS', 'name' => 'Pass Apnéiste (ATP)', 'category' => 'diver', 'rank' => 5]);
     }
 
     /** @param  array<int, array<int, mixed>>  $dataRows */
@@ -135,6 +136,27 @@ class FfessmBrevetImportServiceTest extends TestCase
         $user = User::whereHas('detail', fn ($q) => $q->where('first_name', 'Benjamin'))->firstOrFail();
         $this->assertSame(1, $user->certificationLevels()->count());
         @unlink($path2);
+    }
+
+    /**
+     * Real exports sometimes print the freediving level without its "(ATP)"
+     * suffix — confirmed against a real 2020-2021 season export where "Pass
+     * Apnéiste" (no suffix) was wrongly reported as an unrecognised level.
+     */
+    public function test_the_apnea_pass_level_matches_with_or_without_its_atp_suffix(): void
+    {
+        $this->member('Marco', 'Testeur');
+        $path = $this->makeXlsx([
+            ['06/05/2026', '07/05/2026', 'LUXEMBOURG', 'Pass Apnéiste', 'Normal', '06', '06970240', 'CLUB EUROPEEN DE PLONGEE', 'A-26-4309891', 'Mr', 'TESTEUR MARCO', 'A-09-428497', 'GIANCOLA PIETRO'],
+        ]);
+
+        $result = app(FfessmBrevetImportService::class)->import($path, 'test.xlsx');
+
+        $this->assertSame(1, $result['certs_created']);
+        $this->assertSame([], $result['unmatched_levels']);
+        $user = User::whereHas('detail', fn ($q) => $q->where('first_name', 'Marco'))->firstOrFail();
+        $this->assertNotNull($user->certificationLevels()->where('code', 'APNEA_PASS')->first());
+        @unlink($path);
     }
 
     public function test_an_unknown_name_is_reported_and_left_untouched(): void
