@@ -30,13 +30,7 @@ class MembersDirectoryController extends Controller
         // here (this is not a filter that can be turned off — the admin
         // roster is the place to look up former members). Unconditional, so
         // it also can't be bypassed by a crafted status_id in the URL.
-        $inactiveIds = MemberStatus::inactiveIds();
-
-        $query = User::with(['detail', 'roles', 'status', 'certificationLevels'])
-            ->whereHas('detail', fn ($q) => $q->whereNotNull('first_name'))
-            ->where(function ($q) use ($inactiveIds): void {
-                $q->whereNull('status_id')->orWhereNotIn('status_id', $inactiveIds->all());
-            });
+        $query = $this->activeMembersQuery()->with(['detail', 'roles', 'status', 'certificationLevels']);
 
         // Text search
         if ($request->filled('search')) {
@@ -100,10 +94,45 @@ class MembersDirectoryController extends Controller
             return view('members._directory_rows', compact('members'));
         }
 
+        $representedIds = $this->representedLevelIds();
+
         return view('members.directory', compact('members', 'statuses') + [
-            'scubaLevels' => $this->levelOptionsFor('scuba'),
-            'freedivingLevels' => $this->levelOptionsFor('freediving'),
+            'scubaLevels' => $this->levelOptionsFor('scuba', $representedIds['scuba']),
+            'freedivingLevels' => $this->levelOptionsFor('freediving', $representedIds['freediving']),
         ]);
+    }
+
+    /**
+     * Base query for the member-facing roster: confirmed members only, former/inactive statuses excluded.
+     *
+     * @return Builder<User>
+     */
+    private function activeMembersQuery(): Builder
+    {
+        $inactiveIds = MemberStatus::inactiveIds();
+
+        return User::whereHas('detail', fn ($q) => $q->whereNotNull('first_name'))
+            ->where(function ($q) use ($inactiveIds): void {
+                $q->whereNull('status_id')->orWhereNotIn('status_id', $inactiveIds->all());
+            });
+    }
+
+    /**
+     * The certification level ids actually displayed for someone in the
+     * active member list right now (same resolution as the row's own
+     * star/fallback display), per track — so the filter dropdowns never
+     * offer a level nobody currently shows under.
+     *
+     * @return array{scuba: list<int>, freediving: list<int>}
+     */
+    private function representedLevelIds(): array
+    {
+        $members = $this->activeMembersQuery()->with('certificationLevels')->get();
+
+        return [
+            'scuba' => $members->map(fn (User $u) => $u->primaryCertification()?->id)->filter()->unique()->values()->all(),
+            'freediving' => $members->map(fn (User $u) => $u->primaryFreedivingCertification()?->id)->filter()->unique()->values()->all(),
+        ];
     }
 
     /**
@@ -132,10 +161,16 @@ class MembersDirectoryController extends Controller
         });
     }
 
-    /** Certification levels for one track, grouped by federation acronym, for the filter dropdowns. */
-    private function levelOptionsFor(string $discipline): Collection
+    /**
+     * Certification levels for one track, grouped by federation acronym, for
+     * the filter dropdowns — restricted to $levelIds (the levels actually
+     * represented in the current active member list).
+     *
+     * @param  list<int>  $levelIds
+     */
+    private function levelOptionsFor(string $discipline, array $levelIds): Collection
     {
-        $query = CertificationLevel::where('discipline', $discipline)->with('federation');
+        $query = CertificationLevel::where('discipline', $discipline)->whereIn('id', $levelIds)->with('federation');
         if ($discipline === 'scuba') {
             $query->where('category', '!=', 'specialty');
         }
