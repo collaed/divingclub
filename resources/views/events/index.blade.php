@@ -62,7 +62,7 @@
             }
         @endphp
         <div class="table-responsive">
-            <table class="table table-bordered">
+            <table class="table table-bordered calendar-month">
                 <thead><tr>
                     @foreach(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $d)
                         <th class="text-center small" style="width:14.28%">{{ __($d) }}</th>
@@ -72,10 +72,15 @@
                 @while($day->lte($monthEnd))
                     <tr>
                     @for($i = 0; $i < 7; $i++)
-                        @php $isCurrentMonth = $day->month === $date->month; $dayEvents = $eventsByDate[$day->format('Y-m-d')] ?? collect(); @endphp
-                        <td class="p-1 {{ $isCurrentMonth ? '' : 'bg-light' }}" style="vertical-align:top; min-height:80px;">
+                        @php
+                            $isCurrentMonth = $day->month === $date->month;
+                            $isToday = $isCurrentMonth && $day->isToday();
+                            $dayEvents = $eventsByDate[$day->format('Y-m-d')] ?? collect();
+                            $weekdayLabel = __(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][$day->isoWeekday() - 1]);
+                        @endphp
+                        <td class="{{ $isCurrentMonth ? '' : 'bg-light' }} {{ $isToday ? 'cal-today' : '' }}" data-weekday="{{ $weekdayLabel }}">
                             @if($isCurrentMonth)
-                                <div class="small {{ $day->isToday() ? 'fw-bold text-primary' : 'text-muted' }}">{{ $day->day }}</div>
+                                <div class="cal-daynum small {{ $isToday ? 'fw-bold text-primary' : 'text-muted' }}">{{ $day->day }}</div>
                             @else
                                 <a href="{{ route('events.index', ['view' => 'month', 'date' => $day->format('Y-m-d')]) }}" class="small text-muted text-decoration-none d-block" title="{{ __('Go to :month', ['month' => $day->format('F Y')]) }}">{{ $day->day }}</a>
                             @endif
