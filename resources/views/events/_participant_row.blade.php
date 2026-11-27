@@ -68,7 +68,7 @@
     <div class="text-muted" style="font-size:0.7rem">
         {{ $reg->created_at?->format('d/m/y H:i') }}
         @if($reg->registeredByUser)
-            {{ __('by') }} {{ $reg->registeredByUser->name }}
+            — {{ __('Registered by') }} {{ $reg->registeredByUser->name }}
         @endif
         @if($reg->comment)
             — <em>{{ $reg->comment }}</em>
@@ -116,7 +116,7 @@
         <div class="text-danger" style="font-size:0.7rem">
             @icon('✗') {{ $reg->cancelled_at?->format('d/m/y H:i') }}
             @if($reg->cancelledByUser)
-                {{ __('by') }} {{ $reg->cancelledByUser->name }}
+                — {{ __('Unregistered by') }} {{ $reg->cancelledByUser->name }}
             @endif
             @if($reg->cancel_comment)
                 — <em>{{ $reg->cancel_comment }}</em>

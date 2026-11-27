@@ -311,4 +311,20 @@ class EventRegistrationWorkflowTest extends TestCase
         $response->assertSee(__('show/hide cancelled'));
         $response->assertSee($cancelledMember->detail->first_name);
     }
+
+    public function test_the_audit_line_distinguishes_registered_by_from_unregistered_by(): void
+    {
+        $event = $this->event();
+        $registrar = $this->member();
+        $target = $this->member();
+
+        $this->actingAs($registrar)->post("/events/{$event->id}/register", ['user_id' => $target->id]);
+        $this->actingAs($registrar)->post("/events/{$event->id}/cancel-registration", ['user_id' => $target->id]);
+
+        $response = $this->actingAs($registrar)->get("/events/{$event->id}");
+
+        $response->assertOk();
+        $response->assertSeeInOrder([__('Registered by'), $registrar->detail->first_name]);
+        $response->assertSeeInOrder([__('Unregistered by'), $registrar->detail->first_name]);
+    }
 }
