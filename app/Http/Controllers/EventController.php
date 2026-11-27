@@ -103,7 +103,7 @@ class EventController extends Controller
     public function show(Event $event): RedirectResponse|View
     {
         $event->load([
-            'registrations.user.detail', 'registrations.user.certificationLevels',
+            'registrations.user.detail', 'registrations.user.certificationLevels', 'registrations.user.roles',
             'registrations.registeredByUser.detail', 'registrations.cancelledByUser.detail',
             'instructor.detail', 'responsible.detail', 'season', 'diveSite',
             'diveGroups.members.user.certificationLevels',

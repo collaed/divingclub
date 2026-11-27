@@ -383,8 +383,12 @@
                 // it via the "Recheck licence" button in _participant_row; otherwise these rows were
                 // simply missing from the Participants card entirely, even for bureau_master.
                 $pendingLicenceRegs = $isPrivileged ? $event->registrations->where('status', 'pending_licence') : collect();
-                $instructorRegs = $confirmed->filter(fn($r) => $r->user && ($r->user->role_id === 3 || $r->user->detail?->active_instructor));
-                $memberRegs = $confirmed->filter(fn($r) => $r->user && !($r->user->role_id === 3 || $r->user->detail?->active_instructor));
+                // Social events are a get-together, not a dive led by an instructor —
+                // nobody is singled out there, so everyone stays in one plain list.
+                $splitInstructors = $event->event_type !== 'social';
+                $isInstructor = fn ($r) => $r->user && ($r->user->hasAnyRole(['instructor', 'instructor_apnea']) || $r->user->detail?->active_instructor);
+                $instructorRegs = $splitInstructors ? $confirmed->filter($isInstructor) : collect();
+                $memberRegs = $splitInstructors ? $confirmed->filter(fn($r) => $r->user && ! $isInstructor($r)) : $confirmed->filter(fn($r) => $r->user);
                 $nonMemberRegs = $confirmed->filter(fn($r) => $r->isNonMember());
             @endphp
             <div class="card dc-card mb-4">
@@ -406,7 +410,7 @@
                         <div class="px-3 pt-2 pb-1"><small class="fw-bold text-muted">{{ __('Instructors') }}</small></div>
                         <ul class="list-group list-group-flush">
                         @foreach($instructorRegs as $reg)
-                            @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event])
+                            @include('events._participant_row', ['reg' => $reg, 'isPrivileged' => $isPrivileged, 'event' => $event, 'highlightInstructor' => true])
                         @endforeach
                         </ul>
                     @endif

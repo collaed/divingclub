@@ -22,7 +22,7 @@ class EventRegistrationWorkflowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Role::upsert([['id' => 2, 'name' => 'Member', 'slug' => 'member']], ['id']);
+        Role::upsert([['id' => 2, 'name' => 'Member', 'slug' => 'member'], ['id' => 3, 'name' => 'Instructor', 'slug' => 'instructor']], ['id']);
         SpatieRole::findOrCreate('member', 'web');
         MemberStatus::upsert([['id' => 1, 'name' => 'Active', 'slug' => 'active']], ['id']);
     }
@@ -162,5 +162,43 @@ class EventRegistrationWorkflowTest extends TestCase
         $this->assertStringContainsString('required', $rules['registration_mode']);
         $this->assertStringContainsString('not_needed', $rules['registration_mode']);
         $this->assertArrayHasKey('inscription_close_at', $rules);
+    }
+
+    public function test_the_instructor_bucket_follows_the_live_role_not_the_stale_legacy_role_id(): void
+    {
+        $event = $this->event(['event_type' => 'pool']);
+
+        // Stale legacy role_id=3 ("instructor" in legacy_roles) from a past promotion
+        // that was never reverted — must not count; only the live Spatie role does.
+        $demoted = $this->member();
+        $demoted->update(['role_id' => 3]);
+
+        $freedivingInstructor = $this->member();
+        SpatieRole::findOrCreate('instructor_apnea', 'web');
+        $freedivingInstructor->assignRole('instructor_apnea');
+
+        $this->actingAs($demoted)->post("/events/{$event->id}/register");
+        $this->actingAs($freedivingInstructor)->post("/events/{$event->id}/register");
+
+        $response = $this->actingAs($demoted)->get("/events/{$event->id}");
+
+        $response->assertOk();
+        $response->assertSeeInOrder([__('Instructors'), $freedivingInstructor->detail->first_name, __('Members'), $demoted->detail->first_name]);
+    }
+
+    public function test_social_events_do_not_split_out_an_instructors_group(): void
+    {
+        $event = $this->event(['event_type' => 'social']);
+
+        $instructor = $this->member();
+        SpatieRole::findOrCreate('instructor_apnea', 'web');
+        $instructor->assignRole('instructor_apnea');
+
+        $this->actingAs($instructor)->post("/events/{$event->id}/register");
+
+        $response = $this->actingAs($instructor)->get("/events/{$event->id}");
+
+        $response->assertOk();
+        $response->assertDontSee(__('Instructors'));
     }
 }

@@ -17,7 +17,15 @@
         && $event->required_federation_id
         && ! $reg->user->hasActiveLicence($event->requiredFederation, $event->event_date);
 @endphp
-<li class="list-group-item small {{ $isCancelled ? 'bg-light text-decoration-line-through' : (($medInvalid || $licenceNowInvalid) ? 'list-group-item-danger' : '') }}" style="border-bottom: 2px solid rgba(var(--bs-emphasis-color-rgb), 0.15);">
+@php
+    $rowClass = match (true) {
+        $isCancelled => 'bg-light text-decoration-line-through',
+        $medInvalid || $licenceNowInvalid => 'list-group-item-danger',
+        isset($highlightInstructor) => 'list-group-item-info',
+        default => '',
+    };
+@endphp
+<li class="list-group-item small {{ $rowClass }}" style="border-bottom: 2px solid rgba(var(--bs-emphasis-color-rgb), 0.15);">
     <div class="d-flex justify-content-between align-items-start">
         <div>
             @if($isNonMember)
