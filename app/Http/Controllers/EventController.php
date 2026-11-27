@@ -270,6 +270,8 @@ class EventController extends Controller
             $reg = $event->registrations()->where('user_id', $targetUserId)->whereIn('status', ['confirmed', 'waiting', 'pending_licence'])->firstOrFail();
         }
 
+        abort_unless($reg->canBeCancelledBy($actor, $event), 403);
+
         $result = $service->cancel($event, $reg, $actor, $request->input('cancel_comment'));
 
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);

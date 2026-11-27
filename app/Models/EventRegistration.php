@@ -107,6 +107,28 @@ class EventRegistration extends Model
         return $this->belongsTo(User::class, 'cancelled_by');
     }
 
+    /**
+     * Who may unregister this participant: the registered member themselves
+     * (or their family/guardian, via User::canActFor()), whoever registered
+     * them, any instructor, or bureau/this event's instructor or assistants.
+     */
+    public function canBeCancelledBy(User $actor, Event $event): bool
+    {
+        if ($actor->isBureau() || $actor->hasAnyRole(['instructor', 'instructor_apnea'])) {
+            return true;
+        }
+
+        if ($event->instructor_id === $actor->id || in_array($actor->id, $event->assistant_ids ?? [])) {
+            return true;
+        }
+
+        if ($this->registered_by !== null && (int) $this->registered_by === $actor->id) {
+            return true;
+        }
+
+        return $this->user_id !== null && $actor->canActFor($this->user);
+    }
+
     /** Tank/regulator/BCD items lent for this registration. @return HasMany<EquipmentLoan, $this> */
     public function equipmentLoans(): HasMany
     {

@@ -24,6 +24,8 @@ class EventRegistrationWorkflowTest extends TestCase
         parent::setUp();
         Role::upsert([['id' => 2, 'name' => 'Member', 'slug' => 'member'], ['id' => 3, 'name' => 'Instructor', 'slug' => 'instructor']], ['id']);
         SpatieRole::findOrCreate('member', 'web');
+        SpatieRole::findOrCreate('instructor_apnea', 'web');
+        SpatieRole::findOrCreate('bureau_master', 'web');
         MemberStatus::upsert([['id' => 1, 'name' => 'Active', 'slug' => 'active']], ['id']);
     }
 
@@ -200,5 +202,82 @@ class EventRegistrationWorkflowTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee(__('Instructors'));
+    }
+
+    public function test_the_person_who_registered_someone_else_can_unregister_them(): void
+    {
+        $event = $this->event();
+        $registrar = $this->member();
+        $target = $this->member();
+
+        $this->actingAs($registrar)->post("/events/{$event->id}/register", ['user_id' => $target->id]);
+        $reg = EventRegistration::where('event_id', $event->id)->where('user_id', $target->id)->first();
+        $this->assertSame($registrar->id, $reg->registered_by);
+
+        $this->actingAs($registrar)->post("/events/{$event->id}/cancel-registration", ['user_id' => $target->id]);
+
+        $this->assertDatabaseHas('event_registrations', ['id' => $reg->id, 'status' => 'cancelled', 'cancelled_by' => $registrar->id]);
+    }
+
+    public function test_a_family_member_can_unregister_a_registered_relative(): void
+    {
+        $event = $this->event();
+        $familyMember = $this->member();
+        $target = $this->member();
+        $target->detail->update(['family_id' => 1]);
+        $familyMember->detail->update(['family_id' => 1]);
+
+        $this->actingAs($target)->post("/events/{$event->id}/register");
+        $reg = EventRegistration::where('event_id', $event->id)->where('user_id', $target->id)->first();
+
+        $this->actingAs($familyMember)->post("/events/{$event->id}/cancel-registration", ['user_id' => $target->id])->assertRedirect();
+
+        $this->assertDatabaseHas('event_registrations', ['id' => $reg->id, 'status' => 'cancelled', 'cancelled_by' => $familyMember->id]);
+    }
+
+    public function test_any_instructor_can_unregister_a_participant_even_without_teaching_the_event(): void
+    {
+        $event = $this->event();
+        $target = $this->member();
+        $unrelatedInstructor = $this->member();
+        SpatieRole::findOrCreate('instructor', 'web');
+        $unrelatedInstructor->assignRole('instructor');
+
+        $this->actingAs($target)->post("/events/{$event->id}/register");
+        $reg = EventRegistration::where('event_id', $event->id)->where('user_id', $target->id)->first();
+
+        $this->actingAs($unrelatedInstructor)->post("/events/{$event->id}/cancel-registration", ['user_id' => $target->id])->assertRedirect();
+
+        $this->assertDatabaseHas('event_registrations', ['id' => $reg->id, 'status' => 'cancelled']);
+    }
+
+    public function test_an_unrelated_member_cannot_unregister_someone_else(): void
+    {
+        $event = $this->event();
+        $target = $this->member();
+        $stranger = $this->member();
+
+        $this->actingAs($target)->post("/events/{$event->id}/register");
+
+        $this->actingAs($stranger)->post("/events/{$event->id}/cancel-registration", ['user_id' => $target->id])->assertForbidden();
+
+        $this->assertDatabaseHas('event_registrations', ['event_id' => $event->id, 'user_id' => $target->id, 'status' => 'confirmed']);
+    }
+
+    public function test_the_unregister_button_is_offered_to_the_family_member_and_the_original_registrar_but_not_a_stranger(): void
+    {
+        $event = $this->event();
+        $registrar = $this->member();
+        $familyMember = $this->member();
+        $stranger = $this->member();
+        $target = $this->member();
+        $target->detail->update(['family_id' => 2]);
+        $familyMember->detail->update(['family_id' => 2]);
+
+        $this->actingAs($registrar)->post("/events/{$event->id}/register", ['user_id' => $target->id]);
+
+        $this->actingAs($familyMember)->get("/events/{$event->id}")->assertOk()->assertSee(route('events.cancel-registration', $event), false);
+        $this->actingAs($registrar)->get("/events/{$event->id}")->assertOk()->assertSee(route('events.cancel-registration', $event), false);
+        $this->actingAs($stranger)->get("/events/{$event->id}")->assertOk()->assertDontSee('name="user_id" value="'.$target->id.'"', false);
     }
 }

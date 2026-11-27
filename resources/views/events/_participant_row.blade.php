@@ -125,7 +125,7 @@
     @endif
     {{-- Cancel button for privileged users --}}
     @auth
-        @if(!$isCancelled && $isPrivileged && ($isNonMember || $reg->user_id !== auth()->id()))
+        @if(!$isCancelled && $reg->user_id !== auth()->id() && $reg->canBeCancelledBy(auth()->user(), $event))
             <form method="POST" action="{{ route('events.cancel-registration', $event) }}" class="mt-1" data-confirm="{{ __('Unregister :name?', ['name' => $reg->participantName()]) }}" data-confirm-style="warning" data-confirm-btn="{{ __('Confirm') }}">
                 @csrf
                 @if($isNonMember)
