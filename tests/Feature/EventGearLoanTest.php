@@ -8,6 +8,7 @@ use App\Jobs\SendGearLoanedEmail;
 use App\Jobs\SendGearReturnedEmail;
 use App\Models\Equipment;
 use App\Models\EquipmentLoan;
+use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Models\EventWeightLoan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +39,9 @@ class EventGearLoanTest extends TestCase
 
     private function registration(): EventRegistration
     {
-        return EventRegistration::factory()->create(['status' => 'confirmed']);
+        // Gear lending only applies to dive/trip events — pin the type so
+        // these tests aren't flaky against EventFactory's random default.
+        return EventRegistration::factory()->for(Event::factory()->state(['event_type' => 'dive']), 'event')->create(['status' => 'confirmed']);
     }
 
     public function test_lending_a_mixed_batch_creates_the_right_loans_and_flips_equipment_status(): void
@@ -298,5 +301,30 @@ class EventGearLoanTest extends TestCase
 
         $this->assertSame('on_loan', $tank->fresh()->status);
         $this->assertNull(EquipmentLoan::where('equipment_id', $tank->id)->first()->returned_at);
+    }
+
+    public function test_any_instructor_can_lend_gear_not_just_bureau(): void
+    {
+        $instructor = $this->createMemberUser();
+        $instructor->assignRole('instructor');
+        $reg = $this->registration();
+        $this->item('tank', '14');
+
+        $this->actingAs($instructor)->postJson(route('events.gear', $reg->event), [
+            'registration_id' => $reg->id,
+            'text' => 't14',
+        ])->assertOk();
+    }
+
+    public function test_gear_lending_is_blocked_outside_dive_and_trip_events_even_for_bureau(): void
+    {
+        $bureau = $this->createBureauUser();
+        $reg = EventRegistration::factory()->for(Event::factory()->state(['event_type' => 'social']), 'event')->create(['status' => 'confirmed']);
+        $this->item('tank', '14');
+
+        $this->actingAs($bureau)->postJson(route('events.gear', $reg->event), [
+            'registration_id' => $reg->id,
+            'text' => 't14',
+        ])->assertForbidden();
     }
 }

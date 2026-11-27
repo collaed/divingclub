@@ -14,7 +14,7 @@
             <div class="col-md-3 mb-3">
                 <label class="form-label">{{ __('Type') }} *</label>
                 <select name="event_type" id="eventType" class="form-select" required>
-                    @foreach(['pool','dive','training','theory','social'] as $t)
+                    @foreach(['pool','dive','training','theory','social','trip'] as $t)
                         <option value="{{ $t }}" {{ old('event_type', $event->event_type) === $t ? 'selected' : '' }}>{{ ucfirst($t) }}</option>
                     @endforeach
                 </select>

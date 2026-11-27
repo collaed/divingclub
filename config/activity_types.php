@@ -24,6 +24,7 @@ return [
     'fosse' => ['color' => '#00695c', 'text' => '#fff', 'icon' => '🕳️', 'label' => 'Fosse'],
     'quarry' => ['color' => '#00bcd4', 'text' => '#000', 'icon' => '🪨', 'label' => 'Quarry/Lake'],
     'long_trip' => ['color' => '#f9a825', 'text' => '#000', 'icon' => '✈️', 'label' => 'Long Trip'],
+    'trip' => ['color' => '#6a1b9a', 'text' => '#fff', 'icon' => '🚐', 'label' => 'Trip'],
     'theory' => ['color' => '#78909c', 'text' => '#fff', 'icon' => '📖', 'label' => 'Theory'],
     'social' => ['color' => '#e91e63', 'text' => '#fff', 'icon' => '🎉', 'label' => 'Social'],
     'closed' => ['color' => '#9e9e9e', 'text' => '#fff', 'icon' => '🚫', 'label' => 'Closed'],

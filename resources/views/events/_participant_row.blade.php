@@ -92,8 +92,9 @@
             </form>
         @endif
     </div>
-    {{-- Gear lending: tank/regulator/BCD/weights, bureau-only, quick-entry shorthand ("t14 r22 j36 2w") --}}
-    @if($isPrivileged && !$isCancelled && !$isNonMember)
+    {{-- Gear lending: tank/regulator/BCD/weights, quick-entry shorthand ("t14 r22 j36 2w") —
+         instructors/bureau only, and only on dive/trip events; irrelevant elsewhere. --}}
+    @if(in_array($event->event_type, ['dive', 'trip']) && ($isPrivileged || auth()->user()?->hasAnyRole(['instructor', 'instructor_apnea'])) && !$isCancelled && !$isNonMember)
         @php $gear = app(\App\Services\EventGearLoanService::class)->currentGear($reg); @endphp
         <div class="mt-1" data-gear-row data-registration-id="{{ $reg->id }}">
             <div data-gear-current>

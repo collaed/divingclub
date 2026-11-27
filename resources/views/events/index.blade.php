@@ -32,7 +32,7 @@
 
     {{-- Event type legend --}}
     <div class="mb-2 d-flex gap-3 flex-wrap small">
-        @foreach(['pool' => '#0077be', 'dive' => '#003366', 'training' => '#28a745', 'theory' => '#6f42c1', 'social' => '#ffc107'] as $type => $color)
+        @foreach(['pool' => '#0077be', 'dive' => '#003366', 'training' => '#28a745', 'theory' => '#6f42c1', 'social' => '#ffc107', 'trip' => '#6a1b9a'] as $type => $color)
             <span><span class="badge" style="background:{{ $color }}">⠀</span> {{ ucfirst($type) }}</span>
         @endforeach
     </div>

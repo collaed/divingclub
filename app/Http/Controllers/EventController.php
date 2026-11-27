@@ -288,10 +288,11 @@ class EventController extends Controller
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
-    /** Lend gear to one registration from the bureau's quick-entry shorthand ("t14 r22 j36 2w"). */
+    /** Lend gear to one registration from the quick-entry shorthand ("t14 r22 j36 2w"). Bureau or any instructor, dive/trip events only. */
     public function updateGear(UpdateEventGearRequest $request, Event $event): JsonResponse
     {
-        $this->authorizeBureau();
+        $allowed = auth()->user()->isBureau() || auth()->user()->hasAnyRole(['instructor', 'instructor_apnea']);
+        abort_unless($allowed && in_array($event->event_type, ['dive', 'trip']), 403);
         $reg = $event->registrations()->whereNotNull('user_id')->findOrFail($request->integer('registration_id'));
 
         $service = app(EventGearLoanService::class);
