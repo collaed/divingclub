@@ -61,9 +61,20 @@ class CertificationLevelSeeder extends Seeder
                 ['code' => 'Argent', 'name' => 'Jeune Plongeur Argent', 'category' => 'diver', 'rank' => 6, 'equivalence_group' => null],
                 ['code' => 'Or', 'name' => 'Jeune Plongeur Or', 'category' => 'diver', 'rank' => 8, 'equivalence_group' => null],
                 // Freediving (apnée) track — "ATP" is the sigle FFESSM itself
-                // prints next to this brevet on the club export.
-                ['code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'rank' => 4, 'equivalence_group' => null],
-                ['code' => 'APNEA_1', 'name' => 'Apnéiste / Indoor Freediver 1 CMAS', 'category' => 'diver', 'rank' => 15, 'equivalence_group' => null],
+                // prints next to this brevet on the club export. Ranked on
+                // their own scale (discipline: freediving), never compared
+                // against the scuba progression below.
+                ['code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'rank' => 4, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'APNEA_1', 'name' => 'Apnéiste / Indoor Freediver 1 CMAS', 'category' => 'diver', 'rank' => 15, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'AP', 'name' => 'Apnéiste Piscine', 'category' => 'diver', 'rank' => 300, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'ACP', 'name' => 'Apnéiste Confirmé Piscine', 'category' => 'diver', 'rank' => 310, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'AEL', 'name' => 'Apnéiste en Eau Libre', 'category' => 'diver', 'rank' => 320, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'ACEL', 'name' => 'Apnéiste Confirmé en Eau Libre', 'category' => 'diver', 'rank' => 330, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'AEEL', 'name' => 'Apnéiste Expert en Eau Libre', 'category' => 'diver', 'rank' => 340, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'IE1', 'name' => 'Initiateur Entraineur Apnée', 'category' => 'instructor', 'rank' => 350, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'IE2', 'name' => 'Initiateur Entraineur Apnée', 'category' => 'instructor', 'rank' => 360, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'MEF1', 'name' => 'Moniteur Entraîneur Fédéral 1 Apnée', 'category' => 'instructor', 'rank' => 370, 'equivalence_group' => null, 'discipline' => 'freediving'],
+                ['code' => 'MEF2', 'name' => 'Moniteur Entraîneur Fédéral 2 Apnée', 'category' => 'instructor', 'rank' => 380, 'equivalence_group' => null, 'discipline' => 'freediving'],
                 // Diver levels
                 ['code' => 'PE20', 'name' => 'Plongeur Encadré 20m', 'category' => 'diver', 'rank' => 10, 'equivalence_group' => 'cmas_1s'],
                 ['code' => 'N1', 'name' => 'Niveau 1 — Plongeur Encadré 20m', 'category' => 'diver', 'rank' => 20, 'equivalence_group' => 'cmas_1s'],

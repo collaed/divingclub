@@ -232,12 +232,95 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function certificationLevels(): BelongsToMany
     {
         return $this->belongsToMany(CertificationLevel::class, 'user_certification_levels')
-            ->withPivot('obtained_date', 'is_primary', 'display_priority')->withTimestamps();
+            ->withPivot('obtained_date', 'is_primary', 'is_primary_freediving', 'display_priority')->withTimestamps();
     }
 
+    /**
+     * The starred scuba-track cert, or — when none is starred but the
+     * member only holds one scuba cert — that one cert, so a member never
+     * shows as "unlevelled" just because nobody has clicked the star yet.
+     */
     public function primaryCertification(): ?CertificationLevel
     {
-        return $this->certificationLevels()->wherePivot('is_primary', true)->first();
+        $certs = $this->relationLoaded('certificationLevels') ? $this->certificationLevels : $this->certificationLevels()->get();
+        $starred = $certs->first(fn (CertificationLevel $c) => (bool) $c->pivot?->getAttribute('is_primary'));
+        if ($starred) {
+            return $starred;
+        }
+
+        $scuba = $certs->where('discipline', 'scuba')->where('category', '!=', 'specialty');
+
+        return $scuba->count() === 1 ? $scuba->first() : null;
+    }
+
+    /** Same idea as {@see primaryCertification()}, for the freediving track. */
+    public function primaryFreedivingCertification(): ?CertificationLevel
+    {
+        $certs = $this->relationLoaded('certificationLevels') ? $this->certificationLevels : $this->certificationLevels()->get();
+        $starred = $certs->first(fn (CertificationLevel $c) => (bool) $c->pivot?->getAttribute('is_primary_freediving'));
+        if ($starred) {
+            return $starred;
+        }
+
+        $freediving = $certs->where('discipline', 'freediving');
+
+        return $freediving->count() === 1 ? $freediving->first() : null;
+    }
+
+    /**
+     * Re-picks and stars the highest-rank cert in each track (scuba and
+     * freediving) independently — called after an import adds or updates
+     * this user's certifications. Never touches the other track's star,
+     * and only ever runs for users an import actually touched; a star set
+     * by hand elsewhere (ProfileCertificationController::setPrimary()) is
+     * left alone otherwise.
+     */
+    public function recomputeCertificationStars(): void
+    {
+        $certs = $this->certificationLevels()->get();
+
+        $this->restarTrack($certs->where('discipline', 'scuba')->where('category', '!=', 'specialty'), 'is_primary');
+        $this->restarTrack($certs->where('discipline', 'freediving'), 'is_primary_freediving');
+    }
+
+    /** @param  SupportCollection<int, CertificationLevel>  $candidates */
+    private function restarTrack(SupportCollection $candidates, string $column): void
+    {
+        if ($candidates->isEmpty()) {
+            return;
+        }
+
+        $top = $candidates->sortByDesc('rank')->first();
+        $this->certificationLevels()->newPivotQuery()
+            ->whereIn('certification_level_id', $candidates->pluck('id'))
+            ->update([$column => false]);
+        $this->certificationLevels()->updateExistingPivot($top->id, [$column => true]);
+    }
+
+    /**
+     * One-off backfill for members whose certs predate this star system:
+     * stars the highest-rank cert in each track, but only where nobody in
+     * that track is starred yet — never overrides an existing star, even
+     * one that isn't on the highest-rank cert.
+     */
+    public function backfillMissingCertificationStars(): void
+    {
+        $certs = $this->certificationLevels()->get();
+
+        $this->backfillTrack($certs->where('discipline', 'scuba')->where('category', '!=', 'specialty'), 'is_primary');
+        $this->backfillTrack($certs->where('discipline', 'freediving'), 'is_primary_freediving');
+    }
+
+    /** @param  SupportCollection<int, CertificationLevel>  $candidates */
+    private function backfillTrack(SupportCollection $candidates, string $column): void
+    {
+        $alreadyStarred = $candidates->contains(fn (CertificationLevel $c) => (bool) $c->pivot?->getAttribute($column));
+        if ($candidates->isEmpty() || $alreadyStarred) {
+            return;
+        }
+
+        $top = $candidates->sortByDesc('rank')->first();
+        $this->certificationLevels()->updateExistingPivot($top->id, [$column => true]);
     }
 
     public function isBureau(): bool

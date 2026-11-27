@@ -12,7 +12,21 @@
             </a>
         </td>
         <td data-label="{{ __('Name') }}"><a href="{{ route('members.profile', $m) }}" class="text-decoration-none text-body">{{ $m->detail?->first_name }} {{ $m->detail?->last_name }}</a></td>
-        <td data-label="{{ __('Level') }}">{{ $m->detail?->certification_level ?? '—' }}</td>
+        @php $scubaCert = $m->primaryCertification(); $freedivingCert = $m->primaryFreedivingCertification(); @endphp
+        <td data-label="{{ __('Scuba') }}">
+            @if($scubaCert)
+                <span class="badge bg-success">★</span> {{ $scubaCert->code }}
+            @else
+                —
+            @endif
+        </td>
+        <td data-label="{{ __('Freediving') }}">
+            @if($freedivingCert)
+                <span class="badge bg-info">★</span> {{ $freedivingCert->code }}
+            @else
+                —
+            @endif
+        </td>
         <td data-label="{{ __('Status') }}">{{ $m->status?->name ?? '—' }}</td>
         <td data-label="{{ __('Member Since') }}">{{ $m->detail?->adhesion_year ?? '—' }}</td>
     </tr>

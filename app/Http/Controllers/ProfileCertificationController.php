@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\CertificationLevel;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,12 +52,22 @@ class ProfileCertificationController extends Controller
         return back()->withInput(['tab' => 'diving'])->with('success', __('Certification updated.'));
     }
 
+    /**
+     * Stars a cert within its own track (scuba -> is_primary, freediving ->
+     * is_primary_freediving) without touching the other track's star — a
+     * member can have one starred scuba cert and one starred freediving
+     * cert at the same time.
+     */
     public function setPrimary(Request $request, int $certLevel): RedirectResponse
     {
         $target = $this->resolveTarget($request);
-        $target->certificationLevels()->newPivotQuery()->update(['is_primary' => false]);
+        $level = CertificationLevel::findOrFail($certLevel);
+        $column = $level->discipline === 'freediving' ? 'is_primary_freediving' : 'is_primary';
+        $sameTrackIds = CertificationLevel::where('discipline', $level->discipline)->pluck('id');
+
+        $target->certificationLevels()->newPivotQuery()->whereIn('certification_level_id', $sameTrackIds)->update([$column => false]);
         $target->certificationLevels()->updateExistingPivot($certLevel, [
-            'is_primary' => true,
+            $column => true,
             'display_priority' => DB::raw('display_priority + 1'),
         ]);
 

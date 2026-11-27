@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
-use App\Models\MemberDetail;
+use App\Models\CertificationLevel;
 use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
@@ -31,7 +32,7 @@ class MembersDirectoryController extends Controller
         // it also can't be bypassed by a crafted status_id in the URL.
         $inactiveIds = MemberStatus::inactiveIds();
 
-        $query = User::with(['detail', 'roles', 'status'])
+        $query = User::with(['detail', 'roles', 'status', 'certificationLevels'])
             ->whereHas('detail', fn ($q) => $q->whereNotNull('first_name'))
             ->where(function ($q) use ($inactiveIds): void {
                 $q->whereNull('status_id')->orWhereNotIn('status_id', $inactiveIds->all());
@@ -72,15 +73,19 @@ class MembersDirectoryController extends Controller
                 : $q->where('date_of_birth', '>', $cutoff));
         }
 
-        // Level filter: a level code (e.g. "N1") can live in either of two free-text
-        // fields depending on how the member's data was entered — the legacy scuba
-        // certification_level, or apnea_level for freediving — so it matches whichever
-        // one holds it, not a fixed vocabulary of "the right" field.
-        if ($request->filled('level')) {
-            $query->whereHas('detail', fn ($q) => $q->where('certification_level', $request->level)->orWhere('apnea_level', $request->level));
+        // Level filters: match a member's starred (highest) cert in each
+        // track, never "any cert ever held" — otherwise an instructor who
+        // also holds an old N1 from years ago would show up under a filter
+        // for beginners. A member with exactly one unstarred cert in a track
+        // counts as that cert (see User::primaryCertification()).
+        if ($request->filled('scuba_level_id')) {
+            $this->applyLevelFilter($query, (int) $request->scuba_level_id, 'scuba', 'is_primary');
+        }
+        if ($request->filled('freediving_level_id')) {
+            $this->applyLevelFilter($query, (int) $request->freediving_level_id, 'freediving', 'is_primary_freediving');
         }
 
-        $sortable = ['last_name', 'certification_level', 'adhesion_year'];
+        $sortable = ['last_name', 'adhesion_year'];
         $sort = in_array($request->sort, $sortable) ? $request->sort : 'last_name';
         $dir = $request->dir === 'desc' ? 'desc' : 'asc';
 
@@ -95,16 +100,50 @@ class MembersDirectoryController extends Controller
             return view('members._directory_rows', compact('members'));
         }
 
-        return view('members.directory', compact('members', 'statuses') + ['levels' => $this->levelOptions()]);
+        return view('members.directory', compact('members', 'statuses') + [
+            'scubaLevels' => $this->levelOptionsFor('scuba'),
+            'freedivingLevels' => $this->levelOptionsFor('freediving'),
+        ]);
     }
 
-    /** Every distinct level value in use, from either field, for the filter dropdown. */
-    private function levelOptions(): Collection
+    /**
+     * Matches a member if their starred (or, with nothing starred and only
+     * one eligible cert, their one) cert in this track is exactly $levelId.
+     */
+    private function applyLevelFilter(Builder $query, int $levelId, string $discipline, string $starColumn): void
     {
-        $scuba = MemberDetail::whereNotNull('certification_level')->distinct()->pluck('certification_level');
-        $apnea = MemberDetail::whereNotNull('apnea_level')->distinct()->pluck('apnea_level');
+        $trackConstraint = function (Builder $q) use ($discipline): void {
+            $q->where('discipline', $discipline);
+            if ($discipline === 'scuba') {
+                $q->where('category', '!=', 'specialty');
+            }
+        };
 
-        return $scuba->merge($apnea)->filter()->unique()->sort()->values();
+        $query->where(function (Builder $outer) use ($levelId, $trackConstraint, $starColumn): void {
+            $outer->whereHas('certificationLevels', function (Builder $q) use ($levelId, $starColumn): void {
+                $q->where('certification_levels.id', $levelId)->where('user_certification_levels.'.$starColumn, true);
+            })->orWhere(function (Builder $fallback) use ($levelId, $trackConstraint): void {
+                $fallback->whereHas('certificationLevels', $trackConstraint, '=', 1)
+                    ->whereHas('certificationLevels', function (Builder $q) use ($levelId, $trackConstraint): void {
+                        $trackConstraint($q);
+                        $q->where('certification_levels.id', $levelId);
+                    });
+            });
+        });
+    }
+
+    /** Certification levels for one track, grouped by federation acronym, for the filter dropdowns. */
+    private function levelOptionsFor(string $discipline): Collection
+    {
+        $query = CertificationLevel::where('discipline', $discipline)->with('federation');
+        if ($discipline === 'scuba') {
+            $query->where('category', '!=', 'specialty');
+        }
+
+        return $query->get()
+            ->sortBy('rank')
+            ->groupBy(fn (CertificationLevel $l) => $l->federation?->acronym ?? '—')
+            ->sortKeys();
     }
 
     public function trombinoscope(): View

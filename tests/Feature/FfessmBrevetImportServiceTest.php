@@ -37,8 +37,10 @@ class FfessmBrevetImportServiceTest extends TestCase
         $this->seedRoles();
         $this->ffessm = Federation::create(['acronym' => 'FFESSM', 'full_name' => 'FFESSM', 'visibility' => 'active']);
         CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'rank' => 20]);
+        CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'N2', 'name' => 'Niveau 2', 'category' => 'diver', 'rank' => 40]);
         CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'RIFAP', 'name' => 'RIFA Plongée', 'category' => 'specialty', 'rank' => 230]);
-        CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'rank' => 4]);
+        CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'discipline' => 'freediving', 'rank' => 4]);
+        CertificationLevel::create(['federation_id' => $this->ffessm->id, 'code' => 'APNEA_1', 'name' => 'Apnéiste / Indoor Freediver 1 CMAS', 'category' => 'diver', 'discipline' => 'freediving', 'rank' => 15]);
     }
 
     /** @param  array<int, array<int, mixed>>  $dataRows */
@@ -157,6 +159,49 @@ class FfessmBrevetImportServiceTest extends TestCase
         $user = User::whereHas('detail', fn ($q) => $q->where('first_name', 'Marco'))->firstOrFail();
         $this->assertNotNull($user->certificationLevels()->where('code', 'ATP')->first());
         @unlink($path);
+    }
+
+    public function test_import_stars_the_highest_ranked_cert_in_each_track_independently(): void
+    {
+        $user = $this->member('Pietro', 'Giancola');
+        $path = $this->makeXlsx([
+            ['06/05/2026', '07/05/2026', 'LUXEMBOURG', 'Niveau 1', 'Normal', '06', '06970240', 'CLUB EUROPEEN DE PLONGEE', 'A-26-1', 'Mr', 'GIANCOLA PIETRO', 'A-09-1', 'X Y'],
+            ['06/05/2026', '07/05/2026', 'LUXEMBOURG', 'Niveau 2', 'Normal', '06', '06970240', 'CLUB EUROPEEN DE PLONGEE', 'A-26-2', 'Mr', 'GIANCOLA PIETRO', 'A-09-1', 'X Y'],
+            ['06/05/2026', '07/05/2026', 'LUXEMBOURG', 'Pass Apnéiste', 'Normal', '06', '06970240', 'CLUB EUROPEEN DE PLONGEE', 'A-26-3', 'Mr', 'GIANCOLA PIETRO', 'A-09-1', 'X Y'],
+            ['06/05/2026', '07/05/2026', 'LUXEMBOURG', 'Apnéiste / Indoor Freediver 1 CMAS', 'Normal', '06', '06970240', 'CLUB EUROPEEN DE PLONGEE', 'A-26-4', 'Mr', 'GIANCOLA PIETRO', 'A-09-1', 'X Y'],
+        ]);
+
+        app(FfessmBrevetImportService::class)->import($path, 'test.xlsx');
+
+        $certs = $user->fresh()->certificationLevels;
+        $this->assertTrue((bool) $certs->firstWhere('code', 'N2')->pivot->is_primary);
+        $this->assertFalse((bool) $certs->firstWhere('code', 'N1')->pivot->is_primary);
+        $this->assertTrue((bool) $certs->firstWhere('code', 'APNEA_1')->pivot->is_primary_freediving);
+        $this->assertFalse((bool) $certs->firstWhere('code', 'ATP')->pivot->is_primary_freediving);
+        // Freediving never competes with scuba for the same star.
+        $this->assertFalse((bool) $certs->firstWhere('code', 'APNEA_1')->pivot->is_primary);
+        @unlink($path);
+    }
+
+    public function test_reimporting_a_later_row_updates_which_cert_is_starred(): void
+    {
+        $user = $this->member('Pietro', 'Giancola');
+        $path1 = $this->makeXlsx([
+            ['06/05/2026', '07/05/2026', 'LUXEMBOURG', 'Niveau 1', 'Normal', '06', '06970240', 'CLUB EUROPEEN DE PLONGEE', 'A-26-1', 'Mr', 'GIANCOLA PIETRO', 'A-09-1', 'X Y'],
+        ]);
+        app(FfessmBrevetImportService::class)->import($path1, 'test.xlsx');
+        @unlink($path1);
+        $this->assertTrue((bool) $user->fresh()->certificationLevels->firstWhere('code', 'N1')->pivot->is_primary);
+
+        $path2 = $this->makeXlsx([
+            ['06/05/2027', '07/05/2027', 'LUXEMBOURG', 'Niveau 2', 'Normal', '06', '06970240', 'CLUB EUROPEEN DE PLONGEE', 'A-27-2', 'Mr', 'GIANCOLA PIETRO', 'A-09-1', 'X Y'],
+        ]);
+        app(FfessmBrevetImportService::class)->import($path2, 'test.xlsx');
+        @unlink($path2);
+
+        $certs = $user->fresh()->certificationLevels;
+        $this->assertTrue((bool) $certs->firstWhere('code', 'N2')->pivot->is_primary);
+        $this->assertFalse((bool) $certs->firstWhere('code', 'N1')->pivot->is_primary);
     }
 
     public function test_an_unknown_name_is_reported_and_left_untouched(): void

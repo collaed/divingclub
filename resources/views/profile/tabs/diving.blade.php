@@ -145,8 +145,9 @@
                             </form>
                         </td>
                         <td>
-                            @if($cert->pivot->is_primary)
-                                <span class="badge bg-success">★</span>
+                            @php $starCol = $cert->discipline === 'freediving' ? 'is_primary_freediving' : 'is_primary'; @endphp
+                            @if($cert->pivot->{$starCol})
+                                <span class="badge {{ $cert->discipline === 'freediving' ? 'bg-info' : 'bg-success' }}" title="{{ $cert->discipline === 'freediving' ? __('Primary freediving level') : __('Primary scuba level') }}">★</span>
                             @else
                                 <form method="POST" action="{{ route('profile.cert.primary', $cert->id) }}" class="d-inline">
                                     @csrf

@@ -91,6 +91,23 @@ class ProfileCertificationTargetTest extends TestCase
         $this->assertFalse($target->fresh()->certificationLevels->contains($cert->id));
     }
 
+    public function test_setting_a_freediving_primary_does_not_clear_the_scuba_star_and_vice_versa(): void
+    {
+        $member = $this->member('diver@example.com');
+        $fed = Federation::create(['acronym' => 'FFESSM2', 'full_name' => 'FFESSM2', 'visibility' => 'active']);
+        $scuba = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'discipline' => 'scuba', 'rank' => 20]);
+        $freediving = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'discipline' => 'freediving', 'rank' => 4]);
+        $member->certificationLevels()->attach([$scuba->id => ['display_priority' => 0], $freediving->id => ['display_priority' => 0]]);
+
+        $this->actingAs($member)->post(route('profile.cert.primary', $scuba->id))->assertRedirect();
+        $this->actingAs($member)->post(route('profile.cert.primary', $freediving->id))->assertRedirect();
+
+        $this->assertTrue((bool) $member->certificationLevels()->find($scuba->id)->pivot->is_primary);
+        $this->assertTrue((bool) $member->certificationLevels()->find($freediving->id)->pivot->is_primary_freediving);
+        $this->assertFalse((bool) $member->certificationLevels()->find($freediving->id)->pivot->is_primary);
+        $this->assertFalse((bool) $member->certificationLevels()->find($scuba->id)->pivot->is_primary_freediving);
+    }
+
     public function test_a_regular_member_cannot_add_a_certification_to_someone_else(): void
     {
         $member = $this->member('me@example.com');

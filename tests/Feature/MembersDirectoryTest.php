@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\CertificationLevel;
+use App\Models\Federation;
 use App\Models\MemberStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -121,38 +123,95 @@ class MembersDirectoryTest extends TestCase
         $this->actingAs($viewer)->get(route('members.directory', ['age' => 'not-a-real-option']))->assertOk();
     }
 
-    public function test_the_level_filter_matches_either_the_scuba_or_the_apnea_field(): void
+    private function federation(): Federation
+    {
+        return Federation::create(['acronym' => 'FFESSM', 'full_name' => 'FFESSM', 'visibility' => 'active']);
+    }
+
+    public function test_the_scuba_level_filter_matches_a_members_starred_cert(): void
     {
         $viewer = $this->createMemberUser();
-        $scuba = $this->createMemberUser();
-        $scuba->detail->update(['certification_level' => 'N1']);
-        $apnea = $this->createMemberUser();
-        $apnea->detail->update(['apnea_level' => 'N1']);
-        $other = $this->createMemberUser();
-        $other->detail->update(['certification_level' => 'N2']);
+        $fed = $this->federation();
+        $n1 = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'rank' => 20]);
+        $n2 = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'N2', 'name' => 'Niveau 2', 'category' => 'diver', 'rank' => 40]);
 
-        $response = $this->actingAs($viewer)->get(route('members.directory', ['level' => 'N1']));
+        $starred = $this->createMemberUser();
+        $starred->certificationLevels()->attach($n1->id, ['is_primary' => true, 'display_priority' => 0]);
+        $other = $this->createMemberUser();
+        $other->certificationLevels()->attach($n2->id, ['is_primary' => true, 'display_priority' => 0]);
+
+        $response = $this->actingAs($viewer)->get(route('members.directory', ['scuba_level_id' => $n1->id]));
 
         $response->assertOk();
-        $this->assertTrue($response->viewData('members')->contains('id', $scuba->id));
-        $this->assertTrue($response->viewData('members')->contains('id', $apnea->id));
+        $this->assertTrue($response->viewData('members')->contains('id', $starred->id));
         $this->assertFalse($response->viewData('members')->contains('id', $other->id));
     }
 
-    public function test_the_level_options_list_is_the_union_of_both_fields_with_no_duplicates(): void
+    public function test_an_instructor_with_an_old_n1_does_not_show_under_the_n1_filter(): void
     {
         $viewer = $this->createMemberUser();
-        $a = $this->createMemberUser();
-        $a->detail->update(['certification_level' => 'N1']);
-        $b = $this->createMemberUser();
-        $b->detail->update(['apnea_level' => 'N1']); // same value as $a, in the other field — must appear once
-        $c = $this->createMemberUser();
-        $c->detail->update(['certification_level' => 'N2']);
+        $fed = $this->federation();
+        $n1 = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'rank' => 20]);
+        $e1 = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'E1', 'name' => 'Initiateur', 'category' => 'instructor', 'rank' => 100]);
+
+        $instructor = $this->createMemberUser();
+        $instructor->certificationLevels()->attach($n1->id, ['display_priority' => 0]);
+        $instructor->certificationLevels()->attach($e1->id, ['display_priority' => 0]);
+        $instructor->recomputeCertificationStars();
+
+        $response = $this->actingAs($viewer)->get(route('members.directory', ['scuba_level_id' => $n1->id]));
+
+        $response->assertOk();
+        $this->assertFalse($response->viewData('members')->contains('id', $instructor->id));
+    }
+
+    public function test_the_freediving_level_filter_is_independent_of_the_scuba_one(): void
+    {
+        $viewer = $this->createMemberUser();
+        $fed = $this->federation();
+        $n1 = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'rank' => 20]);
+        $atp = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'discipline' => 'freediving', 'rank' => 4]);
+
+        $member = $this->createMemberUser();
+        $member->certificationLevels()->attach($n1->id, ['is_primary' => true, 'display_priority' => 0]);
+        $member->certificationLevels()->attach($atp->id, ['is_primary_freediving' => true, 'display_priority' => 0]);
+
+        $response = $this->actingAs($viewer)->get(route('members.directory', ['freediving_level_id' => $atp->id]));
+
+        $response->assertOk();
+        $this->assertTrue($response->viewData('members')->contains('id', $member->id));
+    }
+
+    public function test_a_member_with_a_single_unstarred_scuba_cert_still_matches_the_filter(): void
+    {
+        $viewer = $this->createMemberUser();
+        $fed = $this->federation();
+        $n1 = CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'rank' => 20]);
+
+        $member = $this->createMemberUser();
+        $member->certificationLevels()->attach($n1->id, ['display_priority' => 0]);
+
+        $response = $this->actingAs($viewer)->get(route('members.directory', ['scuba_level_id' => $n1->id]));
+
+        $response->assertOk();
+        $this->assertTrue($response->viewData('members')->contains('id', $member->id));
+    }
+
+    public function test_the_level_options_are_grouped_by_federation(): void
+    {
+        $viewer = $this->createMemberUser();
+        $fed = $this->federation();
+        CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'N1', 'name' => 'Niveau 1', 'category' => 'diver', 'rank' => 20]);
+        CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'ATP', 'name' => 'Pass Apnéiste', 'category' => 'diver', 'discipline' => 'freediving', 'rank' => 4]);
+        CertificationLevel::create(['federation_id' => $fed->id, 'code' => 'NITROX', 'name' => 'Nitrox', 'category' => 'specialty', 'rank' => 200]);
 
         $response = $this->actingAs($viewer)->get(route('members.directory'));
 
         $response->assertOk();
-        $levels = $response->viewData('levels');
-        $this->assertSame(['N1', 'N2'], $levels->all());
+        $scubaLevels = $response->viewData('scubaLevels');
+        $freedivingLevels = $response->viewData('freedivingLevels');
+        $this->assertTrue($scubaLevels->get('FFESSM')->contains('code', 'N1'));
+        $this->assertFalse($scubaLevels->get('FFESSM')->contains('code', 'NITROX')); // specialty excluded
+        $this->assertTrue($freedivingLevels->get('FFESSM')->contains('code', 'ATP'));
     }
 }

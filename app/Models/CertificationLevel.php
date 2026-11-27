@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * @property int $id
@@ -15,14 +16,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $code
  * @property string|null $name
  * @property string|null $category
+ * @property string $discipline
  * @property string|null $rank
  * @property string|null $equivalence_group
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Pivot|null $pivot present when loaded via User::certificationLevels()
  */
 class CertificationLevel extends Model
 {
-    protected $fillable = ['federation_id', 'code', 'name', 'category', 'rank', 'equivalence_group'];
+    protected $fillable = ['federation_id', 'code', 'name', 'category', 'discipline', 'rank', 'equivalence_group'];
 
     /** @return BelongsTo<Federation, $this> */
     public function federation(): BelongsTo
@@ -33,7 +36,7 @@ class CertificationLevel extends Model
     /** @return BelongsToMany<User, $this> */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_certification_levels')->withPivot('obtained_date', 'is_primary', 'display_priority')->withTimestamps();
+        return $this->belongsToMany(User::class, 'user_certification_levels')->withPivot('obtained_date', 'is_primary', 'is_primary_freediving', 'display_priority')->withTimestamps();
     }
 
     // Get equivalent certs across federations

@@ -29,16 +29,32 @@
             </select>
         </div>
         <div class="col-md-2">
-            <select name="level" class="form-select form-select-sm" data-autosubmit>
-                <option value="">{{ __('All Levels') }}</option>
-                @foreach($levels as $l)
-                    <option value="{{ $l }}" {{ request('level') === $l ? 'selected' : '' }}>{{ $l }}</option>
+            <select name="scuba_level_id" class="form-select form-select-sm" data-autosubmit>
+                <option value="">{{ __('All Scuba Levels') }}</option>
+                @foreach($scubaLevels as $fedAcronym => $levelsForFed)
+                    <optgroup label="{{ $fedAcronym }}">
+                        @foreach($levelsForFed as $l)
+                            <option value="{{ $l->id }}" {{ (string) request('scuba_level_id') === (string) $l->id ? 'selected' : '' }}>{{ $l->code }}</option>
+                        @endforeach
+                    </optgroup>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="freediving_level_id" class="form-select form-select-sm" data-autosubmit>
+                <option value="">{{ __('All Freediving Levels') }}</option>
+                @foreach($freedivingLevels as $fedAcronym => $levelsForFed)
+                    <optgroup label="{{ $fedAcronym }}">
+                        @foreach($levelsForFed as $l)
+                            <option value="{{ $l->id }}" {{ (string) request('freediving_level_id') === (string) $l->id ? 'selected' : '' }}>{{ $l->code }}</option>
+                        @endforeach
+                    </optgroup>
                 @endforeach
             </select>
         </div>
         <div class="col-md-3">
             <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
-            @if(request()->hasAny(['search', 'status', 'instructor', 'age', 'level']))
+            @if(request()->hasAny(['search', 'status', 'instructor', 'age', 'scuba_level_id', 'freediving_level_id']))
                 <a href="{{ route('members.directory') }}" class="btn btn-sm btn-outline-secondary">✕</a>
             @endif
             <span class="text-muted small ms-2">{{ $members->total() }} {{ __('members') }}</span>
@@ -51,7 +67,8 @@
             <tr>
                 <th></th>
                 <th><x-sortable-th column="last_name" :label="__('Name')" /></th>
-                <th><x-sortable-th column="certification_level" :label="__('Level')" /></th>
+                <th>{{ __('Scuba') }}</th>
+                <th>{{ __('Freediving') }}</th>
                 <th>{{ __('Status') }}</th>
                 <th><x-sortable-th column="adhesion_year" :label="__('Member Since')" /></th>
             </tr>

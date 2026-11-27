@@ -86,6 +86,7 @@ class FfessmBrevetImportService
         $ambiguousNames = [];
         $unmatchedLevels = [];
         $processedRows = 0;
+        $touchedUserIds = [];
 
         foreach (array_slice($rows, $headerRow + 1) as $row) {
             $dateRaw = trim((string) ($row[0] ?? ''));
@@ -138,6 +139,7 @@ class FfessmBrevetImportService
                     ]);
                     $certsCreated++;
                 }
+                $touchedUserIds[$user->id] = true;
             }
 
             if ($licenceNumber !== '') {
@@ -147,6 +149,13 @@ class FfessmBrevetImportService
                 );
                 $licencesUpdated++;
             }
+        }
+
+        // Re-star each touched member's highest scuba and freediving certs —
+        // only for members this import actually changed, never anyone else's
+        // star left over from a manual choice.
+        foreach (array_keys($touchedUserIds) as $userId) {
+            User::find($userId)?->recomputeCertificationStars();
         }
 
         $result = [
