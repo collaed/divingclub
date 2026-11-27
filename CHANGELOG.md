@@ -5,6 +5,42 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-27 — prod at 392552a
+
+### New
+- New "trip" event type, alongside the existing "dive" type, with its own
+  colour in the calendar/legend/planner.
+- The event calendar's month view highlights today's cell with an
+  inverted, brand-colour background instead of just a small bold date
+  number; day cells got more breathing room, and on phones the grid now
+  stacks into full-width day cards with a weekday label.
+
+### Changed
+- "Email participants" is now offered to any instructor, not just
+  bureau or the event's own assigned instructor/assistants.
+- "show/hide cancelled" (and the cancelled list it reveals) on an
+  event's participant list is now visible to everyone, not privileged
+  users only.
+- Gear lending on an event's participant list is now shown and enforced
+  only on dive/trip events (previously bureau-only and shown regardless
+  of event type); it's now open to any instructor or bureau.
+
+### Fixed
+- An event's "Instructors" roster split followed a stale, never-updated
+  legacy role field; a member once promoted to instructor and later
+  demoted kept showing under "Instructors" forever. It now follows the
+  live role.
+- Unregistering someone else's registration had no authorization check
+  at all server-side, and the button only showed for bureau/the event's
+  own instructor. Now enforced and offered to: bureau, any instructor,
+  the event's own instructor/assistants, whoever registered that
+  participant, and their family/guardian.
+- The registration/cancellation audit line on an event's participant
+  list read generic "by :name" for both actions, making a
+  registered-then-unregistered history ambiguous. Now reads
+  "Registered by" / "Unregistered by" (French: "Inscrit par" /
+  "Désinscrit par").
+
 ## 2026-11-27 — prod at 0245efb
 
 ### New
