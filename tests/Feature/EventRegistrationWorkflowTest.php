@@ -280,4 +280,35 @@ class EventRegistrationWorkflowTest extends TestCase
         $this->actingAs($registrar)->get("/events/{$event->id}")->assertOk()->assertSee(route('events.cancel-registration', $event), false);
         $this->actingAs($stranger)->get("/events/{$event->id}")->assertOk()->assertDontSee('name="user_id" value="'.$target->id.'"', false);
     }
+
+    public function test_email_participants_is_offered_to_any_instructor_not_just_this_events_own(): void
+    {
+        $event = $this->event();
+        $participant = $this->member();
+        $this->actingAs($participant)->post("/events/{$event->id}/register");
+
+        $unrelatedInstructor = $this->member();
+        SpatieRole::findOrCreate('instructor', 'web');
+        $unrelatedInstructor->assignRole('instructor');
+        $plainMember = $this->member();
+
+        $this->actingAs($unrelatedInstructor)->get("/events/{$event->id}")->assertOk()->assertSee(__('Email participants'));
+        $this->actingAs($plainMember)->get("/events/{$event->id}")->assertOk()->assertDontSee(__('Email participants'));
+    }
+
+    public function test_show_hide_cancelled_is_offered_to_everyone_and_reveals_the_cancelled_list(): void
+    {
+        $event = $this->event();
+        $cancelledMember = $this->member();
+        $this->actingAs($cancelledMember)->post("/events/{$event->id}/register");
+        $this->actingAs($cancelledMember)->post("/events/{$event->id}/cancel-registration");
+
+        $plainMember = $this->member();
+
+        $response = $this->actingAs($plainMember)->get("/events/{$event->id}");
+
+        $response->assertOk();
+        $response->assertSee(__('show/hide cancelled'));
+        $response->assertSee($cancelledMember->detail->first_name);
+    }
 }

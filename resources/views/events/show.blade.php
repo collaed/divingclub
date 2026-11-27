@@ -395,11 +395,11 @@
                 <div class="card-header d-flex justify-content-between">
                     <span>{{ __('Participants') }} ({{ $confirmed->count() }}{{ $event->max_participants ? '/'.$event->max_participants : '' }})</span>
                     <div class="d-flex gap-2 align-items-center">
-                        @if($isPrivileged && $confirmed->count())
+                        @if(($isPrivileged || auth()->user()?->hasAnyRole(['instructor', 'instructor_apnea'])) && $confirmed->count())
                             @php $mailtoUrl = 'mailto:' . \App\Services\MailAliasService::eventMailto($event->id) . '?subject=' . rawurlencode($event->title); @endphp
                             <a href="{{ $mailtoUrl }}" class="btn btn-sm btn-outline-primary py-0">📧 {{ __('Email participants') }}</a>
                         @endif
-                        @if($cancelled->count() && $isPrivileged)
+                        @if($cancelled->count())
                             <a href="#" class="small" onclick="document.getElementById('cancelled-list').classList.toggle('d-none'); return false;">{{ __('show/hide cancelled') }}</a>
                         @endif
                     </div>
@@ -450,8 +450,8 @@
                         @endforeach
                         </ul>
                     @endif
-                    {{-- Cancelled (hidden by default, privileged only) --}}
-                    @if($cancelled->count() && $isPrivileged)
+                    {{-- Cancelled (hidden by default, now visible to everyone — toggled above) --}}
+                    @if($cancelled->count())
                         <div id="cancelled-list" class="d-none">
                             <div class="px-3 pt-2 pb-1"><small class="fw-bold text-danger">{{ __('Cancelled') }}</small></div>
                             <ul class="list-group list-group-flush">
