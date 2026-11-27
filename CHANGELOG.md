@@ -5,6 +5,45 @@ What reached production, newest first. Conventions are in
 
 ## Unreleased
 
+## 2026-11-27 — prod at 0245efb
+
+### New
+- Each member now gets a separate highest-level "star" for scuba and
+  freediving certifications, instead of one star shared across both —
+  the FFESSM brevets import keeps these up to date automatically.
+- The member directory's level filter now matches a member's starred
+  (highest) scuba or freediving level, with separate dropdowns for
+  each, instead of the old free-text level field. Dropdown options
+  only list levels someone in the active roster actually holds.
+- The member directory now shows an Age Category column (same age
+  brackets as the Age filter).
+
+### Changed
+- The member directory's "Status" column now shows nationality
+  instead, and the member-status filter was removed from the
+  directory page; the Age filter is now labeled "All Age Categories".
+- The FFESSM brevets import now recognizes "Pass Apnéiste" without its
+  "(ATP)" suffix, and its junior-diver/apnea-pass level codes were
+  aligned with the club's existing legacy codes.
+- Assigning a licence scan (manually or automatically) now also clears
+  any outstanding pending-renewal flag on that member.
+- A group alias now accepts a member's verified secondary address.
+
+### Data changes
+- A one-off backfill starred each member's highest-ranked scuba and
+  freediving certification where no star existed yet in that track —
+  it never overrode an existing star, even one that looked wrong.
+  Members with a star that looks misplaced were left untouched for
+  manual review.
+- The federation's apnea-pass level row was renamed from `APA` to
+  `ATP` to match the FFESSM export's own code.
+
+### Needs attention
+- A short list of members whose existing scuba/freediving star looks
+  like it's on the wrong level (not the highest they hold) was
+  identified before this deploy and needs a manual look — ask if you
+  want that list again.
+
 ## 2026-11-26 — prod at cca5c11
 
 ### Added
