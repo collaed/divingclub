@@ -30,7 +30,7 @@ class MembersDirectoryController extends Controller
         // here (this is not a filter that can be turned off — the admin
         // roster is the place to look up former members). Unconditional, so
         // it also can't be bypassed by a crafted status_id in the URL.
-        $query = $this->activeMembersQuery()->with(['detail', 'roles', 'status', 'certificationLevels']);
+        $query = $this->activeMembersQuery()->with(['detail', 'roles', 'certificationLevels']);
 
         // Text search
         if ($request->filled('search')) {

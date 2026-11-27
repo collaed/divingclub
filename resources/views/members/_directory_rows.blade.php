@@ -27,7 +27,7 @@
                 —
             @endif
         </td>
-        <td data-label="{{ __('Status') }}">{{ $m->status?->name ?? '—' }}</td>
+        <td data-label="{{ __('Nationality') }}">{{ $m->detail?->nationality ?? '—' }}</td>
         <td data-label="{{ __('Member Since') }}">{{ $m->detail?->adhesion_year ?? '—' }}</td>
     </tr>
 @endforeach

@@ -69,7 +69,7 @@
                 <th><x-sortable-th column="last_name" :label="__('Name')" /></th>
                 <th>{{ __('Scuba') }}</th>
                 <th>{{ __('Freediving') }}</th>
-                <th>{{ __('Status') }}</th>
+                <th>{{ __('Nationality') }}</th>
                 <th><x-sortable-th column="adhesion_year" :label="__('Member Since')" /></th>
             </tr>
         </thead>
