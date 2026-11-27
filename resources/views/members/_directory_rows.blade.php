@@ -28,6 +28,11 @@
             @endif
         </td>
         <td data-label="{{ __('Nationality') }}">{{ $m->detail?->nationality ?? '—' }}</td>
+        @php
+            $ageCategoryLabels = ['u12' => __('< 12'), 'u14' => __('< 14'), 'u16' => __('< 16'), 'u18' => __('< 18'), 'o18' => __('18 and over')];
+            $ageCategoryKey = $m->detail?->ageCategoryKey();
+        @endphp
+        <td data-label="{{ __('Age Category') }}">{{ $ageCategoryKey ? $ageCategoryLabels[$ageCategoryKey] : '—' }}</td>
         <td data-label="{{ __('Member Since') }}">{{ $m->detail?->adhesion_year ?? '—' }}</td>
     </tr>
 @endforeach

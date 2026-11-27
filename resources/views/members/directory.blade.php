@@ -6,14 +6,6 @@
             <input type="text" name="search" data-instant-search="members-table" class="form-control form-control-sm" placeholder="{{ __('Search by name…') }}" value="{{ request('search') }}">
         </div>
         <div class="col-md-2">
-            <select name="status" class="form-select form-select-sm" data-autosubmit>
-                <option value="">{{ __('All Statuses') }}</option>
-                @foreach($statuses as $st)
-                    <option value="{{ $st->id }}" {{ request('status') == $st->id ? 'selected' : '' }}>{{ $st->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-2">
             <select name="instructor" class="form-select form-select-sm" data-autosubmit>
                 <option value="">{{ __('All Members') }}</option>
                 <option value="1" {{ request('instructor') === '1' ? 'selected' : '' }}>{{ __('Instructors') }}</option>
@@ -22,7 +14,7 @@
         </div>
         <div class="col-md-2">
             <select name="age" class="form-select form-select-sm" data-autosubmit>
-                <option value="">{{ __('All Ages') }}</option>
+                <option value="">{{ __('All Age Categories') }}</option>
                 @foreach(['u12' => __('< 12'), 'u14' => __('< 14'), 'u16' => __('< 16'), 'u18' => __('< 18'), 'o18' => __('18 and over')] as $v => $l)
                     <option value="{{ $v }}" {{ request('age') === $v ? 'selected' : '' }}>{{ $l }}</option>
                 @endforeach
@@ -54,7 +46,7 @@
         </div>
         <div class="col-md-3">
             <button class="btn btn-sm btn-outline-primary">{{ __('Search') }}</button>
-            @if(request()->hasAny(['search', 'status', 'instructor', 'age', 'scuba_level_id', 'freediving_level_id']))
+            @if(request()->hasAny(['search', 'instructor', 'age', 'scuba_level_id', 'freediving_level_id']))
                 <a href="{{ route('members.directory') }}" class="btn btn-sm btn-outline-secondary">✕</a>
             @endif
             <span class="text-muted small ms-2">{{ $members->total() }} {{ __('members') }}</span>
@@ -70,6 +62,7 @@
                 <th>{{ __('Scuba') }}</th>
                 <th>{{ __('Freediving') }}</th>
                 <th>{{ __('Nationality') }}</th>
+                <th>{{ __('Age Category') }}</th>
                 <th><x-sortable-th column="adhesion_year" :label="__('Member Since')" /></th>
             </tr>
         </thead>

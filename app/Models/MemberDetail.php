@@ -100,4 +100,29 @@ class MemberDetail extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Age category option => cutoff in years from today. "o18" is the one
+     * "and over" option; the rest are "under" — matches the ages the club's
+     * own course levels and badges are gated at.
+     */
+    public const AGE_CATEGORIES = ['u12' => 12, 'u14' => 14, 'u16' => 16, 'u18' => 18, 'o18' => 18];
+
+    /** The narrowest age category key (see AGE_CATEGORIES) this member's date of birth falls into. */
+    public function ageCategoryKey(): ?string
+    {
+        if (! $this->date_of_birth) {
+            return null;
+        }
+
+        $age = $this->date_of_birth->age;
+
+        foreach (self::AGE_CATEGORIES as $key => $cutoff) {
+            if ($key !== 'o18' && $age < $cutoff) {
+                return $key;
+            }
+        }
+
+        return 'o18';
+    }
 }

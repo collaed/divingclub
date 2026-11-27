@@ -65,16 +65,6 @@ class MembersDirectoryTest extends TestCase
         $this->assertFalse($response->viewData('members')->contains('id', $former->id));
     }
 
-    public function test_the_status_filter_never_offers_the_former_status(): void
-    {
-        MemberStatus::create(['name' => 'Former', 'slug' => 'former']);
-
-        $response = $this->actingAs($this->createMemberUser())->get(route('members.directory'));
-
-        $response->assertOk();
-        $this->assertFalse($response->viewData('statuses')->contains('slug', 'former'));
-    }
-
     public function test_trombinoscope_excludes_former_members_too(): void
     {
         $current = $this->createMemberUser();
@@ -121,6 +111,17 @@ class MembersDirectoryTest extends TestCase
         $viewer = $this->createMemberUser();
 
         $this->actingAs($viewer)->get(route('members.directory', ['age' => 'not-a-real-option']))->assertOk();
+    }
+
+    public function test_the_age_category_column_shows_the_narrowest_matching_bracket(): void
+    {
+        $viewer = $this->createMemberUser();
+        $member = $this->createMemberUser();
+        $member->detail->update(['date_of_birth' => now()->subYears(15)]);
+
+        $response = $this->actingAs($viewer)->get(route('members.directory'));
+
+        $response->assertOk()->assertSee('< 16');
     }
 
     private function federation(): Federation

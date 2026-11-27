@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\PaginatesFromRequest;
 use App\Models\CertificationLevel;
+use App\Models\MemberDetail;
 use App\Models\MemberStatus;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -17,9 +18,6 @@ use Illuminate\Support\Collection;
 class MembersDirectoryController extends Controller
 {
     use PaginatesFromRequest;
-
-    /** Age filter option => cutoff in years from today. "o18" is the one "and over" option; the rest are "under". */
-    private const AGE_FILTERS = ['u12' => 12, 'u14' => 14, 'u16' => 16, 'u18' => 18, 'o18' => 18];
 
     public function directory(Request $request): View|Response
     {
@@ -41,13 +39,6 @@ class MembersDirectoryController extends Controller
             }));
         }
 
-        // Status filter narrows within current members only. "active" is a
-        // legacy virtual value from bookmarked links — same as no filter now
-        // that former members are always excluded above.
-        if ($request->filled('status') && $request->status !== 'active') {
-            $query->where('status_id', $request->status);
-        }
-
         // Instructor filter
         if ($request->filled('instructor')) {
             if ($request->instructor === '1') {
@@ -60,8 +51,8 @@ class MembersDirectoryController extends Controller
         // Age filter: each option is its own "under N" / "18 and over" threshold
         // (not a partition into disjoint brackets) — matches the ages the
         // club's own course levels and badges are gated at.
-        if ($request->filled('age') && array_key_exists($request->age, self::AGE_FILTERS)) {
-            $cutoff = now()->subYears(self::AGE_FILTERS[$request->age])->format('Y-m-d');
+        if ($request->filled('age') && array_key_exists($request->age, MemberDetail::AGE_CATEGORIES)) {
+            $cutoff = now()->subYears(MemberDetail::AGE_CATEGORIES[$request->age])->format('Y-m-d');
             $query->whereHas('detail', fn ($q) => $request->age === 'o18'
                 ? $q->where('date_of_birth', '<=', $cutoff)
                 : $q->where('date_of_birth', '>', $cutoff));
@@ -88,7 +79,6 @@ class MembersDirectoryController extends Controller
             ->select('users.*');
 
         $members = $query->paginate($this->perPage(50))->withQueryString();
-        $statuses = MemberStatus::whereNotIn('slug', MemberStatus::inactiveSlugs())->orderBy('name')->get();
 
         if ($request->ajax()) {
             return view('members._directory_rows', compact('members'));
@@ -96,7 +86,7 @@ class MembersDirectoryController extends Controller
 
         $representedIds = $this->representedLevelIds();
 
-        return view('members.directory', compact('members', 'statuses') + [
+        return view('members.directory', compact('members') + [
             'scubaLevels' => $this->levelOptionsFor('scuba', $representedIds['scuba']),
             'freedivingLevels' => $this->levelOptionsFor('freediving', $representedIds['freediving']),
         ]);
